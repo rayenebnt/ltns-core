@@ -24,3 +24,6 @@ pnpm-debug.log*
 .env
 .env.local
 .env.*.local
+
+# Windows Zone.Identifier
+*:Zone.Identifier
