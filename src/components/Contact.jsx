@@ -37,7 +37,7 @@ export default function Contact() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>06</b><span className="sep">//</span> CONTACT
+            <b>05</b><span className="sep">//</span> CONTACT
           </span>
           <h2 className="section-title">Au <em>contact</em>.</h2>
           <p className="section-intro">

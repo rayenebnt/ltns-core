@@ -47,7 +47,6 @@ export default function Nav() {
         <ul className="nav-links">
           <li><a href="#services">services</a></li>
           <li><a href="#process">process</a></li>
-          <li><a href="#tarifs">tarifs</a></li>
           <li><a href="#faq">faq</a></li>
         </ul>
         <a href="#contact" className="nav-cta">Devis<span className="arrow">→</span></a>

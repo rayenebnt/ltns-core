@@ -29,7 +29,6 @@ export default function Footer() {
         <div className="footer-meta">
           <a href="#services">SERVICES</a>
           <a href="#process">PROCESS</a>
-          <a href="#tarifs">TARIFS</a>
           <a href="#faq">FAQ</a>
           <a href="#contact">CONTACT</a>
         </div>

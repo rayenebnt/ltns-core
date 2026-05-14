@@ -55,7 +55,7 @@ export default function Faq() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>05</b><span className="sep">//</span> QUESTIONS
+            <b>04</b><span className="sep">//</span> QUESTIONS
           </span>
           <h2 className="section-title">FAQ <em>· lecture rapide</em>.</h2>
           <p className="section-intro">
