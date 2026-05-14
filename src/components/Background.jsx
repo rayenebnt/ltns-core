@@ -1,164 +1,148 @@
 import { useEffect, useRef } from 'react'
-import * as THREE from 'three'
 
+// Fond instrument : grille fine + courbe thermique animée qui scroll avec la page.
+// Léger (canvas 2D), pas de Three.js — la "vraie" identité visuelle est ailleurs.
 export default function Background() {
   const ref = useRef(null)
 
   useEffect(() => {
     const canvas = ref.current
     if (!canvas) return
+    const ctx = canvas.getContext('2d')
 
-    const mobile = window.innerWidth < 768
-    let W = window.innerWidth
-    let H = window.innerHeight
-
-    // ── Scene ──
-    const scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0x0a0a0f, mobile ? 0.022 : 0.015)
-
-    const cam = new THREE.PerspectiveCamera(65, W / H, 0.1, 300)
-    cam.position.set(0, 3.5, 20)
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: false,
-      alpha: false,
-      powerPreference: 'low-power',
-    })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1 : 1.5))
-    renderer.setSize(W, H)
-    renderer.setClearColor(0x0a0a0f, 1)
-
-    const disposables = []
-
-    // ── Grid ──
-    const COLS = mobile ? 10 : 22
-    const ROWS = mobile ? 20 : 50
-    const GW = 80
-    const GD = 180
-
-    const majorPos = []
-    const minorPos = []
-
-    for (let i = 0; i <= COLS; i++) {
-      const x = -GW / 2 + (i / COLS) * GW
-      const bucket = i % 4 === 0 ? majorPos : minorPos
-      bucket.push(x, 0, 2, x, 0, -GD)
-    }
-    for (let j = 0; j <= ROWS; j++) {
-      const z = -(j / ROWS) * GD
-      const bucket = j % 5 === 0 ? majorPos : minorPos
-      bucket.push(-GW / 2, 0, z, GW / 2, 0, z)
-    }
-
-    const makeSeg = (flat, opacity) => {
-      const geo = new THREE.BufferGeometry()
-      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(flat), 3))
-      const mat = new THREE.LineBasicMaterial({
-        color: 0xa855f7,
-        transparent: true,
-        opacity,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      })
-      disposables.push(geo, mat)
-      return new THREE.LineSegments(geo, mat)
-    }
-
-    const grid = new THREE.Group()
-    grid.position.y = -3
-    grid.add(makeSeg(majorPos, 0.28))
-    grid.add(makeSeg(minorPos, 0.09))
-    scene.add(grid)
-
-    // ── Particles ──
-    const PCNT = mobile ? 300 : 900
-    const pPos = new Float32Array(PCNT * 3)
-    for (let i = 0; i < PCNT; i++) {
-      pPos[i * 3]     = (Math.random() - 0.5) * 70
-      pPos[i * 3 + 1] = (Math.random() - 0.5) * 20 + 2
-      pPos[i * 3 + 2] = -Math.random() * GD
-    }
-    const pGeo = new THREE.BufferGeometry()
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
-    const pMat = new THREE.PointsMaterial({
-      color: 0xb070f7,
-      size: mobile ? 0.05 : 0.09,
-      transparent: true,
-      opacity: 0.55,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    })
-    scene.add(new THREE.Points(pGeo, pMat))
-    disposables.push(pGeo, pMat)
-
-    // ── Fog color stops per scroll progress ──
-    const fogStart = new THREE.Color(0x0a0a0f)
-    const fogMid   = new THREE.Color(0x090a12)
-    const fogEnd   = new THREE.Color(0x0a080e)
-    const fogColor = new THREE.Color()
-
-    // ── Scroll ──
+    let W = 0, H = 0, dpr = 1
+    let raf = 0
     let progress = 0
+    let t = 0
+
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      W = window.innerWidth
+      H = window.innerHeight
+      canvas.width = W * dpr
+      canvas.height = H * dpr
+      canvas.style.width = W + 'px'
+      canvas.style.height = H + 'px'
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight
       progress = max > 0 ? window.scrollY / max : 0
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
 
-    // ── Animate ──
-    let raf
-    let t = 0
-    let camZ = 20
-    const Z0 = 20
-    const Z1 = -120
+    const readAccent = () => {
+      const rgb = getComputedStyle(document.documentElement)
+        .getPropertyValue('--accent-rgb').trim() || '77, 208, 225'
+      return rgb
+    }
 
-    const tick = () => {
-      raf = requestAnimationFrame(tick)
-      t += 0.004
+    const draw = () => {
+      raf = requestAnimationFrame(draw)
+      t += 0.012
 
-      // Scroll-driven camera flythrough
-      camZ += (Z0 + progress * (Z1 - Z0) - camZ) * 0.04
-      cam.position.z = camZ
+      ctx.clearRect(0, 0, W, H)
 
-      // Subtle organic sway
-      cam.position.x = Math.sin(t * 0.22) * 0.9
-      cam.position.y = 3.5 + Math.sin(t * 0.17) * 0.5
+      // Fond
+      ctx.fillStyle = '#0a0a0c'
+      ctx.fillRect(0, 0, W, H)
 
-      cam.lookAt(cam.position.x * 0.2, -0.8, camZ - 28)
-
-      // Grid gentle drift
-      grid.rotation.y = Math.sin(t * 0.11) * 0.04
-
-      // Fog color shift with scroll
-      if (progress < 0.5) {
-        fogColor.lerpColors(fogStart, fogMid, progress * 2)
-      } else {
-        fogColor.lerpColors(fogMid, fogEnd, (progress - 0.5) * 2)
+      // Grille principale (carrés ~80px)
+      const cell = 80
+      ctx.strokeStyle = 'rgba(255,255,255,0.025)'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      for (let x = 0; x <= W; x += cell) {
+        ctx.moveTo(x + 0.5, 0)
+        ctx.lineTo(x + 0.5, H)
       }
-      scene.fog.color.copy(fogColor)
-      renderer.setClearColor(fogColor, 1)
+      for (let y = 0; y <= H; y += cell) {
+        ctx.moveTo(0, y + 0.5)
+        ctx.lineTo(W, y + 0.5)
+      }
+      ctx.stroke()
 
-      renderer.render(scene, cam)
-    }
-    tick()
+      // Grille fine (subdivisions)
+      ctx.strokeStyle = 'rgba(255,255,255,0.012)'
+      ctx.beginPath()
+      const sub = cell / 4
+      for (let x = 0; x <= W; x += sub) {
+        ctx.moveTo(x + 0.5, 0)
+        ctx.lineTo(x + 0.5, H)
+      }
+      for (let y = 0; y <= H; y += sub) {
+        ctx.moveTo(0, y + 0.5)
+        ctx.lineTo(W, y + 0.5)
+      }
+      ctx.stroke()
 
-    // ── Resize ──
-    const onResize = () => {
-      W = window.innerWidth
-      H = window.innerHeight
-      cam.aspect = W / H
-      cam.updateProjectionMatrix()
-      renderer.setSize(W, H)
+      // Repères majeurs (lignes horizontales bleutées, plus marquées en bas du viewport)
+      const accent = readAccent()
+      ctx.strokeStyle = `rgba(${accent}, 0.07)`
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(0, H * 0.5 + 0.5)
+      ctx.lineTo(W, H * 0.5 + 0.5)
+      ctx.stroke()
+
+      // Courbe thermique : sinus modulé qui se "chauffe" avec le scroll
+      const amp = 18 + progress * 50
+      const freq = 0.006
+      const baseY = H * 0.5
+      const points = 220
+
+      // Glow externe
+      ctx.strokeStyle = `rgba(${accent}, 0.35)`
+      ctx.lineWidth = 1.2
+      ctx.shadowColor = `rgba(${accent}, 0.8)`
+      ctx.shadowBlur = 14
+      ctx.beginPath()
+      for (let i = 0; i <= points; i++) {
+        const x = (i / points) * W
+        const y = baseY +
+          Math.sin(x * freq + t) * amp * 0.6 +
+          Math.sin(x * freq * 2.3 - t * 0.7) * amp * 0.25 +
+          Math.cos(x * freq * 0.4 + t * 0.4) * amp * 0.3
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+      ctx.shadowBlur = 0
+
+      // Pointillé central (axe)
+      ctx.strokeStyle = `rgba(${accent}, 0.12)`
+      ctx.setLineDash([2, 8])
+      ctx.beginPath()
+      ctx.moveTo(0, baseY + 0.5)
+      ctx.lineTo(W, baseY + 0.5)
+      ctx.stroke()
+      ctx.setLineDash([])
+
+      // Marqueurs verticaux gauche/droite (style instrument)
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'
+      ctx.fillStyle = 'rgba(255,255,255,0.18)'
+      ctx.font = '9px JetBrains Mono, monospace'
+      const margin = 18
+      const ticks = 8
+      for (let i = 0; i <= ticks; i++) {
+        const y = (i / ticks) * H
+        ctx.beginPath()
+        ctx.moveTo(margin, y + 0.5)
+        ctx.lineTo(margin + 6, y + 0.5)
+        ctx.stroke()
+      }
     }
-    window.addEventListener('resize', onResize)
+
+    resize()
+    onScroll()
+    draw()
+    window.addEventListener('resize', resize)
+    window.addEventListener('scroll', onScroll, { passive: true })
 
     return () => {
       cancelAnimationFrame(raf)
+      window.removeEventListener('resize', resize)
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-      disposables.forEach(d => d.dispose())
-      renderer.dispose()
     }
   }, [])
 
@@ -169,9 +153,7 @@ export default function Background() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
-        width: '100%',
-        height: '100%',
+        zIndex: 0,
         pointerEvents: 'none',
         display: 'block',
       }}

@@ -7,10 +7,21 @@ import Hero from './components/Hero'
 import Pourquoi from './components/Pourquoi'
 import Services from './components/Services'
 import Process from './components/Process'
+import Tarifs from './components/Tarifs'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import useReveal from './hooks/useReveal'
+import useThermal from './hooks/useThermal'
+
+function ThermalRail() {
+  return (
+    <>
+      <div className="thermal-rail" aria-hidden="true"></div>
+      <div className="thermal-rail-label" aria-hidden="true">CHAUFFE</div>
+    </>
+  )
+}
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
@@ -20,19 +31,21 @@ export default function App() {
     return () => clearTimeout(t)
   }, [])
 
-  // Active les reveal au scroll après le loader
   useReveal(loaded)
+  useThermal()
 
   return (
     <>
       <Background />
       <Loader done={loaded} />
       <Cursor />
+      <ThermalRail />
       <Nav />
       <Hero loaded={loaded} />
       <Pourquoi />
       <Services />
       <Process />
+      <Tarifs />
       <Faq />
       <Contact />
       <Footer />
