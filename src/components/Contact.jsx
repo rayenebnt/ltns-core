@@ -104,10 +104,10 @@ export default function Contact() {
             <div className="field">
               <label htmlFor="budget"><span>BUDGET ESTIMÉ</span><span className="ch">→</span></label>
               <select id="budget" name="budget">
-                <option>Moins de 1 000€</option>
+                <option>Moins de 500€</option>
+                <option>500 — 1 000€</option>
                 <option>1 000 — 3 000€</option>
-                <option>3 000 — 8 000€</option>
-                <option>8 000€ et +</option>
+                <option>3 000€ et +</option>
                 <option>Je ne sais pas encore</option>
               </select>
             </div>

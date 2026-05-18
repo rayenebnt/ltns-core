@@ -70,9 +70,9 @@ export default function Hero({ loaded }) {
           <span className="line r"><span>DEGRÉ<span className="deg-mark">°</span></span></span>
         </h1>
         <p className="hero-sub">
-          LTNS<span className="deg-mark" style={{ color: 'var(--accent)' }}>°</span> — Sites, logiciels et applications mobiles taillés pour
-          particuliers et professionnels. <b>Calibrés au bon degré.</b> Pas de template,
-          pas d'à-peu-près — chaque ligne est réglée à la main.
+          LTNS<span className="deg-mark" style={{ color: 'var(--accent)' }}>°</span> — Sites, logiciels et applications mobiles au niveau des grandes agences,
+          à des tarifs pensés pour les vrais budgets. <b>Pas de template, pas d'à-peu-près</b> —
+          chaque ligne est réglée à la main.
         </p>
         <div className="hero-ctas">
           <a href="#services" className="btn btn-primary">

@@ -3,7 +3,7 @@ const items = [
     num: '01',
     label: 'CALIBRAGE',
     title: 'Prix justes',
-    desc: 'Devis gratuit, tarifs transparents, zéro frais caché. Vous savez exactement ce que vous payez avant de vous engager.',
+    desc: 'Des livrables pro à des tarifs pensés pour les petits budgets. Devis gratuit, zéro frais caché — vous savez ce que vous payez avant de signer.',
     fill: 96,
     metric: 'CLARTÉ'
   },
@@ -43,8 +43,8 @@ export default function Pourquoi() {
           </span>
           <h2 className="section-title">Un freelance,<br/><em>quatre engagements</em>.</h2>
           <p className="section-intro">
-            Des sites, logiciels et applications qui rivalisent avec les grandes agences —
-            avec le suivi et la réactivité d'un seul interlocuteur.
+            La qualité des grandes agences, sans leurs tarifs. Un seul interlocuteur,
+            des livrables propres, des prix accessibles — sans compromis sur le résultat.
           </p>
         </div>
         <div className="section-temp">
