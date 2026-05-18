@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" aria-label="LTNS° wordmark (dark theme)">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;display=swap');
+      .ltns-word {
+        font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 200px;
+        letter-spacing: -10px;
+        fill: #ece9e2;
+      }
+    </style>
+    <filter id="glow-d" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <text x="20" y="190" class="ltns-word">LTNS</text>
+  <g transform="translate(540, 50)" filter="url(#glow-d)">
+    <rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/>
+    <circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" aria-label="LTNS° wordmark">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&amp;display=swap');
+      .ltns-word {
+        font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 200px;
+        letter-spacing: -10px;
+        fill: currentColor;
+      }
+    </style>
+  </defs>
+  <text x="20" y="190" class="ltns-word">LTNS</text>
+  <!-- Mark à la fin, baseline aligned, taille = cap-height ~140 -->
+  <g transform="translate(540, 50)">
+    <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+    <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10" fill="none"/>
+  </g>
+</svg>

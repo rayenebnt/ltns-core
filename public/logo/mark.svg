@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" aria-label="LTNS mark">
+  <!-- Indicateur (tick au-dessus du cadran) -->
+  <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+  <!-- Cadran / dial -->
+  <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+</svg>

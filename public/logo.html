@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LTNS° — Brand Identity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --bg-light: #efece5;
+      --bg-2: #14141a;
+      --fg: #ece9e2;
+      --fg-dark: #0a0a0c;
+      --fg-mute: #6e6e7a;
+      --accent: #a855f7;
+      --line: rgba(255, 255, 255, 0.10);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter Tight', system-ui, sans-serif;
+      font-weight: 400;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 80px 32px 120px;
+    }
+
+    header.head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 64px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--fg-mute);
+    }
+    header.head h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--fg);
+      text-transform: none;
+    }
+    header.head .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      margin-left: 4px;
+      vertical-align: baseline;
+      border-radius: 50%;
+    }
+
+    .section {
+      margin-bottom: 96px;
+    }
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-label::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+      line-height: 1.05;
+    }
+    .section-intro {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--fg-mute);
+      max-width: 60ch;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+
+    /* ============ Showcase canvases ============ */
+    .canvas {
+      position: relative;
+      border: 1px solid var(--line);
+      padding: 80px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 360px;
+      overflow: hidden;
+    }
+    .canvas.dark { background: var(--bg); color: var(--fg); }
+    .canvas.light { background: var(--bg-light); color: var(--fg-dark); }
+    .canvas.accent { background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%); color: #ece9e2; }
+
+    .canvas .label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.5;
+    }
+    .canvas .download {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      text-decoration: none;
+      color: inherit;
+      opacity: 0.5;
+      padding: 4px 8px;
+      border: 1px solid currentColor;
+      transition: opacity 0.2s, background 0.2s, color 0.2s;
+    }
+    .canvas .download:hover {
+      opacity: 1;
+      background: currentColor;
+    }
+    .canvas .download:hover { color: var(--bg); }
+    .canvas.light .download:hover { color: var(--bg-light); }
+    .canvas .download::before { content: '↓ '; }
+
+    .canvas img, .canvas svg {
+      max-width: 80%;
+      max-height: 240px;
+      height: auto;
+    }
+    .canvas .mark-display { width: 140px; }
+    .canvas .word-display { width: 480px; max-width: 80%; }
+    .canvas .full-display { width: 520px; max-width: 80%; }
+
+    /* Mini sizes row */
+    .sizes {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      border: 1px solid var(--line);
+    }
+    .sizes .cell {
+      padding: 24px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      border-right: 1px solid var(--line);
+      min-height: 160px;
+      gap: 14px;
+    }
+    .sizes .cell:last-child { border-right: none; }
+    .sizes .cell .icon { color: var(--fg); display: flex; align-items: center; justify-content: center; }
+    .sizes .cell .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--fg-mute);
+      text-align: center;
+    }
+    .sizes .cell .label b { color: var(--fg); font-weight: 500; }
+
+    /* Grid for variants */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 540px) { .grid-3 { grid-template-columns: 1fr; } }
+
+    /* Specs */
+    .specs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--line);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    @media (max-width: 720px) { .specs { grid-template-columns: 1fr; } }
+    .specs .spec {
+      padding: 28px 24px;
+      border-right: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--fg-mute);
+    }
+    .specs .spec:last-child { border-right: none; }
+    .specs .spec h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .specs .spec .big {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .specs .spec p { line-height: 1.6; }
+
+    .colors {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 720px) { .colors { grid-template-columns: 1fr 1fr; } }
+    .color {
+      border: 1px solid var(--line);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .color .swatch {
+      aspect-ratio: 1.6 / 1;
+      border: 1px solid var(--line);
+    }
+    .color .info {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1.7;
+      color: var(--fg-mute);
+    }
+    .color .info b { color: var(--fg); display: block; font-weight: 500; font-size: 13px; }
+
+    .rules-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    @media (max-width: 720px) { .rules-list { grid-template-columns: 1fr; } }
+    .rule {
+      padding: 24px;
+      background: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--fg-mute);
+      line-height: 1.7;
+    }
+    .rule h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--fg);
+      margin-bottom: 10px;
+    }
+    .rule.do h4::before { content: '✓ '; color: #39ff14; }
+    .rule.dont h4::before { content: '✗ '; color: #ff4444; }
+
+    footer {
+      margin-top: 80px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--fg-mute);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="head">
+    <h1>LTNS<span class="dot"></span> Brand Identity</h1>
+    <span>v1.0 · 2026</span>
+  </header>
+
+  <!-- ============ MARK ============ -->
+  <section class="section">
+    <span class="section-label">01 — Mark</span>
+    <h2 class="section-title">Le mark.</h2>
+    <p class="section-intro">
+      Le symbole identitaire de LTNS<span style="color:var(--accent)">°</span>. Un cadran surmonté d'un indicateur :
+      l'instrument est <b>calibré</b>. C'est la métaphore du bon degré, rendue en un signe minimal.
+      Utilisable seul en favicon, avatar, watermark, tampon.
+    </p>
+
+    <div class="grid-3">
+      <div class="canvas dark">
+        <span class="label">Mono / Dark</span>
+        <a class="download" href="logo/mark.svg" download>SVG</a>
+        <div class="mark-display">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:#ece9e2">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+      </div>
+      <div class="canvas light">
+        <span class="label">Mono / Light</span>
+        <a class="download" href="logo/mark.svg" download>SVG</a>
+        <div class="mark-display">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:#0a0a0c">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+      </div>
+      <div class="canvas dark">
+        <span class="label">Accent / Glow</span>
+        <a class="download" href="logo/mark-accent.svg" download>SVG</a>
+        <div class="mark-display">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="g1" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <g filter="url(#g1)">
+              <rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/>
+              <circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WORDMARK ============ -->
+  <section class="section">
+    <span class="section-label">02 — Wordmark</span>
+    <h2 class="section-title">Le wordmark.</h2>
+    <p class="section-intro">
+      Space Grotesk Bold pour LTNS, hyper-tracking négatif, et le mark utilisé comme °.
+      Le bloc principal qu'on retrouve dans la nav du site, sur l'affiche, en signature email.
+    </p>
+
+    <div class="grid-2">
+      <div class="canvas dark">
+        <span class="label">Cream sur dark · primaire</span>
+        <a class="download" href="logo/wordmark-dark.svg" download>SVG</a>
+        <div class="word-display">
+          <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+            <text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="#ece9e2">LTNS</text>
+            <g transform="translate(540, 50)">
+              <rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/>
+              <circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="canvas light">
+        <span class="label">Noir sur clair</span>
+        <a class="download" href="logo/wordmark-light.svg" download>SVG</a>
+        <div class="word-display">
+          <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+            <text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="#0a0a0c">LTNS</text>
+            <g transform="translate(540, 50)">
+              <rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/>
+              <circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FULL ============ -->
+  <section class="section">
+    <span class="section-label">03 — Full identity</span>
+    <h2 class="section-title">L'identité complète.</h2>
+    <p class="section-intro">
+      Wordmark + filet de séparation + tagline en mono. À utiliser à l'ouverture d'un document,
+      sur la couverture d'un devis, en haut d'un email pro, sur les CGV.
+    </p>
+
+    <div class="canvas dark" style="min-height:440px">
+      <span class="label">Lockup complet</span>
+      <a class="download" href="logo/full.svg" download>SVG</a>
+      <div class="full-display">
+        <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" style="color:#ece9e2">
+          <line x1="20" y1="240" x2="700" y2="240" stroke="currentColor" stroke-opacity="0.2" stroke-width="1"/>
+          <text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="currentColor">LTNS</text>
+          <g transform="translate(540, 50)">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/>
+            <circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/>
+          </g>
+          <text x="20" y="290" font-family="JetBrains Mono, monospace" font-weight="500" font-size="22" letter-spacing="6" fill="currentColor" opacity="0.7">LE WEB AU BON DEGRÉ.</text>
+          <text x="700" y="290" text-anchor="end" font-family="JetBrains Mono, monospace" font-weight="500" font-size="22" letter-spacing="6" fill="currentColor" opacity="0.4">FREELANCE · FR</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCALABILITY ============ -->
+  <section class="section">
+    <span class="section-label">04 — Échelles</span>
+    <h2 class="section-title">Du favicon au panneau.</h2>
+    <p class="section-intro">
+      Le mark tient à toutes les tailles. Taille minimale conseillée : 16 px (web favicon).
+      Taille maximale : aucune limite (vectoriel).
+    </p>
+
+    <div class="sizes">
+      <div class="cell">
+        <div class="icon">
+          <svg viewBox="0 0 120 120" width="16" height="16" fill="none">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+        <div class="label"><b>16 PX</b><br>FAVICON · MIN</div>
+      </div>
+      <div class="cell">
+        <div class="icon">
+          <svg viewBox="0 0 120 120" width="32" height="32" fill="none">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+        <div class="label"><b>32 PX</b><br>APP ICON</div>
+      </div>
+      <div class="cell">
+        <div class="icon">
+          <svg viewBox="0 0 120 120" width="64" height="64" fill="none">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+        <div class="label"><b>64 PX</b><br>NAV · SIGNATURE</div>
+      </div>
+      <div class="cell">
+        <div class="icon">
+          <svg viewBox="0 0 120 120" width="96" height="96" fill="none">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+        <div class="label"><b>96 PX</b><br>HEADER · CARTE</div>
+      </div>
+      <div class="cell">
+        <div class="icon">
+          <svg viewBox="0 0 120 120" width="128" height="128" fill="none">
+            <rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/>
+            <circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/>
+          </svg>
+        </div>
+        <div class="label"><b>128 PX+</b><br>AFFICHE · GRAND</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COULEURS ============ -->
+  <section class="section">
+    <span class="section-label">05 — Palette</span>
+    <h2 class="section-title">Quatre couleurs, point.</h2>
+    <p class="section-intro">
+      La discipline est la même que sur le site : un fond profond, une crème pour le texte, et un seul accent violet
+      qui porte toute l'énergie de la marque.
+    </p>
+
+    <div class="colors">
+      <div class="color">
+        <div class="swatch" style="background:#0a0a0c"></div>
+        <div class="info">
+          <b>NIGHT</b>
+          HEX · #0A0A0C<br>
+          RGB · 10, 10, 12<br>
+          USAGE · fond principal
+        </div>
+      </div>
+      <div class="color">
+        <div class="swatch" style="background:#ece9e2"></div>
+        <div class="info">
+          <b>CREAM</b>
+          HEX · #ECE9E2<br>
+          RGB · 236, 233, 226<br>
+          USAGE · texte sur dark
+        </div>
+      </div>
+      <div class="color">
+        <div class="swatch" style="background:#a855f7"></div>
+        <div class="info">
+          <b>NÉON</b>
+          HEX · #A855F7<br>
+          RGB · 168, 85, 247<br>
+          USAGE · accent unique
+        </div>
+      </div>
+      <div class="color">
+        <div class="swatch" style="background:linear-gradient(to right,#4dd0e1,#facc15,#ef4444)"></div>
+        <div class="info">
+          <b>THERMAL</b>
+          GRADIENT · cyan → rouge<br>
+          USAGE · jauges, rails<br>
+          SECONDAIRE
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TYPOS ============ -->
+  <section class="section">
+    <span class="section-label">06 — Typographies</span>
+    <h2 class="section-title">Trois polices, trois rôles.</h2>
+
+    <div class="specs">
+      <div class="spec">
+        <h4>Display</h4>
+        <div class="big" style="font-family:'Space Grotesk',sans-serif;font-weight:600">Space Grotesk</div>
+        <p>Pour le wordmark, les gros titres, les chiffres XL. Bold (700) avec letter-spacing -0.05em.</p>
+      </div>
+      <div class="spec">
+        <h4>Mono / système</h4>
+        <div class="big" style="font-family:'JetBrains Mono',monospace;font-weight:500">JetBrains Mono</div>
+        <p>HUD, étiquettes, readouts, métadonnées. Tabular-nums activé pour aligner les chiffres.</p>
+      </div>
+      <div class="spec">
+        <h4>Corps de texte</h4>
+        <div class="big" style="font-family:'Inter Tight',sans-serif;font-weight:500">Inter Tight</div>
+        <p>Paragraphes longs, descriptions, conditions, FAQ. Lisible à toutes les tailles d'écran.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DO/DONT ============ -->
+  <section class="section">
+    <span class="section-label">07 — Règles</span>
+    <h2 class="section-title">À faire · à éviter.</h2>
+
+    <div class="rules-list">
+      <div class="rule do">
+        <h4>Respecter le clear-space</h4>
+        <p>Toujours laisser une marge équivalente à la hauteur du mark autour du logo. Pas d'éléments collés.</p>
+      </div>
+      <div class="rule dont">
+        <h4>Ne pas déformer</h4>
+        <p>Pas de stretch horizontal/vertical, pas de rotation, pas d'outline ajouté.</p>
+      </div>
+      <div class="rule do">
+        <h4>Sur photo</h4>
+        <p>Utiliser uniquement la version monochrome (cream ou noir) avec un contraste suffisant.</p>
+      </div>
+      <div class="rule dont">
+        <h4>Pas d'autre couleur</h4>
+        <p>L'accent violet est non négociable. Ne pas le remplacer par du rouge, bleu, ou autre.</p>
+      </div>
+      <div class="rule do">
+        <h4>Le mark seul</h4>
+        <p>Quand l'espace est limité (favicon, watermark, mini-format), n'utiliser que le mark.</p>
+      </div>
+      <div class="rule dont">
+        <h4>Pas de drop-shadow</h4>
+        <p>Le glow violet du mark accent suffit. Pas d'ombre portée, pas de relief, pas de gradient sur le wordmark.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DOWNLOAD ============ -->
+  <section class="section">
+    <span class="section-label">08 — Fichiers</span>
+    <h2 class="section-title">Téléchargements.</h2>
+    <p class="section-intro">
+      Tous les fichiers sont en SVG (vectoriel). Pour PNG/JPG : ouvre le SVG dans Figma ou Illustrator
+      et exporte à la taille voulue.
+    </p>
+
+    <div class="grid-3" style="border:1px solid var(--line)">
+      <a href="logo/mark.svg" download class="canvas dark" style="text-decoration:none;color:inherit;min-height:160px;cursor:pointer">
+        <span class="label">↓ mark.svg</span>
+        <div style="width:64px"><svg viewBox="0 0 120 120" fill="none" style="color:#ece9e2"><rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/><circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10"/></svg></div>
+      </a>
+      <a href="logo/mark-accent.svg" download class="canvas dark" style="text-decoration:none;color:inherit;min-height:160px;cursor:pointer">
+        <span class="label">↓ mark-accent.svg</span>
+        <div style="width:64px"><svg viewBox="0 0 120 120" fill="none"><rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/><circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10"/></svg></div>
+      </a>
+      <a href="logo/wordmark.svg" download class="canvas dark" style="text-decoration:none;color:inherit;min-height:160px;cursor:pointer">
+        <span class="label">↓ wordmark.svg</span>
+        <div style="width:160px"><svg viewBox="0 0 720 220" style="color:#ece9e2"><text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="currentColor">LTNS</text><g transform="translate(540, 50)"><rect x="55" y="6" width="10" height="18" rx="1" fill="currentColor"/><circle cx="60" cy="72" r="38" stroke="currentColor" stroke-width="10" fill="none"/></g></svg></div>
+      </a>
+      <a href="logo/wordmark-dark.svg" download class="canvas dark" style="text-decoration:none;color:inherit;min-height:160px;cursor:pointer">
+        <span class="label">↓ wordmark-dark.svg</span>
+        <div style="width:160px"><svg viewBox="0 0 720 220"><text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="#ece9e2">LTNS</text><g transform="translate(540, 50)"><rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/><circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/></g></svg></div>
+      </a>
+      <a href="logo/wordmark-light.svg" download class="canvas light" style="text-decoration:none;color:inherit;min-height:160px;cursor:pointer">
+        <span class="label">↓ wordmark-light.svg</span>
+        <div style="width:160px"><svg viewBox="0 0 720 220"><text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="#0a0a0c">LTNS</text><g transform="translate(540, 50)"><rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/><circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/></g></svg></div>
+      </a>
+      <a href="logo/full.svg" download class="canvas dark" style="text-decoration:none;color:inherit;min-height:160px;cursor:pointer">
+        <span class="label">↓ full.svg</span>
+        <div style="width:180px"><svg viewBox="0 0 720 360" style="color:#ece9e2"><line x1="20" y1="240" x2="700" y2="240" stroke="currentColor" stroke-opacity="0.2"/><text x="20" y="190" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="200" letter-spacing="-10" fill="currentColor">LTNS</text><g transform="translate(540, 50)"><rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/><circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/></g><text x="20" y="290" font-family="JetBrains Mono, monospace" font-weight="500" font-size="22" letter-spacing="6" fill="currentColor" opacity="0.7">LE WEB AU BON DEGRÉ.</text></svg></div>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <span>LTNS° · BRAND IDENTITY · V1.0</span>
+    <span>SVG · CMYK SUR DEMANDE</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

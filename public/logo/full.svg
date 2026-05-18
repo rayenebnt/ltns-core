@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" aria-label="LTNS° — Le web au bon degré.">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=JetBrains+Mono:wght@500&amp;display=swap');
+      .ltns-word {
+        font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 700;
+        font-size: 200px;
+        letter-spacing: -10px;
+        fill: currentColor;
+      }
+      .ltns-tag {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-weight: 500;
+        font-size: 22px;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        fill: currentColor;
+        opacity: 0.7;
+      }
+    </style>
+  </defs>
+  <!-- Trait fin séparateur -->
+  <line x1="20" y1="240" x2="700" y2="240" stroke="currentColor" stroke-opacity="0.2" stroke-width="1"/>
+  <!-- Wordmark -->
+  <text x="20" y="190" class="ltns-word">LTNS</text>
+  <g transform="translate(540, 50)">
+    <rect x="55" y="6" width="10" height="18" rx="1" fill="#a855f7"/>
+    <circle cx="60" cy="72" r="38" stroke="#a855f7" stroke-width="10" fill="none"/>
+  </g>
+  <!-- Tagline -->
+  <text x="20" y="290" class="ltns-tag">LE WEB AU BON DEGRÉ.</text>
+  <!-- Petite étiquette à droite -->
+  <text x="700" y="290" text-anchor="end" class="ltns-tag" style="opacity:0.4">FREELANCE · FR</text>
+</svg>
