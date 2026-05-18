@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const EMAIL = 'rayenebentorkia@gmail.com'
+const EMAIL = 'ltnscore@gmail.com'
 const PHONE = '0625206493'
 const PHONE_INTL = '+33625206493'
 
