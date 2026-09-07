@@ -35,13 +35,13 @@ export default function Footer() {
         <div className="footer-readout">
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>
           <div>{time}</div>
-          <div>UNIT <b>LTNS-01</b></div>
-          <div style={{ color: '#39ff14' }}>● AVAILABLE</div>
+          <div>ATELIER <b>LTNS-01</b></div>
+          <div style={{ color: '#39ff14' }}>● DISPONIBLE</div>
         </div>
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} LTNS° · TOUS DROITS RÉSERVÉS</span>
-        <span>BUILT WITH PRECISION · CALIBRÉ À 99.0°</span>
+        <span>FAIT MAIN · RÉGLÉ AU DEGRÉ PRÈS</span>
       </div>
     </footer>
   )

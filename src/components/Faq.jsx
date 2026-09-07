@@ -2,24 +2,24 @@ import { useState, useRef } from 'react'
 
 const faqs = [
   {
-    q: 'Quels types de projets réalisez-vous ?',
-    a: 'Quatre grandes familles : sites de présentation (particuliers, artisans, indépendants, entreprises), sites avec base de données (espaces membres, back-office, e-commerce custom), logiciels sur-mesure (outils métier, applications desktop) et applications mobiles iOS/Android. Tout est traité sur-mesure, sans template générique.'
+    q: 'Quels types de projets faites-vous ?',
+    a: 'Quatre grandes familles : les sites de présentation (artisans, indépendants, entreprises, associations), les sites avec boutique en ligne ou espace client, les logiciels faits pour votre métier, et les applications pour téléphone. Tout est créé sur mesure, jamais à partir d\'un modèle tout prêt.'
   },
   {
-    q: 'Quels sont les délais moyens ?',
-    a: 'Site de présentation : ~2 semaines. Site avec base de données : 4 à 8 semaines selon la complexité. Logiciel / application mobile : délais définis lors du devis selon le périmètre fonctionnel.'
+    q: 'Combien de temps faut-il pour créer mon projet ?',
+    a: 'Un site de présentation : environ 2 semaines. Un site avec boutique ou espace client : 4 à 8 semaines selon ce qu\'il doit faire. Pour un logiciel ou une application mobile, la date de livraison est indiquée dans le devis, une fois qu\'on a listé ensemble ce que vous voulez.'
   },
   {
     q: 'À qui appartient le projet une fois livré ?',
-    a: 'Vous, et vous seul. Code source, contenus, accès serveur, nom de domaine : tout vous appartient à la livraison. Vous restez libre de me quitter à tout moment, sans aucun verrouillage.'
+    a: 'À vous, et à vous seul. Le site, les textes, les images, les mots de passe, l\'adresse internet : tout vous revient le jour de la livraison. Si un jour vous voulez travailler avec quelqu\'un d\'autre, vous êtes libre de le faire.'
   },
   {
     q: 'Comment se passe le devis ?',
-    a: 'Devis gratuit, sans engagement. Envoyez le projet via le formulaire ou par email — je reviens sous 48h avec une proposition détaillée (périmètre, délai, tarif). On en discute ensemble avant toute signature.'
+    a: 'Il est gratuit et ne vous engage à rien. Vous m\'écrivez avec le formulaire ou par email, et je vous réponds sous 48h avec une proposition détaillée : ce qui est prévu, le délai et le prix. On en parle ensemble avant de signer quoi que ce soit.'
   },
   {
-    q: 'Puis-je modifier mon projet moi-même après la livraison ?',
-    a: 'Oui, selon la nature du projet. Pour un site, je peux livrer un espace admin simple et vous former à son utilisation. Pour un logiciel ou une app, une documentation technique est fournie. Pour toute évolution plus poussée, je reste disponible à la demande.'
+    q: 'Puis-je faire des modifications moi-même ?',
+    a: 'Oui, dans la plupart des cas. Pour un site, je peux ajouter un espace simple où vous changez vos textes et vos photos, et je vous montre comment faire. Pour un logiciel ou une application, je vous remets un guide clair. Et pour les changements plus importants, je reste joignable.'
   }
 ]
 
@@ -57,15 +57,15 @@ export default function Faq() {
           <span className="section-label">
             <b>04</b><span className="sep">//</span> QUESTIONS
           </span>
-          <h2 className="section-title">FAQ <em>· lecture rapide</em>.</h2>
+          <h2 className="section-title">Vos questions,<br/><em>mes réponses</em>.</h2>
           <p className="section-intro">
-            Les questions qui reviennent le plus souvent. Pour le reste,
-            une ligne directe en bas de page.
+            Les questions qu'on me pose le plus souvent. Si la vôtre n'y est pas,
+            écrivez-moi : mes coordonnées sont juste en dessous.
           </p>
         </div>
         <div className="section-temp">
           90<span className="deg">°</span>
-          <span className="label">RÉGIME · CHAUD</span>
+          <span className="label">RÉPONSES CLAIRES</span>
         </div>
       </div>
       <div className="faq-list reveal">

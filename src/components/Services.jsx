@@ -1,12 +1,12 @@
 import { useRef } from 'react'
 
 const services = [
-  { id: 'S01', temp: '34°', title: 'Sites de présentation', desc: 'Particuliers, artisans, indépendants : un site élégant et efficace pour vous présenter en ligne.', tag: 'DEVIS GRATUIT' },
-  { id: 'S02', temp: '48°', title: 'Sites professionnels', desc: 'PME, entreprises, associations : un site complet avec pages personnalisées et fonctionnalités sur-mesure.', tag: 'SUR-MESURE' },
-  { id: 'S03', temp: '62°', title: 'Sites avec base de données', desc: 'Espaces membres, back-office, e-commerce custom : architecture backend solide et évolutive.', tag: 'SUR-MESURE' },
-  { id: 'S04', temp: '74°', title: 'Logiciels sur-mesure', desc: 'Outils métier, applications desktop, automatisations : des solutions taillées pour vos processus internes.', tag: 'SUR-MESURE' },
-  { id: 'S05', temp: '86°', title: 'Applications mobiles', desc: 'Applications iOS et Android développées sur-mesure pour vos clients ou vos équipes.', tag: 'SUR-MESURE' },
-  { id: 'S06', temp: '92°', title: 'Design UI/UX', desc: 'Maquettes, identité visuelle, expérience utilisateur. Un design qui sert votre image et vos objectifs.', tag: 'SUR-MESURE' }
+  { id: 'S01', temp: '34°', title: 'Sites de présentation', desc: 'Artisans, indépendants, particuliers : un site simple et soigné pour vous faire connaître et être trouvé sur internet.', tag: 'DEVIS GRATUIT' },
+  { id: 'S02', temp: '48°', title: 'Sites d\'entreprise', desc: 'Entreprises et associations : un site à plusieurs pages, avec les fonctions dont vous avez vraiment besoin.', tag: 'SUR-MESURE' },
+  { id: 'S03', temp: '62°', title: 'Boutiques et espaces clients', desc: 'Vendre en ligne, créer des comptes clients, gérer vos contenus vous-même : un site qui garde vos informations en sécurité.', tag: 'SUR-MESURE' },
+  { id: 'S04', temp: '74°', title: 'Logiciels sur-mesure', desc: 'Un outil pensé pour votre métier : gérer vos clients, vos stocks, vos plannings, et automatiser ce qui vous prend du temps.', tag: 'SUR-MESURE' },
+  { id: 'S05', temp: '86°', title: 'Applications mobiles', desc: 'Une application sur iPhone et Android, créée pour vos clients ou pour votre équipe.', tag: 'SUR-MESURE' },
+  { id: 'S06', temp: '92°', title: 'Design et identité', desc: 'Logo, couleurs, maquettes : une image qui vous ressemble et un site où l\'on trouve tout du premier coup.', tag: 'SUR-MESURE' }
 ]
 
 function ServiceCard({ id, temp, title, desc, tag }) {
@@ -44,15 +44,15 @@ export default function Services() {
           <span className="section-label">
             <b>02</b><span className="sep">//</span> SERVICES
           </span>
-          <h2 className="section-title">Six gammes,<br/><em>un seul artisan</em>.</h2>
+          <h2 className="section-title">Six services,<br/><em>un seul artisan</em>.</h2>
           <p className="section-intro">
-            De la vitrine web à l'application mobile, en passant par les logiciels métier —
-            tout est fait sur-mesure, sans compromis sur la qualité.
+            Du petit site de présentation à l'application mobile : tout est créé
+            pour vous, à la main, jamais copié d'un modèle tout prêt.
           </p>
         </div>
         <div className="section-temp">
           48<span className="deg">°</span>
-          <span className="label">PUISSANCE · MONTANTE</span>
+          <span className="label">DU SIMPLE AU COMPLET</span>
         </div>
       </div>
       <div className="services-grid reveal">

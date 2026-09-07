@@ -32,13 +32,13 @@ export default function Nav() {
         <a href="#" className="logo" aria-label="LTNS° accueil">
           LTNS<span className="deg">°</span>
         </a>
-        <span className="nav-status">AVAILABLE</span>
+        <span className="nav-status">DISPONIBLE</span>
       </div>
 
       <div className="nav-readout">
         <span>T<span className="sep">·</span><b>{temp}°</b></span>
         <span className="sep">//</span>
-        <span>UTC<span className="sep">·</span><b>{time}</b></span>
+        <span>HEURE<span className="sep">·</span><b>{time}</b></span>
         <span className="sep">//</span>
         <span>v1.0</span>
       </div>

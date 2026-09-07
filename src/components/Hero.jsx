@@ -4,7 +4,7 @@ import { gsap } from 'gsap'
 const SCALE_TICKS = [
   { v: '99°', label: 'MAX', now: false },
   { v: '80°', label: '', now: false },
-  { v: '60°', label: 'TARGET', now: true },
+  { v: '60°', label: 'IDÉAL', now: true },
   { v: '40°', label: '', now: false },
   { v: '20°', label: '', now: false },
   { v: '12°', label: 'MIN', now: false },
@@ -63,16 +63,17 @@ export default function Hero({ loaded }) {
       </div>
 
       <div className="hero-main">
-        <span className="hero-tag">SIGNAL ACQUIS · DISPONIBLE</span>
+        <span className="hero-tag">DISPONIBLE POUR VOS PROJETS</span>
         <h1>
           <span className="line"><span>LE WEB</span></span>
           <span className="line"><span>AU <em>BON</em></span></span>
           <span className="line r"><span>DEGRÉ<span className="deg-mark">°</span></span></span>
         </h1>
         <p className="hero-sub">
-          LTNS<span className="deg-mark" style={{ color: 'var(--accent)' }}>°</span> — Sites, logiciels et applications mobiles au niveau des grandes agences,
-          à des tarifs pensés pour les vrais budgets. <b>Pas de template, pas d'à-peu-près</b> —
-          chaque ligne est réglée à la main.
+          LTNS<span className="deg-mark" style={{ color: 'var(--accent)' }}>°</span> — Je crée des sites internet, des logiciels
+          et des applications mobiles. La qualité des grandes agences, à un prix
+          qui reste accessible. <b>Rien de tout fait</b> : votre projet est
+          construit pour vous, de A à Z.
         </p>
         <div className="hero-ctas">
           <a href="#services" className="btn btn-primary">
@@ -86,18 +87,18 @@ export default function Hero({ loaded }) {
 
       <aside className="hero-readout" aria-hidden="true">
         <div>
-          <div>TEMP · NOW</div>
+          <div>TEMPÉRATURE</div>
           <div className="big"><span ref={tempRef}>12.0</span><span className="deg">°</span></div>
         </div>
         <div className="grid-coord">
           <span>DATE</span><b>{now}</b>
-          <span>UNIT</span><b>LTNS-01</b>
-          <span>MODE</span><b>FREELANCE</b>
-          <span>STATUS</span><b style={{ color: '#39ff14' }}>● READY</b>
+          <span>ATELIER</span><b>LTNS-01</b>
+          <span>MÉTIER</span><b>FREELANCE</b>
+          <span>STATUT</span><b style={{ color: '#39ff14' }}>● DISPONIBLE</b>
         </div>
       </aside>
 
-      <div className="hero-scroll">SCROLL · CHAUFFE</div>
+      <div className="hero-scroll">FAITES DÉFILER · ÇA CHAUFFE</div>
     </header>
   )
 }
