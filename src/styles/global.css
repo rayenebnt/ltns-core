@@ -1323,6 +1323,156 @@ footer {
   .thermal-rail, .thermal-rail-label, .thermal-rail-temp { display: none; }
 }
 
+/* ============ RÉALISATIONS ============ */
+.realisations { overflow: hidden; }
+
+.realisations-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 20px;
+}
+
+.realisations-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 24px;
+  cursor: grab;
+  user-select: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-line) transparent;
+}
+.realisations-track.dragging { cursor: grabbing; }
+.realisations-track::-webkit-scrollbar { height: 2px; }
+.realisations-track::-webkit-scrollbar-thumb { background: var(--accent-line); }
+
+.realisation {
+  flex: 0 0 320px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.18s ease;
+  will-change: transform;
+}
+.realisation:hover {
+  border-color: var(--accent-line);
+  box-shadow: 0 24px 64px -20px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--accent-line);
+}
+
+/* Mock screenshot */
+.realisation-screen {
+  height: 210px;
+  position: relative;
+  overflow: hidden;
+}
+.mock-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.mock-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.mock-nav {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  height: 26px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+.mock-logo {
+  width: 22px;
+  height: 5px;
+  border-radius: 1px;
+  opacity: 0.85;
+}
+.mock-links {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.mock-link {
+  height: 4px;
+  border-radius: 1px;
+}
+.mock-hero {
+  position: absolute;
+  top: 56px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.mock-h1 {
+  height: 18px;
+  border-radius: 1px;
+}
+.mock-sub {
+  height: 8px;
+  border-radius: 1px;
+}
+.mock-btn {
+  width: 54px;
+  height: 14px;
+  border-radius: 1px;
+  margin-top: 10px;
+  opacity: 0.9;
+}
+
+/* Card body */
+.realisation-body { padding: 20px 22px; }
+.realisation-head {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 12px;
+}
+.realisation h3 {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+  color: var(--fg);
+}
+.realisation-type {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-dim);
+  margin-bottom: 18px;
+}
+.realisation-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.realisation-arrow {
+  font-family: var(--mono);
+  font-size: 16px;
+  transition: transform 0.3s var(--ease);
+}
+.realisation:hover .realisation-arrow { transform: translateX(4px); }
+
 /* ============ REVEAL ============ */
 .reveal {
   opacity: 0;
