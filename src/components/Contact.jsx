@@ -41,12 +41,13 @@ export default function Contact() {
           </span>
           <h2 className="section-title">Au <em>contact</em>.</h2>
           <p className="section-intro">
-            Devis gratuit sous 48h. Sans engagement. On échange d'abord, on chiffre ensuite.
+            Un devis gratuit sous 48h, sans engagement. On parle d'abord de votre projet,
+            on parle du prix ensuite.
           </p>
         </div>
         <div className="section-temp">
           99<span className="deg">°</span>
-          <span className="label">RÉGIME · MAX</span>
+          <span className="label">PRÊT À DÉMARRER</span>
         </div>
       </div>
 
@@ -54,29 +55,29 @@ export default function Contact() {
         <div className="contact-grid">
           <div className="contact-info">
             <span className="section-label">
-              <b>CH·01</b><span className="sep">//</span> LIGNE DIRECTE
+              <b>01</b><span className="sep">//</span> ME CONTACTER
             </span>
             <h2>
               Parlons de votre <em>projet</em>.
             </h2>
             <p>
-              Trois canaux ouverts en permanence. Le plus rapide reste le formulaire :
-              vous recevez une réponse motivée en moins de 48 heures.
+              Trois façons de me joindre, au choix. Le plus simple reste le formulaire :
+              vous avez une réponse en moins de 48 heures, écrite à la main.
             </p>
             <div className="contact-direct">
               <a href={`mailto:${EMAIL}`}>
-                <span className="ch">CH·01</span>
+                <span className="ch">01</span>
                 <span>{EMAIL}</span>
                 <span>→</span>
               </a>
               <a href={`tel:${PHONE}`}>
-                <span className="ch">CH·02</span>
+                <span className="ch">02</span>
                 <span>{PHONE}</span>
                 <span>→</span>
               </a>
               <a href={`https://wa.me/${PHONE_INTL}`} target="_blank" rel="noopener noreferrer">
-                <span className="ch">CH·03</span>
-                <span>WHATSAPP DIRECT</span>
+                <span className="ch">03</span>
+                <span>WHATSAPP</span>
                 <span>→</span>
               </a>
             </div>
@@ -95,8 +96,8 @@ export default function Contact() {
               <label htmlFor="projet"><span>TYPE DE PROJET</span><span className="ch">→</span></label>
               <select id="projet" name="projet">
                 <option>Site de présentation</option>
-                <option>Site avec base de données</option>
-                <option>Logiciel sur-mesure</option>
+                <option>Site avec boutique ou espace client</option>
+                <option>Logiciel pour mon métier</option>
                 <option>Application mobile</option>
                 <option>Autre</option>
               </select>
@@ -124,9 +125,9 @@ export default function Contact() {
                 status === 'error' ? { background: '#ff4444', color: '#fff', borderColor: '#ff4444' } : {}
               }
             >
-              {status === 'sent'    ? 'TRANSMIS ✓' :
-               status === 'error'   ? 'ERREUR — RÉESSAYEZ' :
-               status === 'sending' ? 'TRANSMISSION…' :
+              {status === 'sent'    ? 'MESSAGE ENVOYÉ ✓' :
+               status === 'error'   ? 'ÉCHEC — RÉESSAYEZ' :
+               status === 'sending' ? 'ENVOI EN COURS…' :
                <>ENVOYER <span className="arrow">→</span></>}
             </button>
           </form>

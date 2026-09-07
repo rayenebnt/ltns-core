@@ -1,8 +1,8 @@
 const steps = [
-  { num: '01', temp: '38', title: 'Échange', desc: 'On discute du projet, des besoins, du budget. Devis détaillé sous 48h, sans engagement.' },
-  { num: '02', temp: '60', title: 'Maquette', desc: 'Je conçois une maquette sur-mesure que vous validez avant tout développement.' },
-  { num: '03', temp: '82', title: 'Développement', desc: 'Code propre, optimisé, responsive. Tests sur tous les supports avant livraison.' },
-  { num: '04', temp: '99', title: 'Livraison', desc: 'Mise en production, transfert complet, formation pour prendre en main votre projet.' }
+  { num: '01', temp: '38', title: 'On discute', desc: 'On parle de votre projet, de vos besoins et de votre budget. Vous recevez un devis détaillé sous 48h, sans engagement.' },
+  { num: '02', temp: '60', title: 'Je dessine', desc: 'Je vous montre à quoi ressemblera votre projet. Rien n\'est créé tant que vous n\'avez pas dit oui.' },
+  { num: '03', temp: '82', title: 'Je construis', desc: 'Je crée votre projet et je vérifie qu\'il fonctionne bien partout : ordinateur, tablette et téléphone.' },
+  { num: '04', temp: '99', title: 'Vous recevez', desc: 'Votre projet est mis en ligne. Je vous remets tous les accès et je vous explique comment vous en servir.' }
 ]
 
 // Petite courbe SVG qui monte en température : 38 → 99
@@ -52,13 +52,13 @@ export default function Process() {
           </span>
           <h2 className="section-title">Quatre étapes,<br/><em>zéro mauvaise surprise</em>.</h2>
           <p className="section-intro">
-            Du froid au brûlant : un protocole clair pour passer de l'idée au projet livré,
-            sans que vous perdiez jamais le contrôle.
+            De la première idée au projet en ligne. Vous validez chaque étape :
+            rien n'avance sans votre accord.
           </p>
         </div>
         <div className="section-temp">
           72<span className="deg">°</span>
-          <span className="label">CHAUFFE · EN COURS</span>
+          <span className="label">ÉTAPE PAR ÉTAPE</span>
         </div>
       </div>
 
@@ -68,7 +68,7 @@ export default function Process() {
           {steps.map(s => (
             <div className="process-step" key={s.num}>
               <div className="head">
-                <span>STEP <b>{s.num}</b></span>
+                <span>ÉTAPE <b>{s.num}</b></span>
                 <span>·</span>
               </div>
               <div className="temp">{s.temp}<span className="deg">°</span></div>

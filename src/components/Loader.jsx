@@ -21,7 +21,7 @@ export default function Loader({ done }) {
     <div className={`loader ${done ? 'done' : ''}`} aria-hidden="true">
       <div className="loader-logo">LTNS<span>°</span></div>
       <div className="loader-readout">
-        <span>BOOT</span>
+        <span>CHAUFFE</span>
         <span className="brackets">[</span>
         <b>{temp.toFixed(1)}°</b>
         <span className="brackets">/</span>
