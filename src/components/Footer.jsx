@@ -1,21 +1,19 @@
 import { useEffect, useState } from 'react'
+import { NAV_LINKS } from '../data/nav'
+import { useTemp } from '../hooks/useThermal'
 
 function fmtUtc(d) {
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
+  const hh = String(d.getUTCHours()).padStart(2, '0')
+  const mm = String(d.getUTCMinutes()).padStart(2, '0')
   return `${hh}:${mm}`
 }
 
 export default function Footer() {
   const [time, setTime] = useState(() => fmtUtc(new Date()))
-  const [temp, setTemp] = useState('12.0')
+  const temp = useTemp()
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setTime(fmtUtc(new Date()))
-      const t = getComputedStyle(document.documentElement).getPropertyValue('--temp').trim()
-      if (t) setTemp(t)
-    }, 500)
+    const id = setInterval(() => setTime(fmtUtc(new Date())), 15000)
     return () => clearInterval(id)
   }, [])
 
@@ -23,20 +21,21 @@ export default function Footer() {
     <footer>
       <div className="footer-inner">
         <div>
-          <div className="footer-logo">LTNS<span className="deg">°</span></div>
+          <a href="#top" className="footer-logo" aria-label="LTNS° — retour en haut de page">
+            LTNS<span className="deg">°</span>
+          </a>
           <div className="footer-tag">LE WEB AU BON DEGRÉ</div>
         </div>
-        <div className="footer-meta">
-          <a href="#services">SERVICES</a>
-          <a href="#process">PROCESS</a>
-          <a href="#faq">FAQ</a>
-          <a href="#contact">CONTACT</a>
-        </div>
-        <div className="footer-readout">
+        <nav className="footer-meta" aria-label="Navigation de bas de page">
+          {NAV_LINKS.map((l) => (
+            <a href={`#${l.id}`} key={l.id}>{l.label}</a>
+          ))}
+        </nav>
+        <div className="footer-readout" aria-hidden="true">
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>
-          <div>{time}</div>
+          <div>UTC · {time}</div>
           <div>UNIT <b>LTNS-01</b></div>
-          <div style={{ color: '#39ff14' }}>● AVAILABLE</div>
+          <div style={{ color: '#39ff14' }}>● DISPONIBLE</div>
         </div>
       </div>
       <div className="footer-bottom">

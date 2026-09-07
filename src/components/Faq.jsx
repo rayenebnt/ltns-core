@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useId, useState } from 'react'
 
 const faqs = [
   {
@@ -25,24 +25,30 @@ const faqs = [
 
 function FaqItem({ q, a, idx }) {
   const [open, setOpen] = useState(false)
-  const answerRef = useRef(null)
+  const uid = useId()
+  const btnId = `faq-q-${uid}`
+  const panelId = `faq-a-${uid}`
 
   return (
     <div className={`faq-item ${open ? 'open' : ''}`}>
-      <button
-        className="faq-q"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-      >
-        <span className="idx">Q.{String(idx + 1).padStart(2, '0')}</span>
-        <span>{q}</span>
-        <span className="faq-icon" aria-hidden="true"></span>
-      </button>
-      <div
-        className="faq-a"
-        ref={answerRef}
-        style={{ maxHeight: open ? answerRef.current?.scrollHeight + 'px' : '0' }}
-      >
+      <h3 className="faq-h">
+        <button
+          type="button"
+          className="faq-q"
+          id={btnId}
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="idx">Q.{String(idx + 1).padStart(2, '0')}</span>
+          <span>{q}</span>
+          <span className="faq-icon" aria-hidden="true"></span>
+        </button>
+      </h3>
+      {/* L'ouverture est gérée en CSS (grid-template-rows 0fr → 1fr) :
+          contrairement à un max-height mesuré au rendu, ça reste juste
+          quand le texte se re-répartit au redimensionnement. */}
+      <div className="faq-a" id={panelId} role="region" aria-labelledby={btnId}>
         <div className="faq-a-inner">{a}</div>
       </div>
     </div>
@@ -55,7 +61,7 @@ export default function Faq() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>04</b><span className="sep">//</span> QUESTIONS
+            <b>05</b><span className="sep">//</span> QUESTIONS
           </span>
           <h2 className="section-title">FAQ <em>· lecture rapide</em>.</h2>
           <p className="section-intro">

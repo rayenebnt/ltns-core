@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { getThermal } from '../hooks/useThermal'
 
 // Fond instrument : grille fine + courbe thermique animée qui scroll avec la page.
 // Léger (canvas 2D), pas de Three.js — la "vraie" identité visuelle est ailleurs.
@@ -31,11 +32,7 @@ export default function Background() {
       progress = max > 0 ? window.scrollY / max : 0
     }
 
-    const readAccent = () => {
-      const rgb = getComputedStyle(document.documentElement)
-        .getPropertyValue('--accent-rgb').trim() || '77, 208, 225'
-      return rgb
-    }
+    const readAccent = () => getThermal().rgb
 
     const draw = () => {
       raf = requestAnimationFrame(draw)

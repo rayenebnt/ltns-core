@@ -27,20 +27,26 @@ ltns-react/
     ├── App.jsx             # Composant racine
     ├── components/
     │   ├── Loader.jsx
-    │   ├── Cursor.jsx      # Curseur custom néon
-    │   ├── Nav.jsx
-    │   ├── Hero.jsx        # Scène Three.js + animation GSAP
+    │   ├── Cursor.jsx          # Curseur custom (souris uniquement)
+    │   ├── Nav.jsx             # Nav fixe + menu mobile + scroll-spy
+    │   ├── Hero.jsx            # Animation d'entrée GSAP
     │   ├── Pourquoi.jsx
-    │   ├── Services.jsx    # Cards avec tilt 3D
+    │   ├── Services.jsx        # Cartes cliquables -> pré-remplit le devis
     │   ├── Process.jsx
     │   ├── Tarifs.jsx
-    │   ├── Faq.jsx         # Accordéon avec state
-    │   ├── Contact.jsx     # Formulaire avec state
+    │   ├── Faq.jsx             # Accordéon accessible
+    │   ├── Contact.jsx         # Formulaire validé
+    │   ├── BackToTop.jsx       # Retour en haut de page
     │   └── Footer.jsx
+    ├── data/
+    │   ├── nav.js              # Entrées de navigation (nav, menu, footer)
+    │   └── projects.js         # Types de projet partagés services/tarifs/formulaire
     ├── hooks/
-    │   └── useReveal.js    # Hook pour les animations au scroll
+    │   ├── useReveal.js        # Animations au scroll
+    │   ├── useActiveSection.js # Scroll-spy : section en cours de lecture
+    │   └── useThermal.js       # Température pilotée par le scroll (+ store abonnable)
     └── styles/
-        └── global.css      # Tous les styles
+        └── global.css          # Tous les styles
 ```
 
 ## ▶️ Installation et lancement

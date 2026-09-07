@@ -42,18 +42,37 @@ export default function Hero({ loaded }) {
   // Entrée GSAP
   useEffect(() => {
     if (!loaded) return
-    const tl = gsap.timeline()
-    tl.from('.hero-scale .tick', { opacity: 0, x: -10, duration: 0.5, stagger: 0.04, ease: 'power2.out' })
-      .from('.hero-tag', { y: 14, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.2')
-      .from('.hero h1 .line span', { y: '110%', duration: 1.0, stagger: 0.1, ease: 'power4.out' }, '-=0.3')
-      .from('.hero-sub', { y: 14, opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
-      .from('.hero-ctas .btn', { y: 14, opacity: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out' }, '-=0.4')
-      .from('.hero-readout > *', { opacity: 0, x: 14, duration: 0.6, stagger: 0.08, ease: 'power3.out' }, '-=0.6')
-      .from('nav', { y: -28, opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=0.8')
+    // fromTo plutôt que from : l'état final est écrit explicitement, il ne
+    // dépend pas de ce que GSAP lit sur l'élément au moment de l'init.
+    // clearProps retire les styles inline une fois l'entrée jouée.
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+    tl.fromTo('.hero-scale .tick',
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.5, stagger: 0.04, ease: 'power2.out', clearProps: 'opacity,transform' })
+      .fromTo('.hero-tag',
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, clearProps: 'opacity,transform' }, '-=0.2')
+      .fromTo('.hero h1 .line span',
+        { y: '110%' },
+        { y: '0%', duration: 1.0, stagger: 0.1, ease: 'power4.out', clearProps: 'transform' }, '-=0.3')
+      .fromTo('.hero-sub',
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, clearProps: 'opacity,transform' }, '-=0.5')
+      .fromTo('.hero-ctas .btn',
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, clearProps: 'opacity,transform' }, '-=0.4')
+      .fromTo('.hero-readout > *',
+        { opacity: 0, x: 14 },
+        { opacity: 1, x: 0, duration: 0.6, stagger: 0.08, clearProps: 'opacity,transform' }, '-=0.6')
+      .fromTo('.site-nav',
+        { y: -28, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, clearProps: 'opacity,transform' }, '-=0.8')
+
+    return () => tl.kill()
   }, [loaded])
 
   return (
-    <header className="hero" ref={ref}>
+    <header className="hero" id="top" ref={ref}>
       <div className="hero-scale" aria-hidden="true">
         {SCALE_TICKS.map((t, i) => (
           <span className={`tick ${t.now ? 'now' : ''}`} key={i}>
@@ -75,12 +94,13 @@ export default function Hero({ loaded }) {
           chaque ligne est réglée à la main.
         </p>
         <div className="hero-ctas">
-          <a href="#services" className="btn btn-primary">
-            Services <span className="arrow">→</span>
+          <a href="#contact" className="btn btn-primary">
+            Demander un devis gratuit <span className="arrow">→</span>
           </a>
-          <a href="#contact" className="btn btn-ghost">
-            Demander un devis <span className="arrow">→</span>
+          <a href="#services" className="btn btn-ghost">
+            Voir les services <span className="arrow">→</span>
           </a>
+          <span className="hero-ctas-note">Réponse sous 48 h · sans engagement</span>
         </div>
       </div>
 
@@ -97,7 +117,7 @@ export default function Hero({ loaded }) {
         </div>
       </aside>
 
-      <div className="hero-scroll">SCROLL · CHAUFFE</div>
+      <a className="hero-scroll" href="#pourquoi">SCROLL · CHAUFFE</a>
     </header>
   )
 }

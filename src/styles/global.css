@@ -9,7 +9,7 @@
   --bg-3: #16161b;
   --fg: #ece9e2;
   --fg-dim: #a0a0a8;
-  --fg-mute: #5a5a64;
+  --fg-mute: #8a8a96;
   --line: rgba(255, 255, 255, 0.07);
   --line-strong: rgba(255, 255, 255, 0.14);
 
@@ -42,7 +42,6 @@ body {
   font-size: 14px;
   line-height: 1.6;
   overflow-x: hidden;
-  cursor: none;
   -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
 }
@@ -159,10 +158,18 @@ body::after {
   color: var(--accent);
   font-weight: 500;
 }
-@media (max-width: 900px), (pointer: coarse) {
+/* Le curseur custom est monté uniquement pour une souris, hors mouvement
+   réduit. Tant qu'il n'est pas là, le curseur système reste intact. */
+body.has-custom-cursor,
+body.has-custom-cursor * { cursor: none; }
+/* Sauf là où le curseur natif porte une vraie information : I-beam sur du
+   texte saisissable, main sur une liste déroulante. */
+body.has-custom-cursor input,
+body.has-custom-cursor textarea,
+body.has-custom-cursor [contenteditable='true'] { cursor: text; }
+body.has-custom-cursor select { cursor: pointer; }
+@media (pointer: coarse) {
   .cursor-wrap { display: none; }
-  body { cursor: auto; }
-  a, button { cursor: pointer; }
 }
 
 /* ============ LOADER ============ */
@@ -227,7 +234,7 @@ body::after {
 }
 
 /* ============ HUD / NAV ============ */
-nav {
+.site-nav {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
@@ -245,7 +252,7 @@ nav {
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
-nav .nav-left {
+.site-nav .nav-left {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -322,7 +329,8 @@ nav .nav-left {
   color: var(--fg);
   text-decoration: none;
   font-size: 10px;
-  transition: all 0.3s var(--ease);
+  transition: background-color 0.3s var(--ease), color 0.3s var(--ease),
+              border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -470,13 +478,16 @@ nav .nav-left {
   text-transform: uppercase;
   letter-spacing: 0.15em;
   text-decoration: none;
-  transition: all 0.3s var(--ease);
+  /* Propriétés listées explicitement : un `transition: all` entrerait en
+     conflit avec l'animation d'entrée GSAP (opacity/transform). */
+  transition: background-color 0.3s var(--ease), color 0.3s var(--ease),
+              border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
   display: inline-flex;
   align-items: center;
   gap: 12px;
   border: 1px solid transparent;
   position: relative;
-  cursor: none;
+  cursor: pointer;
 }
 .btn-primary {
   background: var(--accent);
@@ -753,7 +764,6 @@ section {
   background: var(--bg);
   transition: background 0.5s var(--ease);
   overflow: hidden;
-  cursor: none;
   display: flex;
   flex-direction: column;
   min-height: 320px;
@@ -995,6 +1005,7 @@ section {
 }
 .faq-item:last-child { border-bottom: 1px solid var(--line); }
 .faq-item.open { border-color: var(--accent-line); }
+.faq-h { margin: 0; font-size: inherit; font-weight: inherit; }
 .faq-q {
   width: 100%;
   background: none;
@@ -1005,7 +1016,7 @@ section {
   font-weight: 500;
   text-align: left;
   padding: 24px 0;
-  cursor: none;
+  cursor: pointer;
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 24px;
@@ -1050,15 +1061,24 @@ section {
 }
 .faq-item.open .faq-icon::after { transform: scaleY(0); }
 .faq-a {
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   overflow: hidden;
-  transition: max-height 0.5s var(--ease);
+  transition: grid-template-rows 0.45s var(--ease);
   color: var(--fg-dim);
   font-family: var(--mono);
   font-size: 13px;
   line-height: 1.7;
 }
-.faq-a-inner { padding: 0 0 28px 50px; max-width: 70ch; }
+.faq-item.open .faq-a { grid-template-rows: 1fr; }
+.faq-a > .faq-a-inner { min-height: 0; }
+.faq-a-inner {
+  padding: 0 0 28px 50px;
+  max-width: 70ch;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.faq-item.open .faq-a-inner { opacity: 1; }
 @media (max-width: 720px) {
   .faq-a-inner { padding-left: 0; }
 }
@@ -1119,7 +1139,9 @@ section {
   font-family: var(--mono);
   font-size: 12px;
   display: grid;
-  grid-template-columns: 20px 1fr auto;
+  /* `auto` et non 20px : « CH·01 » déborde d'une colonne fixe de 20px et
+     vient se superposer à l'adresse. */
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
@@ -1173,7 +1195,7 @@ form { display: flex; flex-direction: column; gap: 14px; }
 .field textarea { resize: vertical; min-height: 96px; }
 form button {
   margin-top: 8px;
-  cursor: none;
+  cursor: pointer;
   border: none;
 }
 form button:disabled { opacity: 0.6; }
@@ -1334,6 +1356,365 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+  html { scroll-behavior: auto; }
+  /* Le contenu ne doit jamais dépendre d'une animation pour apparaître. */
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   ERGONOMIE — repères, affordances, accessibilité clavier
+   ============================================================ */
+
+/* ---- Lien d'évitement : premier arrêt du clavier sur la page ---- */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10001;
+  transform: translateY(-200%);
+  padding: 12px 18px;
+  background: var(--accent);
+  color: #06060a;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+  transition: transform 0.2s var(--ease);
+}
+.skip-link:focus { transform: translateY(0); }
+
+main:focus { outline: none; }
+
+/* ---- Visibilité du focus clavier (elle n'existait nulle part) ---- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.field input:focus-visible,
+.field textarea:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.service:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* La nav est fixe : sans ce décalage, un lien d'ancre fait atterrir la cible
+   sous la barre. Réglé ici seulement (pas aussi en scroll-margin sur les
+   sections) — les deux propriétés s'additionneraient. */
+html { scroll-padding-top: 88px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Nav : section courante + cibles tactiles ---- */
+.nav-links a {
+  position: relative;
+  padding: 8px 2px;
+  display: inline-block;
+}
+.nav-links a[aria-current] { color: var(--accent); }
+.nav-links a[aria-current]::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.nav-cta { min-height: 40px; white-space: nowrap; }
+
+/* Progression de lecture, sous la barre de nav. */
+.nav-progress {
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  background: linear-gradient(90deg, #4dd0e1, #60a5fa, #facc15, #fb923c, #ef4444);
+  transition: transform 0.1s linear;
+}
+
+/* ---- Bouton burger ---- */
+.nav-burger {
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--line-strong);
+  color: var(--fg);
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+.nav-burger:hover { border-color: var(--accent); background: var(--accent-soft); }
+.nav-burger span {
+  position: absolute;
+  left: 50%;
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+  transition: transform 0.3s var(--ease), opacity 0.2s ease;
+}
+.nav-burger span:nth-child(1) { top: 50%; transform: translate(-50%, -4px); }
+.nav-burger span:nth-child(2) { top: 50%; transform: translate(-50%, 4px); }
+.nav-burger.open { border-color: var(--accent); color: var(--accent); }
+.nav-burger.open span:nth-child(1) { transform: translate(-50%, 0) rotate(45deg); }
+.nav-burger.open span:nth-child(2) { transform: translate(-50%, 0) rotate(-45deg); }
+
+/* ---- Panneau de navigation mobile ---- */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(6, 6, 10, 0.72);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+/* Le flou n'est appliqué qu'à l'ouverture : un backdrop-filter permanent sur
+   un élément plein écran garde une couche de composition active en continu,
+   au-dessus du canvas animé. */
+.nav-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.nav-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 95;
+  width: min(360px, 88vw);
+  height: 100dvh;
+  padding: 88px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--bg-2);
+  border-left: 1px solid var(--line-strong);
+  transform: translateX(100%);
+  visibility: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: transform 0.35s var(--ease), visibility 0.35s var(--ease);
+}
+.nav-panel.open { transform: translateX(0); visibility: visible; }
+.nav-panel ul { list-style: none; display: flex; flex-direction: column; }
+.nav-panel li + li { border-top: 1px solid var(--line); }
+.nav-panel li a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  /* 56px : confortable au pouce, contrairement aux liens 10px du desktop. */
+  min-height: 56px;
+  padding: 8px 4px;
+  color: var(--fg);
+  text-decoration: none;
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  transition: color 0.2s;
+}
+.nav-panel li a .idx {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--fg-mute);
+}
+.nav-panel li a .arrow { color: var(--fg-mute); transition: transform 0.2s var(--ease); }
+.nav-panel li a:hover { color: var(--accent); }
+.nav-panel li a:hover .arrow { transform: translateX(4px); }
+.nav-panel li a[aria-current] { color: var(--accent); }
+.nav-panel li a[aria-current] .idx { color: var(--accent); }
+.nav-panel-cta { justify-content: center; }
+.nav-panel-foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.nav-panel-foot b { color: var(--accent); font-weight: 500; }
+
+@media (max-width: 900px) {
+  .nav-burger { display: block; }
+  .nav-right { gap: 12px; }
+}
+@media (max-width: 420px) {
+  /* Sur les petits écrans, le burger suffit — le CTA est dans le panneau. */
+  .nav-cta { display: none; }
+}
+
+/* ---- Hero ---- */
+.hero-ctas { flex-wrap: wrap; align-items: center; }
+.hero-ctas-note {
+  flex-basis: 100%;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-top: 4px;
+}
+.hero-scroll { text-decoration: none; color: inherit; }
+.hero-scroll:hover { color: var(--accent); }
+
+/* ---- Sections ---- */
+.section-hint { color: var(--fg-dim); font-weight: 500; }
+
+/* ---- Services : la carte entière devient cliquable ---- */
+.service h3 a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+/* Zone de clic étendue à toute la carte, sans imbriquer de lien dans un lien. */
+.service h3 a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.service:hover h3 a { color: var(--accent); }
+.service-meta { margin-top: auto; }
+.service-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--fg-mute);
+  transition: color 0.3s, transform 0.3s var(--ease);
+}
+.service:hover .service-cta,
+.service:focus-within .service-cta { color: var(--accent); }
+.service:hover .service-cta .arrow { transform: translateX(4px); }
+
+/* ---- Tarifs ---- */
+.tarifs-note {
+  margin-top: 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+  max-width: 70ch;
+}
+.tarif .btn { margin-top: auto; justify-content: center; }
+
+/* ---- Formulaire : dire ce qui ne va pas, et où ---- */
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.4);
+}
+.field-error {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: #ff8f8f;
+  display: flex;
+  gap: 6px;
+}
+.field-error::before { content: '✗'; }
+.field input::placeholder,
+.field textarea::placeholder { color: var(--fg-mute); opacity: 1; }
+
+/* Le type de projet pré-rempli depuis une carte doit se voir. */
+.field select.prefilled {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 20px var(--accent-glow);
+}
+
+.form-status {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  min-height: 1em;
+}
+.form-status:empty { display: none; }
+.form-status.sent { color: #6ee787; }
+.form-status.error,
+.form-status.invalid { color: #ff8f8f; }
+
+/* ---- Retour en haut ---- */
+.back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 22px;
+  z-index: 80;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: rgba(10, 10, 12, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line-strong);
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s var(--ease),
+              border-color 0.3s, color 0.3s;
+}
+.back-to-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
+.back-to-top:hover { border-color: var(--accent); color: var(--accent); }
+.back-to-top .arrow { font-size: 14px; line-height: 1; }
+.back-to-top .label { font-size: 8px; letter-spacing: 0.14em; }
+/* La réglette thermique occupe le bord droit au-dessus de 900px. */
+@media (min-width: 901px) { .back-to-top { bottom: 22px; right: 40px; } }
+
+/* ---- Footer : cibles tactiles et logo cliquable ---- */
+.footer-logo {
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+}
+.footer-logo:hover .deg { text-shadow: 0 0 18px var(--accent-glow); }
+.footer-meta a { padding: 8px 0; min-height: 34px; display: flex; align-items: center; }
+
+@media (max-width: 720px) {
+  /* Confort de lecture : le mono 13px est dense sur petit écran. */
+  .section-intro { font-size: 14px; }
+  .footer-meta { flex-direction: row; flex-wrap: wrap; gap: 6px 20px; }
+}
+
+/* Le contact est représenté par le CTA, pas par un lien de la liste :
+   il doit malgré tout signaler qu'on s'y trouve. */
+.nav-cta[aria-current] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
 }

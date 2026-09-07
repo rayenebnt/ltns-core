@@ -56,14 +56,14 @@ export default function Pourquoi() {
       <div className="pourquoi-grid reveal">
         {items.map((item) => (
           <div className="pourquoi-item" key={item.num}>
-            <div className="head">
+            <div className="head" aria-hidden="true">
               <span><b>#{item.num}</b> · {item.label}</span>
               <span>{item.fill}%</span>
             </div>
             <h3>{item.title}</h3>
             <p>{item.desc}</p>
-            <div className="gauge-h" style={{ '--fill': item.fill + '%' }}></div>
-            <div className="gauge-h-label">
+            <div className="gauge-h" style={{ '--fill': item.fill + '%' }} aria-hidden="true"></div>
+            <div className="gauge-h-label" aria-hidden="true">
               <span>{item.metric}</span>
               <b>+{item.fill}.0°</b>
             </div>

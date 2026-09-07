@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 // Pilote la "température" du site en fonction du scroll.
 // Expose --t (0→1), --temp (degrés affichés), --accent (couleur cold→hot)
-// sur :root, écoutables par tout le CSS et par les composants via une lecture
-// instantanée du DOM.
+// sur :root pour le CSS, et un petit store abonnable pour le JS — ça évite
+// que chaque composant relise getComputedStyle en boucle.
 //
 // Échelle :   0%  scroll → 12.0° (froid, cyan)
 //           100% scroll → 99.0° (chaud, rouge)
@@ -37,6 +37,34 @@ function tempColor(t) {
   return { r: last.r, g: last.g, b: last.b }
 }
 
+/* ---- Store : une seule source de vérité, lue sans toucher au DOM ---- */
+
+let state = { t: 0, temp: '12.0', rgb: '77, 208, 225' }
+const listeners = new Set()
+
+export function getThermal() {
+  return state
+}
+
+export function subscribeThermal(fn) {
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+// Température courante, réactive — pour les readouts (nav, footer, curseur).
+export function useTemp() {
+  const [temp, setTemp] = useState(() => state.temp)
+  useEffect(() => subscribeThermal((s) => setTemp(s.temp)), [])
+  return temp
+}
+
+// Progression du scroll 0→1, réactive — pour la barre de progression.
+export function useScrollProgress() {
+  const [t, setT] = useState(() => state.t)
+  useEffect(() => subscribeThermal((s) => setT(s.t)), [])
+  return t
+}
+
 export default function useThermal() {
   useEffect(() => {
     const root = document.documentElement
@@ -55,6 +83,9 @@ export default function useThermal() {
       root.style.setProperty('--accent-soft', `rgba(${hot}, 0.12)`)
       root.style.setProperty('--accent-glow', `rgba(${hot}, 0.45)`)
       root.style.setProperty('--accent-line', `rgba(${hot}, 0.35)`)
+
+      state = { t, temp: temp.toFixed(1), rgb: hot }
+      listeners.forEach((fn) => fn(state))
     }
 
     update()
