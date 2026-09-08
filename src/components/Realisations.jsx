@@ -6,7 +6,7 @@ const project = {
   name: 'RBTI',
   url: 'https://rbti.fr',
   domain: 'rbti.fr',
-  type: 'Site vitrine',
+  type: 'Sous-location immobilière',
   tag: 'SITE DE PRÉSENTATION',
   bg: 'linear-gradient(135deg, #00101c 0%, #00223c 50%, #00080e 100%)',
   hi: '#38bdf8',
@@ -85,8 +85,8 @@ export default function Realisations() {
           </span>
           <h2 className="section-title">Un projet,<br /><em>livré au degré</em>.</h2>
           <p className="section-intro">
-            Site de présentation taillé aux besoins du client,
-            sans template générique.
+            Un site de sous-location immobilière, taillé aux besoins
+            du client, sans template générique.
           </p>
         </div>
         <div className="section-temp">

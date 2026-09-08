@@ -9,7 +9,7 @@ Version **React + Vite**.
 
 - **React 18** — composants réutilisables, hooks
 - **Vite** — build ultra rapide, HMR instantané
-- **Three.js** — scène 3D du hero
+- **Three.js** — scène 3D du parcours client (chargée à la demande)
 - **GSAP + ScrollTrigger** — animations d'entrée et au scroll
 - **CSS pur** (variables CSS, Grid, Flexbox)
 - **Google Fonts** : Space Grotesk · Inter Tight · JetBrains Mono
@@ -29,7 +29,8 @@ ltns-react/
     │   ├── Loader.jsx
     │   ├── Cursor.jsx      # Curseur custom néon
     │   ├── Nav.jsx
-    │   ├── Hero.jsx        # Scène Three.js + animation GSAP
+    │   ├── Hero.jsx        # Titre + readout, animation GSAP
+    │   ├── Parcours.jsx    # Parcours client de A à Z, scène Three.js plein écran
     │   ├── Pourquoi.jsx
     │   ├── Services.jsx    # Cards avec tilt 3D
     │   ├── Process.jsx

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import Parcours from './Parcours'
 
 const SCALE_TICKS = [
   { v: '99°', label: 'MAX', now: false },
@@ -44,7 +45,8 @@ export default function Hero({ loaded }) {
     if (!loaded) return
     const tl = gsap.timeline()
     tl.from('.hero-scale .tick', { opacity: 0, x: -10, duration: 0.5, stagger: 0.04, ease: 'power2.out' })
-      .from('.hero-tag', { y: 14, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.2')
+      .from('.parcours-trigger', { y: 14, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.2')
+      .from('.hero-tag', { y: 14, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
       .from('.hero h1 .line span', { y: '110%', duration: 1.0, stagger: 0.1, ease: 'power4.out' }, '-=0.3')
       .from('.hero-sub', { y: 14, opacity: 0, duration: 0.7, ease: 'power3.out' }, '-=0.5')
       .from('.hero-ctas .btn', { y: 14, opacity: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out' }, '-=0.4')
@@ -63,6 +65,7 @@ export default function Hero({ loaded }) {
       </div>
 
       <div className="hero-main">
+        <Parcours />
         <span className="hero-tag">DISPONIBLE POUR VOS PROJETS</span>
         <h1>
           <span className="line"><span>LE WEB</span></span>
