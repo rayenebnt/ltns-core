@@ -1326,37 +1326,33 @@ footer {
 /* ============ RÉALISATIONS ============ */
 .realisations { overflow: hidden; }
 
-.realisations-hint {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--fg-mute);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  margin-bottom: 20px;
-}
-
-.realisations-track {
+.realisations-single {
   display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  padding-bottom: 24px;
-  cursor: grab;
-  user-select: none;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-line) transparent;
+  justify-content: flex-start;
 }
-.realisations-track.dragging { cursor: grabbing; }
-.realisations-track::-webkit-scrollbar { height: 2px; }
-.realisations-track::-webkit-scrollbar-thumb { background: var(--accent-line); }
 
 .realisation {
-  flex: 0 0 320px;
   border: 1px solid var(--line);
   background: var(--bg-2);
   position: relative;
   overflow: hidden;
+  text-decoration: none;
+  color: inherit;
   transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.18s ease;
   will-change: transform;
+}
+
+.realisation-featured {
+  width: 100%;
+  max-width: 860px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: stretch;
+}
+@media (max-width: 760px) {
+  .realisation-featured {
+    grid-template-columns: 1fr;
+  }
 }
 .realisation:hover {
   border-color: var(--accent-line);
@@ -1365,9 +1361,13 @@ footer {
 
 /* Mock screenshot */
 .realisation-screen {
-  height: 210px;
+  height: 100%;
+  min-height: 280px;
   position: relative;
   overflow: hidden;
+}
+@media (max-width: 760px) {
+  .realisation-screen { min-height: 210px; }
 }
 .mock-glow {
   position: absolute;
@@ -1436,7 +1436,15 @@ footer {
 }
 
 /* Card body */
-.realisation-body { padding: 20px 22px; }
+.realisation-body {
+  padding: 28px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+@media (max-width: 760px) {
+  .realisation-body { padding: 22px 24px; }
+}
 .realisation-head {
   display: flex;
   justify-content: space-between;
@@ -1449,7 +1457,7 @@ footer {
 }
 .realisation h3 {
   font-family: var(--display);
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 500;
   letter-spacing: -0.02em;
   margin-bottom: 4px;
@@ -1459,7 +1467,13 @@ footer {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--fg-dim);
-  margin-bottom: 18px;
+  margin-bottom: 6px;
+}
+.realisation-url {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  margin-bottom: 22px;
 }
 .realisation-footer {
   display: flex;
@@ -1471,7 +1485,7 @@ footer {
   font-size: 16px;
   transition: transform 0.3s var(--ease);
 }
-.realisation:hover .realisation-arrow { transform: translateX(4px); }
+.realisation:hover .realisation-arrow { transform: translate(3px, -3px); }
 
 /* ============ REVEAL ============ */
 .reveal {
