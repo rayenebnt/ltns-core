@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import ParcoursTrigger from './ParcoursTrigger'
 
 function fmtTime(d) {
   const hh = String(d.getHours()).padStart(2, '0')
@@ -44,6 +45,7 @@ export default function Nav() {
       </div>
 
       <div className="nav-right">
+        <ParcoursTrigger variant="nav" />
         <ul className="nav-links">
           <li><a href="#services">services</a></li>
           <li><a href="#process">process</a></li>

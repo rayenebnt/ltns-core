@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  createContext, useCallback, useContext, useEffect,
+  useMemo, useRef, useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 
-// Parcours client de A à Z : déclencheur animé dans le hero + scène 3D plein écran.
-// Three.js est chargé à la demande (import dynamique) pour ne pas alourdir le
-// premier rendu de la page.
+// Parcours client de A à Z : une seule scène 3D, ouvrable depuis n'importe où
+// dans la page (hero, nav, section process, pastille flottante).
+// Three.js est chargé à la demande pour ne pas alourdir le premier rendu.
 
 export const STEPS = [
   {
@@ -50,43 +53,61 @@ export const STEPS = [
   },
 ]
 
-export default function Parcours() {
+const ParcoursContext = createContext(null)
+
+export function useParcours() {
+  const ctx = useContext(ParcoursContext)
+  if (!ctx) throw new Error('useParcours doit être appelé dans <ParcoursProvider>')
+  return ctx
+}
+
+export function ParcoursProvider({ children }) {
   const [open, setOpen] = useState(false)
+  const value = useMemo(() => ({
+    open,
+    openParcours: () => setOpen(true),
+    closeParcours: () => setOpen(false),
+  }), [open])
+
+  return (
+    <ParcoursContext.Provider value={value}>
+      {children}
+      {open && <ParcoursOverlay onClose={() => setOpen(false)} />}
+    </ParcoursContext.Provider>
+  )
+}
+
+function ParcoursOverlay({ onClose }) {
   const [index, setIndex] = useState(0)
   const canvasRef = useRef(null)
   const indexRef = useRef(0)
   const pointerRef = useRef({ x: 0, y: 0 })
 
-  const close = useCallback(() => setOpen(false), [])
   const next = useCallback(() => setIndex(i => Math.min(STEPS.length - 1, i + 1)), [])
   const prev = useCallback(() => setIndex(i => Math.max(0, i - 1)), [])
 
   useEffect(() => { indexRef.current = index }, [index])
 
-  // Ouverture : on repart de l'étape 01 et on bloque le scroll de la page.
+  // Blocage du scroll de la page tant que la scène est ouverte.
   useEffect(() => {
-    if (!open) return
-    setIndex(0)
-    const prevOverflow = document.body.style.overflow
+    const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prevOverflow }
-  }, [open])
+    return () => { document.body.style.overflow = previous }
+  }, [])
 
   // Clavier : flèches pour naviguer, Échap pour fermer.
   useEffect(() => {
-    if (!open) return
     const onKey = (e) => {
-      if (e.key === 'Escape') close()
+      if (e.key === 'Escape') onClose()
       else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next()
       else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prev()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, close, next, prev])
+  }, [onClose, next, prev])
 
-  // Scène 3D — montée à l'ouverture, détruite à la fermeture.
+  // Scène 3D.
   useEffect(() => {
-    if (!open) return
     let disposed = false
     let cleanup = () => {}
 
@@ -271,7 +292,7 @@ export default function Parcours() {
     })
 
     return () => { disposed = true; cleanup() }
-  }, [open])
+  }, [])
 
   const onPointerMove = (e) => {
     pointerRef.current = {
@@ -283,102 +304,82 @@ export default function Parcours() {
   const step = STEPS[index]
   const last = index === STEPS.length - 1
 
-  return (
-    <>
-      <button type="button" className="parcours-trigger" onClick={() => setOpen(true)}>
-        <span className="parcours-cube" aria-hidden="true">
-          <i /><i /><i /><i /><i /><i />
-        </span>
-        <span className="parcours-trigger-text">
-          <b>Comment ça se passe&nbsp;?</b>
-          <span>Le parcours client de A à Z · {STEPS.length} étapes</span>
-        </span>
-        <span className="parcours-trigger-arrow" aria-hidden="true">→</span>
-      </button>
+  return createPortal(
+    <div
+      className="parcours-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Le parcours client de A à Z"
+      onMouseMove={onPointerMove}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <canvas className="parcours-canvas" ref={canvasRef} aria-hidden="true" onClick={onClose} />
 
-      {open && createPortal(
-        <div
-          className="parcours-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Le parcours client de A à Z"
-          onMouseMove={onPointerMove}
-          onClick={(e) => { if (e.target === e.currentTarget) close() }}
-        >
-          <canvas className="parcours-canvas" ref={canvasRef} aria-hidden="true" onClick={close} />
+      <div className="parcours-ui">
+        <header className="parcours-head">
+          <span className="parcours-kicker">
+            LTNS<span className="deg">°</span> <span className="sep">//</span> PARCOURS CLIENT
+            <span className="parcours-kicker-long"> · DE A À Z</span>
+          </span>
+          <button type="button" className="parcours-close" onClick={onClose}>
+            FERMER <span aria-hidden="true">✕</span>
+          </button>
+        </header>
 
-          <div className="parcours-ui">
-            <header className="parcours-head">
-              <span className="parcours-kicker">
-                LTNS<span className="deg">°</span> <span className="sep">//</span> PARCOURS CLIENT
-                <span className="parcours-kicker-long"> · DE A À Z</span>
-              </span>
-              <button type="button" className="parcours-close" onClick={close}>
-                FERMER <span aria-hidden="true">✕</span>
-              </button>
-            </header>
-
-            <div className="parcours-panel" key={step.num} style={{ '--step-color': step.color }}>
-              <div className="parcours-panel-head">
-                <span>ÉTAPE <b>{step.num}</b> / {String(STEPS.length).padStart(2, '0')}</span>
-                <span className="parcours-temp" style={{ color: step.color }}>
-                  {step.temp}<span className="deg">°</span>
-                </span>
-              </div>
-              <h3>{step.title}</h3>
-              <p>{step.desc}</p>
-              <dl className="parcours-meta">
-                <div>
-                  <dt>VOTRE RÔLE</dt>
-                  <dd>{step.you}</dd>
-                </div>
-                <div>
-                  <dt>CE QUE VOUS RECEVEZ</dt>
-                  <dd>{step.out}</dd>
-                </div>
-              </dl>
+        <div className="parcours-panel" key={step.num} style={{ '--step-color': step.color }}>
+          <div className="parcours-panel-head">
+            <span>ÉTAPE <b>{step.num}</b> / {String(STEPS.length).padStart(2, '0')}</span>
+            <span className="parcours-temp" style={{ color: step.color }}>
+              {step.temp}<span className="deg">°</span>
+            </span>
+          </div>
+          <h3>{step.title}</h3>
+          <p>{step.desc}</p>
+          <dl className="parcours-meta">
+            <div>
+              <dt>VOTRE RÔLE</dt>
+              <dd>{step.you}</dd>
             </div>
+            <div>
+              <dt>CE QUE VOUS RECEVEZ</dt>
+              <dd>{step.out}</dd>
+            </div>
+          </dl>
+        </div>
 
-            <footer className="parcours-foot">
+        <footer className="parcours-foot">
+          <button type="button" className="parcours-nav" onClick={prev} disabled={index === 0}>
+            <span aria-hidden="true">←</span> PRÉCÉDENT
+          </button>
+
+          <div className="parcours-dots">
+            {STEPS.map((s, i) => (
               <button
                 type="button"
-                className="parcours-nav"
-                onClick={prev}
-                disabled={index === 0}
+                key={s.num}
+                className={`parcours-dot ${i === index ? 'active' : ''} ${i < index ? 'done' : ''}`}
+                style={{ '--dot-color': s.color }}
+                onClick={() => setIndex(i)}
+                aria-label={`Étape ${s.num} — ${s.title}`}
+                aria-current={i === index ? 'step' : undefined}
               >
-                <span aria-hidden="true">←</span> PRÉCÉDENT
+                <span>{s.num}</span>
               </button>
-
-              <div className="parcours-dots">
-                {STEPS.map((s, i) => (
-                  <button
-                    type="button"
-                    key={s.num}
-                    className={`parcours-dot ${i === index ? 'active' : ''} ${i < index ? 'done' : ''}`}
-                    style={{ '--dot-color': s.color }}
-                    onClick={() => setIndex(i)}
-                    aria-label={`Étape ${s.num} — ${s.title}`}
-                    aria-current={i === index ? 'step' : undefined}
-                  >
-                    <span>{s.num}</span>
-                  </button>
-                ))}
-              </div>
-
-              {last ? (
-                <a href="#contact" className="parcours-nav parcours-nav-cta" onClick={close}>
-                  DEMANDER UN DEVIS <span aria-hidden="true">→</span>
-                </a>
-              ) : (
-                <button type="button" className="parcours-nav parcours-nav-cta" onClick={next}>
-                  SUIVANT <span aria-hidden="true">→</span>
-                </button>
-              )}
-            </footer>
+            ))}
           </div>
-        </div>,
-        document.body,
-      )}
-    </>
+
+          {last ? (
+            <a href="#contact" className="parcours-nav parcours-nav-cta" onClick={onClose}>
+              DEMANDER UN DEVIS <span aria-hidden="true">→</span>
+            </a>
+          ) : (
+            <button type="button" className="parcours-nav parcours-nav-cta" onClick={next}>
+              SUIVANT <span aria-hidden="true">→</span>
+            </button>
+          )}
+        </footer>
+      </div>
+    </div>,
+    document.body,
   )
 }

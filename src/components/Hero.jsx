@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import Parcours from './Parcours'
+import ParcoursTrigger from './ParcoursTrigger'
 
 const SCALE_TICKS = [
   { v: '99°', label: 'MAX', now: false },
@@ -65,7 +65,7 @@ export default function Hero({ loaded }) {
       </div>
 
       <div className="hero-main">
-        <Parcours />
+        <ParcoursTrigger variant="hero" />
         <span className="hero-tag">DISPONIBLE POUR VOS PROJETS</span>
         <h1>
           <span className="line"><span>LE WEB</span></span>

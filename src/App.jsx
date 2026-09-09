@@ -11,6 +11,8 @@ import Realisations from './components/Realisations'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
+import { ParcoursProvider } from './components/Parcours'
+import ParcoursTrigger from './components/ParcoursTrigger'
 import useReveal from './hooks/useReveal'
 import useThermal from './hooks/useThermal'
 
@@ -35,7 +37,7 @@ export default function App() {
   useThermal()
 
   return (
-    <>
+    <ParcoursProvider>
       <Background />
       <Loader done={loaded} />
       <Cursor />
@@ -49,6 +51,7 @@ export default function App() {
       <Faq />
       <Contact />
       <Footer />
-    </>
+      <ParcoursTrigger variant="float" />
+    </ParcoursProvider>
   )
 }

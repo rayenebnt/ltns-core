@@ -1,3 +1,5 @@
+import ParcoursTrigger from './ParcoursTrigger'
+
 const steps = [
   { num: '01', temp: '38', title: 'On discute', desc: 'On parle de votre projet, de vos besoins et de votre budget. Vous recevez un devis détaillé sous 48h, sans engagement.' },
   { num: '02', temp: '60', title: 'Je dessine', desc: 'Je vous montre à quoi ressemblera votre projet. Rien n\'est créé tant que vous n\'avez pas dit oui.' },
@@ -77,6 +79,14 @@ export default function Process() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="process-parcours reveal">
+        <p>
+          Vous préférez voir plutôt que lire&nbsp;?
+          <span> Chaque étape en volume, à votre rythme.</span>
+        </p>
+        <ParcoursTrigger variant="band" />
       </div>
     </section>
   )
