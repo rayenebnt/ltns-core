@@ -22,6 +22,7 @@ ltns-react/
 ├── package.json
 ├── vite.config.js
 ├── public/                 # Fichiers statiques
+│   └── realisations/       # Photos de présentation des projets
 └── src/
     ├── main.jsx            # Bootstrap React
     ├── App.jsx             # Composant racine
@@ -35,6 +36,7 @@ ltns-react/
     │   ├── Pourquoi.jsx
     │   ├── Services.jsx    # Cards avec tilt 3D
     │   ├── Process.jsx
+    │   ├── Realisations.jsx # Projets livrés + photo de présentation
     │   ├── Tarifs.jsx
     │   ├── Faq.jsx         # Accordéon avec state
     │   ├── Contact.jsx     # Formulaire avec state
@@ -101,6 +103,18 @@ Alternatives :
 ### Services / FAQ / Process
 
 Chaque section a ses données en haut du composant, dans un tableau facile à modifier.
+
+### Réalisations
+
+Les projets sont listés dans le tableau `projects` en haut de
+`src/components/Realisations.jsx`. Chaque entrée porte son descriptif
+(`description`) et sa photo de présentation (`image`), à déposer dans
+`public/realisations/`.
+
+Sans photo, la carte affiche automatiquement un aperçu filaire généré aux
+couleurs du projet — aucune image cassée.
+
+Formats et procédure détaillés : [`docs/realisations.md`](docs/realisations.md).
 
 ## 📬 Activer le formulaire de contact
 
