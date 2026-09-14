@@ -11,7 +11,7 @@ const projects = [
     tag: 'SITE DE PRÉSENTATION',
     description:
       'Site de présentation pour une activité de sous-location immobilière : offre, biens et mise en relation propriétaires / locataires, avec un parcours de contact direct.',
-    image: '/realisations/rbti.jpg',
+    image: '/realisations/rbti.png',
     bg: 'linear-gradient(135deg, #00101c 0%, #00223c 50%, #00080e 100%)',
     hi: '#38bdf8',
   },
@@ -25,7 +25,7 @@ const projects = [
     tag: 'SITE VITRINE',
     description:
       "Prestations Multi Services Bâtiment — entreprise de travaux tous corps d'état en Île-de-France. Site vitrine des prestations (ravalement de façade, isolation, peinture intérieure, rénovation complète), avec galerie de chantiers et demande de devis.",
-    image: '/realisations/pmsb.jpg',
+    image: '/realisations/pmsb.png',
     bg: 'linear-gradient(135deg, #1c1206 0%, #3a2409 50%, #0e0803 100%)',
     hi: '#f59e0b',
   },
