@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import Background from './components/Background'
 import Loader from './components/Loader'
 import Cursor from './components/Cursor'
@@ -52,6 +53,7 @@ export default function App() {
       <Contact />
       <Footer />
       <ParcoursTrigger variant="float" />
+      <Analytics />
     </ParcoursProvider>
   )
 }
