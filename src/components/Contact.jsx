@@ -345,7 +345,7 @@ export default function Contact() {
 
                 <button
                   type="submit"
-                  className={`btn btn-primary ${status === 'error' ? 'is-error' : ''}`}
+                  className={`btn btn-primary ${status === 'error' ? 'is-error' : ''} ${status === 'sending' ? 'is-sending' : ''}`}
                   disabled={!canNext || status === 'sending'}
                 >
                   {step < STEPS.length - 1 ? <>Suivant <span className="arrow">→</span></> :

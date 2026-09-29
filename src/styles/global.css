@@ -1071,6 +1071,12 @@ section {
   overflow: hidden;
   background:
     linear-gradient(135deg, var(--bg-2) 0%, var(--bg) 100%);
+
+  /* Surfaces et bordures plus claires que le fond : chaque élément se détache */
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --edge: rgba(255, 255, 255, 0.2);
+  --edge-strong: rgba(255, 255, 255, 0.36);
 }
 .contact::before {
   content: '';
@@ -1123,14 +1129,15 @@ section {
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge);
+  background: var(--surface);
   transition: all 0.3s;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 .contact-direct a .ch {
   font-size: 10px;
-  color: var(--fg-mute);
+  color: var(--fg-dim);
   letter-spacing: 0.15em;
 }
 .contact-direct a:hover {
@@ -1207,7 +1214,7 @@ form button:disabled { opacity: 0.6; }
   left: 12.5%;
   height: 1px;
 }
-.devis-steps::before { right: 12.5%; background: var(--line-strong); }
+.devis-steps::before { right: 12.5%; background: var(--edge); }
 .devis-steps::after {
   width: calc(75% * var(--p));
   background: var(--accent);
@@ -1224,7 +1231,7 @@ form button:disabled { opacity: 0.6; }
   border: 0;
   margin: 0;
   padding: 0;
-  color: var(--fg-mute);
+  color: var(--fg-dim);
   font-family: var(--mono);
   cursor: none;
 }
@@ -1234,8 +1241,8 @@ form button:disabled { opacity: 0.6; }
   display: grid;
   place-items: center;
   font-size: 11px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg);
+  border: 1px solid var(--edge-strong);
+  background: var(--bg-3);
   transition: all 0.45s var(--ease);
 }
 .devis-steps .lbl {
@@ -1250,7 +1257,7 @@ form button:disabled { opacity: 0.6; }
   color: var(--bg);
 }
 .devis-steps li.done button:hover .dot { box-shadow: 0 0 16px var(--accent-glow); }
-.devis-steps li.done .lbl { color: var(--fg-dim); }
+.devis-steps li.done .lbl { color: var(--fg); }
 .devis-steps li.active .dot {
   border-color: var(--accent);
   color: var(--accent);
@@ -1311,8 +1318,8 @@ form button:disabled { opacity: 0.6; }
   align-items: center;
   gap: 14px;
   padding: 12px 16px;
-  border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--edge);
+  background: var(--surface);
   cursor: none;
   transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease), box-shadow 0.3s;
 }
@@ -1323,8 +1330,8 @@ form button:disabled { opacity: 0.6; }
   pointer-events: none;
 }
 .devis-option:hover {
-  border-color: var(--line-strong);
-  background: var(--bg-2);
+  border-color: var(--edge-strong);
+  background: var(--surface-hover);
   transform: translateX(4px);
 }
 .devis-option:has(input:focus-visible) {
@@ -1340,7 +1347,7 @@ form button:disabled { opacity: 0.6; }
   display: grid;
   place-items: center;
   width: 42px; height: 42px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge);
   color: var(--fg-dim);
   transition: all 0.35s var(--ease);
 }
@@ -1352,7 +1359,7 @@ form button:disabled { opacity: 0.6; }
 }
 .devis-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .devis-text b { font-weight: 500; font-size: 13px; color: var(--fg); }
-.devis-text small { font-size: 11px; color: var(--fg-mute); }
+.devis-text small { font-size: 11px; color: var(--fg-dim); }
 .devis-tick {
   width: 22px; height: 22px;
   display: grid;
@@ -1369,24 +1376,37 @@ form button:disabled { opacity: 0.6; }
 .devis-gauge { display: flex; align-items: flex-end; gap: 3px; height: 20px; width: 30px; }
 .devis-gauge i {
   flex: 1;
-  background: var(--line-strong);
+  background: var(--edge);
   transition: background 0.3s, box-shadow 0.3s;
 }
 .devis-gauge i:nth-child(1) { height: 25%; }
 .devis-gauge i:nth-child(2) { height: 50%; }
 .devis-gauge i:nth-child(3) { height: 75%; }
 .devis-gauge i:nth-child(4) { height: 100%; }
-.devis-gauge i.on { background: var(--fg-dim); }
+.devis-gauge i.on { background: var(--fg); }
 .devis-option:has(input:checked) .devis-gauge i.on {
   background: var(--accent);
   box-shadow: 0 0 6px var(--accent-glow);
 }
 
-/* Champs : erreur avec petite secousse */
+/* Champs : plus clairs que le fond, erreur avec petite secousse */
+.devis .field label { color: var(--fg-dim); }
+.devis .field input,
+.devis .field textarea {
+  background: var(--surface);
+  border-color: var(--edge);
+}
+.devis .field input:hover,
+.devis .field textarea:hover { border-color: var(--edge-strong); }
+.devis .field input:focus,
+.devis .field textarea:focus {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
 .devis .field textarea { min-height: 140px; }
 .devis .field input::placeholder,
-.devis .field textarea::placeholder { color: var(--fg-mute); }
-.field.invalid input {
+.devis .field textarea::placeholder { color: var(--fg-dim); opacity: 0.75; }
+.devis .field.invalid input {
   border-color: #ff5a5a;
   animation: devis-shake 0.4s;
 }
@@ -1412,8 +1432,8 @@ form button:disabled { opacity: 0.6; }
   font-family: var(--mono);
   font-size: 11px;
   color: var(--fg);
-  background: var(--bg-3);
-  border: 1px dashed var(--line-strong);
+  background: var(--surface);
+  border: 1px dashed var(--edge-strong);
   cursor: none;
   animation: devis-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   transition: border-color 0.3s, color 0.3s;
@@ -1428,15 +1448,19 @@ form button:disabled { opacity: 0.6; }
 /* Navigation */
 .devis-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .devis-nav .btn { margin-top: 0; }
-.devis .btn-ghost { background: transparent; border: 1px solid var(--line-strong); }
+.devis .btn-ghost { background: transparent; border: 1px solid var(--edge-strong); }
 .devis .btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
 .devis-nav .btn-ghost:hover .arrow.back { transform: translateX(-4px); }
-.devis-nav .btn-primary:disabled { opacity: 0.35; }
-.devis-nav .btn-primary:disabled:hover {
-  background: var(--accent);
-  color: var(--bg);
+/* « Suivant » tant qu'aucun choix n'est fait : lisible, mais visiblement inactif */
+.devis-nav .btn-primary:disabled:not(.is-sending) {
+  opacity: 1;
+  background: transparent;
+  color: var(--fg-dim);
+  border: 1px dashed var(--edge-strong);
   box-shadow: none;
 }
+.devis-nav .btn-primary:disabled .arrow { transform: none; }
+.devis-nav .btn-primary.is-sending { opacity: 1; }
 .devis-nav .btn-primary.is-error { background: #ff4444; border-color: #ff4444; color: #fff; }
 .devis-spinner {
   width: 12px; height: 12px;
