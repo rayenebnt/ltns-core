@@ -14,29 +14,19 @@ Le film (43 s) existe en deux versions :
 ## Voix off
 
 Voix de synthèse française (Kokoro, modèle open source sous licence Apache 2.0),
-calée sur les scènes du film. Pour la remplacer par votre propre voix, enregistrez
+calée sur les scènes du film, avec un habillage sonore discret (nappe, pulsation,
+transitions) qui s'efface sous la voix. Pour la remplacer par votre propre voix, enregistrez
 le texte ci-dessous en respectant les temps de départ, puis remplacez la piste audio
 des deux vidéos.
 
 | Début | Fin | Texte |
 |---|---|---|
-| 0.55 s | 3.06 s | Aujourd'hui, vos futurs clients vous cherchent en ligne. |
-| 3.55 s | 5.25 s | Encore faut-il qu'ils vous trouvent. |
+| 0.45 s | 4.66 s | Aujourd'hui, vos futurs clients vous cherchent en ligne. Encore faut-il qu'ils vous trouvent. |
 | 7.30 s | 8.62 s | Le web, au bon degré. |
-| 9.20 s | 10.86 s | Je crée votre site internet. |
-| 11.05 s | 12.33 s | Je le dessine avec vous, |
-| 12.40 s | 13.38 s | je le construis, |
-| 13.60 s | 14.75 s | et je le mets en ligne. |
-| 15.05 s | 16.37 s | Un site sur mesure. |
-| 16.60 s | 17.45 s | Rapide. |
-| 18.05 s | 19.15 s | À votre image. |
-| 19.75 s | 21.68 s | Un site lisible sur ordinateur, |
-| 21.85 s | 22.93 s | sur téléphone, |
-| 23.10 s | 24.37 s | et trouvé sur Google. |
-| 25.10 s | 26.86 s | Vos visiteurs deviennent des clients. |
-| 29.40 s | 31.68 s | Devis, maquette, construction, mise en ligne : |
-| 33.25 s | 34.42 s | je m'occupe de tout. |
-| 35.10 s | 36.65 s | Envie d'un site au bon degré ? |
-| 37.30 s | 38.98 s | Demandez votre devis gratuit. |
-| 39.45 s | 40.77 s | Le web, au bon degré. |
-| 41.20 s | 42.91 s | Réponse sous 48 heures. |
+| 9.30 s | 14.44 s | Je crée votre site internet : je le dessine avec vous, je le construis, et je le mets en ligne. |
+| 15.00 s | 17.61 s | Un site sur mesure, rapide, et à votre image. |
+| 19.80 s | 23.86 s | Un site lisible sur ordinateur, sur téléphone, et trouvé sur Google. |
+| 25.10 s | 27.55 s | Résultat : vos visiteurs deviennent des clients. |
+| 29.40 s | 32.75 s | Devis, maquette, construction, mise en ligne : je m'occupe de tout. |
+| 35.10 s | 38.38 s | Envie d'un site au bon degré ? Demandez votre devis gratuit. |
+| 39.30 s | 42.28 s | Réponse sous 48 heures. Le web, au bon degré. |
