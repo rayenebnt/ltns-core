@@ -13,20 +13,19 @@ Le film (43 s) existe en deux versions :
 
 ## Voix off
 
-Voix de synthèse française (Kokoro, modèle open source sous licence Apache 2.0),
+Voix générée avec ElevenLabs (une phrase par scène, fichiers `01.mp3` à `09.mp3`),
 calée sur les scènes du film, avec un habillage sonore discret (nappe, pulsation,
-transitions) qui s'efface sous la voix. Pour la remplacer par votre propre voix, enregistrez
-le texte ci-dessous en respectant les temps de départ, puis remplacez la piste audio
-des deux vidéos.
+transitions) qui s'efface sous la voix. Pour la changer, régénérez les phrases
+ci-dessous en gardant à peu près leur durée, puis remplacez la piste audio des vidéos.
 
 | Début | Fin | Texte |
 |---|---|---|
-| 0.45 s | 4.66 s | Aujourd'hui, vos futurs clients vous cherchent en ligne. Encore faut-il qu'ils vous trouvent. |
-| 7.30 s | 8.62 s | Le web, au bon degré. |
-| 9.30 s | 14.44 s | Je crée votre site internet : je le dessine avec vous, je le construis, et je le mets en ligne. |
-| 15.00 s | 17.61 s | Un site sur mesure, rapide, et à votre image. |
-| 19.80 s | 23.86 s | Un site lisible sur ordinateur, sur téléphone, et trouvé sur Google. |
-| 25.10 s | 27.55 s | Résultat : vos visiteurs deviennent des clients. |
-| 29.40 s | 32.75 s | Devis, maquette, construction, mise en ligne : je m'occupe de tout. |
-| 35.10 s | 38.38 s | Envie d'un site au bon degré ? Demandez votre devis gratuit. |
-| 39.30 s | 42.28 s | Réponse sous 48 heures. Le web, au bon degré. |
+| 0.45 s | 4.79 s | Aujourd'hui, vos futurs clients vous cherchent en ligne. Encore faut-il qu'ils vous trouvent. |
+| 6.20 s | 9.16 s | Le web, au bon degré, avec LTNS. |
+| 9.35 s | 14.79 s | Je crée votre site internet : je le dessine avec vous, je le construis, et je le mets en ligne. |
+| 15.05 s | 18.16 s | Un site sur mesure, rapide, et à votre image. |
+| 19.80 s | 24.20 s | Un site lisible sur ordinateur, sur téléphone, et trouvé sur Google. |
+| 25.10 s | 27.87 s | Résultat : vos visiteurs deviennent des clients. |
+| 29.40 s | 33.74 s | Devis, maquette, construction, mise en ligne : je m'occupe de tout. |
+| 35.10 s | 38.21 s | Envie d'un site au bon degré ? Demandez votre devis gratuit. |
+| 38.33 s | 43.15 s | Réponse sous 48 heures. Le web, au bon degré, avec LTNS. |
