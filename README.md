@@ -116,6 +116,18 @@ couleurs du projet — aucune image cassée.
 
 Formats et procédure détaillés : [`docs/realisations.md`](docs/realisations.md).
 
+## 🎬 Film de présentation (motion design)
+
+`public/motion.html` est un film animé d'environ 43 secondes (GSAP), aux couleurs
+du site : la température monte de 12° à 99° de la recherche Google jusqu'à la
+demande de devis. Il est servi tel quel à l'adresse `/motion.html`.
+
+- `/motion.html?format=16x9` : paysage 1920×1080 (site, YouTube, LinkedIn)
+- `/motion.html?format=9x16` : vertical 1080×1920 (TikTok, Reels, Shorts)
+- Espace = pause / lecture · R = rejouer
+
+Les textes sont dans le HTML, les temps de chaque scène dans l'objet `AT` du script.
+
 ## 📬 Activer le formulaire de contact
 
 Dans `src/components/Contact.jsx`, dans la fonction `handleSubmit`, décommente et adapte
