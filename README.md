@@ -128,6 +128,10 @@ demande de devis. Il est servi tel quel à l'adresse `/motion.html`.
 
 Les textes sont dans le HTML, les temps de chaque scène dans l'objet `AT` du script.
 
+La version vidéo avec voix off est dans `public/film/` et s'affiche dans la section
+« Le film », juste après l'accueil (`src/components/Film.jsx`) : format vertical sur
+téléphone, paysage ailleurs. Texte de la voix off et détails : [`docs/film.md`](docs/film.md).
+
 ## 📬 Activer le formulaire de contact
 
 Dans `src/components/Contact.jsx`, dans la fonction `handleSubmit`, décommente et adapte

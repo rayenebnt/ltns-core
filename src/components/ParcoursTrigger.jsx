@@ -29,10 +29,10 @@ export default function ParcoursTrigger({ variant = 'hero' }) {
   }, [variant])
 
   // …et s'efface quand le bandeau du process est déjà sous les yeux, ou quand
-  // le formulaire de devis est à l'écran (pour ne pas en masquer les boutons).
+  // le film ou le formulaire de devis sont à l'écran (pour ne pas en masquer les boutons).
   useEffect(() => {
     if (variant !== 'float') return
-    const targets = document.querySelectorAll('.process-parcours, form.devis')
+    const targets = document.querySelectorAll('.process-parcours, form.devis, .film')
     if (!targets.length || typeof IntersectionObserver === 'undefined') return
     const onScreen = new Set()
     const io = new IntersectionObserver(entries => {

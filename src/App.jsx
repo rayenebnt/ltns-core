@@ -11,6 +11,7 @@ import Process from './components/Process'
 import Realisations from './components/Realisations'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
+import Film from './components/Film'
 import Footer from './components/Footer'
 import { ParcoursProvider } from './components/Parcours'
 import ParcoursTrigger from './components/ParcoursTrigger'
@@ -45,6 +46,7 @@ export default function App() {
       <ThermalRail />
       <Nav />
       <Hero loaded={loaded} />
+      <Film />
       <Contact />
       <Pourquoi />
       <Services />
