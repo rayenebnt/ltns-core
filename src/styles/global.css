@@ -1096,6 +1096,8 @@ section {
 @media (max-width: 900px) {
   .contact { padding: 36px 22px; }
   .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+  /* Sur mobile, le devis passe avant les coordonnées : on arrive directement dessus */
+  .contact-grid .devis { order: -1; }
 }
 .contact-info h2 {
   font-family: var(--display);

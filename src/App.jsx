@@ -45,12 +45,12 @@ export default function App() {
       <ThermalRail />
       <Nav />
       <Hero loaded={loaded} />
+      <Contact />
       <Pourquoi />
       <Services />
       <Process />
       <Realisations />
       <Faq />
-      <Contact />
       <Footer />
       <ParcoursTrigger variant="float" />
       <Analytics />

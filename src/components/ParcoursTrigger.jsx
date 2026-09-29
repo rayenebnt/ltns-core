@@ -17,7 +17,7 @@ function Cube() {
 export default function ParcoursTrigger({ variant = 'hero' }) {
   const { open, openParcours } = useParcours()
   const [visible, setVisible] = useState(variant !== 'float')
-  const [bandVisible, setBandVisible] = useState(false)
+  const [inTheWay, setInTheWay] = useState(false)
 
   // La pastille flottante n'apparaît qu'une fois le hero passé…
   useEffect(() => {
@@ -28,17 +28,22 @@ export default function ParcoursTrigger({ variant = 'hero' }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [variant])
 
-  // …et s'efface quand le bandeau du process est déjà sous les yeux.
+  // …et s'efface quand le bandeau du process est déjà sous les yeux, ou quand
+  // le formulaire de devis est à l'écran (pour ne pas en masquer les boutons).
   useEffect(() => {
     if (variant !== 'float') return
-    const band = document.querySelector('.process-parcours')
-    if (!band || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(([e]) => setBandVisible(e.isIntersecting))
-    io.observe(band)
+    const targets = document.querySelectorAll('.process-parcours, form.devis')
+    if (!targets.length || typeof IntersectionObserver === 'undefined') return
+    const onScreen = new Set()
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => (e.isIntersecting ? onScreen.add(e.target) : onScreen.delete(e.target)))
+      setInTheWay(onScreen.size > 0)
+    })
+    targets.forEach(t => io.observe(t))
     return () => io.disconnect()
   }, [variant])
 
-  if (variant === 'float' && (!visible || open || bandVisible)) return null
+  if (variant === 'float' && (!visible || open || inTheWay)) return null
 
   const label = `Ouvrir le parcours client en 3D — ${STEPS.length} étapes`
 
