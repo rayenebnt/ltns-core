@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import CtaBand from './CtaBand'
 
 const projects = [
   {
@@ -11,7 +12,7 @@ const projects = [
     tag: 'SITE DE PRÉSENTATION',
     description:
       'Site de présentation pour une activité de sous-location immobilière : offre, biens et mise en relation propriétaires / locataires, avec un parcours de contact direct.',
-    image: '/realisations/rbti.png',
+    image: '/realisations/rbti.jpg',
     bg: 'linear-gradient(135deg, #00101c 0%, #00223c 50%, #00080e 100%)',
     hi: '#38bdf8',
   },
@@ -25,7 +26,7 @@ const projects = [
     tag: 'SITE VITRINE',
     description:
       "Prestations Multi Services Bâtiment — entreprise de travaux tous corps d'état en Île-de-France. Site vitrine des prestations (ravalement de façade, isolation, peinture intérieure, rénovation complète), avec galerie de chantiers et demande de devis.",
-    image: '/realisations/pmsb.png',
+    image: '/realisations/pmsb.jpg',
     bg: 'linear-gradient(135deg, #1c1206 0%, #3a2409 50%, #0e0803 100%)',
     hi: '#f59e0b',
   },
@@ -140,7 +141,7 @@ export default function Realisations() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>06</b><span className="sep">//</span> RÉALISATIONS
+            <b>03</b><span className="sep">//</span> RÉALISATIONS
           </span>
           <h2 className="section-title">Des projets,<br /><em>livrés au degré</em>.</h2>
           <p className="section-intro">
@@ -149,7 +150,7 @@ export default function Realisations() {
           </p>
         </div>
         <div className="section-temp">
-          62<span className="deg">°</span>
+          48<span className="deg">°</span>
           <span className="label">PROJETS · LIVRÉS</span>
         </div>
       </div>
@@ -159,6 +160,12 @@ export default function Realisations() {
           <ProjectCard key={p.id} {...p} />
         ))}
       </div>
+
+      <CtaBand
+        label="VOTRE TOUR"
+        title="Le prochain site en ligne, c'est le vôtre ?"
+        text="Dites-moi en 1 minute ce dont vous avez besoin : vous recevez un devis détaillé sous 48h, sans engagement."
+      />
     </section>
   )
 }

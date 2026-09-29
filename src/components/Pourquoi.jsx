@@ -39,7 +39,7 @@ export default function Pourquoi() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>03</b><span className="sep">//</span> POURQUOI MOI
+            <b>04</b><span className="sep">//</span> POURQUOI MOI
           </span>
           <h2 className="section-title">Un freelance,<br/><em>quatre promesses</em>.</h2>
           <p className="section-intro">
@@ -48,7 +48,7 @@ export default function Pourquoi() {
           </p>
         </div>
         <div className="section-temp">
-          24<span className="deg">°</span>
+          62<span className="deg">°</span>
           <span className="label">DES BASES SOLIDES</span>
         </div>
       </div>

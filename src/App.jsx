@@ -11,10 +11,9 @@ import Process from './components/Process'
 import Realisations from './components/Realisations'
 import Faq from './components/Faq'
 import Contact from './components/Contact'
-import Film from './components/Film'
+import StickyCta from './components/StickyCta'
 import Footer from './components/Footer'
 import { ParcoursProvider } from './components/Parcours'
-import ParcoursTrigger from './components/ParcoursTrigger'
 import useReveal from './hooks/useReveal'
 import useThermal from './hooks/useThermal'
 
@@ -31,7 +30,7 @@ export default function App() {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 1200)
+    const t = setTimeout(() => setLoaded(true), 250)
     return () => clearTimeout(t)
   }, [])
 
@@ -46,15 +45,14 @@ export default function App() {
       <ThermalRail />
       <Nav />
       <Hero loaded={loaded} />
-      <Film />
       <Contact />
-      <Pourquoi />
       <Services />
-      <Process />
       <Realisations />
+      <Pourquoi />
+      <Process />
       <Faq />
       <Footer />
-      <ParcoursTrigger variant="float" />
+      <StickyCta />
       <Analytics />
     </ParcoursProvider>
   )

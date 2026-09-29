@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // Le film de présentation : version verticale sur téléphone, paysage ailleurs.
 // Fichiers dans public/film/ (vidéo avec voix off, image d'aperçu, sous-titres).
@@ -8,7 +8,11 @@ const FORMATS = {
 }
 const TALL_QUERY = '(max-width: 720px) and (orientation: portrait)'
 
-export default function Film() {
+// Lance le film depuis n'importe où (ex. bouton « Voir le film » de l'accueil)
+export const playFilm = () => window.dispatchEvent(new Event('film:play'))
+
+export default function FilmPlayer() {
+  const wrapRef = useRef(null)
   const videoRef = useRef(null)
   const [tall, setTall] = useState(() => window.matchMedia(TALL_QUERY).matches)
   const [status, setStatus] = useState('idle') // idle → playing → ended
@@ -22,7 +26,7 @@ export default function Film() {
     return () => mq.removeEventListener('change', onChange)
   }, [status])
 
-  const play = () => {
+  const play = useCallback(() => {
     const video = videoRef.current
     if (!video) return
     video.currentTime = 0
@@ -30,75 +34,65 @@ export default function Film() {
     video.play().catch(() => {})
     setStatus('playing')
     window.umami?.track?.('Lecture du film')
-  }
+  }, [])
+
+  useEffect(() => {
+    const onPlay = () => {
+      wrapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      play()
+    }
+    window.addEventListener('film:play', onPlay)
+    return () => window.removeEventListener('film:play', onPlay)
+  }, [play])
 
   const { video, poster } = tall ? FORMATS.tall : FORMATS.wide
 
   return (
-    <section id="film">
-      <div className="section-head reveal">
-        <div>
-          <span className="section-label">
-            <b>01</b><span className="sep">//</span> LE FILM
-          </span>
-          <h2 className="section-title">Tout comprendre en <em>43 secondes</em>.</h2>
-          <p className="section-intro">
-            Ce que je fais, comment je travaille et ce que ça change pour vous.
-            Montez le son : le film est commenté.
-          </p>
-        </div>
-        <div className="section-temp">
-          15<span className="deg">°</span>
-          <span className="label">MONTEZ LE SON</span>
-        </div>
-      </div>
+    <div id="film" ref={wrapRef} className={`film${tall ? ' film--tall' : ''}`}>
+      <video
+        key={video}
+        ref={videoRef}
+        className="film-video"
+        src={video}
+        poster={poster}
+        preload="none"
+        playsInline
+        controls={status === 'playing'}
+        onEnded={() => setStatus('ended')}
+      >
+        <track kind="captions" src="/film/ltns-film.vtt" srcLang="fr" label="Français" />
+      </video>
 
-      <div className={`film reveal${tall ? ' film--tall' : ''}`}>
-        <video
-          key={video}
-          ref={videoRef}
-          className="film-video"
-          src={video}
-          poster={poster}
-          preload="none"
-          playsInline
-          controls={status === 'playing'}
-          onEnded={() => setStatus('ended')}
+      {status === 'idle' && (
+        <button
+          type="button"
+          className="film-play"
+          onClick={play}
+          aria-label="Lancer le film de présentation, 43 secondes, avec le son"
         >
-          <track kind="captions" src="/film/ltns-film.vtt" srcLang="fr" label="Français" />
-        </video>
+          <span className="film-play-btn" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+          </span>
+          <span className="film-play-txt">
+            <b>LANCER LE FILM</b>
+            <span>43 S · AVEC LE SON</span>
+          </span>
+        </button>
+      )}
 
-        {status === 'idle' && (
-          <button
-            type="button"
-            className="film-play"
-            onClick={play}
-            aria-label="Lancer le film de présentation, 43 secondes, avec le son"
-          >
-            <span className="film-play-btn" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" /></svg>
-            </span>
-            <span className="film-play-txt">
-              <b>LANCER LE FILM</b>
-              <span>43 S · AVEC LE SON</span>
-            </span>
-          </button>
-        )}
-
-        {status === 'ended' && (
-          <div className="film-end">
-            <span className="film-end-label">ENVIE D'UN SITE AU BON DEGRÉ ?</span>
-            <div className="film-end-ctas">
-              <a href="#contact" className="btn btn-primary">
-                Demander mon devis <span className="arrow">→</span>
-              </a>
-              <button type="button" className="btn btn-ghost" onClick={play}>
-                Revoir le film <span className="arrow">↺</span>
-              </button>
-            </div>
+      {status === 'ended' && (
+        <div className="film-end">
+          <span className="film-end-label">ENVIE D'UN SITE AU BON DEGRÉ ?</span>
+          <div className="film-end-ctas">
+            <a href="#contact" className="btn btn-primary">
+              Demander mon devis <span className="arrow">→</span>
+            </a>
+            <button type="button" className="btn btn-ghost" onClick={play}>
+              Revoir le film <span className="arrow">↺</span>
+            </button>
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      )}
+    </div>
   )
 }

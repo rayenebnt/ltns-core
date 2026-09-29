@@ -8,8 +8,8 @@ Dépose la capture d'écran de chaque site dans `public/realisations/`.
 
 | Projet | Fichier            | Site                |
 | ------ | ------------------ | ------------------- |
-| P01    | `rbti.png`         | rbti.fr             |
-| P02    | `pmsb.png`         | pmsbbatiment.fr     |
+| P01    | `rbti.jpg`         | rbti.fr             |
+| P02    | `pmsb.jpg`         | pmsbbatiment.fr     |
 
 Le nom du fichier est défini par le champ `image` du projet, dans
 `src/components/Realisations.jsx`.
@@ -19,6 +19,7 @@ Le nom du fichier est défini par le champ `image` du projet, dans
 - **Ratio** : 16/10 (la carte recadre en `object-fit: cover`, ancré en haut)
 - **Largeur** : 1600 px (écran Retina), poids visé < 300 Ko
 - **Format** : `.png` (ou `.jpg` / `.webp` en adaptant le champ `image`)
+- **Poids** : sur le site, les photos sont des `.jpg` de 1600 px de large (~120 Ko) pour un chargement rapide. Les `.png` d'origine restent pour le film (`motion.html`).
 - **Cadrage** : haut de page du site, sans la barre du navigateur —
   la carte dessine sa propre barre avec le nom de domaine
 - **Nom de fichier** : sans espace, accent ni apostrophe — il devient une

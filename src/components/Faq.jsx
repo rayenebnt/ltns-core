@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import CtaBand from './CtaBand'
 
 const faqs = [
   {
@@ -55,7 +56,7 @@ export default function Faq() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>07</b><span className="sep">//</span> QUESTIONS
+            <b>06</b><span className="sep">//</span> QUESTIONS
           </span>
           <h2 className="section-title">Vos questions,<br/><em>mes réponses</em>.</h2>
           <p className="section-intro">
@@ -71,6 +72,12 @@ export default function Faq() {
       <div className="faq-list reveal">
         {faqs.map((f, i) => <FaqItem key={i} idx={i} {...f} />)}
       </div>
+
+      <CtaBand
+        label="UNE AUTRE QUESTION ?"
+        title="Parlons de votre projet."
+        text="Demandez votre devis en 1 minute, ou appelez-moi directement : je vous réponds sous 48h, sans engagement."
+      />
     </section>
   )
 }

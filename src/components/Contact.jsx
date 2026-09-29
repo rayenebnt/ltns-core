@@ -37,6 +37,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const EMPTY = { projet: '', budget: '', fonctions: [], message: '', nom: '', email: '' }
 const pos = temp => (temp - 12) / 87 // position 0 → 1 sur la jauge
 
+// Ouvre le devis avec un type de projet déjà choisi (ex. depuis une carte de service)
+export const prefillDevis = projet => window.dispatchEvent(new CustomEvent('devis:prefill', { detail: { projet } }))
+
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -275,6 +278,22 @@ export default function Contact() {
 
   useEffect(() => () => clearTimeout(advanceTimer.current), [])
 
+  // Pré-remplissage depuis le reste du site : on passe directement au budget
+  useEffect(() => {
+    const onPrefill = (e) => {
+      const projet = e.detail?.projet
+      if (!PROJETS.some(p => p.value === projet)) return
+      clearTimeout(advanceTimer.current)
+      setStatus('idle')
+      setErrors({})
+      setData(d => ({ ...(d.nom || d.email ? d : EMPTY), projet }))
+      dirRef.current = 1
+      setStep(1)
+    }
+    window.addEventListener('devis:prefill', onPrefill)
+    return () => window.removeEventListener('devis:prefill', onPrefill)
+  }, [])
+
   // ---------- Température : couleur, jauge et lecture ----------
   const paintHeat = useCallback(() => {
     const form = formRef.current
@@ -476,12 +495,12 @@ export default function Contact() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>02</b><span className="sep">//</span> CONTACT
+            <b>01</b><span className="sep">//</span> DEVIS GRATUIT
           </span>
-          <h2 className="section-title">Au <em>contact</em>.</h2>
+          <h2 className="section-title">Votre devis <em>en 1 minute</em>.</h2>
           <p className="section-intro">
-            Un devis gratuit sous 48h, sans engagement. On parle d'abord de votre projet,
-            on parle du prix ensuite.
+            4 questions, et je vous réponds sous 48h avec une proposition claire :
+            ce qui est prévu, le délai et le prix. Gratuit et sans engagement.
           </p>
         </div>
         <div className="section-temp">
