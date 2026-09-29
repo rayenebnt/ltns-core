@@ -1178,6 +1178,320 @@ form button {
 }
 form button:disabled { opacity: 0.6; }
 
+/* ============ DEVIS — assistant en 4 étapes ============ */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.devis { gap: 22px; min-width: 0; }
+.devis fieldset { border: 0; min-width: 0; }
+
+/* Progression : rail qui se remplit + pastilles numérotées */
+.devis-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+}
+.devis-steps::before,
+.devis-steps::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 12.5%;
+  height: 1px;
+}
+.devis-steps::before { right: 12.5%; background: var(--line-strong); }
+.devis-steps::after {
+  width: calc(75% * var(--p));
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: width 0.6s var(--ease);
+}
+.devis-steps li { display: flex; justify-content: center; position: relative; z-index: 1; }
+.devis-steps button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  color: var(--fg-mute);
+  font-family: var(--mono);
+  cursor: none;
+}
+.devis-steps button:disabled { opacity: 1; }
+.devis-steps .dot {
+  width: 29px; height: 29px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  transition: all 0.45s var(--ease);
+}
+.devis-steps .lbl {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.devis-steps li.done .dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+.devis-steps li.done button:hover .dot { box-shadow: 0 0 16px var(--accent-glow); }
+.devis-steps li.done .lbl { color: var(--fg-dim); }
+.devis-steps li.active .dot {
+  border-color: var(--accent);
+  color: var(--accent);
+  animation: devis-pulse 1.8s ease-in-out infinite;
+}
+.devis-steps li.active .lbl { color: var(--accent); }
+@keyframes devis-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%      { box-shadow: 0 0 0 6px transparent, 0 0 18px -2px var(--accent-glow); }
+}
+
+/* Panneau d'étape : glisse depuis la droite (suivant) ou la gauche (retour) */
+.devis-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 330px;
+}
+.devis-panel.from-right { animation: devis-in-right 0.5s var(--ease) both; }
+.devis-panel.from-left  { animation: devis-in-left 0.5s var(--ease) both; }
+@keyframes devis-in-right {
+  from { opacity: 0; transform: translateX(36px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes devis-in-left {
+  from { opacity: 0; transform: translateX(-36px); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+.devis-count {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+}
+.devis-title {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(20px, 2.4vw, 26px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+
+/* Cartes de choix — apparaissent en cascade */
+.devis-options { display: flex; flex-direction: column; gap: 8px; }
+.devis-option,
+.devis-rise {
+  animation: devis-rise 0.5s var(--ease) both;
+  animation-delay: calc(0.12s + var(--i, 0) * 0.06s);
+}
+@keyframes devis-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.devis-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.3);
+  cursor: none;
+  transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease), box-shadow 0.3s;
+}
+.devis-option.compact { padding: 13px 16px; }
+.devis-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.devis-option:hover {
+  border-color: var(--line-strong);
+  background: var(--bg-2);
+  transform: translateX(4px);
+}
+.devis-option:has(input:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.devis-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 24px -8px var(--accent-glow);
+}
+.devis-icon {
+  display: grid;
+  place-items: center;
+  width: 42px; height: 42px;
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  transition: all 0.35s var(--ease);
+}
+.devis-option:hover .devis-icon { color: var(--fg); }
+.devis-option:has(input:checked) .devis-icon {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  transform: rotate(-6deg) scale(1.06);
+}
+.devis-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.devis-text b { font-weight: 500; font-size: 13px; color: var(--fg); }
+.devis-text small { font-size: 11px; color: var(--fg-mute); }
+.devis-tick {
+  width: 22px; height: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: var(--bg);
+  background: var(--accent);
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.devis-option:has(input:checked) .devis-tick { transform: scale(1); }
+
+/* Jauge de budget */
+.devis-gauge { display: flex; align-items: flex-end; gap: 3px; height: 20px; width: 30px; }
+.devis-gauge i {
+  flex: 1;
+  background: var(--line-strong);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.devis-gauge i:nth-child(1) { height: 25%; }
+.devis-gauge i:nth-child(2) { height: 50%; }
+.devis-gauge i:nth-child(3) { height: 75%; }
+.devis-gauge i:nth-child(4) { height: 100%; }
+.devis-gauge i.on { background: var(--fg-dim); }
+.devis-option:has(input:checked) .devis-gauge i.on {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* Champs : erreur avec petite secousse */
+.devis .field textarea { min-height: 140px; }
+.devis .field input::placeholder,
+.devis .field textarea::placeholder { color: var(--fg-mute); }
+.field.invalid input {
+  border-color: #ff5a5a;
+  animation: devis-shake 0.4s;
+}
+.devis-error { font-size: 11px; color: #ff7a7a; }
+@keyframes devis-shake {
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+/* Récapitulatif */
+.devis-recap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+.devis-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg);
+  background: var(--bg-3);
+  border: 1px dashed var(--line-strong);
+  cursor: none;
+  animation: devis-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: border-color 0.3s, color 0.3s;
+}
+.devis-chip span { font-size: 9px; letter-spacing: 0.18em; color: var(--accent); }
+.devis-chip:hover { border-color: var(--accent); color: var(--accent); }
+@keyframes devis-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Navigation */
+.devis-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.devis-nav .btn { margin-top: 0; }
+.devis .btn-ghost { background: transparent; border: 1px solid var(--line-strong); }
+.devis .btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+.devis-nav .btn-ghost:hover .arrow.back { transform: translateX(-4px); }
+.devis-nav .btn-primary:disabled { opacity: 0.35; }
+.devis-nav .btn-primary:disabled:hover {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: none;
+}
+.devis-nav .btn-primary.is-error { background: #ff4444; border-color: #ff4444; color: #fff; }
+.devis-spinner {
+  width: 12px; height: 12px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: devis-spin 0.7s linear infinite;
+}
+@keyframes devis-spin { to { transform: rotate(360deg); } }
+
+/* Succès : le cercle et la coche se dessinent */
+.devis-success {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  animation: devis-rise 0.5s var(--ease) both;
+}
+.devis-success h3 {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.devis-success p { color: var(--fg-dim); font-size: 13px; max-width: 36ch; line-height: 1.7; }
+.devis-success p b { color: var(--fg); font-weight: 500; }
+.devis-success .btn { margin-top: 10px; }
+.devis-check { width: 76px; height: 76px; margin-bottom: 6px; }
+.devis-check circle,
+.devis-check path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+.devis-check circle {
+  stroke-dasharray: 183;
+  stroke-dashoffset: 183;
+  animation: devis-draw 0.7s var(--ease) forwards;
+}
+.devis-check path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: devis-draw 0.45s var(--ease) 0.55s forwards;
+}
+@keyframes devis-draw { to { stroke-dashoffset: 0; } }
+
+@media (max-width: 540px) {
+  .devis-panel { min-height: 0; }
+  .devis-option { gap: 12px; padding: 11px 12px; }
+  .devis-icon { width: 36px; height: 36px; }
+  .devis-nav .btn { padding: 13px 16px; }
+}
+
 /* ============ FOOTER ============ */
 footer {
   border-top: 1px solid var(--line);
