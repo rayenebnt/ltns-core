@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>LTNS° — Affiche de rue A3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================
+       AFFICHE DE RUE A3 LTNS° — lisible depuis une voiture
+       --------------------------------------------
+       Règles suivies : 7 mots maximum lisibles de loin, contraste maximal
+       (noir sur jaune), numéro de téléphone en très grand.
+       En bas : languettes à détacher pour les piétons.
+
+       IMPRESSION :
+       1. Ouvrir ce fichier dans Chrome
+       2. Imprimer (Ctrl/Cmd+P) → A3 portrait · Marges : aucune · Échelle 100 %
+          · cocher « Graphiques d'arrière-plan »
+       3. Pour l'extérieur : papier 170 g+ ou plastification, colle ou
+          colliers de serrage en haut et en bas
+       ============================================ */
+
+    @page { size: A3 portrait; margin: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --jaune: #facc15;
+      --noir: #0a0a0c;
+      --creme: #ece9e2;
+    }
+
+    html, body { background: #444; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { display: grid; place-items: center; padding: 20px; min-height: 100vh; }
+    @media print { html, body { background: var(--jaune); padding: 0; } }
+
+    .poster {
+      width: 297mm;
+      height: 420mm;
+      background: var(--jaune);
+      color: var(--noir);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* Bande thermique du site : froid → chaud */
+    .heat { height: 7mm; background: linear-gradient(90deg, #4dd0e1, #60a5fa 25%, #facc15 55%, #fb923c 80%, #ef4444); border-bottom: 1.2mm solid var(--noir); }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9mm 14mm 0;
+    }
+    .logo { display: flex; align-items: flex-start; font-weight: 700; font-size: 26mm; letter-spacing: -0.06em; line-height: 0.8; }
+    .logo svg { width: 15mm; height: 15mm; margin: -1mm 0 0 1mm; }
+    .logo svg rect { fill: var(--noir); }
+    .logo svg circle { fill: none; stroke: var(--noir); stroke-width: 11; }
+    .dispo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 6.5mm;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: right;
+      line-height: 1.25;
+    }
+
+    /* Le message : 3 mots énormes */
+    .headline {
+      padding: 10mm 12mm 0;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.065em;
+      line-height: 0.84;
+    }
+    .headline .l1 { font-size: 64mm; display: block; }
+    .headline .l2 { font-size: 118mm; display: block; margin-left: -2mm; }
+    .headline .l3 { font-size: 57mm; display: block; }
+
+    .deal {
+      margin: 9mm 12mm 0;
+      background: var(--noir);
+      color: var(--jaune);
+      font-weight: 700;
+      text-transform: uppercase;
+      text-align: center;
+      font-size: 17mm;
+      letter-spacing: -0.02em;
+      padding: 5mm 0 4mm;
+    }
+
+    .phone {
+      margin: 7mm 0 0;
+      text-align: center;
+      font-weight: 700;
+      font-size: 33mm;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .phone small {
+      display: block;
+      margin-top: 3mm;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.5mm;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Languettes à détacher */
+    .tabs {
+      margin-top: auto;
+      height: 58mm;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      border-top: 0.8mm dashed var(--noir);
+    }
+    .tab {
+      border-right: 0.5mm dashed var(--noir);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 5mm;
+      letter-spacing: 0.02em;
+      gap: 2mm;
+      padding: 4mm 0;
+      white-space: nowrap;
+    }
+    .tab:last-child { border-right: 0; }
+    .tab b { font-family: 'Space Grotesk', sans-serif; font-size: 5.2mm; letter-spacing: -0.01em; }
+    .tab span { font-weight: 500; font-size: 3.4mm; }
+  </style>
+</head>
+<body>
+  <div class="poster">
+    <div class="heat"></div>
+
+    <div class="top">
+      <div class="logo">
+        LTNS
+        <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="55" y="6" width="10" height="18" rx="1"/><circle cx="60" cy="72" r="38"/></svg>
+      </div>
+      <div class="dispo">Freelance<br>disponible</div>
+    </div>
+
+    <div class="headline">
+      <span class="l1">Votre</span>
+      <span class="l2">site</span>
+      <span class="l3">internet</span>
+    </div>
+
+    <div class="deal">Devis gratuit sous 48h</div>
+
+    <div class="phone">
+      06 25 20 64 93
+      <small>Appel · SMS · WhatsApp</small>
+    </div>
+
+    <div class="tabs">
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+      <div class="tab"><b>06 25 20 64 93</b><span>LTNS°</span></div>
+    </div>
+  </div>
+</body>
+</html>
