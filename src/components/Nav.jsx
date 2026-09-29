@@ -48,8 +48,8 @@ export default function Nav() {
         <ParcoursTrigger variant="nav" />
         <ul className="nav-links">
           <li><a href="#film">film</a></li>
-          <li><a href="#services">services</a></li>
           <li><a href="#realisations">réalisations</a></li>
+          <li><a href="#services">services</a></li>
           <li><a href="#process">process</a></li>
           <li><a href="#faq">faq</a></li>
         </ul>

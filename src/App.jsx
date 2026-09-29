@@ -46,8 +46,8 @@ export default function App() {
       <Nav />
       <Hero loaded={loaded} />
       <Contact />
-      <Services />
       <Realisations />
+      <Services />
       <Pourquoi />
       <Process />
       <Faq />

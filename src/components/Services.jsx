@@ -43,7 +43,7 @@ export default function Services() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>02</b><span className="sep">//</span> SERVICES
+            <b>03</b><span className="sep">//</span> SERVICES
           </span>
           <h2 className="section-title">Six services,<br/><em>un seul artisan</em>.</h2>
           <p className="section-intro">
@@ -52,7 +52,7 @@ export default function Services() {
           </p>
         </div>
         <div className="section-temp">
-          34<span className="deg">°</span>
+          48<span className="deg">°</span>
           <span className="label">DU SIMPLE AU COMPLET</span>
         </div>
       </div>

@@ -141,7 +141,7 @@ export default function Realisations() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>03</b><span className="sep">//</span> RÉALISATIONS
+            <b>02</b><span className="sep">//</span> RÉALISATIONS
           </span>
           <h2 className="section-title">Des projets,<br /><em>livrés au degré</em>.</h2>
           <p className="section-intro">
@@ -150,7 +150,7 @@ export default function Realisations() {
           </p>
         </div>
         <div className="section-temp">
-          48<span className="deg">°</span>
+          34<span className="deg">°</span>
           <span className="label">PROJETS · LIVRÉS</span>
         </div>
       </div>
