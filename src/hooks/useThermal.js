@@ -21,7 +21,7 @@ const STOPS = [
 
 function lerp(a, b, t) { return a + (b - a) * t }
 
-function tempColor(t) {
+export function tempColor(t) {
   for (let i = 0; i < STOPS.length - 1; i++) {
     const a = STOPS[i], b = STOPS[i + 1]
     if (t >= a.t && t <= b.t) {
