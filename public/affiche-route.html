@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 
   <style>
     /* ============================================
@@ -72,16 +72,16 @@
     }
     .deal .fit { line-height: 1; }
 
-    .phone { text-align: center; letter-spacing: -0.055em; }
+    /* Numéro en police étroite : chiffres beaucoup plus hauts sur la même largeur */
+    .phone { text-align: center; font-family: 'Bebas Neue', 'Space Grotesk', sans-serif; font-weight: 400; letter-spacing: 0.01em; }
     .phone .fit { line-height: 1; }
 
     /* QR code pour les piétons */
     .web { display: flex; align-items: center; gap: 8mm; }
     .qr-box { background: var(--blanc); padding: 8mm; flex: none; } /* marge blanche nécessaire au scan */
     .qr { display: block; width: 104mm; height: 104mm; }
-    .web-txt { display: flex; flex-direction: column; gap: 3mm; flex: 1; min-width: 0; }
-    .web-txt small { font-family: 'JetBrains Mono', monospace; font-size: 6.5mm; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.25; }
-    .web-txt b { font-size: 30mm; letter-spacing: -0.04em; line-height: 1; }
+    .web-txt { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 0; }
+    .web-txt .fit { font-family: 'Bebas Neue', 'Space Grotesk', sans-serif; font-weight: 400; letter-spacing: 0.01em; line-height: 1; }
   </style>
 </head>
 <body>
@@ -102,14 +102,11 @@
 
     <div class="deal"><span class="fit" data-max="24">Devis gratuit sous 48h</span></div>
 
-    <div class="phone"><span class="fit" data-max="70">06 25 20 64 93</span></div>
+    <div class="phone"><span class="fit" data-max="95">06 25 20 64 93</span></div>
 
     <div class="web">
       <div class="qr-box"><img class="qr" src="affiche-qr.png" alt="QR code vers ltns.fr"></div>
-      <div class="web-txt">
-        <small>Scannez pour voir<br>mes réalisations</small>
-        <b>ltns.fr</b>
-      </div>
+      <div class="web-txt"><span class="fit" data-max="80">LTNS.FR</span></div>
     </div>
   </div>
 
