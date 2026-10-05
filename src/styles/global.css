@@ -2636,6 +2636,37 @@ footer {
 }
 .realisation:hover .realisation-arrow { transform: translate(3px, -3px); }
 
+/* Modules d'un logiciel, en pastilles */
+.realisation-features {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.realisation-features li {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--fg-dim);
+  border: 1px solid;
+  padding: 4px 8px;
+}
+
+/* Carte large : capture à gauche, texte à droite, sur toute la largeur */
+@media (min-width: 861px) {
+  .realisation--wide {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  }
+  .realisation--wide .realisation-screen {
+    aspect-ratio: 16 / 9.6;
+    border-bottom: none;
+    border-right: 1px solid var(--line);
+  }
+}
+
 /* ============ REVEAL ============ */
 .reveal {
   opacity: 0;

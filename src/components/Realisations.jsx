@@ -30,6 +30,22 @@ const projects = [
     bg: 'linear-gradient(135deg, #1c1206 0%, #3a2409 50%, #0e0803 100%)',
     hi: '#f59e0b',
   },
+  {
+    // Outil privé : pas de lien public, la carte n'est pas cliquable
+    id: 'P03',
+    year: '2026',
+    name: 'PMSB Gestion',
+    chrome: 'pmsb · gestion — accès privé',
+    type: 'Logiciel de gestion sur mesure',
+    tag: 'LOGICIEL SUR-MESURE',
+    description:
+      "Le logiciel interne de PMSB, pensé pour le quotidien d'une entreprise du bâtiment. Clients, devis et factures au même endroit, achats de matériel, échéancier des paiements et bibliothèque de prix pour chiffrer plus vite. Le tableau de bord suit la trésorerie (à encaisser, retards, retenues de garantie) et l'activité commerciale : devis en attente, taux de transformation et devis à relancer.",
+    features: ['Tableau de bord', 'Clients', 'Devis', 'Factures', 'Achats de matériel', 'Échéancier', 'Bibliothèque de prix'],
+    image: '/realisations/pmsb-gestion.jpg',
+    bg: 'linear-gradient(135deg, #04101f 0%, #0a2340 50%, #030a14 100%)',
+    hi: '#60a5fa',
+    wide: true,
+  },
 ]
 
 /* Aperçu généré : sert de repli tant que la photo du site n'est pas déposée
@@ -63,7 +79,7 @@ function MockPreview({ bg, hi }) {
   )
 }
 
-function ProjectCard({ id, year, name, url, domain, type, tag, description, image, bg, hi }) {
+function ProjectCard({ id, year, name, url, domain, chrome, type, tag, description, features, image, bg, hi, wide }) {
   const ref = useRef(null)
   const [hasPhoto, setHasPhoto] = useState(Boolean(image))
 
@@ -80,13 +96,15 @@ function ProjectCard({ id, year, name, url, domain, type, tag, description, imag
     if (ref.current) ref.current.style.transform = ''
   }
 
+  // Un projet sans lien public (outil privé) n'est pas cliquable
+  const Card = url ? 'a' : 'article'
+  const linkProps = url ? { href: url, target: '_blank', rel: 'noopener noreferrer' } : {}
+
   return (
-    <a
-      className="realisation"
+    <Card
+      className={`realisation${wide ? ' realisation--wide' : ''}`}
       ref={ref}
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
+      {...linkProps}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
@@ -97,14 +115,14 @@ function ProjectCard({ id, year, name, url, domain, type, tag, description, imag
               <i key={i} style={{ background: `${hi}55` }} />
             ))}
           </span>
-          <span className="chrome-url">{domain}</span>
+          <span className="chrome-url">{chrome || domain}</span>
         </div>
 
         <div className="realisation-shot">
           {hasPhoto ? (
             <img
               src={image}
-              alt={`Aperçu du site ${name} — ${domain}`}
+              alt={domain ? `Aperçu du site ${name} — ${domain}` : `Aperçu de ${name} — ${type}`}
               loading="lazy"
               decoding="async"
               onError={() => setHasPhoto(false)}
@@ -125,13 +143,18 @@ function ProjectCard({ id, year, name, url, domain, type, tag, description, imag
         <h3>{name}</h3>
         <p className="realisation-type">{type}</p>
         <p className="realisation-desc">{description}</p>
-        <p className="realisation-url" style={{ color: hi }}>{domain}</p>
+        {features && (
+          <ul className="realisation-features">
+            {features.map(f => <li key={f} style={{ borderColor: `${hi}33` }}>{f}</li>)}
+          </ul>
+        )}
+        <p className="realisation-url" style={{ color: hi }}>{domain || 'Outil interne · accès réservé'}</p>
         <div className="realisation-footer">
           <span className="tag" style={{ color: hi, borderColor: `${hi}33` }}>{tag}</span>
-          <span className="realisation-arrow" style={{ color: hi }}>↗</span>
+          {url && <span className="realisation-arrow" style={{ color: hi }}>↗</span>}
         </div>
       </div>
-    </a>
+    </Card>
   )
 }
 
@@ -145,8 +168,8 @@ export default function Realisations() {
           </span>
           <h2 className="section-title">Des projets,<br /><em>livrés au degré</em>.</h2>
           <p className="section-intro">
-            De la sous-location immobilière aux travaux du bâtiment : chaque site est
-            taillé aux besoins du client, sans template générique.
+            De la sous-location immobilière au logiciel de gestion d'une entreprise du
+            bâtiment : chaque projet est taillé aux besoins du client, sans template générique.
           </p>
         </div>
         <div className="section-temp">

@@ -10,6 +10,7 @@ Dépose la capture d'écran de chaque site dans `public/realisations/`.
 | ------ | ------------------ | ------------------- |
 | P01    | `rbti.jpg`         | rbti.fr             |
 | P02    | `pmsb.jpg`         | pmsbbatiment.fr     |
+| P03    | `pmsb-gestion.jpg` | logiciel privé (pas de lien) |
 
 Le nom du fichier est défini par le champ `image` du projet, dans
 `src/components/Realisations.jsx`.
@@ -24,6 +25,18 @@ Le nom du fichier est défini par le champ `image` du projet, dans
   la carte dessine sa propre barre avec le nom de domaine
 - **Nom de fichier** : sans espace, accent ni apostrophe — il devient une
   URL publique. `pmsb.png`, pas `Capture d'écran PMSB.png`.
+
+## Projet sans lien public (logiciel, outil interne)
+
+Pour un outil privé, ne mets ni `url` ni `domain` : la carte n'est plus cliquable,
+la flèche disparaît et la barre affiche le texte du champ `chrome`. Le champ
+`features` affiche les modules en pastilles, et `wide: true` étale la carte sur
+toute la largeur.
+
+Avant de publier une capture d'un outil privé, masque toute donnée personnelle
+(noms, emails, adresses, initiales). Pour `pmsb-gestion.jpg`, le prénom de
+l'accueil, le nom, l'email et les initiales de l'utilisateur ont été remplacés
+par des barres grises.
 
 ## Si la photo est absente
 
