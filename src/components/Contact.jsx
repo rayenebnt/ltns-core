@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
-import { tempColor } from '../hooks/useThermal'
+import { inkOn, tempColor } from '../hooks/useThermal'
 
 export const EMAIL = 'ltnscore@gmail.com'
 const PHONE = '0625206493'
@@ -310,6 +310,7 @@ export default function Contact() {
     const c = tempColor(Math.min(1, Math.max(0, pos(t))))
     form.style.setProperty('--heat', `rgb(${c.r}, ${c.g}, ${c.b})`)
     form.style.setProperty('--heat-rgb', `${c.r}, ${c.g}, ${c.b}`)
+    form.style.setProperty('--on-heat', inkOn(c))
     form.style.setProperty('--p', pos(t).toFixed(4))
     if (readoutRef.current) readoutRef.current.textContent = t.toFixed(1)
     if (labelRef.current) labelRef.current.textContent = heatLabel(t)

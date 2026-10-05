@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { tempColor } from '../hooks/useThermal'
+import { inkOn, tempColor } from '../hooks/useThermal'
 import { EMAIL, EMAIL_RE, FORMSPREE_URL, makeReference, prefillDevis } from './Contact'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -73,13 +73,15 @@ const priceLabel = f => `à partir de ${fmtPrice(f.price)} € TTC`
 
 // Couleur thermique propre à une formule, posée en variables CSS
 const heatVars = temp => {
-  const heat = rgb(pos(temp))
+  const c = tempColor(pos(temp))
+  const heat = `${c.r}, ${c.g}, ${c.b}`
   return {
     '--accent': `rgb(${heat})`,
     '--accent-rgb': heat,
-    '--accent-soft': `rgba(${heat}, 0.12)`,
-    '--accent-glow': `rgba(${heat}, 0.45)`,
+    '--accent-soft': `rgba(${heat}, 0.1)`,
+    '--accent-glow': `rgba(${heat}, 0.3)`,
     '--accent-line': `rgba(${heat}, 0.35)`,
+    '--on-accent': inkOn(c),
   }
 }
 

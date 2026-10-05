@@ -36,7 +36,7 @@ export default function Footer() {
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>
           <div>{time}</div>
           <div>ATELIER <b>LTNS-01</b></div>
-          <div style={{ color: '#39ff14' }}>● DISPONIBLE</div>
+          <div style={{ color: '#16a34a' }}>● DISPONIBLE</div>
         </div>
       </div>
       <div className="footer-bottom">

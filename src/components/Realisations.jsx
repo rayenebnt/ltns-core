@@ -14,7 +14,7 @@ const projects = [
       'Site de présentation pour une activité de sous-location immobilière : offre, biens et mise en relation propriétaires / locataires, avec un parcours de contact direct.',
     image: '/realisations/rbti.jpg',
     bg: 'linear-gradient(135deg, #00101c 0%, #00223c 50%, #00080e 100%)',
-    hi: '#38bdf8',
+    hi: '#0284c7',
   },
   {
     id: 'P02',
@@ -28,7 +28,7 @@ const projects = [
       "Prestations Multi Services Bâtiment — entreprise de travaux tous corps d'état en Île-de-France. Site vitrine des prestations (ravalement de façade, isolation, peinture intérieure, rénovation complète), avec galerie de chantiers et demande de devis.",
     image: '/realisations/pmsb.jpg',
     bg: 'linear-gradient(135deg, #1c1206 0%, #3a2409 50%, #0e0803 100%)',
-    hi: '#f59e0b',
+    hi: '#b45309',
   },
   {
     // Outil privé : pas de lien public, la carte n'est pas cliquable
@@ -43,7 +43,7 @@ const projects = [
     features: ['Tableau de bord', 'Clients', 'Devis', 'Factures', 'Achats de matériel', 'Échéancier', 'Bibliothèque de prix'],
     image: '/realisations/pmsb-gestion.jpg',
     bg: 'linear-gradient(135deg, #04101f 0%, #0a2340 50%, #030a14 100%)',
-    hi: '#60a5fa',
+    hi: '#2563eb',
     wide: true,
   },
 ]

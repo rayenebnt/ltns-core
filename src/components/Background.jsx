@@ -33,9 +33,11 @@ export default function Background() {
 
     const readAccent = () => {
       const rgb = getComputedStyle(document.documentElement)
-        .getPropertyValue('--accent-rgb').trim() || '77, 208, 225'
+        .getPropertyValue('--accent-rgb').trim() || '8, 145, 178'
       return rgb
     }
+
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f5f3ee'
 
     const draw = () => {
       raf = requestAnimationFrame(draw)
@@ -43,13 +45,13 @@ export default function Background() {
 
       ctx.clearRect(0, 0, W, H)
 
-      // Fond
-      ctx.fillStyle = '#0a0a0c'
+      // Fond : la couleur de page du thème
+      ctx.fillStyle = bg
       ctx.fillRect(0, 0, W, H)
 
       // Grille principale (carrés ~80px)
       const cell = 80
-      ctx.strokeStyle = 'rgba(255,255,255,0.025)'
+      ctx.strokeStyle = 'rgba(22,22,26,0.045)'
       ctx.lineWidth = 1
       ctx.beginPath()
       for (let x = 0; x <= W; x += cell) {
@@ -63,7 +65,7 @@ export default function Background() {
       ctx.stroke()
 
       // Grille fine (subdivisions)
-      ctx.strokeStyle = 'rgba(255,255,255,0.012)'
+      ctx.strokeStyle = 'rgba(22,22,26,0.02)'
       ctx.beginPath()
       const sub = cell / 4
       for (let x = 0; x <= W; x += sub) {
@@ -92,10 +94,10 @@ export default function Background() {
       const points = 220
 
       // Glow externe
-      ctx.strokeStyle = `rgba(${accent}, 0.35)`
+      ctx.strokeStyle = `rgba(${accent}, 0.4)`
       ctx.lineWidth = 1.2
-      ctx.shadowColor = `rgba(${accent}, 0.8)`
-      ctx.shadowBlur = 14
+      ctx.shadowColor = `rgba(${accent}, 0.45)`
+      ctx.shadowBlur = 10
       ctx.beginPath()
       for (let i = 0; i <= points; i++) {
         const x = (i / points) * W
@@ -119,8 +121,8 @@ export default function Background() {
       ctx.setLineDash([])
 
       // Marqueurs verticaux gauche/droite (style instrument)
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'
-      ctx.fillStyle = 'rgba(255,255,255,0.18)'
+      ctx.strokeStyle = 'rgba(22,22,26,0.12)'
+      ctx.fillStyle = 'rgba(22,22,26,0.3)'
       ctx.font = '9px JetBrains Mono, monospace'
       const margin = 18
       const ticks = 8
