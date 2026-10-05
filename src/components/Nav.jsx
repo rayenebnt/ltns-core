@@ -53,6 +53,8 @@ export default function Nav() {
           <li><a href="#process">process</a></li>
           <li><a href="#faq">faq</a></li>
         </ul>
+        {/* Sur téléphone, les liens sont masqués : on garde un accès direct aux tarifs */}
+        <a href="#tarifs" className="nav-cta nav-tarifs">Tarifs</a>
         <a href="#contact" className="nav-cta">Devis<span className="arrow">→</span></a>
       </div>
     </nav>
