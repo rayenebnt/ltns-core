@@ -294,15 +294,54 @@ function ParcoursOverlay({ onClose }) {
     return () => { disposed = true; cleanup() }
   }, [])
 
+  // ---------- Glisser pour changer d'étape (doigt ou souris) ----------
+  const [dragX, setDragX] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const drag = useRef(null)
+  const suppressClick = useRef(false)
+
+  const onPointerDown = (e) => {
+    if (e.button > 0 || e.target.closest('button, a')) return
+    drag.current = { x: e.clientX, y: e.clientY, dx: 0, active: false, id: e.pointerId }
+  }
+
   const onPointerMove = (e) => {
     pointerRef.current = {
       x: (e.clientX / window.innerWidth) * 2 - 1,
       y: (e.clientY / window.innerHeight) * 2 - 1,
     }
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const dx = e.clientX - d.x, dy = e.clientY - d.y
+    if (!d.active) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return
+      d.active = true
+      setDragging(true)
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+    }
+    // Résistance aux deux bouts du parcours
+    const atEdge = (dx > 0 && indexRef.current === 0) || (dx < 0 && indexRef.current === STEPS.length - 1)
+    d.dx = atEdge ? dx * 0.3 : dx
+    setDragX(d.dx)
   }
 
+  const onPointerUp = () => {
+    const d = drag.current
+    drag.current = null
+    if (!d?.active) return
+    if (d.dx < -60) next()
+    else if (d.dx > 60) prev()
+    setDragX(0)
+    setDragging(false)
+    // Le relâchement d'un glissé ne doit pas fermer la scène
+    suppressClick.current = true
+    setTimeout(() => { suppressClick.current = false }, 60)
+  }
+
+  const closeOnClick = () => { if (!suppressClick.current) onClose() }
+
   const step = STEPS[index]
-  const last = index === STEPS.length - 1
+  const total = String(STEPS.length).padStart(2, '0')
 
   return createPortal(
     <div
@@ -310,10 +349,14 @@ function ParcoursOverlay({ onClose }) {
       role="dialog"
       aria-modal="true"
       aria-label="Visite guidée : votre projet de A à Z"
-      onMouseMove={onPointerMove}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      style={{ '--step-color': step.color }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onClick={(e) => { if (e.target === e.currentTarget) closeOnClick() }}
     >
-      <canvas className="parcours-canvas" ref={canvasRef} aria-hidden="true" onClick={onClose} />
+      <canvas className="parcours-canvas" ref={canvasRef} aria-hidden="true" onClick={closeOnClick} />
 
       <div className="parcours-ui">
         <header className="parcours-head">
@@ -326,31 +369,66 @@ function ParcoursOverlay({ onClose }) {
           </button>
         </header>
 
-        <div className="parcours-panel" key={step.num} style={{ '--step-color': step.color }}>
-          <div className="parcours-panel-head">
-            <span>ÉTAPE <b>{step.num}</b> / {String(STEPS.length).padStart(2, '0')}</span>
-            <span className="parcours-temp" style={{ color: step.color }}>
-              {step.temp}<span className="deg">°</span>
-            </span>
+        {/* Les étapes en diapositives : la suivante dépasse à droite */}
+        <div
+          className={`parcours-slider${dragging ? ' is-dragging' : ''}`}
+          role="region"
+          aria-roledescription="carrousel"
+          aria-label="Les étapes de votre projet"
+        >
+          <div className="parcours-track" style={{ '--i': index, '--drag': `${dragX}px` }}>
+            {STEPS.map((s, i) => {
+              const active = i === index
+              const last = i === STEPS.length - 1
+              return (
+                <article
+                  key={s.num}
+                  className={`parcours-slide${active ? ' is-active' : ''}${i < index ? ' is-past' : ''}`}
+                  style={{ '--step-color': s.color }}
+                  aria-roledescription="diapositive"
+                  aria-label={`Étape ${i + 1} sur ${STEPS.length} : ${s.title}`}
+                  aria-hidden={!active}
+                  onClick={() => { if (!active && !suppressClick.current) setIndex(i) }}
+                >
+                  <div className="parcours-panel-head">
+                    <span>ÉTAPE <b>{s.num}</b> / {total}</span>
+                    <span className="parcours-temp" style={{ color: s.color }}>
+                      {s.temp}<span className="deg">°</span>
+                    </span>
+                  </div>
+                  <h3>{s.title}</h3>
+                  <p>{s.desc}</p>
+                  <dl className="parcours-meta">
+                    <div>
+                      <dt>VOTRE RÔLE</dt>
+                      <dd>{s.you}</dd>
+                    </div>
+                    <div>
+                      <dt>CE QUE VOUS RECEVEZ</dt>
+                      <dd>{s.out}</dd>
+                    </div>
+                  </dl>
+                  {last && (
+                    <a href="#contact" className="parcours-slide-cta" tabIndex={active ? 0 : -1} onClick={onClose}>
+                      DEMANDER MON DEVIS <span aria-hidden="true">→</span>
+                    </a>
+                  )}
+                </article>
+              )
+            })}
           </div>
-          <h3>{step.title}</h3>
-          <p>{step.desc}</p>
-          <dl className="parcours-meta">
-            <div>
-              <dt>VOTRE RÔLE</dt>
-              <dd>{step.you}</dd>
-            </div>
-            <div>
-              <dt>CE QUE VOUS RECEVEZ</dt>
-              <dd>{step.out}</dd>
-            </div>
-          </dl>
         </div>
 
         <footer className="parcours-foot">
-          <button type="button" className="parcours-nav" onClick={prev} disabled={index === 0}>
-            <span aria-hidden="true">←</span> PRÉCÉDENT
-          </button>
+          <div className="parcours-progress" aria-hidden="true">
+            <i style={{ transform: `scaleX(${(index + 1) / STEPS.length})` }} />
+          </div>
+
+          <Arrow dir="prev" index={index} onClick={prev} variant="foot" />
+
+          <span className="parcours-count">
+            ÉTAPE <b>{step.num}</b> / {total}
+          </span>
 
           <div className="parcours-dots">
             {STEPS.map((s, i) => (
@@ -368,18 +446,45 @@ function ParcoursOverlay({ onClose }) {
             ))}
           </div>
 
-          {last ? (
-            <a href="#contact" className="parcours-nav parcours-nav-cta" onClick={onClose}>
-              DEMANDER UN DEVIS <span aria-hidden="true">→</span>
-            </a>
-          ) : (
-            <button type="button" className="parcours-nav parcours-nav-cta" onClick={next}>
-              SUIVANT <span aria-hidden="true">→</span>
-            </button>
-          )}
+          <span className="parcours-hint">GLISSEZ OU <kbd>←</kbd> <kbd>→</kbd></span>
+
+          <Arrow dir="next" index={index} onClick={next} variant="foot" />
         </footer>
       </div>
+
+      <Arrow dir="prev" index={index} onClick={prev} variant="side" />
+      <Arrow dir="next" index={index} onClick={next} variant="side" />
     </div>,
     document.body,
+  )
+}
+
+/* Flèche de navigation : sur les côtés de l'écran (ordinateur) ou dans le pied (téléphone).
+   Au survol, elle annonce l'étape vers laquelle elle mène. */
+function Arrow({ dir, index, onClick, variant }) {
+  const target = STEPS[dir === 'prev' ? index - 1 : index + 1]
+  const label = target
+    ? `${dir === 'prev' ? 'Étape précédente' : 'Étape suivante'} : ${target.title}`
+    : (dir === 'prev' ? 'Première étape' : 'Dernière étape')
+
+  return (
+    <button
+      type="button"
+      className={`parcours-arrow parcours-arrow--${dir} parcours-arrow--${variant}`}
+      onClick={onClick}
+      disabled={!target}
+      aria-label={label}
+      style={target ? { '--arrow-color': target.color } : undefined}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d={dir === 'prev' ? 'M15 4l-8 8 8 8' : 'M9 4l8 8-8 8'} />
+      </svg>
+      {target && variant === 'side' && (
+        <span className="parcours-arrow-label" aria-hidden="true">
+          <small>{dir === 'prev' ? 'PRÉCÉDENT' : 'SUIVANT'} · {target.num}</small>
+          {target.title}
+        </span>
+      )}
+    </button>
   )
 }

@@ -450,7 +450,7 @@ export default function Tarifs() {
       })
 
       tl.fromTo('.tf-badge',
-        { scale: 2.6, opacity: 0, rotate: -18 },
+        { scale: 2.2, opacity: 0, rotate: -12 },
         { scale: 1, opacity: 1, rotate: 0, duration: 0.35, ease: 'power4.in', clearProps: 'transform,opacity' }, 0.9)
         .fromTo('.tf-quote',
           { clipPath: 'inset(0 100% 0 0)' },
