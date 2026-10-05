@@ -9,10 +9,10 @@ function Cube() {
   )
 }
 
-// Quatre points d'entrée vers la scène 3D :
+// Points d'entrée vers la visite guidée (le grand bloc de la section Process
+// est dans Process.jsx) :
 // hero  — grande carte animée en tête de page
 // nav   — raccourci permanent dans la barre du haut
-// band  — bandeau pleine largeur à la fin du process
 // float — pastille flottante qui apparaît dès qu'on quitte le hero
 export default function ParcoursTrigger({ variant = 'hero' }) {
   const { open, openParcours } = useParcours()
@@ -28,11 +28,11 @@ export default function ParcoursTrigger({ variant = 'hero' }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [variant])
 
-  // …et s'efface quand le bandeau du process est déjà sous les yeux, ou quand
+  // …et s'efface quand le grand bloc du process est déjà sous les yeux, ou quand
   // le film ou le formulaire de devis sont à l'écran (pour ne pas en masquer les boutons).
   useEffect(() => {
     if (variant !== 'float') return
-    const targets = document.querySelectorAll('.process-parcours, form.devis, .film')
+    const targets = document.querySelectorAll('.visite, form.devis, .film')
     if (!targets.length || typeof IntersectionObserver === 'undefined') return
     const onScreen = new Set()
     const io = new IntersectionObserver(entries => {
@@ -68,13 +68,8 @@ export default function ParcoursTrigger({ variant = 'hero' }) {
               {variant === 'hero' && (
                 <span className="parcours-badge">● VISITE GUIDÉE · INTERACTIVE</span>
               )}
-              <b>
-                {variant === 'band'
-                  ? 'Lancer la visite guidée'
-                  : 'Voir comment ça se passe'}
-              </b>
+              <b>Voir comment ça se passe</b>
               <span className="parcours-trigger-sub">
-                {variant === 'band' && `Votre projet de A à Z · ${STEPS.length} étapes · 1 min`}
                 {variant === 'hero' && `De A à Z · ${STEPS.length} étapes · 1 min`}
                 {variant === 'float' && `${STEPS.length} étapes · 1 min`}
               </span>

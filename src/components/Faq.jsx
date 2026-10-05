@@ -19,8 +19,21 @@ const faqs = [
     a: 'Il est gratuit et ne vous engage à rien. Vous m\'écrivez avec le formulaire ou par email, et je vous réponds sous 48h avec une proposition détaillée : ce qui est prévu, le délai et le prix. On en parle ensemble avant de signer quoi que ce soit.'
   },
   {
-    q: 'Puis-je faire des modifications moi-même ?',
-    a: 'Oui, dans la plupart des cas. Pour un site, je peux ajouter un espace simple où vous changez vos textes et vos photos, et je vous montre comment faire. Pour un logiciel ou une application, je vous remets un guide clair. Et pour les changements plus importants, je reste joignable.'
+    q: 'Et après la mise en ligne, qui s\'occupe de mon site ?',
+    a: (
+      <>
+        Moi, si vous le souhaitez, avec un suivi de maintenance. Vous n'avez plus
+        à y penser :
+        <ul className="faq-maint">
+          <li><b>Mises à jour et sécurité</b> : votre site reste à jour et protégé.</li>
+          <li><b>Sauvegardes régulières</b> : rien n'est perdu en cas de problème.</li>
+          <li><b>Surveillance</b> : je vérifie que le site reste en ligne et rapide.</li>
+          <li><b>Petites modifications</b> : un texte, une photo, un horaire à changer ? Un message suffit, je m'en charge.</li>
+          <li><b>Un interlocuteur joignable</b> : en cas de souci, vous savez qui appeler.</li>
+        </ul>
+        La maintenance est proposée en option dans votre devis, avec un prix fixé à l'avance.
+      </>
+    )
   }
 ]
 
@@ -56,7 +69,7 @@ export default function Faq() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>07</b><span className="sep">//</span> QUESTIONS
+            <b>06</b><span className="sep">//</span> QUESTIONS
           </span>
           <h2 className="section-title">Vos questions,<br/><em>mes réponses</em>.</h2>
           <p className="section-intro">

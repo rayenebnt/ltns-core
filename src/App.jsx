@@ -5,7 +5,6 @@ import Loader from './components/Loader'
 import Cursor from './components/Cursor'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
-import Pourquoi from './components/Pourquoi'
 import Services from './components/Services'
 import Process from './components/Process'
 import Tarifs from './components/Tarifs'
@@ -50,7 +49,6 @@ export default function App() {
       <Contact />
       <Realisations />
       <Services />
-      <Pourquoi />
       <Process />
       <Faq />
       <Footer />

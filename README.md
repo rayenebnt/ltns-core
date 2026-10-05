@@ -33,7 +33,6 @@ ltns-react/
     │   ├── Hero.jsx        # Titre + readout, animation GSAP
     │   ├── Parcours.jsx    # Visite guidée de A à Z, scène Three.js plein écran
     │   ├── ParcoursTrigger.jsx  # Accès à la visite guidée : hero, nav, bandeau, pastille
-    │   ├── Pourquoi.jsx
     │   ├── Services.jsx    # Cards avec tilt 3D
     │   ├── Process.jsx
     │   ├── Realisations.jsx # Projets livrés + photo de présentation
