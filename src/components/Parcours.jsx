@@ -61,13 +61,10 @@ const onStep = hex => inkOn({
   b: parseInt(hex.slice(5, 7), 16),
 })
 
-// L'indice « glissez » s'affiche tant que le visiteur n'a jamais changé d'étape.
-// Mémorisé dans le navigateur (si le stockage est indisponible, l'indice revient simplement).
-const HINT_KEY = 'ltns-visite-glisse'
-const hintSeen = () => { try { return localStorage.getItem(HINT_KEY) === '1' } catch { return false } }
-const rememberHint = () => { try { localStorage.setItem(HINT_KEY, '1') } catch { /* stockage indisponible */ } }
-const HINT_DELAY = 900      // ms avant la première démonstration
-const HINT_DURATION = 7800  // trois passages de la main, puis l'indice s'efface
+// L'indice « glissez » se rejoue à chaque ouverture de la visite,
+// jusqu'à ce que le visiteur change d'étape.
+const HINT_DELAY = 700      // ms avant la première démonstration
+const HINT_DURATION = 6600  // trois passages de la main, puis l'indice s'efface
 
 const ParcoursContext = createContext(null)
 
@@ -106,17 +103,17 @@ function ParcoursOverlay({ onClose }) {
 
   // ---------- Indice « glissez pour avancer » ----------
   const [hint, setHint] = useState(false)
+  const hintDone = useRef(false)
   useEffect(() => {
-    if (hintSeen()) return
-    const show = setTimeout(() => setHint(true), HINT_DELAY)
+    const show = setTimeout(() => { if (!hintDone.current) setHint(true) }, HINT_DELAY)
     const hide = setTimeout(() => setHint(false), HINT_DELAY + HINT_DURATION)
     return () => { clearTimeout(show); clearTimeout(hide) }
   }, [])
-  // Dès que le visiteur change d'étape, il a compris : l'indice ne revient plus
+  // Dès que le visiteur change d'étape, il a compris : l'indice s'arrête
   useEffect(() => {
-    if (index === 0) return
+    if (index === 0 && !hintDone.current) return
+    hintDone.current = true
     setHint(false)
-    rememberHint()
   }, [index])
 
   // Blocage du scroll de la page tant que la scène est ouverte.
@@ -349,6 +346,7 @@ function ParcoursOverlay({ onClose }) {
       if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return
       d.active = true
       setDragging(true)
+      hintDone.current = true
       setHint(false)
       e.currentTarget.setPointerCapture?.(e.pointerId)
     }

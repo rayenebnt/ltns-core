@@ -3158,7 +3158,7 @@ footer {
   border-radius: 2px;
   transform-origin: right center;
   background: linear-gradient(90deg, transparent, var(--step-color, var(--accent)));
-  animation: parcours-swipe-trail 2.6s var(--ease) infinite;
+  animation: parcours-swipe-trail 2.2s var(--ease) infinite;
 }
 .parcours-swipe-hand {
   position: absolute;
@@ -3175,7 +3175,7 @@ footer {
   stroke-linejoin: round;
   background: var(--bg-2);
   box-shadow: 0 6px 20px -6px rgba(22, 22, 26, 0.35), 0 0 0 1px var(--line-strong);
-  animation: parcours-swipe-hand 2.6s var(--ease) infinite;
+  animation: parcours-swipe-hand 2.2s var(--ease) infinite;
 }
 .parcours-swipe-txt {
   font-family: var(--mono);
@@ -3189,22 +3189,30 @@ footer {
 .parcours-swipe-txt span { color: var(--step-color, var(--accent)); }
 @keyframes parcours-swipe-hand {
   0%   { opacity: 0; transform: translateX(0) scale(1); }
-  10%  { opacity: 1; transform: translateX(0) scale(0.88); }   /* le doigt se pose */
-  55%  { opacity: 1; transform: translateX(-110px) scale(0.88); }
-  65%  { opacity: 0; transform: translateX(-110px) scale(1); }  /* il se lève */
-  100% { opacity: 0; transform: translateX(-110px) scale(1); }
+  8%   { opacity: 1; transform: translateX(0) scale(0.88); }   /* le doigt se pose */
+  62%  { opacity: 1; transform: translateX(var(--swipe-run, -110px)) scale(0.88); }
+  74%  { opacity: 0; transform: translateX(var(--swipe-run, -110px)) scale(1); }  /* il se lève */
+  100% { opacity: 0; transform: translateX(var(--swipe-run, -110px)) scale(1); }
 }
 @keyframes parcours-swipe-trail {
-  0%, 10% { opacity: 0; transform: scaleX(0); }
-  55%     { opacity: 0.9; transform: scaleX(1); }
-  75%, 100% { opacity: 0; transform: scaleX(1); }
+  0%, 8% { opacity: 0; transform: scaleX(0); }
+  62%    { opacity: 0.9; transform: scaleX(1); }
+  80%, 100% { opacity: 0; transform: scaleX(1); }
 }
 /* La fiche suit le geste puis revient : on voit qu'elle se déplace */
-.parcours-track.is-hinting { animation: parcours-swipe-peek 2.6s var(--ease) infinite; }
+.parcours-track.is-hinting { animation: parcours-swipe-peek 2.2s var(--ease) infinite; }
 @keyframes parcours-swipe-peek {
-  0%, 10%  { translate: 0 0; }
-  55%      { translate: -56px 0; }
-  85%, 100% { translate: 0 0; }
+  0%, 8%   { translate: 0 0; }
+  62%      { translate: -56px 0; }
+  90%, 100% { translate: 0 0; }
+}
+/* Téléphone : main plus grande, geste plus ample */
+@media (max-width: 720px) {
+  .parcours-swipe { --swipe-run: -140px; gap: 12px; }
+  .parcours-swipe-move { width: 190px; height: 58px; }
+  .parcours-swipe-hand { width: 52px; height: 52px; padding: 9px; stroke-width: 1.8; }
+  .parcours-swipe-trail { top: 12px; right: 28px; width: 140px; height: 3px; }
+  .parcours-swipe-txt { font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .parcours-track.is-hinting { animation: none; }
