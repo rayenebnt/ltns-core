@@ -61,6 +61,14 @@ const onStep = hex => inkOn({
   b: parseInt(hex.slice(5, 7), 16),
 })
 
+// L'indice « glissez » s'affiche tant que le visiteur n'a jamais changé d'étape.
+// Mémorisé dans le navigateur (si le stockage est indisponible, l'indice revient simplement).
+const HINT_KEY = 'ltns-visite-glisse'
+const hintSeen = () => { try { return localStorage.getItem(HINT_KEY) === '1' } catch { return false } }
+const rememberHint = () => { try { localStorage.setItem(HINT_KEY, '1') } catch { /* stockage indisponible */ } }
+const HINT_DELAY = 900      // ms avant la première démonstration
+const HINT_DURATION = 7800  // trois passages de la main, puis l'indice s'efface
+
 const ParcoursContext = createContext(null)
 
 export function useParcours() {
@@ -95,6 +103,21 @@ function ParcoursOverlay({ onClose }) {
   const prev = useCallback(() => setIndex(i => Math.max(0, i - 1)), [])
 
   useEffect(() => { indexRef.current = index }, [index])
+
+  // ---------- Indice « glissez pour avancer » ----------
+  const [hint, setHint] = useState(false)
+  useEffect(() => {
+    if (hintSeen()) return
+    const show = setTimeout(() => setHint(true), HINT_DELAY)
+    const hide = setTimeout(() => setHint(false), HINT_DELAY + HINT_DURATION)
+    return () => { clearTimeout(show); clearTimeout(hide) }
+  }, [])
+  // Dès que le visiteur change d'étape, il a compris : l'indice ne revient plus
+  useEffect(() => {
+    if (index === 0) return
+    setHint(false)
+    rememberHint()
+  }, [index])
 
   // Blocage du scroll de la page tant que la scène est ouverte.
   useEffect(() => {
@@ -326,6 +349,7 @@ function ParcoursOverlay({ onClose }) {
       if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return
       d.active = true
       setDragging(true)
+      setHint(false)
       e.currentTarget.setPointerCapture?.(e.pointerId)
     }
     // Résistance aux deux bouts du parcours
@@ -379,52 +403,71 @@ function ParcoursOverlay({ onClose }) {
         </header>
 
         {/* Les étapes en diapositives : la suivante dépasse à droite */}
-        <div
-          className={`parcours-slider${dragging ? ' is-dragging' : ''}`}
-          role="region"
-          aria-roledescription="carrousel"
-          aria-label="Les étapes de votre projet"
-        >
-          <div className="parcours-track" style={{ '--i': index, '--drag': `${dragX}px` }}>
-            {STEPS.map((s, i) => {
-              const active = i === index
-              const last = i === STEPS.length - 1
-              return (
-                <article
-                  key={s.num}
-                  className={`parcours-slide${active ? ' is-active' : ''}${i < index ? ' is-past' : ''}`}
-                  style={{ '--step-color': s.color, '--on-step': onStep(s.color) }}
-                  aria-roledescription="diapositive"
-                  aria-label={`Étape ${i + 1} sur ${STEPS.length} : ${s.title}`}
-                  aria-hidden={!active}
-                  onClick={() => { if (!active && !suppressClick.current) setIndex(i) }}
-                >
-                  <div className="parcours-panel-head">
-                    <span>ÉTAPE <b>{s.num}</b> / {total}</span>
-                    <span className="parcours-temp" style={{ color: s.color }}>
-                      {s.temp}<span className="deg">°</span>
-                    </span>
-                  </div>
-                  <h3>{s.title}</h3>
-                  <p>{s.desc}</p>
-                  <dl className="parcours-meta">
-                    <div>
-                      <dt>VOTRE RÔLE</dt>
-                      <dd>{s.you}</dd>
+        <div className="parcours-stage">
+          {hint && (
+            <div className="parcours-swipe" aria-hidden="true">
+              <span className="parcours-swipe-move">
+                <span className="parcours-swipe-trail" />
+                <svg className="parcours-swipe-hand" viewBox="0 0 24 24">
+                  <path d="M22 14a8 8 0 0 1-8 8" />
+                  <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2" />
+                  <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1" />
+                  <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10" />
+                  <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+                </svg>
+              </span>
+              <span className="parcours-swipe-txt">
+                GLISSEZ POUR AVANCER <span aria-hidden="true">←</span>
+              </span>
+            </div>
+          )}
+          <div
+            className={`parcours-slider${dragging ? ' is-dragging' : ''}`}
+            role="region"
+            aria-roledescription="carrousel"
+            aria-label="Les étapes de votre projet"
+          >
+            <div className={`parcours-track${hint ? ' is-hinting' : ''}`} style={{ '--i': index, '--drag': `${dragX}px` }}>
+              {STEPS.map((s, i) => {
+                const active = i === index
+                const last = i === STEPS.length - 1
+                return (
+                  <article
+                    key={s.num}
+                    className={`parcours-slide${active ? ' is-active' : ''}${i < index ? ' is-past' : ''}`}
+                    style={{ '--step-color': s.color, '--on-step': onStep(s.color) }}
+                    aria-roledescription="diapositive"
+                    aria-label={`Étape ${i + 1} sur ${STEPS.length} : ${s.title}`}
+                    aria-hidden={!active}
+                    onClick={() => { if (!active && !suppressClick.current) setIndex(i) }}
+                  >
+                    <div className="parcours-panel-head">
+                      <span>ÉTAPE <b>{s.num}</b> / {total}</span>
+                      <span className="parcours-temp" style={{ color: s.color }}>
+                        {s.temp}<span className="deg">°</span>
+                      </span>
                     </div>
-                    <div>
-                      <dt>CE QUE VOUS RECEVEZ</dt>
-                      <dd>{s.out}</dd>
-                    </div>
-                  </dl>
-                  {last && (
-                    <a href="#contact" className="parcours-slide-cta" tabIndex={active ? 0 : -1} onClick={onClose}>
-                      DEMANDER MON DEVIS <span aria-hidden="true">→</span>
-                    </a>
-                  )}
-                </article>
-              )
-            })}
+                    <h3>{s.title}</h3>
+                    <p>{s.desc}</p>
+                    <dl className="parcours-meta">
+                      <div>
+                        <dt>VOTRE RÔLE</dt>
+                        <dd>{s.you}</dd>
+                      </div>
+                      <div>
+                        <dt>CE QUE VOUS RECEVEZ</dt>
+                        <dd>{s.out}</dd>
+                      </div>
+                    </dl>
+                    {last && (
+                      <a href="#contact" className="parcours-slide-cta" tabIndex={active ? 0 : -1} onClick={onClose}>
+                        DEMANDER MON DEVIS <span aria-hidden="true">→</span>
+                      </a>
+                    )}
+                  </article>
+                )
+              })}
+            </div>
           </div>
         </div>
 

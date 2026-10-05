@@ -3099,12 +3099,16 @@ footer {
 }
 
 /* Étapes en diapositives : la courante à gauche, la suivante dépasse à droite */
-.parcours-slider {
+/* Scène des fiches : le carrousel et, au-dessus, l'indice « glissez » */
+.parcours-stage {
   --slide-w: 480px;
   --gap: 18px;
+  position: relative;
   align-self: end;
   width: min(620px, 100% - 84px);
   margin-left: 84px;
+}
+.parcours-slider {
   overflow: hidden;
   touch-action: pan-y;
   -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 130px), transparent);
@@ -3118,6 +3122,95 @@ footer {
   will-change: transform;
 }
 .is-dragging .parcours-track { transition: none; }
+
+/* ---------- Indice « glissez pour avancer » ----------
+   Une main glisse de droite à gauche au-dessus de la fiche,
+   pendant que la fiche suit le geste puis revient en place. */
+.parcours-swipe {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 18px);
+  width: var(--slide-w);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  animation: parcours-swipe-in 0.5s var(--ease) both;
+}
+@keyframes parcours-swipe-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.parcours-swipe-move {
+  position: relative;
+  width: 150px;
+  height: 46px;
+}
+/* Traînée laissée par le doigt */
+.parcours-swipe-trail {
+  position: absolute;
+  top: 9px;
+  right: 22px;
+  width: 110px;
+  height: 2px;
+  border-radius: 2px;
+  transform-origin: right center;
+  background: linear-gradient(90deg, transparent, var(--step-color, var(--accent)));
+  animation: parcours-swipe-trail 2.6s var(--ease) infinite;
+}
+.parcours-swipe-hand {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  padding: 7px;
+  border-radius: 50%;
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  background: var(--bg-2);
+  box-shadow: 0 6px 20px -6px rgba(22, 22, 26, 0.35), 0 0 0 1px var(--line-strong);
+  animation: parcours-swipe-hand 2.6s var(--ease) infinite;
+}
+.parcours-swipe-txt {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--fg);
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  padding: 6px 12px;
+}
+.parcours-swipe-txt span { color: var(--step-color, var(--accent)); }
+@keyframes parcours-swipe-hand {
+  0%   { opacity: 0; transform: translateX(0) scale(1); }
+  10%  { opacity: 1; transform: translateX(0) scale(0.88); }   /* le doigt se pose */
+  55%  { opacity: 1; transform: translateX(-110px) scale(0.88); }
+  65%  { opacity: 0; transform: translateX(-110px) scale(1); }  /* il se lève */
+  100% { opacity: 0; transform: translateX(-110px) scale(1); }
+}
+@keyframes parcours-swipe-trail {
+  0%, 10% { opacity: 0; transform: scaleX(0); }
+  55%     { opacity: 0.9; transform: scaleX(1); }
+  75%, 100% { opacity: 0; transform: scaleX(1); }
+}
+/* La fiche suit le geste puis revient : on voit qu'elle se déplace */
+.parcours-track.is-hinting { animation: parcours-swipe-peek 2.6s var(--ease) infinite; }
+@keyframes parcours-swipe-peek {
+  0%, 10%  { translate: 0 0; }
+  55%      { translate: -56px 0; }
+  85%, 100% { translate: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parcours-track.is-hinting { animation: none; }
+  .parcours-swipe-hand { animation: none; opacity: 1; transform: none; }
+  .parcours-swipe-trail { animation: none; opacity: 0; }
+}
 
 .parcours-slide {
   flex: 0 0 var(--slide-w);
@@ -3385,11 +3478,13 @@ footer {
 @media (max-width: 720px) {
   .parcours-kicker-long { display: none; }
   .parcours-head { font-size: 9px; letter-spacing: 0.14em; }
-  .parcours-slider {
+  .parcours-stage {
     --slide-w: 86%;
     --gap: 12px;
     width: 100%;
     margin-left: 0;
+  }
+  .parcours-slider {
     -webkit-mask-image: linear-gradient(90deg, #000 84%, transparent);
             mask-image: linear-gradient(90deg, #000 84%, transparent);
   }
