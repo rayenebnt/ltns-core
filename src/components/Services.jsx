@@ -43,7 +43,7 @@ export default function Services() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>03</b><span className="sep">//</span> SERVICES
+            <b>04</b><span className="sep">//</span> SERVICES
           </span>
           <h2 className="section-title">Six services,<br/><em>un seul artisan</em>.</h2>
           <p className="section-intro">

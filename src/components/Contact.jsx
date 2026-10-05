@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { gsap } from 'gsap'
 import { tempColor } from '../hooks/useThermal'
 
-const EMAIL = 'ltnscore@gmail.com'
+export const EMAIL = 'ltnscore@gmail.com'
 const PHONE = '0625206493'
 const PHONE_INTL = '+33625206493'
 
@@ -33,7 +33,11 @@ const STEPS = [
   { key: 'coords', label: 'Contact', title: 'Où vous envoyer le devis ?', temp: 82 },
 ]
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Même adresse de réception pour le devis et les demandes de formule
+export const FORMSPREE_URL = 'https://formspree.io/f/mvzlnbop'
+export const makeReference = (d = new Date()) =>
+  `LTNS-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`
 const EMPTY = { projet: '', formule: '', budget: '', fonctions: [], message: '', nom: '', email: '' }
 const pos = temp => (temp - 12) / 87 // position 0 → 1 sur la jauge
 
@@ -450,8 +454,7 @@ export default function Contact() {
       return
     }
 
-    const d = new Date()
-    const ref = `LTNS-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`
+    const ref = makeReference()
     setReference(ref)
     setStatus('sending')
     if (submitFillRef.current && !prefersReducedMotion()) {
@@ -464,7 +467,7 @@ export default function Contact() {
 
     try {
       const [res] = await Promise.all([
-        fetch('https://formspree.io/f/mvzlnbop', { method: 'POST', body, headers: { 'Accept': 'application/json' } }),
+        fetch(FORMSPREE_URL, { method: 'POST', body, headers: { 'Accept': 'application/json' } }),
         new Promise(r => setTimeout(r, prefersReducedMotion() ? 0 : 1250)),
       ])
       if (!res.ok) throw new Error('envoi')
@@ -499,7 +502,7 @@ export default function Contact() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>01</b><span className="sep">//</span> DEVIS GRATUIT
+            <b>02</b><span className="sep">//</span> DEVIS GRATUIT
           </span>
           <h2 className="section-title">Votre devis <em>en 1 minute</em>.</h2>
           <p className="section-intro">
@@ -517,7 +520,7 @@ export default function Contact() {
         <div className="contact-grid">
           <div className="contact-info">
             <span className="section-label">
-              <b>01</b><span className="sep">//</span> ME CONTACTER
+              <b>02</b><span className="sep">//</span> ME CONTACTER
             </span>
             <h2>
               Parlons de votre <em>projet</em>.

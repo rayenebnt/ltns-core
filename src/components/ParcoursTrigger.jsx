@@ -45,7 +45,7 @@ export default function ParcoursTrigger({ variant = 'hero' }) {
 
   if (variant === 'float' && (!visible || open || inTheWay)) return null
 
-  const label = `Ouvrir le parcours client en 3D — ${STEPS.length} étapes`
+  const label = `Lancer la visite guidée — votre projet de A à Z en ${STEPS.length} étapes`
 
   return (
     <button
@@ -60,21 +60,21 @@ export default function ParcoursTrigger({ variant = 'hero' }) {
 
         {variant === 'nav' ? (
           <span className="parcours-trigger-label">
-            parcours <span className="parcours-trigger-label-long">3D</span>
+            visite <span className="parcours-trigger-label-long">guidée</span>
           </span>
         ) : (
           <>
             <span className="parcours-trigger-text">
               {variant === 'hero' && (
-                <span className="parcours-badge">● INTERACTIF · 3D</span>
+                <span className="parcours-badge">● VISITE GUIDÉE · INTERACTIVE</span>
               )}
               <b>
                 {variant === 'band'
-                  ? 'Voir le parcours en 3D'
+                  ? 'Lancer la visite guidée'
                   : 'Voir comment ça se passe'}
               </b>
               <span className="parcours-trigger-sub">
-                {variant === 'band' && `Le parcours client de A à Z · ${STEPS.length} étapes · 1 min`}
+                {variant === 'band' && `Votre projet de A à Z · ${STEPS.length} étapes · 1 min`}
                 {variant === 'hero' && `De A à Z · ${STEPS.length} étapes · 1 min`}
                 {variant === 'float' && `${STEPS.length} étapes · 1 min`}
               </span>

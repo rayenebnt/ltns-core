@@ -487,6 +487,7 @@ nav .nav-left {
   box-shadow: 0 0 24px var(--accent-glow), inset 0 0 0 1px var(--accent);
 }
 .btn-ghost {
+  background: transparent;
   border-color: var(--line-strong);
   color: var(--fg);
 }
@@ -1002,6 +1003,9 @@ a.service { color: inherit; text-decoration: none; }
 @media (max-width: 960px) {
   .tf-grid { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; }
 }
+/* Enveloppe animée à l'entrée : la carte garde ses propres effets de survol */
+.tf-cell { display: flex; }
+.tf-cell > .tf { flex: 1; }
 
 .tf {
   position: relative;
@@ -1275,6 +1279,189 @@ a.service { color: inherit; text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .tf-ring, .tf--featured, .is-live .tf:hover .tf-gauge i.on { animation: none; }
+}
+
+/* ---------- Demande directe d'une formule ---------- */
+.fq {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.fq-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 6, 10, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.fq-panel {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 30px 30px 28px;
+  border: 1px solid var(--accent-line);
+  background:
+    radial-gradient(circle at var(--cx, 50%) var(--cy, 100%), rgba(var(--accent-rgb), 0.16), transparent 60%),
+    var(--bg-2);
+  box-shadow: 0 40px 120px -40px var(--accent-glow);
+}
+.fq-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.fq-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  background: none;
+  border: 1px solid var(--line-strong);
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  padding: 7px 10px;
+  cursor: none;
+  transition: color 0.3s, border-color 0.3s;
+}
+.fq-close:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Thermomètre de la demande : monte jusqu'à la température de la formule */
+.fq-thermo { margin: 4px 90px 26px 0; }
+.fq-thermo-read {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+  letter-spacing: 0.15em;
+  margin-bottom: 10px;
+}
+.fq-thermo-read b {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 20px var(--accent-glow);
+}
+.fq-thermo-track {
+  position: relative;
+  height: 6px;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px 8.33%), var(--bg-3);
+}
+.fq-thermo-track i {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--fq-p, 0));
+  background: linear-gradient(90deg, #4dd0e1, #60a5fa 25%, #facc15 55%, #fb923c 80%, #ef4444);
+  background-size: calc(100% / max(var(--fq-p, 1), 0.01)) 100%;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.fq-form h3, .fq-done h3 {
+  font-family: var(--display);
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.fq-form h3 em { font-style: italic; font-weight: 300; color: var(--accent); }
+.fq-sub {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+  margin: 4px 0 8px;
+}
+.fq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 560px) {
+  .fq-panel { padding: 24px 18px 20px; }
+  .fq-grid { grid-template-columns: 1fr; }
+}
+.fq .field input { width: 100%; }
+.fq .field label .ch { color: var(--accent); }
+.fq .field.invalid input { border-color: #ff5a5a; box-shadow: 0 0 0 1px #ff5a5a; }
+.fq .field.invalid label .ch { color: #ff5a5a; }
+.fq-submit { width: 100%; justify-content: center; padding: 16px 22px; }
+.fq--sending .fq-submit { animation: fqPulse 0.9s ease-in-out infinite alternate; }
+@keyframes fqPulse { to { box-shadow: 0 0 30px var(--accent-glow); } }
+.fq-error {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: #ff8a8a;
+}
+.fq-error a { color: var(--fg); }
+
+.fq-done {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 10px 0 4px;
+}
+.fq-check { width: 64px; height: 64px; }
+.fq-check circle, .fq-check path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+.fq-check circle { stroke-dasharray: 160; }
+.fq-check path { stroke-dasharray: 40; }
+.fq-stamp {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  padding: 5px 10px;
+  transform: rotate(-8deg);
+}
+.fq-done p {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+  max-width: 440px;
+}
+.fq-done p b { color: var(--fg); font-weight: 500; }
+.fq-ref {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--fg-mute);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fq--sending .fq-submit { animation: none; }
 }
 
 /* ============ FAQ ============ */

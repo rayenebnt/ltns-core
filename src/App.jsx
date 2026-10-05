@@ -46,10 +46,10 @@ export default function App() {
       <ThermalRail />
       <Nav />
       <Hero loaded={loaded} />
+      <Tarifs />
       <Contact />
       <Realisations />
       <Services />
-      <Tarifs />
       <Pourquoi />
       <Process />
       <Faq />

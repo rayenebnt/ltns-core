@@ -309,7 +309,7 @@ function ParcoursOverlay({ onClose }) {
       className="parcours-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Le parcours client de A à Z"
+      aria-label="Visite guidée : votre projet de A à Z"
       onMouseMove={onPointerMove}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
@@ -318,7 +318,7 @@ function ParcoursOverlay({ onClose }) {
       <div className="parcours-ui">
         <header className="parcours-head">
           <span className="parcours-kicker">
-            LTNS<span className="deg">°</span> <span className="sep">//</span> PARCOURS CLIENT
+            LTNS<span className="deg">°</span> <span className="sep">//</span> VISITE GUIDÉE
             <span className="parcours-kicker-long"> · DE A À Z</span>
           </span>
           <button type="button" className="parcours-close" onClick={onClose}>

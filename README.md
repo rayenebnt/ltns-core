@@ -9,7 +9,7 @@ Version **React + Vite**.
 
 - **React 18** — composants réutilisables, hooks
 - **Vite** — build ultra rapide, HMR instantané
-- **Three.js** — scène 3D du parcours client (chargée à la demande)
+- **Three.js** — scène 3D de la visite guidée (chargée à la demande)
 - **GSAP + ScrollTrigger** — animations d'entrée et au scroll
 - **CSS pur** (variables CSS, Grid, Flexbox)
 - **Google Fonts** : Space Grotesk · Inter Tight · JetBrains Mono
@@ -31,8 +31,8 @@ ltns-react/
     │   ├── Cursor.jsx      # Curseur custom néon
     │   ├── Nav.jsx
     │   ├── Hero.jsx        # Titre + readout, animation GSAP
-    │   ├── Parcours.jsx    # Parcours client de A à Z, scène Three.js plein écran
-    │   ├── ParcoursTrigger.jsx  # Accès au parcours : hero, nav, bandeau, pastille
+    │   ├── Parcours.jsx    # Visite guidée de A à Z, scène Three.js plein écran
+    │   ├── ParcoursTrigger.jsx  # Accès à la visite guidée : hero, nav, bandeau, pastille
     │   ├── Pourquoi.jsx
     │   ├── Services.jsx    # Cards avec tilt 3D
     │   ├── Process.jsx
@@ -83,14 +83,22 @@ const PHONE = '+33612345678'
 
 ### Tarifs
 
-Section placée juste après les Services. Les formules (prix, contenu, délai, public)
-sont dans le tableau `FORMULES` en haut de `src/components/Tarifs.jsx` ; `price: null`
-affiche « Sur devis ». Le bouton de chaque formule ouvre le devis avec la formule
-pré-remplie (elle apparaît dans le ticket et dans la demande envoyée).
+Section placée juste après l'accueil, au-dessus du devis. Les formules (prix, contenu,
+délai, public) sont dans le tableau `FORMULES` en haut de `src/components/Tarifs.jsx`.
+
+- **Essentiel / Pro** (formules avec un prix) : le bouton ouvre une demande directe.
+  Le visiteur laisse seulement nom, email, téléphone et activité (facultatifs pour les
+  deux derniers). La demande part sur le même Formspree que le devis (`FORMSPREE_URL`
+  dans `Contact.jsx`), donc à la même adresse email, avec la formule, le prix, une
+  référence et l'objet « Formule Pro — Nom ».
+- **Sur-mesure** (`price: null`, affiché « Sur devis ») : le bouton mène au devis
+  détaillé, avec la formule pré-remplie.
 
 Motion design (GSAP + ScrollTrigger) : les cartes montent, la jauge de chauffe
 s'allume segment par segment, température et prix défilent, le badge « le plus
-choisi » se tamponne, puis la formule Pro garde une bordure qui tourne. Tout est
+choisi » se tamponne, puis la formule Pro garde une bordure qui tourne. La demande
+directe s'ouvre en se propageant depuis le bouton cliqué, et son thermomètre monte
+jusqu'à 99° à l'envoi. Tout est
 désactivé si le visiteur a choisi de réduire les animations.
 
 ### Couleur d'accent (néon violet par défaut)
