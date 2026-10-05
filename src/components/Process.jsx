@@ -50,7 +50,7 @@ export default function Process() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>05</b><span className="sep">//</span> PROCESS
+            <b>06</b><span className="sep">//</span> PROCESS
           </span>
           <h2 className="section-title">Quatre étapes,<br/><em>zéro mauvaise surprise</em>.</h2>
           <p className="section-intro">

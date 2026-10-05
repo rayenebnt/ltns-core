@@ -39,7 +39,7 @@ export default function Pourquoi() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>04</b><span className="sep">//</span> POURQUOI MOI
+            <b>05</b><span className="sep">//</span> POURQUOI MOI
           </span>
           <h2 className="section-title">Un freelance,<br/><em>quatre promesses</em>.</h2>
           <p className="section-intro">

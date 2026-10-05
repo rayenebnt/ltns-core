@@ -56,7 +56,7 @@ export default function Faq() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>06</b><span className="sep">//</span> QUESTIONS
+            <b>07</b><span className="sep">//</span> QUESTIONS
           </span>
           <h2 className="section-title">Vos questions,<br/><em>mes réponses</em>.</h2>
           <p className="section-intro">

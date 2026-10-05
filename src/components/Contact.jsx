@@ -34,11 +34,13 @@ const STEPS = [
 ]
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const EMPTY = { projet: '', budget: '', fonctions: [], message: '', nom: '', email: '' }
+const EMPTY = { projet: '', formule: '', budget: '', fonctions: [], message: '', nom: '', email: '' }
 const pos = temp => (temp - 12) / 87 // position 0 → 1 sur la jauge
 
 // Ouvre le devis avec un type de projet déjà choisi (ex. depuis une carte de service)
-export const prefillDevis = projet => window.dispatchEvent(new CustomEvent('devis:prefill', { detail: { projet } }))
+// et, depuis les tarifs, la formule choisie
+export const prefillDevis = (projet, { formule = '' } = {}) =>
+  window.dispatchEvent(new CustomEvent('devis:prefill', { detail: { projet, formule } }))
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -226,6 +228,7 @@ function Ticket({ data, reference, onRestart }) {
   const first = data.nom.trim().split(' ')[0]
   const rows = [
     ['PROJET', data.projet],
+    data.formule ? ['FORMULE', data.formule] : null,
     ['BUDGET', data.budget],
     data.fonctions.length ? ['FONCTIONS', data.fonctions.join(', ')] : null,
     ['CONTACT', `${data.nom.trim()} · ${data.email.trim()}`],
@@ -281,14 +284,15 @@ export default function Contact() {
   // Pré-remplissage depuis le reste du site : on passe directement au budget
   useEffect(() => {
     const onPrefill = (e) => {
-      const projet = e.detail?.projet
-      if (!PROJETS.some(p => p.value === projet)) return
+      const { projet, formule = '' } = e.detail || {}
+      const known = PROJETS.some(p => p.value === projet)
+      if (!known && !formule) return
       clearTimeout(advanceTimer.current)
       setStatus('idle')
       setErrors({})
-      setData(d => ({ ...(d.nom || d.email ? d : EMPTY), projet }))
+      setData(d => ({ ...(d.nom || d.email ? d : EMPTY), projet: known ? projet : '', formule }))
       dirRef.current = 1
-      setStep(1)
+      setStep(known ? 1 : 0)
     }
     window.addEventListener('devis:prefill', onPrefill)
     return () => window.removeEventListener('devis:prefill', onPrefill)
@@ -551,7 +555,7 @@ export default function Contact() {
               <Ticket data={data} reference={reference} onRestart={restart} />
             ) : (
               <div key={step} ref={panelRef} className="devis-panel">
-                <span className="devis-count" data-anim>ÉTAPE {step + 1} / {STEPS.length}</span>
+                <span className="devis-count" data-anim>ÉTAPE {step + 1} / {STEPS.length}{data.formule && ` · FORMULE ${data.formule.toUpperCase()}`}</span>
                 <h3 className="devis-title" data-anim><Scramble text={current.title} /></h3>
 
                 {step === 0 && (

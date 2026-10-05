@@ -50,6 +50,7 @@ export default function Nav() {
           <li><a href="#film">film</a></li>
           <li><a href="#realisations">réalisations</a></li>
           <li><a href="#services">services</a></li>
+          <li><a href="#tarifs">tarifs</a></li>
           <li><a href="#process">process</a></li>
           <li><a href="#faq">faq</a></li>
         </ul>

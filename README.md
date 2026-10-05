@@ -37,7 +37,7 @@ ltns-react/
     │   ├── Services.jsx    # Cards avec tilt 3D
     │   ├── Process.jsx
     │   ├── Realisations.jsx # Projets livrés + photo de présentation
-    │   ├── Tarifs.jsx
+    │   ├── Tarifs.jsx      # 3 formules animées, pré-remplissent le devis
     │   ├── Faq.jsx         # Accordéon avec state
     │   ├── Contact.jsx     # Formulaire avec state
     │   └── Footer.jsx
@@ -83,7 +83,15 @@ const PHONE = '+33612345678'
 
 ### Tarifs
 
-Dans `src/components/Tarifs.jsx`, modifie directement les valeurs `490`, `990`.
+Section placée juste après les Services. Les formules (prix, contenu, délai, public)
+sont dans le tableau `FORMULES` en haut de `src/components/Tarifs.jsx` ; `price: null`
+affiche « Sur devis ». Le bouton de chaque formule ouvre le devis avec la formule
+pré-remplie (elle apparaît dans le ticket et dans la demande envoyée).
+
+Motion design (GSAP + ScrollTrigger) : les cartes montent, la jauge de chauffe
+s'allume segment par segment, température et prix défilent, le badge « le plus
+choisi » se tamponne, puis la formule Pro garde une bordure qui tourne. Tout est
+désactivé si le visiteur a choisi de réduire les animations.
 
 ### Couleur d'accent (néon violet par défaut)
 
