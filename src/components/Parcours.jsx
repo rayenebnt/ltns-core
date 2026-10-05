@@ -3,6 +3,7 @@ import {
   useMemo, useRef, useState,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { inkOn } from '../hooks/useThermal'
 
 // Parcours client de A à Z : une seule scène 3D, ouvrable depuis n'importe où
 // dans la page (hero, nav, section process, pastille flottante).
@@ -52,6 +53,13 @@ export const STEPS = [
     out: 'Site en ligne, accès + prise en main',
   },
 ]
+
+// Texte lisible (noir ou blanc) sur un aplat à la couleur d'une étape
+const onStep = hex => inkOn({
+  r: parseInt(hex.slice(1, 3), 16),
+  g: parseInt(hex.slice(3, 5), 16),
+  b: parseInt(hex.slice(5, 7), 16),
+})
 
 const ParcoursContext = createContext(null)
 
@@ -119,8 +127,10 @@ function ParcoursOverlay({ onClose }) {
       const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
 
+      // Scène claire, à la couleur de page du site
+      const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f5f3ee'
       const scene = new THREE.Scene()
-      scene.fog = new THREE.FogExp2(0x0a0a0c, 0.045)
+      scene.fog = new THREE.FogExp2(new THREE.Color(bgColor), 0.045)
 
       const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 200)
       camera.position.set(0, 2.4, 8)
@@ -147,10 +157,10 @@ function ParcoursOverlay({ onClose }) {
       const track = (obj) => { disposables.push(obj); return obj }
 
       // Sol : grille d'atelier, discrète.
-      const grid = new THREE.GridHelper(220, 110, 0x1d3b44, 0x141419)
+      const grid = new THREE.GridHelper(220, 110, 0x9fb4bb, 0xcfcac0)
       grid.position.y = -3.4
       grid.material.transparent = true
-      grid.material.opacity = 0.28
+      grid.material.opacity = 0.6
       scene.add(grid)
       disposables.push(grid.geometry, grid.material)
 
@@ -169,8 +179,7 @@ function ParcoursOverlay({ onClose }) {
         const core = new THREE.Mesh(
           track(new THREE.IcosahedronGeometry(0.55, 1)),
           track(new THREE.MeshBasicMaterial({
-            color, transparent: true, opacity: 0.55,
-            blending: THREE.AdditiveBlending, depthWrite: false,
+            color, transparent: true, opacity: 0.55, depthWrite: false,
           })),
         )
         group.add(core)
@@ -201,8 +210,8 @@ function ParcoursOverlay({ onClose }) {
       const thread = new THREE.Line(
         track(new THREE.BufferGeometry().setFromPoints(curve.getPoints(280))),
         track(new THREE.LineDashedMaterial({
-          color: 0x8899aa, dashSize: 0.5, gapSize: 0.45,
-          transparent: true, opacity: 0.35,
+          color: 0x6b7280, dashSize: 0.5, gapSize: 0.45,
+          transparent: true, opacity: 0.45,
         })),
       )
       thread.computeLineDistances()
@@ -219,7 +228,7 @@ function ParcoursOverlay({ onClose }) {
       const dustGeo = track(new THREE.BufferGeometry())
       dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3))
       const dust = new THREE.Points(dustGeo, track(new THREE.PointsMaterial({
-        color: 0xffffff, size: 0.045, transparent: true, opacity: 0.35, depthWrite: false,
+        color: 0x6b6b75, size: 0.045, transparent: true, opacity: 0.35, depthWrite: false,
       })))
       scene.add(dust)
 
@@ -384,7 +393,7 @@ function ParcoursOverlay({ onClose }) {
                 <article
                   key={s.num}
                   className={`parcours-slide${active ? ' is-active' : ''}${i < index ? ' is-past' : ''}`}
-                  style={{ '--step-color': s.color }}
+                  style={{ '--step-color': s.color, '--on-step': onStep(s.color) }}
                   aria-roledescription="diapositive"
                   aria-label={`Étape ${i + 1} sur ${STEPS.length} : ${s.title}`}
                   aria-hidden={!active}
@@ -436,7 +445,7 @@ function ParcoursOverlay({ onClose }) {
                 type="button"
                 key={s.num}
                 className={`parcours-dot ${i === index ? 'active' : ''} ${i < index ? 'done' : ''}`}
-                style={{ '--dot-color': s.color }}
+                style={{ '--dot-color': s.color, '--on-step': onStep(s.color) }}
                 onClick={() => setIndex(i)}
                 aria-label={`Étape ${s.num} — ${s.title}`}
                 aria-current={i === index ? 'step' : undefined}
