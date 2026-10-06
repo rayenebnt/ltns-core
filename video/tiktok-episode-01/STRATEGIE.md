@@ -5,7 +5,7 @@
 Une vidéo qui vend (« je fais des sites, achète ») parle à des gens qui ne te connaissent
 pas encore : elle saute deux étapes. Celle-ci est en **haut de l'entonnoir** (notoriété) :
 elle est utile à n'importe quel patron, même s'il n'achète jamais, et LTNS° n'y apparaît
-qu'en signature (bandeau, t-shirt, ton thermomètre). C'est elle qui peut tourner.
+qu'en signature (bandeau, t-shirt, couleurs). C'est elle qui peut tourner.
 
 | Étape | Rôle | Ce que fait la vidéo |
 |---|---|---|
@@ -17,11 +17,11 @@ qu'en signature (bandeau, t-shirt, ton thermomètre). C'est elle qui peut tourne
 
 - **Accroche dès la première image** : « TON SITE INTERNET FAIT FUIR TES CLIENTS. »
   est déjà à l'écran à 0 s (c'est aussi la miniature).
-- **Le spectateur se teste** : 3 signes numérotés, cases cochées, thermomètre qui baisse.
-  On reste pour savoir si son propre site est « froid ».
+- **Le spectateur se teste** : 3 signes numérotés, cases cochées, score qui chute de 30
+  points à chaque signe. On reste pour savoir si son propre site passe le test.
 - **Une image qui change toutes les 1 à 2 s** (poses, encarts) et des sous-titres mot à mot,
   pour ceux qui regardent sans le son.
-- **Un retournement visuel fort** : le site gèle (givre, 12°) puis chauffe jusqu'à 99°.
+- **Un retournement visuel fort** : le score tombe à 10/100 (rouge), puis remonte à 100 (bleu).
 - **Appel aux commentaires concret** : « Commente ton métier » — facile à faire, et chaque
   commentaire devient une idée de vidéo réponse.
 - **Boucle** : la dernière phrase (« …sur ton site. ») enchaîne sur la première
@@ -32,7 +32,7 @@ qu'en signature (bandeau, t-shirt, ton thermomètre). C'est elle qui peut tourne
 
 **Légende**
 
-> Ton site est-il froid ? 🥶 Fais le test en 30 secondes.
+> Ton site fait-il fuir tes clients ? Fais le test en 30 secondes ⏱️
 > Commente ton métier, je te dis ce que je changerais 👇
 
 **Hashtags** (4 à 5, pas plus) : `#entrepreneur #artisan #siteinternet #independant #astuce`
@@ -52,14 +52,14 @@ couverture à 0 s.
 1. Réponds aux premiers commentaires dans l'heure : ça relance la diffusion.
 2. Choisis 2 ou 3 métiers en commentaire et réponds **en vidéo** (« Réponse à @… ») :
    « Plombier : voici ce que je changerais sur ton site. » C'est l'étape considération.
-3. Garde le même format (thermomètre, avatar, bandeau LTNS°) : on reconnaît la série.
+3. Garde le même format (le test, le score, l'avatar, le bandeau LTNS°) : on reconnaît la série.
 
 ## Épisodes suivants
 
 | Épisode | Idée | Étape |
 |---|---|---|
 | 02 | « La phrase qui fait fuir tes clients en haut de ton site » | Notoriété |
-| 03 | « Ton site vs celui de ton concurrent : qui est le plus chaud ? » | Notoriété |
+| 03 | « Ton site vs celui de ton concurrent : qui a le meilleur score ? » | Notoriété |
 | 04 | Réponse en vidéo : « Plombier, voici ce que je changerais » (avant / après) | Considération |
 | 05 | « J'ai refait le site d'un artisan : ce qui a changé » (PMSB, RBTI) | Considération |
 | 06 | « Combien coûte vraiment un site ? » (prix fixé, devis gratuit, lien en bio) | Conversion |

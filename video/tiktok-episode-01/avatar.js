@@ -9,7 +9,7 @@
      blink : 0 → 1, fermeture des paupières
      look  : [dx, dy] décalage du regard (en px)
      noFilter : true pour le dessin seul, sans contour d'autocollant
-     accent : couleur du ° du t-shirt (suit la température dans la vidéo)
+     accent : couleur du ° du t-shirt (suit la couleur du score dans la vidéo)
    Repère : 600 × 900, le bas du corps sort du cadre.
    Cadre : LTNSAvatar.VIEWBOX, assez large pour les bras tendus et le contour.
    ============================================================ */

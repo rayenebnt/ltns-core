@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>LTNS° — TikTok « Ton site est froid »</title>
+<title>LTNS° — TikTok « Ton site fait fuir tes clients »</title>
 <!--
-  Épisode 01 « Le thermomètre » : 3 signes que ton site fait fuir tes clients.
-  Vidéo 1080 × 1920, 30 i/s, aux couleurs de LTNS° : la température du site
-  baisse à chaque signe (cyan, froid) puis monte au bon degré (rouge, 99°).
+  Épisode 01 « Le test » : 3 signes que ton site fait fuir tes clients.
+  Vidéo 1080 × 1920, 30 i/s, aux couleurs de LTNS° : le score du site sur 100
+  perd 30 points à chaque signe (bleu → rouge), puis remonte à 100 pour un bon site.
 
   Contenu « haut d'entonnoir » : utile à tous, LTNS° en signature seulement,
   appel aux commentaires à la fin, et une dernière phrase qui reboucle sur la première.
@@ -37,11 +37,10 @@
   }
   .layer { position: absolute; inset: 0; pointer-events: none; }
   /* Calques animés séparés : le décor n'est pas repeint à chaque image */
-  #avatar, #caption, .insert, .glow, #rail, #hud { will-change: transform, opacity; }
+  #avatar, #caption, .insert, #hud, #hit, #flash { will-change: transform, opacity; }
 
-  /* Ambiance : givre quand le site est froid, halo de chaleur quand il chauffe */
-  #frost { background: radial-gradient(ellipse at 50% 45%, rgba(8, 145, 178, 0) 30%, rgba(8, 145, 178, 0.22) 100%); opacity: 0; }
-  #heat { background: radial-gradient(ellipse at 50% 115%, rgba(var(--accent-rgb), 0.38) 0%, rgba(var(--accent-rgb), 0) 62%); opacity: 0; }
+  /* Éclair rouge discret quand le site perd des points */
+  #flash { background: radial-gradient(ellipse at 50% 50%, rgba(220, 38, 38, 0) 55%, rgba(220, 38, 38, 0.2) 100%); opacity: 0; }
 
   /* Bandeau instrument, comme la barre du site */
   #hud { position: absolute; left: 70px; right: 70px; top: 180px; font-family: var(--mono); font-size: 31px; letter-spacing: 3px; color: var(--dim); }
@@ -52,12 +51,7 @@
   #signs { display: flex; gap: 16px; align-items: center; margin-top: 18px; font-size: 28px; }
   #signs i { font-style: normal; width: 58px; height: 46px; border: 3px solid var(--line-strong); display: grid; place-items: center; font-size: 26px; color: var(--mute); }
   #signs i.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-  /* Rail de température à gauche (« CHAUFFE ») */
-  #rail { position: absolute; left: 38px; top: 660px; width: 12px; height: 800px; background: var(--line-strong); }
-  #rail .fill { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #0891B2, #2563EB 22%, #7C3AED 42%, #D97706 62%, #EA580C 80%, #DC2626); background-size: 100% 800px; background-position: bottom; }
-  #rail .knob { position: absolute; left: -9px; width: 30px; height: 4px; background: var(--ink); }
-  #rail .lbl { position: absolute; left: 4px; top: 820px; font-family: var(--mono); font-size: 18px; letter-spacing: 4px; color: var(--mute); writing-mode: vertical-rl; }
+  #hit { position: absolute; right: 70px; top: 236px; font-weight: 700; font-size: 72px; letter-spacing: -2px; color: #DC2626; opacity: 0; }
 
   /* Sous-titres mot à mot */
   #caption {
@@ -72,7 +66,7 @@
   #avatar { position: absolute; left: 50%; top: 640px; width: 1180px; margin-left: -590px; transform-origin: 50% 60%; }
   #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
 
-  /* Encarts : cartes instrument, coins en équerre à la couleur de la température */
+  /* Encarts : cartes instrument, coins en équerre à la couleur du score */
   .insert { position: absolute; left: 50%; top: 640px; transform-origin: 50% 40%; opacity: 0; }
   .card { position: relative; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, 0.45); }
   .card::before, .card::after { content: ''; position: absolute; width: 44px; height: 44px; border: 7px solid var(--accent); }
@@ -130,23 +124,25 @@
   #insCall .count .big { font-size: 120px; letter-spacing: -4px; }
   #insCall .stamp { position: absolute; left: 50%; top: 520px; transform: translateX(-50%) rotate(-8deg); border: 8px solid var(--accent); color: var(--accent); background: rgba(255,255,255,.92); font-weight: 700; font-size: 68px; padding: 8px 26px; letter-spacing: 2px; }
 
-  /* Le site est froid */
-  #insCold { width: 820px; margin-left: -410px; text-align: center; }
-  #insCold .big { font-size: 330px; letter-spacing: -14px; padding-top: 30px; }
-  #insCold .state { font-family: var(--mono); font-size: 56px; letter-spacing: 18px; color: var(--accent); margin: 6px 0 30px; }
+  /* Le verdict */
+  #insVerdict { width: 820px; margin-left: -410px; text-align: center; }
+  #insVerdict .score { display: flex; align-items: baseline; justify-content: center; gap: 10px; padding-top: 34px; }
+  #insVerdict .big { font-size: 300px; letter-spacing: -14px; }
+  #insVerdict .score .unit { font-size: 90px; font-weight: 700; color: var(--mute); letter-spacing: -2px; }
+  #insVerdict .state { font-family: var(--mono); font-size: 44px; letter-spacing: 6px; color: var(--accent); margin: 10px 30px 34px; }
 
-  /* Jauge 12 segments, comme les tarifs du site */
-  .gauge { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; height: 46px; margin: 0 40px 44px; }
+  /* Barre de score en 10 segments, comme la jauge des tarifs du site */
+  .gauge { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; height: 46px; margin: 0 40px 44px; }
   .gauge i { background: var(--line-strong); }
 
-  /* Au bon degré */
-  #insHot { width: 880px; margin-left: -440px; }
-  #insHot .top { display: flex; align-items: baseline; justify-content: space-between; padding: 30px 40px 18px; }
-  #insHot .top .big { font-size: 230px; letter-spacing: -10px; }
-  #insHot .top .ok { font-weight: 700; font-size: 58px; text-transform: uppercase; text-align: right; line-height: 1; }
-  #insHot .checks { display: grid; gap: 18px; padding: 0 40px 44px; }
-  #insHot .checks div { display: flex; align-items: center; gap: 24px; font-weight: 700; font-size: 58px; text-transform: uppercase; letter-spacing: -1px; }
-  #insHot .checks b { width: 64px; height: 64px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 40px; }
+  /* Un bon site */
+  #insGood { width: 880px; margin-left: -440px; }
+  #insGood .top { display: flex; align-items: baseline; justify-content: space-between; padding: 30px 40px 18px; }
+  #insGood .top .big { font-size: 210px; letter-spacing: -10px; }
+  #insGood .top .ok { font-weight: 700; font-size: 58px; text-transform: uppercase; text-align: right; line-height: 1; }
+  #insGood .checks { display: grid; gap: 18px; padding: 0 40px 44px; }
+  #insGood .checks div { display: flex; align-items: center; gap: 24px; font-weight: 700; font-size: 58px; text-transform: uppercase; letter-spacing: -1px; }
+  #insGood .checks b { width: 64px; height: 64px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 40px; }
 
   /* Appel aux commentaires */
   #insComments { width: 880px; margin-left: -440px; }
@@ -160,18 +156,16 @@
 </head>
 <body>
 <div id="stage">
-  <div class="layer glow" id="frost"></div>
-  <div class="layer glow" id="heat"></div>
+  <div class="layer" id="flash"></div>
 
   <div id="hud">
     <div class="row">
-      <span class="brand"><b>LTNS<span>°</span></b>&nbsp; // LE THERMOMÈTRE</span>
-      <span class="read">T·<b id="hudTemp">37.0°</b></span>
+      <span class="brand"><b>LTNS<span>°</span></b>&nbsp; // LE TEST</span>
+      <span class="read">SCORE <b id="hudScore">100</b>/100</span>
     </div>
     <div id="signs"><span>SIGNES</span><i>1</i><i>2</i><i>3</i></div>
   </div>
-
-  <div id="rail"><div class="fill"></div><div class="knob"></div><div class="lbl">CHAUFFE</div></div>
+  <div id="hit">−30</div>
 
   <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
 
@@ -213,16 +207,16 @@
   </div></div>
 
   <!-- Le verdict -->
-  <div class="insert" id="insCold"><div class="card">
+  <div class="insert" id="insVerdict"><div class="card">
     <div class="head"><span>TON SITE</span><span>VERDICT</span></div>
-    <div class="big" data-count="temp">12°</div>
-    <div class="state">FROID</div>
+    <div class="score"><span class="big" data-count="score">10</span><span class="unit">/100</span></div>
+    <div class="state">TU PERDS DES CLIENTS</div>
     <div class="gauge" data-gauge></div>
   </div></div>
 
-  <div class="insert" id="insHot"><div class="card">
-    <div class="head"><span>UN BON SITE</span><span>AU BON DEGRÉ</span></div>
-    <div class="top"><span class="big" data-count="temp">12°</span><span class="ok">au bon<br>degré</span></div>
+  <div class="insert" id="insGood"><div class="card">
+    <div class="head"><span>UN BON SITE</span><span>SCORE</span></div>
+    <div class="top"><span class="big" data-count="score">10</span><span class="ok">sur<br>100</span></div>
     <div class="gauge" data-gauge></div>
     <div class="checks">
       <div data-k="0"><b>✓</b>Rapide</div>
@@ -257,8 +251,8 @@ const SENTENCES = [
   { chunks: [['Plus de la moitié', 'moitié'], ['des visiteurs', 'visiteurs'], ['sont déjà partis.', 'partis.']] },
   { chunks: [['Signe numéro deux :', 'deux'], ['sur téléphone,', 'téléphone,'], ['il faut zoomer', 'zoomer'], ['pour lire.', 'lire.']] },
   { chunks: [['Signe numéro trois :', 'trois'], ['on ne trouve pas', 'pas'], ['ton numéro', 'numéro'], ['en cinq secondes.', 'cinq']] },
-  { chunks: [['Un seul de ces signes,', 'seul'], ['et ton site', 'site'], ['est froid.', 'froid.']] },
-  { chunks: [['Un bon site,', 'bon'], ["c'est un site", 'site'], ['au bon degré :', 'degré'], ['rapide, lisible,', 'lisible,'], ['et qui donne envie', 'envie'], ["d'appeler.", "d'appeler."]] },
+  { chunks: [['Un seul de ces signes,', 'seul'], ['et tu perds des clients', 'perds'], ['tous les jours.', 'jours.']] },
+  { chunks: [['Un bon site,', 'bon'], ["c'est simple :", 'simple'], ['rapide, lisible,', 'lisible,'], ['et il donne envie', 'envie'], ["d'appeler.", "d'appeler."]] },
   { chunks: [['Commente ton métier :', 'métier'], ['je te dis', 'dis'], ['ce que je changerais', 'changerais'], ['sur ton site.', 'site.']] },
 ]
 
@@ -272,15 +266,15 @@ const BEATS = [
   [{ at: 0, insert: 'insLeave' }],
   [{ at: 0, pose: 'phone', expr: 'surprised' }, { at: 0.3, insert: 'insZoom', sign: 2 }],
   [{ at: 0, pose: 'shrug', expr: 'worried' }, { at: 0.3, insert: 'insCall', sign: 3 }],
-  [{ at: 0, pose: 'idle', expr: 'worried' }, { at: 0.42, insert: 'insCold', sfx: 'whoosh' }],
-  [{ at: 0, pose: 'cheer', expr: 'proud' }, { at: 0.22, insert: 'insHot', sfx: 'whoosh' }],
+  [{ at: 0, pose: 'idle', expr: 'worried' }, { at: 0.4, insert: 'insVerdict', sfx: 'whoosh' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }, { at: 0.22, insert: 'insGood', sfx: 'whoosh' }],
   [{ at: 0, pose: 'pointSide', expr: 'wink' }, { at: 0.42, insert: 'insComments', hold: true }],
 ]
 
-// Température du site au fil de la vidéo : [phrase, fraction, degrés]
-const TEMP_KEYS = [
-  [0, 0, 37], [0, 1, 31], [1, 1, 26], [2, 0.25, 26], [2, 1, 19], [3, 1, 16],
-  [4, 1, 14], [5, 1, 12], [6, 1, 12], [7, 0.12, 12], [7, 0.78, 99], [8, 1, 99],
+// Score du site sur 100 : [phrase, fraction, score]. −30 à chaque signe, puis remontée.
+const SCORE_KEYS = [
+  [0, 0, 100], [2, 0.26, 100], [2, 0.36, 70], [4, 0.3, 70], [4, 0.4, 40],
+  [5, 0.3, 40], [5, 0.4, 10], [7, 0.15, 10], [7, 0.8, 100], [8, 1, 100],
 ]
 
 /* ============================================================
@@ -330,19 +324,18 @@ function timeline() {
 }
 
 /* ============================================================
-   4. Outils (fonctions pures du temps) et palette thermique du site
+   4. Outils (fonctions pures du temps) et couleurs du score
    ============================================================ */
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
 const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
 function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
 
+// Couleurs du site : rouge (score bas) → orange → violet → bleu LTNS° (score haut)
 const STOPS = [
-  [0.00, 8, 145, 178], [0.22, 37, 99, 235], [0.42, 124, 58, 237],
-  [0.62, 217, 119, 6], [0.80, 234, 88, 12], [1.00, 220, 38, 38],
+  [0.00, 220, 38, 38], [0.40, 234, 88, 12], [0.70, 124, 58, 237], [1.00, 37, 99, 235],
 ]
-const pos = temp => clamp((temp - 12) / 87)
-function tempColor(p) {
+function scoreColor(p) {
   for (let i = 0; i < STOPS.length - 1; i++) {
     const a = STOPS[i], b = STOPS[i + 1]
     if (p >= a[0] && p <= b[0]) {
@@ -353,8 +346,8 @@ function tempColor(p) {
   return STOPS[STOPS.length - 1].slice(1)
 }
 
-function tempAt(t) {
-  const keys = TEMP_KEYS.map(([si, f, deg]) => [TIMES[si].start + f * (TIMES[si].end - TIMES[si].start), deg])
+function scoreAt(t) {
+  const keys = SCORE_KEYS.map(([si, f, deg]) => [TIMES[si].start + f * (TIMES[si].end - TIMES[si].start), deg])
   if (t <= keys[0][0]) return keys[0][1]
   for (let i = 0; i < keys.length - 1; i++) {
     const [ta, a] = keys[i], [tb, b] = keys[i + 1]
@@ -394,7 +387,7 @@ function tinyMarkup(blocks) {
 $('tinyText').innerHTML = tinyMarkup(5)
 document.querySelector('#lens .tiny').innerHTML = tinyMarkup(5)
 $('longText').innerHTML = tinyMarkup(14)
-document.querySelectorAll('[data-gauge]').forEach(g => { g.innerHTML = '<i></i>'.repeat(12) })
+document.querySelectorAll('[data-gauge]').forEach(g => { g.innerHTML = '<i></i>'.repeat(10) })
 
 // Contour d'autocollant précalculé par pose (voir avatar.js)
 const SILHOUETTES = {}
@@ -419,26 +412,27 @@ function sentenceAt(t) {
 }
 
 function renderAt(t) {
-  // Température et couleur d'accent, comme le défilement du site
-  const temp = tempAt(t)
-  const [r, g, b] = tempColor(pos(temp))
+  // Score du site et couleur d'accent associée
+  const score = scoreAt(t)
+  const [r, g, b] = scoreColor(score / 100)
   stage.style.setProperty('--accent', `rgb(${r}, ${g}, ${b})`)
   stage.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`)
-  $('hudTemp').textContent = temp.toFixed(1) + '°'
-  $('frost').style.opacity = clamp((26 - temp) / 12).toFixed(3)
-  $('heat').style.opacity = clamp((temp - 55) / 40).toFixed(3)
-  const level = pos(temp)
-  document.querySelector('#rail .fill').style.height = (level * 800).toFixed(1) + 'px'
-  document.querySelector('#rail .knob').style.bottom = (level * 800 - 2).toFixed(1) + 'px'
+  $('hudScore').textContent = Math.round(score)
 
   // État courant : pose de l'avatar, encart, signes déjà cochés
-  let pose = TL[0], avatarSince = 0, insert = null, insertSince = 0, signs = 0
+  let pose = TL[0], avatarSince = 0, insert = null, insertSince = 0, signs = 0, signSince = -9
   for (const bt of TL) {
     if (bt.t > t) break
     if (bt.pose) { pose = bt; avatarSince = bt.t; insert = null }
     if (bt.insert) { insert = bt; insertSince = bt.t }
-    if (bt.sign) signs = bt.sign
+    if (bt.sign) { signs = bt.sign; signSince = bt.t }
   }
+  // « −30 » qui tombe sous le score, avec un éclair rouge discret
+  const hit = t - signSince - 0.1
+  const hp = hit > 0 && hit < 1.1 ? hit / 1.1 : -1
+  $('hit').style.opacity = hp < 0 ? 0 : (1 - Math.pow(hp, 3)).toFixed(3)
+  $('hit').style.transform = `translateY(${hp < 0 ? 0 : hp * 22}px) scale(${hp < 0 ? 1 : 0.8 + 0.4 * pop(hit, 0, 0.25)})`
+  $('flash').style.opacity = hp < 0 ? 0 : (Math.sin(Math.min(1, hp * 2) * Math.PI) * 0.9).toFixed(3)
   if (insert && !insert.hold) {
     const next = TIMES[insert.si + 1]
     if (next && t >= next.start - 0.04) insert = null
@@ -476,7 +470,7 @@ function renderAt(t) {
       c.style.opacity = q > 0 ? 1 : 0
       c.style.transform = `translateX(${(1 - clamp(q)) * -120}px)`
     })
-    renderInsert(el.id, since, temp)
+    renderInsert(el.id, since, score)
   })
 
   // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
@@ -493,7 +487,7 @@ function renderAt(t) {
 }
 
 // Animations propres à chaque encart (since = secondes depuis son apparition)
-function renderInsert(id, since, temp) {
+function renderInsert(id, since, score) {
   const el = $(id)
   if (id === 'insLoad') {
     const secs = Math.min(3.4, since * 1.6)
@@ -523,11 +517,11 @@ function renderInsert(id, since, temp) {
     el.querySelector('[data-stamp]').style.opacity = since > 2.0 ? 1 : 0
     el.querySelector('[data-stamp]').style.transform = `translateX(-50%) rotate(-8deg) scale(${since > 2.0 ? 2.2 - 1.2 * clamp(s) : 2.2})`
   }
-  if (id === 'insCold' || id === 'insHot') {
-    el.querySelector('[data-count="temp"]').textContent = Math.round(temp) + '°'
-    const lit = Math.max(1, Math.round(pos(temp) * 12))
+  if (id === 'insVerdict' || id === 'insGood') {
+    el.querySelector('[data-count="score"]').textContent = Math.round(score)
+    const lit = Math.max(1, Math.round(score / 10))
     el.querySelectorAll('[data-gauge] i').forEach((i, k) => {
-      const [r, g, b] = tempColor(k / 11)
+      const [r, g, b] = scoreColor(score / 100)
       i.style.background = k < lit ? `rgb(${r}, ${g}, ${b})` : ''
     })
   }
