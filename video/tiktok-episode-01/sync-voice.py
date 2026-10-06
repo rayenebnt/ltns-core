@@ -5,7 +5,7 @@ puis lancer :  python3 sync-voice.py
 
 Produit :
 - voice.mp3      : les phrases mises bout à bout, avec de courts silences
-- timing.json    : début et fin de chaque phrase (sous-titres, poses, encarts)
+- timing.json    : début, fin et pauses de chaque phrase (sous-titres, poses, encarts)
 - envelope.json  : volume de la voix image par image (mouvements de la bouche)
 - voice-files.js : signale à tiktok.html que ces fichiers existent
 """
@@ -88,6 +88,22 @@ def main():
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", wav, "-c:a", "libmp3lame", "-b:a", "192k",
                     os.path.join(HERE, "voice.mp3")], check=True)
     os.remove(wav)
+
+    # Pauses à l'intérieur de chaque phrase (après une virgule, deux-points…) :
+    # les sous-titres s'y accrochent pour changer pile au bon moment
+    for s in sentences:
+        a, b = int(s["start"] * FPS), int(s["end"] * FPS)
+        seg = env[a:b]
+        peak = max(seg) or 1
+        pauses, run = [], 0
+        for k, v in enumerate(seg + [peak]):
+            if v < 0.14 * peak:
+                run += 1
+                continue
+            if run >= 3:
+                pauses.append([round((a + k - run) / FPS, 3), round((a + k) / FPS, 3)])
+            run = 0
+        s["pauses"] = pauses
 
     json.dump({"sentences": sentences}, open(os.path.join(HERE, "timing.json"), "w"), indent=2)
     json.dump({"fps": FPS, "values": env}, open(os.path.join(HERE, "envelope.json"), "w"))

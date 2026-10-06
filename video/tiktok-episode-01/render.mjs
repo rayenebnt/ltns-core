@@ -1,5 +1,6 @@
 // Rendu MP4 de tiktok.html : capture image par image, puis assemblage ffmpeg.
-//   node render.mjs [sortie.mp4]
+//   node render.mjs [sortie.mp4]           (images + son)
+//   node render.mjs [sortie.mp4] --mux-only (réassemble le son seulement)
 // Prérequis : un serveur local à la racine du dépôt sur le port 8765
 //   python3 -m http.server 8765 --directory <racine du dépôt>
 // Si voice.mp3 existe à côté de ce fichier, il est mixé avec l'habillage sonore.
@@ -13,12 +14,14 @@ import { cpus } from 'os'
 const { chromium } = await import('playwright').catch(() => import('/opt/node-tools/node_modules/playwright/index.mjs'))
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const OUT = process.argv[2] || join(HERE, 'ltns-tiktok-episode-01.mp4')
+const OUT = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, 'ltns-tiktok-episode-01.mp4')
 const FRAMES = join(HERE, '.frames')
 const URL = 'http://localhost:8765/video/tiktok-episode-01/tiktok.html?render'
 const FPS = 30
 const WORKERS = Math.max(1, Math.min(3, cpus().length - 1))
 
+const MUX_ONLY = process.argv.includes('--mux-only')
+if (!MUX_ONLY) {
 rmSync(FRAMES, { recursive: true, force: true })
 mkdirSync(FRAMES, { recursive: true })
 
@@ -59,6 +62,8 @@ await Promise.all(pages.map((pg, k) => worker(pg, k * slice, Math.min(total, (k 
 await browser.close()
 console.log(`Images rendues en ${((Date.now() - started) / 1000).toFixed(0)} s`)
 
+} // fin du rendu des images
+
 // Habillage sonore synthétisé (pop, tic, souffle)
 execFileSync('python3', [join(HERE, 'sfx.py'), join(FRAMES, 'events.json'), join(FRAMES, 'sfx.wav')], { stdio: 'inherit' })
 
@@ -68,10 +73,12 @@ let filter
 if (existsSync(voice)) {
   args.push('-i', voice)
   // La voix devant, l'habillage en retrait
-  filter = '[1:a]volume=0.55[s];[2:a]volume=1.0[v];[s][v]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95[a]'
+  filter = '[1:a]volume=0.55[s];[2:a]volume=1.0[v];[s][v]amix=inputs=2:duration=first:normalize=0'
 } else {
-  filter = '[1:a]volume=0.8,alimiter=limit=0.95[a]'
+  filter = '[1:a]volume=0.8'
 }
+// Volume au niveau des autres vidéos TikTok (≈ −14 LUFS), sans saturer
+filter += ',loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100[a]'
 args.push('-filter_complex', filter, '-map', '0:v', '-map', '[a]',
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS),
   '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', OUT)

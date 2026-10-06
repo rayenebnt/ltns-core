@@ -310,8 +310,54 @@ function buildWords() {
       x.t1 = start + (acc / total) * span
       x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
     })
+    snapToPauses(words, weights, TIMES[si])
     return words
   })
+}
+
+// Avec la vraie voix : les mots suivis d'une ponctuation se terminent sur une pause
+// mesurée, et les mots entre deux pauses se répartissent dans l'intervalle parlé.
+// Alignement dans l'ordre (programmation dynamique) : chaque ponctuation reçoit au plus
+// une pause, sans croiser l'ordre, et une longue pause laissée sans ponctuation coûte cher.
+function snapToPauses(words, weights, { start, end, pauses }) {
+  if (!pauses || !pauses.length) return
+  const P = pauses.filter(p => p[1] - p[0] >= 0.12 && p[0] > start + 0.15 && p[1] < end - 0.1)
+  const A = words.map((x, i) => (i < words.length - 1 && /[,:;.?!]$/.test(x.w) ? i : -1)).filter(i => i >= 0)
+  if (!P.length || !A.length) return
+  const n = A.length, m = P.length
+  const SKIP_ANCHOR = 0.35, skipPause = j => Math.max(0, P[j][1] - P[j][0] - 0.12) * 3
+  const cost = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const from = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null))
+  cost[0][0] = 0
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const c = cost[i][j]
+    if (c === Infinity) continue
+    if (i < n && c + SKIP_ANCHOR < cost[i + 1][j]) { cost[i + 1][j] = c + SKIP_ANCHOR; from[i + 1][j] = [i, j, false] }
+    if (j < m && c + skipPause(j) < cost[i][j + 1]) { cost[i][j + 1] = c + skipPause(j); from[i][j + 1] = [i, j, false] }
+    if (i < n && j < m) {
+      const d = Math.abs(P[j][0] - words[A[i]].t1)
+      if (d < 1.2 && c + d < cost[i + 1][j + 1]) { cost[i + 1][j + 1] = c + d; from[i + 1][j + 1] = [i, j, true] }
+    }
+  }
+  // Remonte le meilleur chemin pour obtenir les paires (ponctuation, pause)
+  const pairs = []
+  for (let i = n, j = m; i > 0 || j > 0;) {
+    const [pi, pj, matched] = from[i][j]
+    if (matched) pairs.unshift([A[pi], P[pj]])
+    i = pi; j = pj
+  }
+  const bounds = [{ i: -1, next: start }, ...pairs.map(([i, p]) => ({ i, at: p[0], next: p[1] })), { i: words.length - 1, at: end }]
+  for (let b = 1; b < bounds.length; b++) {
+    const lo = bounds[b - 1].i + 1, hi = bounds[b].i
+    const t0 = bounds[b - 1].next, t1 = bounds[b].at
+    const tot = weights.slice(lo, hi + 1).reduce((x, y) => x + y, 0)
+    let acc = 0
+    for (let k = lo; k <= hi; k++) {
+      words[k].t0 = t0 + (acc / tot) * (t1 - t0)
+      acc += weights[k]
+      words[k].t1 = t0 + (acc / tot) * (t1 - t0)
+    }
+  }
 }
 
 function timeline() {
