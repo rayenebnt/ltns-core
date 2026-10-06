@@ -392,7 +392,8 @@ function renderAt(t) {
     // Éléments empilés : ils arrivent l'un après l'autre
     el.querySelectorAll('[data-k]').forEach(c => {
       const k = +c.dataset.k
-      const q = pop(t, insertSince + 0.12 + k * 0.32, 0.3)
+      // Le premier élément arrive avec l'encart : pas d'écran vide entre deux plans
+      const q = pop(t, insertSince + k * 0.32, 0.3)
       c.style.opacity = q > 0 ? 1 : 0
       c.style.transform = `translateX(${(1 - clamp(q)) * (k % 2 ? 140 : -140)}px) scale(${0.7 + 0.3 * q})`
     })
