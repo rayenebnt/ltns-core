@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — TikTok « Site, appli ou logiciel ? »</title>
+<!--
+  Épisode 02 : « Site, appli ou logiciel : de quoi a besoin ton entreprise ? »
+  Un test en 3 questions ; chaque « oui » fait naître une création LTNS° à l'écran :
+  le site (bleu), l'appli (violet), le logiciel (orange). Puis les trois ensemble.
+  Vidéo 1080 × 1920, 30 i/s.
+
+  Ouvrir via un serveur local (voir ../README.md) : la vidéo se joue toute seule.
+  ?t=12.5 fige l'image à 12,5 s · ?audio la joue avec voice.mp3.
+  Le minutage vient de timing.json (durées réelles de la voix) s'il existe,
+  sinon d'une estimation ; la bouche suit envelope.json (volume de la voix).
+-->
+<link rel="stylesheet" href="../commun/fonts.css">
+<style>
+  :root {
+    --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
+    --line: rgba(22, 22, 26, 0.09); --line-strong: rgba(22, 22, 26, 0.18);
+    --accent: rgb(8, 145, 178); --accent-rgb: 8, 145, 178;
+    --site: #2563EB; --appli: #7C3AED; --logiciel: #EA580C;
+    --display: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 1080px; height: 1920px; overflow: hidden;
+    background:
+      linear-gradient(var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      linear-gradient(90deg, var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      var(--paper);
+    font-family: var(--display); color: var(--ink);
+  }
+  /* Calques animés séparés : le décor n'est pas repeint à chaque image */
+  #avatar, #caption, .insert, #hud { will-change: transform, opacity; }
+
+  /* Bandeau, comme la barre du site */
+  #hud { position: absolute; left: 70px; right: 70px; top: 180px; font-family: var(--mono); font-size: 31px; letter-spacing: 3px; color: var(--dim); }
+  #hud .row { display: flex; align-items: center; gap: 22px; padding-bottom: 18px; border-bottom: 2px solid var(--line-strong); white-space: nowrap; }
+  #hud .brand b { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -1px; color: var(--ink); }
+  #hud .brand span { color: var(--accent); }
+  #hud .tag i { font-style: normal; color: var(--mute); opacity: .55; }
+  #hud .tag i.on { opacity: 1; font-weight: 500; }
+  #hud .tag i[data-p="site"].on { color: var(--site); }
+  #hud .tag i[data-p="appli"].on { color: var(--appli); }
+  #hud .tag i[data-p="logiciel"].on { color: var(--logiciel); }
+  #hud .tag.all i { opacity: 1; color: var(--ink); }
+  #steps { display: flex; gap: 16px; align-items: center; margin-top: 18px; font-size: 28px; }
+  #steps i { font-style: normal; width: 58px; height: 46px; border: 3px solid var(--line-strong); display: grid; place-items: center; font-size: 26px; color: var(--mute); }
+  #steps i.on { color: #fff; }
+  #steps i[data-p="site"].on { background: var(--site); border-color: var(--site); }
+  #steps i[data-p="appli"].on { background: var(--appli); border-color: var(--appli); }
+  #steps i[data-p="logiciel"].on { background: var(--logiciel); border-color: var(--logiciel); }
+
+  /* Sous-titres mot à mot */
+  #caption {
+    position: absolute; left: 80px; right: 80px; top: 350px; height: 240px;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 24px; text-align: center;
+    font-weight: 700; font-size: 84px; line-height: 1.02; letter-spacing: -2px; text-transform: uppercase;
+  }
+  #caption .w { display: inline-block; transform-origin: 50% 80%; }
+  #caption .w.hl { color: var(--accent); font-style: italic; font-weight: 500; }
+
+  /* Avatar : silhouette avec contour (image précalculée par pose) + dessin vivant par-dessus */
+  #avatar { position: absolute; left: 50%; top: 640px; width: 1180px; margin-left: -590px; transform-origin: 50% 60%; }
+  #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
+
+  /* Encarts : cartes instrument, coins en équerre à la couleur du moment */
+  .insert { position: absolute; left: 50%; top: 640px; transform-origin: 50% 40%; opacity: 0; }
+  .card { position: relative; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, 0.45); }
+  .card::before, .card::after { content: ''; position: absolute; width: 44px; height: 44px; border: 7px solid var(--accent); }
+  .card::before { left: -14px; top: -14px; border-right: 0; border-bottom: 0; }
+  .card::after { right: -14px; bottom: -14px; border-left: 0; border-top: 0; }
+  .card .head { display: flex; justify-content: space-between; padding: 22px 30px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); }
+  .card .head b { color: var(--accent); font-weight: 500; }
+  .label { position: absolute; left: 50%; bottom: -54px; transform: translateX(-50%) rotate(-2deg); white-space: nowrap; background: var(--accent); color: #fff; font-weight: 700; font-size: 64px; letter-spacing: -1px; text-transform: uppercase; padding: 8px 34px 12px; }
+  [data-b] { opacity: 0; }
+
+  /* Questions */
+  .qcard { width: 900px; margin-left: -450px; }
+  .qcard .q { padding: 50px 50px 40px; font-weight: 700; font-size: 82px; line-height: 1.02; letter-spacing: -2px; }
+  .qcard .ans { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 0 50px 50px; }
+  .qcard .ans div { border: 4px solid var(--line-strong); font-family: var(--mono); font-size: 48px; letter-spacing: 6px; text-align: center; padding: 24px 0; color: var(--mute); }
+  .qcard .ans div.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Le site se construit dans un navigateur */
+  #insSite { width: 900px; margin-left: -450px; }
+  #insSite .bar { height: 60px; background: #ece9e2; display: flex; align-items: center; gap: 14px; padding: 0 22px; border-bottom: 2px solid var(--line); }
+  #insSite .bar i { width: 18px; height: 18px; border-radius: 50%; background: #c9c4ba; }
+  #insSite .bar span { margin-left: 18px; font-family: var(--mono); font-size: 22px; color: var(--mute); }
+  #insSite .page { padding: 30px 36px 44px; display: grid; gap: 22px; }
+  #insSite .nav { display: flex; justify-content: space-between; align-items: center; }
+  #insSite .nav b { font-weight: 700; font-size: 40px; }
+  #insSite .nav span { display: flex; gap: 18px; }
+  #insSite .nav span i { width: 90px; height: 14px; background: #d8d3c9; }
+  #insSite .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; }
+  #insSite .hero h4 { font-weight: 700; font-size: 58px; line-height: .98; letter-spacing: -2px; }
+  #insSite .hero h4 em { font-style: normal; color: var(--accent); }
+  #insSite .photo { height: 250px; background: linear-gradient(135deg, rgba(var(--accent-rgb), .9), rgba(var(--accent-rgb), .35)); position: relative; overflow: hidden; }
+  #insSite .photo::after { content: ''; position: absolute; left: 22%; bottom: -30%; width: 56%; height: 90%; border-radius: 50% 50% 0 0; background: rgba(255,255,255,.35); }
+  #insSite .lines { display: grid; gap: 12px; }
+  #insSite .lines i { height: 14px; background: #e2ded5; }
+  #insSite .lines i:last-child { width: 60%; }
+  #insSite .cta { justify-self: start; background: var(--accent); color: #fff; font-weight: 700; font-size: 40px; padding: 18px 34px; }
+
+  /* L'appli se construit sur un téléphone */
+  #insApp { width: 560px; margin-left: -280px; }
+  .phone { width: 470px; height: 860px; margin: 30px auto 40px; border-radius: 66px; background: var(--ink); padding: 22px; }
+  .phone .scr { width: 100%; height: 100%; border-radius: 46px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  #insApp .top { background: var(--accent); color: #fff; padding: 64px 30px 26px; font-weight: 700; font-size: 50px; letter-spacing: -1px; }
+  #insApp .top small { display: block; font-family: var(--mono); font-size: 20px; letter-spacing: 3px; opacity: .8; font-weight: 400; margin-bottom: 6px; }
+  #insApp .days { display: flex; gap: 10px; padding: 22px 26px 6px; }
+  #insApp .days i { flex: 1; font-style: normal; text-align: center; border: 3px solid var(--line-strong); padding: 10px 0; font-family: var(--mono); font-size: 22px; }
+  #insApp .days i.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  #insApp .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 18px 26px; }
+  #insApp .slots i { font-style: normal; border: 3px solid var(--line-strong); text-align: center; padding: 18px 0; font-weight: 700; font-size: 34px; }
+  #insApp .slots i.pick { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #insApp .ok { margin: auto 26px 30px; background: var(--ink); color: #fff; text-align: center; font-weight: 700; font-size: 38px; padding: 24px; border-radius: 20px; }
+
+  /* Le logiciel se construit en tableau de bord */
+  #insSoft { width: 940px; margin-left: -470px; }
+  #insSoft .app { display: grid; grid-template-columns: 200px 1fr; min-height: 640px; }
+  #insSoft .side { background: #f3f0e9; border-right: 2px solid var(--line); padding: 26px 18px; display: grid; gap: 16px; align-content: start; }
+  #insSoft .side b { font-weight: 700; font-size: 30px; margin-bottom: 10px; }
+  #insSoft .side i { font-style: normal; font-family: var(--mono); font-size: 21px; color: var(--dim); padding: 10px 12px; }
+  #insSoft .side i.on { background: var(--accent); color: #fff; }
+  #insSoft .main { padding: 28px; display: grid; gap: 22px; align-content: start; }
+  #insSoft .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  #insSoft .kpi { border: 3px solid var(--line-strong); padding: 16px 18px; }
+  #insSoft .kpi small { display: block; font-family: var(--mono); font-size: 18px; letter-spacing: 2px; color: var(--mute); }
+  #insSoft .kpi b { display: block; font-weight: 700; font-size: 50px; letter-spacing: -2px; color: var(--accent); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #insSoft .row { display: grid; grid-template-columns: 1.3fr 1fr .9fr; align-items: center; gap: 12px; border-bottom: 2px solid var(--line); padding: 14px 4px; font-size: 30px; font-weight: 500; }
+  #insSoft .row span { font-family: var(--mono); font-size: 22px; color: var(--mute); }
+  #insSoft .row em { font-style: normal; justify-self: end; font-family: var(--mono); font-size: 20px; letter-spacing: 2px; padding: 6px 12px; color: #fff; background: var(--accent); }
+
+  /* Les trois ensemble */
+  #insTrio { width: 960px; margin-left: -480px; }
+  #insTrio .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  #insTrio .one { text-align: center; }
+  #insTrio .one .card::before, #insTrio .one .card::after { border-color: var(--c); }
+  #insTrio .shot { height: 360px; display: grid; place-items: center; }
+  #insTrio .one span { display: inline-block; margin-top: 30px; background: var(--c); color: #fff; font-weight: 700; font-size: 44px; letter-spacing: -1px; text-transform: uppercase; padding: 6px 22px 10px; }
+  #insTrio .mini-site { width: 220px; height: 170px; border: 4px solid var(--ink); display: grid; grid-template-rows: 30px 1fr; }
+  #insTrio .mini-site::before { content: ''; background: var(--c); }
+  #insTrio .mini-phone { width: 120px; height: 230px; border: 10px solid var(--ink); border-radius: 26px; background: linear-gradient(var(--c) 0 34%, #fff 34%); }
+  #insTrio .mini-soft { width: 230px; height: 160px; border: 4px solid var(--ink); background: linear-gradient(90deg, #f3f0e9 0 30%, #fff 30%); position: relative; }
+  #insTrio .mini-soft::after { content: ''; position: absolute; left: 40%; right: 8%; top: 18%; height: 40px; background: var(--c); }
+  #insTrio .sign { text-align: center; margin-top: 70px; font-weight: 700; font-size: 70px; letter-spacing: -2px; text-transform: uppercase; }
+  #insTrio .sign b span { color: var(--accent); }
+
+  /* Commente ton métier */
+  #insComments { width: 900px; margin-left: -450px; }
+  #insComments .c { display: flex; align-items: center; gap: 24px; padding: 22px 32px; border-bottom: 2px solid var(--line); }
+  #insComments .c .av { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 34px; flex: none; background: var(--ink); }
+  #insComments .c small { display: block; font-family: var(--mono); font-size: 22px; color: var(--mute); letter-spacing: 2px; }
+  #insComments .c span { font-weight: 700; font-size: 48px; letter-spacing: -1px; }
+  #insComments .c em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 24px; letter-spacing: 2px; color: #fff; padding: 8px 14px; white-space: nowrap; }
+  #insComments .input { margin: 26px 32px 32px; border: 3px solid var(--accent); padding: 22px 26px; font-family: var(--mono); font-size: 34px; color: var(--mute); display: flex; justify-content: space-between; }
+  #insComments .input b { color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="hud">
+    <div class="row">
+      <span class="brand"><b>LTNS<span>°</span></b></span>
+      <span class="tag">// <i data-p="site">SITE</i> · <i data-p="appli">APPLI</i> · <i data-p="logiciel">LOGICIEL</i></span>
+    </div>
+    <div id="steps"><span>QUESTIONS</span><i data-p="site">1</i><i data-p="appli">2</i><i data-p="logiciel">3</i></div>
+  </div>
+
+  <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
+
+  <!-- Questions -->
+  <div class="insert qcard" id="insQ1"><div class="card">
+    <div class="head"><span>QUESTION <b>01</b> / 03</span><span>OUI OU NON</span></div>
+    <div class="q">Tu veux que de nouveaux clients te trouvent&nbsp;?</div>
+    <div class="ans"><div data-yes>OUI</div><div>NON</div></div>
+  </div></div>
+  <div class="insert qcard" id="insQ2"><div class="card">
+    <div class="head"><span>QUESTION <b>02</b> / 03</span><span>OUI OU NON</span></div>
+    <div class="q">Tes clients réservent ou commandent souvent&nbsp;?</div>
+    <div class="ans"><div data-yes>OUI</div><div>NON</div></div>
+  </div></div>
+  <div class="insert qcard" id="insQ3"><div class="card">
+    <div class="head"><span>QUESTION <b>03</b> / 03</span><span>OUI OU NON</span></div>
+    <div class="q">Tu perds des heures sur des tableaux Excel&nbsp;?</div>
+    <div class="ans"><div data-yes>OUI</div><div>NON</div></div>
+  </div></div>
+
+  <!-- Réponse 1 : un site -->
+  <div class="insert" id="insSite"><div class="card">
+    <div class="bar"><i></i><i></i><i></i><span>ton-entreprise.fr</span></div>
+    <div class="page">
+      <div class="nav" data-b="0"><b>Ton entreprise</b><span><i></i><i></i><i></i></span></div>
+      <div class="hero">
+        <h4 data-b="1">Ce que tu fais, <em>là où tu es.</em></h4>
+        <div class="photo" data-b="2"></div>
+      </div>
+      <div class="lines" data-b="3"><i></i><i></i><i></i></div>
+      <div class="cta" data-b="4">Appeler maintenant</div>
+    </div>
+    <div class="label">Un site</div>
+  </div></div>
+
+  <!-- Réponse 2 : une appli -->
+  <div class="insert" id="insApp"><div class="card">
+    <div class="phone"><div class="scr">
+      <div class="top" data-b="0"><small>TON APPLI</small>Réserver</div>
+      <div class="days" data-b="1"><i>LUN</i><i class="on">MAR</i><i>MER</i><i>JEU</i></div>
+      <div class="slots" data-b="2"><i>9h00</i><i>10h30</i><i data-pick>14h30</i><i>16h00</i><i>17h30</i><i>18h00</i></div>
+      <div class="ok" data-b="3">Confirmer ✓</div>
+    </div></div>
+    <div class="label">Une appli</div>
+  </div></div>
+
+  <!-- Réponse 3 : un logiciel -->
+  <div class="insert" id="insSoft"><div class="card">
+    <div class="head"><span>TON LOGICIEL</span><span>FAIT POUR TON MÉTIER</span></div>
+    <div class="app">
+      <div class="side" data-b="0"><b>Gestion</b><i class="on">Tableau de bord</i><i>Clients</i><i>Devis</i><i>Factures</i><i>Planning</i></div>
+      <div class="main">
+        <div class="kpis" data-b="1">
+          <div class="kpi"><small>DEVIS</small><b data-count="12">12</b></div>
+          <div class="kpi"><small>FACTURES</small><b data-count="34">34</b></div>
+          <div class="kpi"><small>CLIENTS</small><b data-count="58">58</b></div>
+        </div>
+        <div class="row" data-b="2">Devis · cuisine<span>il y a 2 min</span><em>ENVOYÉ</em></div>
+        <div class="row" data-b="3">Facture · salle de bain<span>hier</span><em>PAYÉE</em></div>
+        <div class="row" data-b="4">Nouveau client<span>aujourd'hui</span><em>AJOUTÉ</em></div>
+      </div>
+    </div>
+    <div class="label">Un logiciel</div>
+  </div></div>
+
+  <!-- Les trois -->
+  <div class="insert" id="insTrio">
+    <div class="three">
+      <div class="one" data-b="0" style="--c: var(--site)"><div class="card"><div class="shot"><div class="mini-site"></div></div></div><span>Site</span></div>
+      <div class="one" data-b="1" style="--c: var(--appli)"><div class="card"><div class="shot"><div class="mini-phone"></div></div></div><span>Appli</span></div>
+      <div class="one" data-b="2" style="--c: var(--logiciel)"><div class="card"><div class="shot"><div class="mini-soft"></div></div></div><span>Logiciel</span></div>
+    </div>
+    <div class="sign" data-b="3"><b>LTNS<span>°</span></b> crée les trois</div>
+  </div>
+
+  <!-- Commente ton métier -->
+  <div class="insert" id="insComments"><div class="card">
+    <div class="head"><span>COMMENTAIRES</span><span>TON MÉTIER ↓</span></div>
+    <div class="c" data-b="0"><div class="av">M</div><div><small>@mathieu.plomberie</small><span>Plombier</span></div><em style="background: var(--site)">→ SITE</em></div>
+    <div class="c" data-b="1"><div class="av">L</div><div><small>@lea.restaurant</small><span>Restaurant</span></div><em style="background: var(--appli)">→ APPLI</em></div>
+    <div class="c" data-b="2"><div class="av">K</div><div><small>@karim.renovation</small><span>Artisan BTP</span></div><em style="background: var(--logiciel)">→ LOGICIEL</em></div>
+    <div class="input"><span>Ton métier…</span><b>|</b></div>
+  </div></div>
+
+  <div id="caption"></div>
+</div>
+
+<script src="../commun/avatar.js"></script>
+<script src="voice-files.js"></script>
+<script>
+/* ============================================================
+   1. Texte de la voix off (une phrase = un fichier ElevenLabs),
+      découpé en morceaux de sous-titres : [texte, mot en couleur]
+   ============================================================ */
+const SENTENCES = [
+  { chunks: [['Site, appli', 'appli'], ['ou logiciel :', 'logiciel'], ['tu ne sais pas', 'sais'], ["ce qu'il te faut ?", 'faut']] },
+  { chunks: [['Fais le test :', 'test'], ['trois questions.', 'questions.']] },
+  { chunks: [['Question un :', 'un'], ['tu veux que', 'veux'], ['de nouveaux clients', 'clients'], ['te trouvent ?', 'trouvent']] },
+  { chunks: [['Alors il te faut', 'faut'], ['un site.', 'site.']] },
+  { chunks: [['Question deux :', 'deux'], ['tes clients réservent', 'réservent'], ['ou commandent', 'commandent'], ['souvent chez toi ?', 'souvent']] },
+  { chunks: [['Alors il te faut', 'faut'], ['une appli.', 'appli.']] },
+  { chunks: [['Question trois :', 'trois'], ['tu perds des heures', 'heures'], ['sur des tableaux', 'tableaux'], ['Excel ?', 'Excel']] },
+  { chunks: [['Alors il te faut', 'faut'], ['un logiciel,', 'logiciel,'], ['fait pour ton métier.', 'métier.']] },
+  { chunks: [['Trois fois oui ?', 'oui'], ['Je peux créer', 'créer'], ['les trois.', 'trois.']] },
+  { chunks: [['Commente ton métier :', 'métier'], ['je te dis', 'dis'], ['ce que je créerais', 'créerais'], ['pour toi.', 'toi.']] },
+]
+
+/* ============================================================
+   2. Mise en scène : « temps forts » en fraction (0 → 1) de chaque phrase.
+      step : la question n° est cochée ; color : couleur de la phrase
+   ============================================================ */
+const BEATS = [
+  [{ at: 0, pose: 'pointUp', expr: 'sly' }, { at: 0.5, pose: 'shrug', expr: 'worried' }],
+  [{ at: 0, pose: 'thumbs', expr: 'happy' }],
+  [{ at: 0, pose: 'think', expr: 'think' }, { at: 0.22, insert: 'insQ1' }],
+  [{ at: 0, insert: 'insSite', step: 1, sfx: 'whoosh' }],
+  [{ at: 0, pose: 'phone', expr: 'happy' }, { at: 0.22, insert: 'insQ2' }],
+  [{ at: 0, insert: 'insApp', step: 2, sfx: 'whoosh' }],
+  [{ at: 0, pose: 'shrug', expr: 'worried' }, { at: 0.22, insert: 'insQ3' }],
+  [{ at: 0, insert: 'insSoft', step: 3, sfx: 'whoosh' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }, { at: 0.4, insert: 'insTrio', sfx: 'whoosh' }],
+  [{ at: 0, pose: 'pointSide', expr: 'wink' }, { at: 0.42, insert: 'insComments', hold: true }],
+]
+
+// Couleur de chaque phrase : LTNS° (cyan), puis site (bleu), appli (violet), logiciel (orange)
+const CYAN = [8, 145, 178], SITE = [37, 99, 235], APPLI = [124, 58, 237], LOGICIEL = [234, 88, 12]
+const SENTENCE_COLORS = [CYAN, CYAN, SITE, SITE, APPLI, APPLI, LOGICIEL, LOGICIEL, CYAN, CYAN]
+// Mot du bandeau mis en avant pendant chaque phrase
+const SENTENCE_PRODUCT = [null, null, 'site', 'site', 'appli', 'appli', 'logiciel', 'logiciel', 'all', 'all']
+
+/* ============================================================
+   3. Minutage : durées réelles (timing.json) ou estimation
+   ============================================================ */
+const FPS = 30
+const TAIL = 0.6 // court : la dernière phrase reboucle sur la première
+let TIMES = null, ENVELOPE = null, WORDS = null, TL = null
+
+function estimateTimes() {
+  let t = 0.1
+  return SENTENCES.map(s => {
+    const text = s.chunks.map(c => c[0]).join(' ')
+    const d = Math.max(1.3, text.length / 15)
+    const r = { start: t, end: t + d }
+    t += d + 0.25
+    return r
+  })
+}
+
+function buildWords() {
+  return SENTENCES.map((s, si) => {
+    const { start, end } = TIMES[si]
+    const words = []
+    s.chunks.forEach(([text, hl], ci) => text.split(' ').forEach(w => words.push({ w, ci, hl: w === hl })))
+    const weights = words.map(x => x.w.replace(/[^\p{L}\p{N}]/gu, '').length + 2)
+    const total = weights.reduce((a, b) => a + b, 0)
+    const span = Math.max(0.4, (end - start) - 0.1)
+    let acc = 0
+    words.forEach((x, i) => {
+      x.t0 = start + (acc / total) * span
+      acc += weights[i]
+      x.t1 = start + (acc / total) * span
+      x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
+    })
+    snapToPauses(words, weights, TIMES[si])
+    return words
+  })
+}
+
+// Avec la vraie voix : les mots suivis d'une ponctuation se terminent sur une pause
+// mesurée (alignement dans l'ordre), les autres se répartissent entre les pauses.
+function snapToPauses(words, weights, { start, end, pauses }) {
+  if (!pauses || !pauses.length) return
+  const P = pauses.filter(p => p[1] - p[0] >= 0.12 && p[0] > start + 0.15 && p[1] < end - 0.1)
+  const A = words.map((x, i) => (i < words.length - 1 && /[,:;.?!]$/.test(x.w) ? i : -1)).filter(i => i >= 0)
+  if (!P.length || !A.length) return
+  const n = A.length, m = P.length
+  const SKIP_ANCHOR = 0.35, skipPause = j => Math.max(0, P[j][1] - P[j][0] - 0.12) * 3
+  const cost = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const from = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null))
+  cost[0][0] = 0
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const c = cost[i][j]
+    if (c === Infinity) continue
+    if (i < n && c + SKIP_ANCHOR < cost[i + 1][j]) { cost[i + 1][j] = c + SKIP_ANCHOR; from[i + 1][j] = [i, j, false] }
+    if (j < m && c + skipPause(j) < cost[i][j + 1]) { cost[i][j + 1] = c + skipPause(j); from[i][j + 1] = [i, j, false] }
+    if (i < n && j < m) {
+      const d = Math.abs(P[j][0] - words[A[i]].t1)
+      if (d < 1.2 && c + d < cost[i + 1][j + 1]) { cost[i + 1][j + 1] = c + d; from[i + 1][j + 1] = [i, j, true] }
+    }
+  }
+  const pairs = []
+  for (let i = n, j = m; i > 0 || j > 0;) {
+    const [pi, pj, matched] = from[i][j]
+    if (matched) pairs.unshift([A[pi], P[pj]])
+    i = pi; j = pj
+  }
+  const bounds = [{ i: -1, next: start }, ...pairs.map(([i, p]) => ({ i, at: p[0], next: p[1] })), { i: words.length - 1, at: end }]
+  for (let b = 1; b < bounds.length; b++) {
+    const lo = bounds[b - 1].i + 1, hi = bounds[b].i
+    const t0 = bounds[b - 1].next, t1 = bounds[b].at
+    const tot = weights.slice(lo, hi + 1).reduce((x, y) => x + y, 0)
+    let acc = 0
+    for (let k = lo; k <= hi; k++) {
+      words[k].t0 = t0 + (acc / tot) * (t1 - t0)
+      acc += weights[k]
+      words[k].t1 = t0 + (acc / tot) * (t1 - t0)
+    }
+  }
+}
+
+function timeline() {
+  const out = []
+  BEATS.forEach((beats, si) => {
+    const { start, end } = TIMES[si]
+    beats.forEach(b => out.push({ ...b, t: start + b.at * (end - start), si }))
+  })
+  return out
+}
+
+/* ============================================================
+   4. Outils (fonctions pures du temps)
+   ============================================================ */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
+
+// Couleur du moment : fondu de 0,3 s au début de chaque phrase
+function colorAt(t, si) {
+  const cur = SENTENCE_COLORS[si], prev = SENTENCE_COLORS[Math.max(0, si - 1)]
+  const k = easeInOut(clamp((t - TIMES[si].start + 0.1) / 0.3))
+  return [0, 1, 2].map(j => Math.round(prev[j] + (cur[j] - prev[j]) * k))
+}
+
+function mouthAt(t) {
+  if (ENVELOPE) return clamp(((ENVELOPE[Math.round(t * FPS)] || 0) - 0.06) * 1.6)
+  for (const words of WORDS) for (const x of words) {
+    if (t >= x.t0 && t < x.t1) return 0.12 + 0.8 * Math.abs(Math.sin(Math.PI * x.syl * (t - x.t0) / (x.t1 - x.t0)))
+  }
+  return 0
+}
+
+function blinkAt(t) {
+  const d = (t % 3.4) - 2.9
+  return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
+}
+
+/* ============================================================
+   5. Rendu d'un instant t
+   ============================================================ */
+const $ = id => document.getElementById(id)
+const stage = $('stage'), avatarEl = $('avatar'), captionEl = $('caption')
+const silEl = avatarEl.querySelector('.sil'), liveEl = avatarEl.querySelector('.live')
+const INSERTS = [...document.querySelectorAll('.insert')]
+const STEPS = [...document.querySelectorAll('#steps i')]
+const TAGS = [...document.querySelectorAll('#hud .tag i')]
+
+// Contour d'autocollant précalculé par pose (voir ../commun/avatar.js)
+const SILHOUETTES = {}
+const silKey = b => `${b.pose}|${b.expr}`
+async function preloadSilhouettes() {
+  const keys = [...new Set(TL.filter(b => b.pose).map(silKey))]
+  await Promise.all(keys.map(k => {
+    const [pose, expr] = k.split('|')
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LTNSAvatar.svg({ pose, expr }))
+    SILHOUETTES[k] = url
+    const img = new Image(); img.src = url
+    return img.decode().catch(() => {})
+  }))
+}
+let lastSil = '', lastLive = ''
+window.settle = () => silEl.decode().catch(() => {})
+
+function sentenceAt(t) {
+  let idx = 0
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.05) idx = i
+  return idx
+}
+
+function renderAt(t) {
+  const si = sentenceAt(t)
+  const [r, g, b] = colorAt(t, si)
+  stage.style.setProperty('--accent', `rgb(${r}, ${g}, ${b})`)
+  stage.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`)
+  const product = SENTENCE_PRODUCT[si]
+  TAGS.forEach(el => el.classList.toggle('on', product === 'all' || el.dataset.p === product))
+  // Avant la première question, le bandeau est lisible en entier
+  document.querySelector('#hud .tag').classList.toggle('all', product === null)
+
+  // État courant : pose de l'avatar, encart, questions déjà répondues
+  let pose = TL[0], avatarSince = 0, insert = null, insertSince = 0, steps = 0
+  for (const bt of TL) {
+    if (bt.t > t) break
+    if (bt.pose) { pose = bt; avatarSince = bt.t; insert = null }
+    if (bt.insert) { insert = bt; insertSince = bt.t }
+    if (bt.step) steps = bt.step
+  }
+  if (insert && !insert.hold) {
+    const next = TIMES[insert.si + 1]
+    if (next && t >= next.start - 0.04) insert = null
+  }
+  STEPS.forEach((el, i) => { el.classList.toggle('on', i < steps); el.textContent = i < steps ? '✓' : String(i + 1) })
+
+  // Avatar
+  avatarEl.style.opacity = insert ? 0 : 1
+  if (!insert) {
+    const sk = silKey(pose)
+    if (sk !== lastSil) { silEl.src = SILHOUETTES[sk]; lastSil = sk }
+    const m = mouthAt(t), bl = blinkAt(t), acc = `rgb(${r}, ${g}, ${b})`
+    const key = [sk, m.toFixed(2), bl.toFixed(2), acc].join('|')
+    if (key !== lastLive) {
+      liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: m, blink: bl, accent: acc, noFilter: true })
+      lastLive = key
+    }
+    const s = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+    avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${s})`
+  }
+
+  // Encarts
+  INSERTS.forEach(el => {
+    const on = insert && el.id === insert.insert
+    el.style.opacity = on ? 1 : 0
+    if (!on) return
+    const since = t - insertSince
+    const p = pop(t, insertSince, 0.34)
+    el.style.transform = `scale(${0.6 + 0.4 * p}) rotate(${(1 - clamp(p)) * -4 + Math.sin(since * 2.2) * 0.8}deg)`
+    // Construction : les éléments [data-b] apparaissent l'un après l'autre
+    el.querySelectorAll('[data-b]').forEach(c => {
+      const q = pop(t, insertSince + 0.05 + +c.dataset.b * 0.26, 0.3)
+      c.style.opacity = q > 0 ? 1 : 0
+      c.style.transform = `translateY(${(1 - clamp(q)) * 40}px) scale(${0.85 + 0.15 * q})`
+    })
+    renderInsert(el, since, insert)
+  })
+
+  // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const words = WORDS[si]
+  if (t > TIMES[si].end + 0.5) { captionEl.innerHTML = ''; return }
+  let ci = 0
+  for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
+  captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
+    const q = si === 0 && ci === 0 ? 1 : pop(t, x.t0 - 0.03, 0.22)
+    if (q <= 0) return ''
+    return `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  }).join('')
+}
+
+// Animations propres à chaque encart (since = secondes depuis son apparition)
+function renderInsert(el, since, beat) {
+  if (el.classList.contains('qcard')) {
+    // « OUI » se coche à la fin de la question
+    const { start, end } = TIMES[beat.si]
+    const yesAt = start + (end - start) * 0.86 - (beat.t)
+    el.querySelector('[data-yes]').classList.toggle('on', since >= yesAt)
+    el.querySelector('[data-yes]').textContent = since >= yesAt ? 'OUI ✓' : 'OUI'
+  }
+  if (el.id === 'insApp') {
+    el.querySelector('[data-pick]').classList.toggle('pick', since > 1.0)
+  }
+  if (el.id === 'insSoft') {
+    el.querySelectorAll('[data-count]').forEach(b => {
+      b.textContent = Math.round(+b.dataset.count * easeInOut(clamp((since - 0.4) / 0.9)))
+    })
+  }
+  if (el.id === 'insSite') {
+    el.querySelector('.cta').style.boxShadow = since > 1.5 ? `0 0 0 ${Math.round(8 + 6 * Math.sin(since * 6))}px rgba(var(--accent-rgb), .18)` : 'none'
+  }
+}
+
+/* ============================================================
+   6. Démarrage : lecture en direct, image figée (?t=) ou rendu MP4
+   ============================================================ */
+function fit() {
+  const k = Math.min(innerWidth / 1080, innerHeight / 1920)
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`
+}
+
+async function boot() {
+  // timing.json et envelope.json n'existent qu'une fois la voix ajoutée (voir ../README.md)
+  const has = window.VOICE_FILES || []
+  if (has.includes('timing.json')) TIMES = (await (await fetch('timing.json', { cache: 'no-store' })).json()).sentences
+  if (has.includes('envelope.json')) ENVELOPE = (await (await fetch('envelope.json', { cache: 'no-store' })).json()).values
+  if (!TIMES) TIMES = estimateTimes()
+  WORDS = buildWords()
+  TL = timeline()
+  await preloadSilhouettes()
+  window.DURATION = TIMES[TIMES.length - 1].end + TAIL
+  await document.fonts.ready
+
+  const q = new URLSearchParams(location.search)
+  if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true; return }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); return }
+  const audio = q.has('audio') ? new Audio('voice.mp3') : null
+  if (audio) { audio.loop = true; audio.play().catch(() => {}) }
+  const t0 = performance.now()
+  const loop = () => {
+    renderAt(audio ? audio.currentTime : ((performance.now() - t0) / 1000) % window.DURATION)
+    requestAnimationFrame(loop)
+  }
+  loop()
+}
+boot()
+</script>
+</body>
+</html>

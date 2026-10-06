@@ -7,6 +7,7 @@ Rien ici n'est publié sur le site.
 |---|---|
 | `commun/` | L'avatar (`avatar.js`), les polices, le rendu (`render.mjs`), l'habillage sonore (`sfx.py`), le calage de la voix (`sync-voice.py`), la planche des poses (`preview.html`) |
 | `tiktok-episode-01/` | « 3 signes que ton site fait fuir tes clients » |
+| `tiktok-episode-02/` | « Site, appli ou logiciel : de quoi a besoin ton entreprise ? » |
 | `IDEES.md` | Les idées d'épisodes, publiés et à venir |
 
 Chaque épisode contient son `tiktok.html` (textes, mise en scène), sa voix (`voice/01.mp3`…)
