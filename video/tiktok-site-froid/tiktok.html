@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — TikTok « Ton site est froid »</title>
+<!--
+  Épisode 01 « Le thermomètre » : 3 signes que ton site fait fuir tes clients.
+  Vidéo 1080 × 1920, 30 i/s, aux couleurs de LTNS° : la température du site
+  baisse à chaque signe (cyan, froid) puis monte au bon degré (rouge, 99°).
+
+  Contenu « haut d'entonnoir » : utile à tous, LTNS° en signature seulement,
+  appel aux commentaires à la fin, et une dernière phrase qui reboucle sur la première.
+
+  Ouvrir via un serveur local (voir README.md) : la vidéo se joue toute seule.
+  ?t=12.5 fige l'image à 12,5 s · ?audio la joue avec voice.mp3.
+  Le minutage vient de timing.json (durées réelles de la voix) s'il existe,
+  sinon d'une estimation ; la bouche suit envelope.json (volume de la voix).
+-->
+<link rel="stylesheet" href="fonts.css">
+<style>
+  :root {
+    --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
+    --line: rgba(22, 22, 26, 0.09); --line-strong: rgba(22, 22, 26, 0.18);
+    --accent: rgb(8, 145, 178); --accent-rgb: 8, 145, 178;
+    --display: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 1080px; height: 1920px; overflow: hidden;
+    background:
+      linear-gradient(var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      linear-gradient(90deg, var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      var(--paper);
+    font-family: var(--display); color: var(--ink);
+  }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  /* Calques animés séparés : le décor n'est pas repeint à chaque image */
+  #avatar, #caption, .insert, .glow, #rail, #hud { will-change: transform, opacity; }
+
+  /* Ambiance : givre quand le site est froid, halo de chaleur quand il chauffe */
+  #frost { background: radial-gradient(ellipse at 50% 45%, rgba(8, 145, 178, 0) 30%, rgba(8, 145, 178, 0.22) 100%); opacity: 0; }
+  #heat { background: radial-gradient(ellipse at 50% 115%, rgba(var(--accent-rgb), 0.38) 0%, rgba(var(--accent-rgb), 0) 62%); opacity: 0; }
+
+  /* Bandeau instrument, comme la barre du site */
+  #hud { position: absolute; left: 70px; right: 70px; top: 180px; font-family: var(--mono); font-size: 31px; letter-spacing: 3px; color: var(--dim); }
+  #hud .row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 2px solid var(--line-strong); }
+  #hud .brand b { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -1px; color: var(--ink); }
+  #hud .brand span { color: var(--accent); }
+  #hud .read b { color: var(--accent); font-weight: 500; }
+  #signs { display: flex; gap: 16px; align-items: center; margin-top: 18px; font-size: 28px; }
+  #signs i { font-style: normal; width: 58px; height: 46px; border: 3px solid var(--line-strong); display: grid; place-items: center; font-size: 26px; color: var(--mute); }
+  #signs i.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Rail de température à gauche (« CHAUFFE ») */
+  #rail { position: absolute; left: 38px; top: 660px; width: 12px; height: 800px; background: var(--line-strong); }
+  #rail .fill { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(to top, #0891B2, #2563EB 22%, #7C3AED 42%, #D97706 62%, #EA580C 80%, #DC2626); background-size: 100% 800px; background-position: bottom; }
+  #rail .knob { position: absolute; left: -9px; width: 30px; height: 4px; background: var(--ink); }
+  #rail .lbl { position: absolute; left: 4px; top: 820px; font-family: var(--mono); font-size: 18px; letter-spacing: 4px; color: var(--mute); writing-mode: vertical-rl; }
+
+  /* Sous-titres mot à mot */
+  #caption {
+    position: absolute; left: 80px; right: 80px; top: 350px; height: 240px;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 24px; text-align: center;
+    font-weight: 700; font-size: 84px; line-height: 1.02; letter-spacing: -2px; text-transform: uppercase;
+  }
+  #caption .w { display: inline-block; transform-origin: 50% 80%; }
+  #caption .w.hl { color: var(--accent); font-style: italic; font-weight: 500; }
+
+  /* Avatar : silhouette avec contour (image précalculée par pose) + dessin vivant par-dessus */
+  #avatar { position: absolute; left: 50%; top: 640px; width: 1180px; margin-left: -590px; transform-origin: 50% 60%; }
+  #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
+
+  /* Encarts : cartes instrument, coins en équerre à la couleur de la température */
+  .insert { position: absolute; left: 50%; top: 640px; transform-origin: 50% 40%; opacity: 0; }
+  .card { position: relative; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, 0.45); }
+  .card::before, .card::after { content: ''; position: absolute; width: 44px; height: 44px; border: 7px solid var(--accent); }
+  .card::before { left: -14px; top: -14px; border-right: 0; border-bottom: 0; }
+  .card::after { right: -14px; bottom: -14px; border-left: 0; border-top: 0; }
+  .card .head { display: flex; justify-content: space-between; padding: 22px 30px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); }
+  .card .head b { color: var(--accent); font-weight: 500; }
+  .big { font-weight: 700; letter-spacing: -6px; line-height: .9; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .mono { font-family: var(--mono); letter-spacing: 3px; }
+
+  /* Signe 1 : chargement interminable */
+  #insLoad { width: 880px; margin-left: -440px; }
+  #insLoad .url { margin: 26px 30px 0; height: 56px; border: 2px solid var(--line-strong); border-radius: 28px; display: flex; align-items: center; padding: 0 26px; font-family: var(--mono); font-size: 24px; color: var(--mute); }
+  #insLoad .bar { margin: 18px 30px 0; height: 10px; background: var(--line); }
+  #insLoad .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+  #insLoad .page { margin: 26px 30px; display: grid; gap: 18px; }
+  #insLoad .page i { display: block; height: 34px; background: linear-gradient(90deg, #ece9e2, #f6f4ef, #ece9e2); }
+  #insLoad .page i:nth-child(1) { height: 180px; }
+  #insLoad .page i:nth-child(3) { width: 70%; }
+  #insLoad .timer { display: flex; align-items: baseline; justify-content: center; gap: 14px; padding: 6px 0 34px; }
+  #insLoad .timer .big { font-size: 190px; }
+  #insLoad .timer span { font-size: 60px; font-weight: 700; color: var(--accent); }
+
+  /* Signe 1 (suite) : les visiteurs s'en vont */
+  #insLeave { width: 880px; margin-left: -440px; }
+  #insLeave .crowd { display: grid; grid-template-columns: repeat(5, 1fr); gap: 34px 20px; padding: 44px 50px 20px; }
+  #insLeave .p { position: relative; height: 130px; }
+  #insLeave .p::before { content: ''; position: absolute; left: 50%; top: 0; width: 56px; height: 56px; margin-left: -28px; border-radius: 50%; background: var(--ink); }
+  #insLeave .p::after { content: ''; position: absolute; left: 50%; top: 64px; width: 96px; height: 66px; margin-left: -48px; border-radius: 48px 48px 10px 10px; background: var(--ink); }
+  #insLeave .p.gone::before, #insLeave .p.gone::after { background: var(--accent); }
+  #insLeave .res { text-align: center; padding: 10px 0 40px; }
+  #insLeave .res .big { font-size: 200px; }
+  #insLeave .res .mono { font-size: 28px; color: var(--dim); margin-top: 10px; }
+
+  /* Téléphone générique */
+  .phone { width: 430px; height: 820px; margin: 34px auto 40px; border-radius: 64px; background: var(--ink); padding: 22px; position: relative; }
+  .phone .scr { width: 100%; height: 100%; border-radius: 44px; background: #fff; overflow: hidden; position: relative; }
+  .tiny { padding: 70px 28px; display: grid; gap: 9px; }
+  .tiny i { display: block; height: 7px; background: #b9b4aa; }
+  .tiny i:nth-child(4n) { width: 62%; }
+  .tiny b { display: block; height: 22px; width: 70%; background: #8f8a80; margin: 14px 0 6px; }
+
+  /* Signe 2 : il faut zoomer */
+  #insZoom { width: 640px; margin-left: -320px; }
+  #insZoom .lens { position: absolute; width: 270px; height: 270px; border-radius: 50%; border: 10px solid var(--accent); background: #fff; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(22,22,26,.5); }
+  #insZoom .lens .tiny { transform: scale(3.2); transform-origin: 0 0; width: 386px; }
+  #insZoom .lens::after { content: ''; position: absolute; right: -60px; bottom: -60px; width: 30px; height: 120px; background: var(--accent); transform: rotate(-45deg); }
+  #insZoom .tag { position: absolute; right: -40px; top: 170px; background: var(--accent); color: #fff; font-family: var(--mono); font-size: 34px; padding: 10px 20px; letter-spacing: 2px; }
+
+  /* Signe 3 : numéro introuvable */
+  #insCall { width: 640px; margin-left: -320px; }
+  #insCall .scroll { position: absolute; left: 0; right: 0; top: 0; }
+  #insCall .q { position: absolute; left: 50%; top: 300px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 18px 30px; font-family: var(--mono); font-size: 40px; letter-spacing: 2px; white-space: nowrap; }
+  #insCall .count { position: absolute; right: -60px; top: 120px; width: 190px; height: 190px; border-radius: 50%; background: #fff; border: 8px solid var(--accent); display: grid; place-items: center; }
+  #insCall .count .big { font-size: 120px; letter-spacing: -4px; }
+  #insCall .stamp { position: absolute; left: 50%; top: 520px; transform: translateX(-50%) rotate(-8deg); border: 8px solid var(--accent); color: var(--accent); background: rgba(255,255,255,.92); font-weight: 700; font-size: 68px; padding: 8px 26px; letter-spacing: 2px; }
+
+  /* Le site est froid */
+  #insCold { width: 820px; margin-left: -410px; text-align: center; }
+  #insCold .big { font-size: 330px; letter-spacing: -14px; padding-top: 30px; }
+  #insCold .state { font-family: var(--mono); font-size: 56px; letter-spacing: 18px; color: var(--accent); margin: 6px 0 30px; }
+
+  /* Jauge 12 segments, comme les tarifs du site */
+  .gauge { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; height: 46px; margin: 0 40px 44px; }
+  .gauge i { background: var(--line-strong); }
+
+  /* Au bon degré */
+  #insHot { width: 880px; margin-left: -440px; }
+  #insHot .top { display: flex; align-items: baseline; justify-content: space-between; padding: 30px 40px 18px; }
+  #insHot .top .big { font-size: 230px; letter-spacing: -10px; }
+  #insHot .top .ok { font-weight: 700; font-size: 58px; text-transform: uppercase; text-align: right; line-height: 1; }
+  #insHot .checks { display: grid; gap: 18px; padding: 0 40px 44px; }
+  #insHot .checks div { display: flex; align-items: center; gap: 24px; font-weight: 700; font-size: 58px; text-transform: uppercase; letter-spacing: -1px; }
+  #insHot .checks b { width: 64px; height: 64px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 40px; }
+
+  /* Appel aux commentaires */
+  #insComments { width: 880px; margin-left: -440px; }
+  #insComments .c { display: flex; align-items: center; gap: 26px; padding: 22px 34px; border-bottom: 2px solid var(--line); }
+  #insComments .c .av { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 34px; flex: none; }
+  #insComments .c small { display: block; font-family: var(--mono); font-size: 22px; color: var(--mute); letter-spacing: 2px; }
+  #insComments .c span { font-weight: 700; font-size: 50px; letter-spacing: -1px; }
+  #insComments .input { margin: 26px 34px 34px; border: 3px solid var(--accent); padding: 22px 26px; font-family: var(--mono); font-size: 34px; color: var(--mute); display: flex; justify-content: space-between; }
+  #insComments .input b { color: var(--accent); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer glow" id="frost"></div>
+  <div class="layer glow" id="heat"></div>
+
+  <div id="hud">
+    <div class="row">
+      <span class="brand"><b>LTNS<span>°</span></b>&nbsp; // LE THERMOMÈTRE</span>
+      <span class="read">T·<b id="hudTemp">37.0°</b></span>
+    </div>
+    <div id="signs"><span>SIGNES</span><i>1</i><i>2</i><i>3</i></div>
+  </div>
+
+  <div id="rail"><div class="fill"></div><div class="knob"></div><div class="lbl">CHAUFFE</div></div>
+
+  <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
+
+  <!-- Signe 1 : trop lent -->
+  <div class="insert" id="insLoad"><div class="card">
+    <div class="head"><span>SIGNE <b>01</b> / 03</span><span>CHARGEMENT…</span></div>
+    <div class="url">ton-site.fr</div>
+    <div class="bar"><i></i></div>
+    <div class="page"><i></i><i></i><i></i><i></i></div>
+    <div class="timer"><span class="big" data-count="time">0.0</span><span>s</span></div>
+  </div></div>
+
+  <div class="insert" id="insLeave"><div class="card">
+    <div class="head"><span>SIGNE <b>01</b> / 03</span><span>VISITEURS</span></div>
+    <div class="crowd">
+      <div class="p"></div><div class="p" data-leave="0"></div><div class="p"></div><div class="p" data-leave="1"></div><div class="p" data-leave="2"></div>
+      <div class="p" data-leave="3"></div><div class="p"></div><div class="p" data-leave="4"></div><div class="p"></div><div class="p"></div>
+    </div>
+    <div class="res"><div class="big">1 SUR 2</div><div class="mono">S'EN VA AVANT D'AVOIR VU TON SITE</div></div>
+  </div></div>
+
+  <!-- Signe 2 : il faut zoomer -->
+  <div class="insert" id="insZoom"><div class="card">
+    <div class="head"><span>SIGNE <b>02</b> / 03</span><span>SUR TÉLÉPHONE</span></div>
+    <div class="phone"><div class="scr"><div class="tiny" id="tinyText"></div></div>
+      <div class="lens" id="lens"><div class="tiny"></div></div>
+      <div class="tag">ZOOM ×3</div>
+    </div>
+  </div></div>
+
+  <!-- Signe 3 : numéro introuvable -->
+  <div class="insert" id="insCall"><div class="card">
+    <div class="head"><span>SIGNE <b>03</b> / 03</span><span>CONTACT</span></div>
+    <div class="phone"><div class="scr"><div class="scroll"><div class="tiny" id="longText"></div></div></div>
+      <div class="q">06 .. .. .. ?</div>
+      <div class="count"><span class="big" data-count="down">5</span></div>
+      <div class="stamp" data-stamp>INTROUVABLE</div>
+    </div>
+  </div></div>
+
+  <!-- Le verdict -->
+  <div class="insert" id="insCold"><div class="card">
+    <div class="head"><span>TON SITE</span><span>VERDICT</span></div>
+    <div class="big" data-count="temp">12°</div>
+    <div class="state">FROID</div>
+    <div class="gauge" data-gauge></div>
+  </div></div>
+
+  <div class="insert" id="insHot"><div class="card">
+    <div class="head"><span>UN BON SITE</span><span>AU BON DEGRÉ</span></div>
+    <div class="top"><span class="big" data-count="temp">12°</span><span class="ok">au bon<br>degré</span></div>
+    <div class="gauge" data-gauge></div>
+    <div class="checks">
+      <div data-k="0"><b>✓</b>Rapide</div>
+      <div data-k="1"><b>✓</b>Lisible</div>
+      <div data-k="2"><b>✓</b>Donne envie d'appeler</div>
+    </div>
+  </div></div>
+
+  <!-- Commente ton métier -->
+  <div class="insert" id="insComments"><div class="card">
+    <div class="head"><span>COMMENTAIRES</span><span>TON MÉTIER ↓</span></div>
+    <div class="c" data-k="0"><div class="av" style="background:#0891B2">M</div><div><small>@mathieu.plomberie</small><span>Plombier</span></div></div>
+    <div class="c" data-k="1"><div class="av" style="background:#7C3AED">S</div><div><small>@sarah.fournil</small><span>Boulangère</span></div></div>
+    <div class="c" data-k="2"><div class="av" style="background:#D97706">K</div><div><small>@karim.coaching</small><span>Coach sportif</span></div></div>
+    <div class="input"><span>Ton métier…</span><b>|</b></div>
+  </div></div>
+
+  <div id="caption"></div>
+</div>
+
+<script src="avatar.js"></script>
+<script src="voice-files.js"></script>
+<script>
+/* ============================================================
+   1. Texte de la voix off (une phrase = un fichier ElevenLabs),
+      découpé en morceaux de sous-titres : [texte, mot en couleur]
+   ============================================================ */
+const SENTENCES = [
+  { chunks: [['Ton site internet', 'site'], ['fait fuir', 'fuir'], ['tes clients.', 'clients.']] },
+  { chunks: [["Et tu ne t'en rends", 'rends'], ['même pas compte.', 'compte.']] },
+  { chunks: [['Signe numéro un :', 'un'], ['il met plus de', 'plus'], ['trois secondes', 'trois'], ["à s'afficher.", "s'afficher."]] },
+  { chunks: [['Plus de la moitié', 'moitié'], ['des visiteurs', 'visiteurs'], ['sont déjà partis.', 'partis.']] },
+  { chunks: [['Signe numéro deux :', 'deux'], ['sur téléphone,', 'téléphone,'], ['il faut zoomer', 'zoomer'], ['pour lire.', 'lire.']] },
+  { chunks: [['Signe numéro trois :', 'trois'], ['on ne trouve pas', 'pas'], ['ton numéro', 'numéro'], ['en cinq secondes.', 'cinq']] },
+  { chunks: [['Un seul de ces signes,', 'seul'], ['et ton site', 'site'], ['est froid.', 'froid.']] },
+  { chunks: [['Un bon site,', 'bon'], ["c'est un site", 'site'], ['au bon degré :', 'degré'], ['rapide, lisible,', 'lisible,'], ['et qui donne envie', 'envie'], ["d'appeler.", "d'appeler."]] },
+  { chunks: [['Commente ton métier :', 'métier'], ['je te dis', 'dis'], ['ce que je changerais', 'changerais'], ['sur ton site.', 'site.']] },
+]
+
+/* ============================================================
+   2. Mise en scène : « temps forts » en fraction (0 → 1) de chaque phrase
+   ============================================================ */
+const BEATS = [
+  [{ at: 0, pose: 'pointUp', expr: 'sly' }],
+  [{ at: 0, pose: 'shrug', expr: 'worried' }],
+  [{ at: 0, pose: 'think', expr: 'think' }, { at: 0.26, insert: 'insLoad', sign: 1 }],
+  [{ at: 0, insert: 'insLeave' }],
+  [{ at: 0, pose: 'phone', expr: 'surprised' }, { at: 0.3, insert: 'insZoom', sign: 2 }],
+  [{ at: 0, pose: 'shrug', expr: 'worried' }, { at: 0.3, insert: 'insCall', sign: 3 }],
+  [{ at: 0, pose: 'idle', expr: 'worried' }, { at: 0.42, insert: 'insCold', sfx: 'whoosh' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }, { at: 0.22, insert: 'insHot', sfx: 'whoosh' }],
+  [{ at: 0, pose: 'pointSide', expr: 'wink' }, { at: 0.42, insert: 'insComments', hold: true }],
+]
+
+// Température du site au fil de la vidéo : [phrase, fraction, degrés]
+const TEMP_KEYS = [
+  [0, 0, 37], [0, 1, 31], [1, 1, 26], [2, 0.25, 26], [2, 1, 19], [3, 1, 16],
+  [4, 1, 14], [5, 1, 12], [6, 1, 12], [7, 0.12, 12], [7, 0.78, 99], [8, 1, 99],
+]
+
+/* ============================================================
+   3. Minutage : durées réelles (timing.json) ou estimation
+   ============================================================ */
+const FPS = 30
+const TAIL = 0.6 // court : la dernière phrase reboucle sur la première
+let TIMES = null, ENVELOPE = null, WORDS = null, TL = null
+
+function estimateTimes() {
+  let t = 0.1
+  return SENTENCES.map(s => {
+    const text = s.chunks.map(c => c[0]).join(' ')
+    const d = Math.max(1.4, text.length / 15)
+    const r = { start: t, end: t + d }
+    t += d + 0.28
+    return r
+  })
+}
+
+function buildWords() {
+  return SENTENCES.map((s, si) => {
+    const { start, end } = TIMES[si]
+    const words = []
+    s.chunks.forEach(([text, hl], ci) => text.split(' ').forEach(w => words.push({ w, ci, hl: w === hl })))
+    const weights = words.map(x => x.w.replace(/[^\p{L}\p{N}]/gu, '').length + 2)
+    const total = weights.reduce((a, b) => a + b, 0)
+    const span = Math.max(0.4, (end - start) - 0.1)
+    let acc = 0
+    words.forEach((x, i) => {
+      x.t0 = start + (acc / total) * span
+      acc += weights[i]
+      x.t1 = start + (acc / total) * span
+      x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
+    })
+    return words
+  })
+}
+
+function timeline() {
+  const out = []
+  BEATS.forEach((beats, si) => {
+    const { start, end } = TIMES[si]
+    beats.forEach(b => out.push({ ...b, t: start + b.at * (end - start), si }))
+  })
+  return out
+}
+
+/* ============================================================
+   4. Outils (fonctions pures du temps) et palette thermique du site
+   ============================================================ */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
+
+const STOPS = [
+  [0.00, 8, 145, 178], [0.22, 37, 99, 235], [0.42, 124, 58, 237],
+  [0.62, 217, 119, 6], [0.80, 234, 88, 12], [1.00, 220, 38, 38],
+]
+const pos = temp => clamp((temp - 12) / 87)
+function tempColor(p) {
+  for (let i = 0; i < STOPS.length - 1; i++) {
+    const a = STOPS[i], b = STOPS[i + 1]
+    if (p >= a[0] && p <= b[0]) {
+      const k = (p - a[0]) / (b[0] - a[0])
+      return [1, 2, 3].map(j => Math.round(a[j] + (b[j] - a[j]) * k))
+    }
+  }
+  return STOPS[STOPS.length - 1].slice(1)
+}
+
+function tempAt(t) {
+  const keys = TEMP_KEYS.map(([si, f, deg]) => [TIMES[si].start + f * (TIMES[si].end - TIMES[si].start), deg])
+  if (t <= keys[0][0]) return keys[0][1]
+  for (let i = 0; i < keys.length - 1; i++) {
+    const [ta, a] = keys[i], [tb, b] = keys[i + 1]
+    if (t <= tb) return a + (b - a) * easeInOut(clamp((t - ta) / Math.max(0.001, tb - ta)))
+  }
+  return keys[keys.length - 1][1]
+}
+
+function mouthAt(t) {
+  if (ENVELOPE) return clamp(((ENVELOPE[Math.round(t * FPS)] || 0) - 0.06) * 1.6)
+  for (const words of WORDS) for (const x of words) {
+    if (t >= x.t0 && t < x.t1) return 0.12 + 0.8 * Math.abs(Math.sin(Math.PI * x.syl * (t - x.t0) / (x.t1 - x.t0)))
+  }
+  return 0
+}
+
+function blinkAt(t) {
+  const d = (t % 3.4) - 2.9
+  return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
+}
+
+/* ============================================================
+   5. Rendu d'un instant t
+   ============================================================ */
+const $ = id => document.getElementById(id)
+const stage = $('stage'), avatarEl = $('avatar'), captionEl = $('caption')
+const silEl = avatarEl.querySelector('.sil'), liveEl = avatarEl.querySelector('.live')
+const INSERTS = [...document.querySelectorAll('.insert')]
+const SIGNS = [...document.querySelectorAll('#signs i')]
+
+// Textes minuscules générés une fois (téléphones)
+function tinyMarkup(blocks) {
+  let h = ''
+  for (let i = 0; i < blocks; i++) h += '<b></b>' + '<i></i>'.repeat(7)
+  return h
+}
+$('tinyText').innerHTML = tinyMarkup(5)
+document.querySelector('#lens .tiny').innerHTML = tinyMarkup(5)
+$('longText').innerHTML = tinyMarkup(14)
+document.querySelectorAll('[data-gauge]').forEach(g => { g.innerHTML = '<i></i>'.repeat(12) })
+
+// Contour d'autocollant précalculé par pose (voir avatar.js)
+const SILHOUETTES = {}
+const silKey = b => `${b.pose}|${b.expr}`
+async function preloadSilhouettes() {
+  const keys = [...new Set(TL.filter(b => b.pose).map(silKey))]
+  await Promise.all(keys.map(k => {
+    const [pose, expr] = k.split('|')
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LTNSAvatar.svg({ pose, expr }))
+    SILHOUETTES[k] = url
+    const img = new Image(); img.src = url
+    return img.decode().catch(() => {})
+  }))
+}
+let lastSil = '', lastLive = ''
+window.settle = () => silEl.decode().catch(() => {})
+
+function sentenceAt(t) {
+  let idx = 0
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.05) idx = i
+  return idx
+}
+
+function renderAt(t) {
+  // Température et couleur d'accent, comme le défilement du site
+  const temp = tempAt(t)
+  const [r, g, b] = tempColor(pos(temp))
+  stage.style.setProperty('--accent', `rgb(${r}, ${g}, ${b})`)
+  stage.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`)
+  $('hudTemp').textContent = temp.toFixed(1) + '°'
+  $('frost').style.opacity = clamp((26 - temp) / 12).toFixed(3)
+  $('heat').style.opacity = clamp((temp - 55) / 40).toFixed(3)
+  const level = pos(temp)
+  document.querySelector('#rail .fill').style.height = (level * 800).toFixed(1) + 'px'
+  document.querySelector('#rail .knob').style.bottom = (level * 800 - 2).toFixed(1) + 'px'
+
+  // État courant : pose de l'avatar, encart, signes déjà cochés
+  let pose = TL[0], avatarSince = 0, insert = null, insertSince = 0, signs = 0
+  for (const bt of TL) {
+    if (bt.t > t) break
+    if (bt.pose) { pose = bt; avatarSince = bt.t; insert = null }
+    if (bt.insert) { insert = bt; insertSince = bt.t }
+    if (bt.sign) signs = bt.sign
+  }
+  if (insert && !insert.hold) {
+    const next = TIMES[insert.si + 1]
+    if (next && t >= next.start - 0.04) insert = null
+  }
+  SIGNS.forEach((el, i) => {
+    el.classList.toggle('on', i < signs)
+    el.textContent = i < signs ? '✓' : String(i + 1)
+  })
+
+  // Avatar
+  avatarEl.style.opacity = insert ? 0 : 1
+  if (!insert) {
+    const sk = silKey(pose)
+    if (sk !== lastSil) { silEl.src = SILHOUETTES[sk]; lastSil = sk }
+    const m = mouthAt(t), bl = blinkAt(t), acc = `rgb(${r}, ${g}, ${b})`
+    const key = [sk, m.toFixed(2), bl.toFixed(2), acc].join('|')
+    if (key !== lastLive) {
+      liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: m, blink: bl, accent: acc, noFilter: true })
+      lastLive = key
+    }
+    const s = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+    avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${s})`
+  }
+
+  // Encarts
+  INSERTS.forEach(el => {
+    const on = insert && el.id === insert.insert
+    el.style.opacity = on ? 1 : 0
+    if (!on) return
+    const since = t - insertSince
+    const p = pop(t, insertSince, 0.34)
+    el.style.transform = `scale(${0.6 + 0.4 * p}) rotate(${(1 - clamp(p)) * -4 + Math.sin(since * 2.2) * 0.8}deg)`
+    el.querySelectorAll('[data-k]').forEach(c => {
+      const q = pop(t, insertSince + 0.15 + +c.dataset.k * 0.3, 0.3)
+      c.style.opacity = q > 0 ? 1 : 0
+      c.style.transform = `translateX(${(1 - clamp(q)) * -120}px)`
+    })
+    renderInsert(el.id, since, temp)
+  })
+
+  // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const si = sentenceAt(t), words = WORDS[si]
+  const inSpeech = t <= TIMES[si].end + 0.5
+  if (!inSpeech) { captionEl.innerHTML = ''; return }
+  let ci = 0
+  for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
+  captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
+    const q = si === 0 && ci === 0 ? 1 : pop(t, x.t0 - 0.03, 0.22)
+    if (q <= 0) return ''
+    return `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  }).join('')
+}
+
+// Animations propres à chaque encart (since = secondes depuis son apparition)
+function renderInsert(id, since, temp) {
+  const el = $(id)
+  if (id === 'insLoad') {
+    const secs = Math.min(3.4, since * 1.6)
+    el.querySelector('[data-count="time"]').textContent = secs.toFixed(1)
+    el.querySelector('.bar i').style.width = (Math.min(1, since / 2.6) * 38) + '%'
+    el.querySelectorAll('.page i').forEach((i, k) => { i.style.backgroundPosition = `${(since * 600 + k * 80) % 1000}px 0`; i.style.backgroundSize = '1000px 100%' })
+  }
+  if (id === 'insLeave') {
+    el.querySelectorAll('[data-leave]').forEach(p => {
+      const k = +p.dataset.leave, q = clamp((since - 0.25 - k * 0.18) / 0.45)
+      p.classList.toggle('gone', q > 0)
+      p.style.transform = `translateX(${easeInOut(q) * 260}px)`
+      p.style.opacity = 1 - q
+    })
+    el.querySelector('.res').style.opacity = clamp((since - 0.9) / 0.2)
+  }
+  if (id === 'insZoom') {
+    const lens = $('lens'), a = since * 1.4
+    const x = 60 + Math.sin(a) * 60, y = 180 + Math.cos(a * 0.8) * 140
+    lens.style.left = x + 'px'; lens.style.top = y + 'px'
+    lens.querySelector('.tiny').style.transform = `scale(3.2) translate(${-x - 30}px, ${-y + 40}px)`
+  }
+  if (id === 'insCall') {
+    el.querySelector('.scroll').style.transform = `translateY(${-Math.min(600, since * 260)}px)`
+    el.querySelector('[data-count="down"]').textContent = String(Math.max(0, 5 - Math.floor(since * 2.2)))
+    const s = pop(0, -(since - 2.0), 0.25)
+    el.querySelector('[data-stamp]').style.opacity = since > 2.0 ? 1 : 0
+    el.querySelector('[data-stamp]').style.transform = `translateX(-50%) rotate(-8deg) scale(${since > 2.0 ? 2.2 - 1.2 * clamp(s) : 2.2})`
+  }
+  if (id === 'insCold' || id === 'insHot') {
+    el.querySelector('[data-count="temp"]').textContent = Math.round(temp) + '°'
+    const lit = Math.max(1, Math.round(pos(temp) * 12))
+    el.querySelectorAll('[data-gauge] i').forEach((i, k) => {
+      const [r, g, b] = tempColor(k / 11)
+      i.style.background = k < lit ? `rgb(${r}, ${g}, ${b})` : ''
+    })
+  }
+}
+
+/* ============================================================
+   6. Démarrage : lecture en direct, image figée (?t=) ou rendu MP4
+   ============================================================ */
+function fit() {
+  const k = Math.min(innerWidth / 1080, innerHeight / 1920)
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`
+}
+
+async function boot() {
+  // timing.json et envelope.json n'existent qu'une fois la voix ajoutée (voir README.md)
+  const has = window.VOICE_FILES || []
+  if (has.includes('timing.json')) TIMES = (await (await fetch('timing.json', { cache: 'no-store' })).json()).sentences
+  if (has.includes('envelope.json')) ENVELOPE = (await (await fetch('envelope.json', { cache: 'no-store' })).json()).values
+  if (!TIMES) TIMES = estimateTimes()
+  WORDS = buildWords()
+  TL = timeline()
+  await preloadSilhouettes()
+  window.DURATION = TIMES[TIMES.length - 1].end + TAIL
+  await document.fonts.ready
+
+  const q = new URLSearchParams(location.search)
+  if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true; return }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); return }
+  const audio = q.has('audio') ? new Audio('voice.mp3') : null
+  if (audio) { audio.loop = true; audio.play().catch(() => {}) }
+  const t0 = performance.now()
+  const loop = () => {
+    renderAt(audio ? audio.currentTime : ((performance.now() - t0) / 1000) % window.DURATION)
+    requestAnimationFrame(loop)
+  }
+  loop()
+}
+boot()
+</script>
+</body>
+</html>

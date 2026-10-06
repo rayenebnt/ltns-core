@@ -13,9 +13,9 @@ import { cpus } from 'os'
 const { chromium } = await import('playwright').catch(() => import('/opt/node-tools/node_modules/playwright/index.mjs'))
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const OUT = process.argv[2] || join(HERE, 'ltns-tiktok-services.mp4')
+const OUT = process.argv[2] || join(HERE, 'ltns-tiktok-site-froid.mp4')
 const FRAMES = join(HERE, '.frames')
-const URL = 'http://localhost:8765/video/tiktok-services/tiktok.html?render'
+const URL = 'http://localhost:8765/video/tiktok-site-froid/tiktok.html?render'
 const FPS = 30
 const WORKERS = Math.max(1, Math.min(3, cpus().length - 1))
 
@@ -37,7 +37,7 @@ const first = await openPage()
 const duration = await first.page.evaluate(() => window.DURATION)
 const total = Math.ceil(duration * FPS)
 // Instants des temps forts, pour l'habillage sonore
-const events = await first.page.evaluate(() => TL.map(b => ({ t: b.t, kind: b.insert ? (b.pattern ? 'whoosh' : 'pop') : 'tick' })))
+const events = await first.page.evaluate(() => TL.map(b => ({ t: b.t, kind: b.sfx || (b.insert ? 'pop' : 'tick') })))
 writeFileSync(join(FRAMES, 'events.json'), JSON.stringify({ duration, events }))
 
 console.log(`Rendu de ${total} images (${duration.toFixed(2)} s) sur ${WORKERS} navigateurs…`)

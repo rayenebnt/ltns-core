@@ -1,6 +1,6 @@
 """Cale la vidéo sur la voix off ElevenLabs.
 
-Déposer une phrase par fichier dans voice/ : 01.mp3 … 09.mp3 (voir README.md),
+Déposer une phrase par fichier dans voice/ : 01.mp3, 02.mp3… (voir README.md),
 puis lancer :  python3 sync-voice.py
 
 Produit :
@@ -19,10 +19,9 @@ import wave
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE_DIR = os.path.join(HERE, "voice")
-SENTENCES = 9
-LEAD = 0.35   # silence avant la première phrase (s)
-GAP = 0.28    # silence entre deux phrases (s)
-TAIL = 1.4    # carte finale après la dernière phrase (s), comme dans tiktok.html
+LEAD = 0.1    # silence avant la première phrase (s) : l'accroche démarre tout de suite
+GAP = 0.25    # silence entre deux phrases (s)
+TAIL = 0.6    # fin courte, comme dans tiktok.html : la vidéo reboucle
 FPS = 30
 RATE = 44100
 
@@ -54,10 +53,12 @@ def trim(samples, threshold=0.012):
 
 
 def main():
-    files = [os.path.join(VOICE_DIR, f"{i:02d}.mp3") for i in range(1, SENTENCES + 1)]
-    missing = [os.path.basename(f) for f in files if not os.path.exists(f)]
-    if missing:
-        sys.exit(f"Fichiers manquants dans voice/ : {', '.join(missing)}")
+    # 01.mp3, 02.mp3… jusqu'au premier numéro manquant
+    files = []
+    while os.path.exists(os.path.join(VOICE_DIR, f"{len(files) + 1:02d}.mp3")):
+        files.append(os.path.join(VOICE_DIR, f"{len(files) + 1:02d}.mp3"))
+    if not files:
+        sys.exit("Aucun fichier dans voice/ : déposez 01.mp3, 02.mp3…")
 
     track = [0.0] * int(LEAD * RATE)
     sentences = []

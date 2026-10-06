@@ -9,15 +9,16 @@
      blink : 0 → 1, fermeture des paupières
      look  : [dx, dy] décalage du regard (en px)
      noFilter : true pour le dessin seul, sans contour d'autocollant
+     accent : couleur du ° du t-shirt (suit la température dans la vidéo)
    Repère : 600 × 900, le bas du corps sort du cadre.
    Cadre : LTNSAvatar.VIEWBOX, assez large pour les bras tendus et le contour.
    ============================================================ */
 (function () {
   const C = {
     skin: '#F6D2B8', skinShade: '#E9B896', skinDeep: '#D99E7C', blush: '#F2A190',
-    hair: '#6B4226', hairLight: '#8C5A34', hairDark: '#4A2C18',
+    hair: '#1B1715', hairLight: '#332B27', hairDark: '#0D0B0A',
     iris: '#4F7FA8', irisDark: '#2F5677', pupil: '#17171C', line: '#2B1D15',
-    lip: '#7A2E2A', mouthIn: '#5A1C1C', tongue: '#E07A72', teeth: '#FFFFFF',
+    lip: '#B5534C', mouthIn: '#6E1F1F', tongue: '#E5837A', teeth: '#FFFFFF',
     shirt: '#1E1E24', shirtLight: '#2A2A33', shirtDark: '#141418',
     paper: '#F5F3EE', orange: '#EA580C',
   }
@@ -33,10 +34,13 @@
       <path d="M-14 36 C-6 40 6 40 16 34" stroke="${C.skinDeep}" stroke-width="3" fill="none" stroke-linecap="round"/>
       <path d="M-22 14 C-30 26 -24 38 -12 34" stroke="${C.skinDeep}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
     point: `
-      <path d="M-25 0 C-30 22 -26 46 -6 50 C14 53 28 42 26 17 C25 7 21 0 17 -2 Z" fill="${C.skin}"/>
-      <path d="M-7 38 L-8 92 C-8 103 8 103 8 92 L8 38 Z" fill="${C.skin}"/>
-      <path d="M-4 96 C-1 99 3 99 5 96" stroke="${C.skinDeep}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <path d="M-22 14 C-30 26 -24 38 -12 34" stroke="${C.skinDeep}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+      <path d="M-28 -2 C-33 18 -31 40 -22 50 C-12 58 6 58 18 52 C28 44 30 20 26 -2 Z" fill="${C.skin}"/>
+      <circle cx="-17" cy="50" r="10" fill="${C.skin}"/><circle cx="-2" cy="54" r="10" fill="${C.skin}"/>
+      <path d="M-26 52 C-22 60 -12 60 -8 54 M-10 57 C-6 64 4 64 7 57" stroke="${C.skinDeep}" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M8 30 L8 98 C8 110 26 110 26 98 L26 26 Z" fill="${C.skin}"/>
+      <path d="M12 102 C15 106 20 106 23 102" stroke="${C.skinDeep}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M-30 6 C-44 14 -46 30 -36 36 C-28 40 -16 36 -6 32 C-2 26 -8 20 -16 20 Z" fill="${C.skin}"/>
+      <path d="M-34 34 C-24 38 -14 36 -6 32" stroke="${C.skinDeep}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
     thumb: `
       <path d="M-30 -2 C-36 20 -34 50 -20 58 C-6 64 16 64 26 56 C34 46 34 18 28 -2 Z" fill="${C.skin}"/>
       <path d="M-28 14 C-18 18 -6 18 4 14 M-29 28 C-19 32 -7 32 3 28 M-28 42 C-18 46 -6 46 4 42" stroke="${C.skinDeep}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
@@ -192,8 +196,8 @@
       ${eye(255, 264, { blink, look: lk, wink: e.winkL, size: e.size, lid: e.lid || 0 })}
       ${eye(345, 264, { blink, look: lk, size: e.size, lid: e.lid || 0 })}
       <path d="M302 282 C298 300 290 314 300 318 C307 321 314 317 316 312" stroke="${C.skinDeep}" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <ellipse cx="236" cy="318" rx="22" ry="11" fill="${C.blush}" opacity=".35"/>
-      <ellipse cx="364" cy="318" rx="22" ry="11" fill="${C.blush}" opacity=".35"/>
+      <ellipse cx="246" cy="302" rx="18" ry="9" fill="${C.blush}" opacity=".35"/>
+      <ellipse cx="354" cy="302" rx="18" ry="9" fill="${C.blush}" opacity=".35"/>
       ${mouthShape(e.mouth, mouth)}
       <path d="M268 334 C282 324 296 327 300 331 C304 327 318 324 332 334 C320 339 308 339 300 336 C292 339 280 339 268 334 Z" fill="${C.hair}"/>
       ${e.sweat ? `<path d="M412 190 C404 206 400 216 404 224 C408 232 422 232 424 222 C426 214 420 204 412 190 Z" fill="#7CC4F0" stroke="#fff" stroke-width="3"/>` : ''}`
@@ -244,7 +248,7 @@
     <path d="M266 380 C282 404 318 404 334 380 L334 360 L266 360 Z" fill="${C.skinShade}"/>
     <path d="M258 428 C274 456 326 456 342 428" stroke="${C.shirtLight}" stroke-width="12" fill="none" stroke-linecap="round"/>
     <!-- Logo sur le t-shirt -->
-    <text x="300" y="590" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="38" letter-spacing="-1" fill="${C.paper}">LTNS<tspan fill="${C.orange}">°</tspan></text>
+    <text x="300" y="590" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="38" letter-spacing="-1" fill="${C.paper}">LTNS<tspan fill="${opts.accent || C.orange}">°</tspan></text>
     <g transform="translate(300 430) scale(1.22) translate(-300 -430)">
     <!-- Oreilles -->
     <ellipse cx="184" cy="266" rx="21" ry="33" fill="${C.skin}"/><path d="M186 248 C176 258 178 278 188 284" stroke="${C.skinDeep}" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -252,11 +256,11 @@
     <!-- Visage -->
     <path d="M184 214 C184 140 238 108 300 108 C362 108 416 140 416 214 L416 262 C416 330 372 392 300 400 C228 392 184 330 184 262 Z" fill="${C.skin}"/>
     <!-- Barbe courte -->
-    <path d="M186 262 C188 330 228 390 300 404 C372 390 412 330 414 262 C404 312 384 344 352 360 C338 350 320 346 300 348 C280 346 262 350 248 360 C216 344 196 312 186 262 Z" fill="${C.hairLight}" opacity=".78"/>
+    <path d="M184 246 C186 330 228 394 300 408 C372 394 414 330 416 246 L394 246 C392 300 380 330 362 344 C350 370 328 382 300 382 C272 382 250 370 238 344 C220 330 208 300 206 246 Z" fill="${C.hairLight}"/>
     <!-- Cheveux -->
     <path d="M176 252 C162 170 190 110 250 88 C294 72 354 76 394 102 C430 126 440 178 426 250 C420 214 412 194 398 180 C374 160 338 154 300 158 C262 160 232 166 212 182 C196 196 184 220 176 252 Z" fill="${C.hair}"/>
-    <path d="M226 128 C244 70 334 46 388 88 C356 80 322 88 300 108 C284 92 254 100 226 128 Z" fill="${C.hairLight}"/>
-    <path d="M250 104 C272 88 300 86 318 92 M330 80 C352 78 372 86 384 98" stroke="${C.hairDark}" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55"/>
+    <path d="M226 128 C244 70 334 46 388 88 C356 80 322 88 300 108 C284 92 254 100 226 128 Z" fill="#3B322D"/>
+    <path d="M250 104 C272 88 300 86 318 92 M330 80 C352 78 372 86 384 98" stroke="#5A4D45" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>
     <path d="M180 214 L194 214 L196 266 L184 262 Z" fill="${C.hair}"/>
     <path d="M420 214 L406 214 L404 266 L416 262 Z" fill="${C.hair}"/>
     ${face(opts)}
