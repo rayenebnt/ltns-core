@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Avatar LTNS° — planche</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  body { margin: 0; background: #F3EEE3; font-family: Montserrat, sans-serif; }
+  .grid { display: grid; grid-template-columns: repeat(4, 300px); gap: 10px; padding: 16px; }
+  .cell { position: relative; height: 380px; overflow: hidden; background-image: linear-gradient(#e4ddd0 1px, transparent 1px), linear-gradient(90deg, #e4ddd0 1px, transparent 1px); background-size: 24px 24px; }
+  .cell svg { width: 300px; height: auto; display: block; }
+  .cell b { position: absolute; top: 6px; left: 8px; font-size: 13px; background: #fff; padding: 2px 6px; }
+</style></head>
+<body><div class="grid" id="g"></div>
+<script src="avatar.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  const items = q.get('mode') === 'expr'
+    ? LTNSAvatar.EXPR.map(e => ({ pose: 'idle', expr: e, label: e }))
+    : LTNSAvatar.POSES.map(p => ({ pose: p, expr: 'happy', label: p, mouth: 0.5 }))
+  document.getElementById('g').innerHTML = items.map(o => `<div class="cell"><b>${o.label}</b>${LTNSAvatar.svg(o)}</div>`).join('')
+</script></body></html>
