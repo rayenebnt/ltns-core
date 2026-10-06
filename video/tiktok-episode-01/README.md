@@ -10,12 +10,10 @@ Stratégie et kit de publication : [`STRATEGIE.md`](STRATEGIE.md).
 | Fichier | Rôle |
 |---|---|
 | `tiktok.html` | La vidéo : textes (`SENTENCES`), mise en scène (`BEATS`), score (`SCORE_KEYS`) |
-| `avatar.js` | L'avatar vectoriel : poses, expressions, bouche synchronisée sur la voix |
-| `preview.html` | Planche de toutes les poses (`?mode=expr` pour les expressions) |
-| `render.mjs` | Fabrique le MP4 image par image, avec l'habillage sonore et la voix |
-| `sfx.py` | Habillage sonore synthétisé (pop, clic, souffle, pulsation) |
-| `sync-voice.py` | Cale la vidéo sur la voix off ElevenLabs |
-| `voice/` | Les phrases de la voix off, `01.mp3`, `02.mp3`… (à fournir) |
+| `voice/` | Les phrases de la voix off, `01.mp3` à `09.mp3` |
+| `voice.mp3`, `timing.json`, `envelope.json` | Produits par `sync-voice.py` |
+
+L'avatar, les polices et les outils sont dans [`../commun/`](../commun/) (voir [`../README.md`](../README.md)).
 
 ## Voix off ElevenLabs
 
@@ -37,7 +35,8 @@ fichiers `01.mp3` à `09.mp3` dans `voice/` :
 Puis :
 
 ```bash
-python3 sync-voice.py      # cale sous-titres, poses, encarts, score et bouche sur la voix
+# depuis la racine du dépôt
+python3 video/commun/sync-voice.py video/tiktok-episode-01   # cale sous-titres, poses, encarts, score et bouche sur la voix
 ```
 
 Si vous changez un texte, changez-le aussi dans `SENTENCES` (tiktok.html) pour les sous-titres.
@@ -47,11 +46,5 @@ Si vous changez un texte, changez-le aussi dans `SENTENCES` (tiktok.html) pour l
 ```bash
 # depuis la racine du dépôt
 python3 -m http.server 8765 --directory . &
-cd video/tiktok-episode-01
-node render.mjs            # → ltns-tiktok-episode-01.mp4
+node video/commun/render.mjs video/tiktok-episode-01   # → video/tiktok-episode-01/ltns-tiktok-episode-01.mp4
 ```
-
-Aperçu en direct : http://localhost:8765/video/tiktok-episode-01/tiktok.html
-(`?audio` pour l'écouter avec la voix, `?t=12.5` pour figer un instant).
-
-Il faut Playwright (`npm i -D playwright` puis `npx playwright install chromium`) et ffmpeg.

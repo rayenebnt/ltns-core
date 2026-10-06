@@ -16,7 +16,7 @@
   Le minutage vient de timing.json (durées réelles de la voix) s'il existe,
   sinon d'une estimation ; la bouche suit envelope.json (volume de la voix).
 -->
-<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="../commun/fonts.css">
 <style>
   :root {
     --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
@@ -237,7 +237,8 @@
   <div id="caption"></div>
 </div>
 
-<script src="avatar.js"></script>
+<script src="../commun/avatar.js"></script>
+<script>LTNSAvatar.defaults.beard = true // l'épisode 01 garde la barbe d'origine</script>
 <script src="voice-files.js"></script>
 <script>
 /* ============================================================

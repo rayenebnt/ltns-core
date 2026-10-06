@@ -1,7 +1,7 @@
 """Cale la vidéo sur la voix off ElevenLabs.
 
-Déposer une phrase par fichier dans voice/ : 01.mp3, 02.mp3… (voir README.md),
-puis lancer :  python3 sync-voice.py
+Déposer une phrase par fichier dans <épisode>/voice/ : 01.mp3, 02.mp3…,
+puis lancer :  python3 video/commun/sync-voice.py video/tiktok-episode-02
 
 Produit :
 - voice.mp3      : les phrases mises bout à bout, avec de courts silences
@@ -17,7 +17,8 @@ import subprocess
 import sys
 import wave
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+# Dossier de l'épisode (par défaut : le dossier courant)
+HERE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else ".")
 VOICE_DIR = os.path.join(HERE, "voice")
 LEAD = 0.1    # silence avant la première phrase (s) : l'accroche démarre tout de suite
 GAP = 0.25    # silence entre deux phrases (s)

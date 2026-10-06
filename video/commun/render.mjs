@@ -1,22 +1,26 @@
-// Rendu MP4 de tiktok.html : capture image par image, puis assemblage ffmpeg.
-//   node render.mjs [sortie.mp4]           (images + son)
-//   node render.mjs [sortie.mp4] --mux-only (réassemble le son seulement)
+// Rendu MP4 d'un épisode (son tiktok.html) : capture image par image, puis assemblage ffmpeg.
+//   node video/commun/render.mjs video/tiktok-episode-02 [sortie.mp4]            (images + son)
+//   node video/commun/render.mjs video/tiktok-episode-02 [sortie.mp4] --mux-only (son seulement)
 // Prérequis : un serveur local à la racine du dépôt sur le port 8765
 //   python3 -m http.server 8765 --directory <racine du dépôt>
-// Si voice.mp3 existe à côté de ce fichier, il est mixé avec l'habillage sonore.
+// Si voice.mp3 existe dans le dossier de l'épisode, il est mixé avec l'habillage sonore.
 import { execFileSync } from 'child_process'
 import { mkdirSync, rmSync, writeFileSync, existsSync } from 'fs'
-import { dirname, join } from 'path'
+import { dirname, join, resolve, relative, basename } from 'path'
 import { fileURLToPath } from 'url'
 import { cpus } from 'os'
 
 // Playwright du projet si installé (npm i -D playwright), sinon celui de la machine
 const { chromium } = await import('playwright').catch(() => import('/opt/node-tools/node_modules/playwright/index.mjs'))
 
-const HERE = dirname(fileURLToPath(import.meta.url))
-const OUT = process.argv.slice(2).find(a => !a.startsWith('--')) || join(HERE, 'ltns-tiktok-episode-01.mp4')
+const COMMUN = dirname(fileURLToPath(import.meta.url))
+const ROOT = resolve(COMMUN, '..', '..')
+const [episodeArg, outArg] = process.argv.slice(2).filter(a => !a.startsWith('--'))
+if (!episodeArg) { console.error('Usage : node render.mjs <dossier de l\'épisode> [sortie.mp4] [--mux-only]'); process.exit(1) }
+const HERE = resolve(episodeArg)
+const OUT = outArg ? resolve(outArg) : join(HERE, `ltns-${basename(HERE)}.mp4`)
 const FRAMES = join(HERE, '.frames')
-const URL = 'http://localhost:8765/video/tiktok-episode-01/tiktok.html?render'
+const URL = `http://localhost:8765/${relative(ROOT, HERE).split('\\').join('/')}/tiktok.html?render`
 const FPS = 30
 const WORKERS = Math.max(1, Math.min(3, cpus().length - 1))
 
@@ -65,7 +69,7 @@ console.log(`Images rendues en ${((Date.now() - started) / 1000).toFixed(0)} s`)
 } // fin du rendu des images
 
 // Habillage sonore synthétisé (pop, tic, souffle)
-execFileSync('python3', [join(HERE, 'sfx.py'), join(FRAMES, 'events.json'), join(FRAMES, 'sfx.wav')], { stdio: 'inherit' })
+execFileSync('python3', [join(COMMUN, 'sfx.py'), join(FRAMES, 'events.json'), join(FRAMES, 'sfx.wav')], { stdio: 'inherit' })
 
 const voice = join(HERE, 'voice.mp3')
 const args = ['-v', 'error', '-y', '-framerate', String(FPS), '-i', join(FRAMES, '%05d.jpg'), '-i', join(FRAMES, 'sfx.wav')]

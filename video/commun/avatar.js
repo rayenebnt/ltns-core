@@ -10,6 +10,8 @@
      look  : [dx, dy] décalage du regard (en px)
      noFilter : true pour le dessin seul, sans contour d'autocollant
      accent : couleur du ° du t-shirt (suit la couleur du score dans la vidéo)
+     beard : true pour la barbe courte (épisode 01) ; sans barbe par défaut
+   LTNSAvatar.defaults : options appliquées à tous les dessins d'une page
    Repère : 600 × 900, le bas du corps sort du cadre.
    Cadre : LTNSAvatar.VIEWBOX, assez large pour les bras tendus et le contour.
    ============================================================ */
@@ -187,7 +189,7 @@
     think:     { browL: [-2, 6], browR: [10, -2], mouth: 'smirk', size: 1, look: [8, -7] },
   }
 
-  function face({ expr = 'happy', mouth = 0, blink = 0, look }) {
+  function face({ expr = 'happy', mouth = 0, blink = 0, look, beard = false }) {
     const e = EXPR[expr] || EXPR.happy
     const lk = look || e.look || [0, 0]
     return `
@@ -199,7 +201,7 @@
       <ellipse cx="246" cy="302" rx="18" ry="9" fill="${C.blush}" opacity=".35"/>
       <ellipse cx="354" cy="302" rx="18" ry="9" fill="${C.blush}" opacity=".35"/>
       ${mouthShape(e.mouth, mouth)}
-      <path d="M268 334 C282 324 296 327 300 331 C304 327 318 324 332 334 C320 339 308 339 300 336 C292 339 280 339 268 334 Z" fill="${C.hair}"/>
+      ${beard ? `<path d="M268 334 C282 324 296 327 300 331 C304 327 318 324 332 334 C320 339 308 339 300 336 C292 339 280 339 268 334 Z" fill="${C.hair}"/>` : ''}
       ${e.sweat ? `<path d="M412 190 C404 206 400 216 404 224 C408 232 422 232 424 222 C426 214 420 204 412 190 Z" fill="#7CC4F0" stroke="#fff" stroke-width="3"/>` : ''}`
   }
 
@@ -212,7 +214,10 @@
     return markup.replace(/id="([^"]+)"/g, `id="${u}-$1"`).replace(/url\(#([^)]+)\)/g, `url(#${u}-$1)`)
   }
 
-  function svg(opts = {}) {
+  const defaults = {}
+
+  function svg(options = {}) {
+    const opts = { ...defaults, ...options }
     const pose = POSES[opts.pose] || POSES.idle
     const [la1, la2, la3, lh, lx] = pose.L
     const [ra1, ra2, ra3, rh, rx] = pose.R
@@ -255,8 +260,8 @@
     <ellipse cx="416" cy="266" rx="21" ry="33" fill="${C.skin}"/><path d="M414 248 C424 258 422 278 412 284" stroke="${C.skinDeep}" stroke-width="4" fill="none" stroke-linecap="round"/>
     <!-- Visage -->
     <path d="M184 214 C184 140 238 108 300 108 C362 108 416 140 416 214 L416 262 C416 330 372 392 300 400 C228 392 184 330 184 262 Z" fill="${C.skin}"/>
-    <!-- Barbe courte -->
-    <path d="M184 246 C186 330 228 394 300 408 C372 394 414 330 416 246 L394 246 C392 300 380 330 362 344 C350 370 328 382 300 382 C272 382 250 370 238 344 C220 330 208 300 206 246 Z" fill="${C.hairLight}"/>
+    ${opts.beard ? `<!-- Barbe courte -->
+    <path d="M184 246 C186 330 228 394 300 408 C372 394 414 330 416 246 L394 246 C392 300 380 330 362 344 C350 370 328 382 300 382 C272 382 250 370 238 344 C220 330 208 300 206 246 Z" fill="${C.hairLight}"/>` : ''}
     <!-- Cheveux -->
     <path d="M176 252 C162 170 190 110 250 88 C294 72 354 76 394 102 C430 126 440 178 426 250 C420 214 412 194 398 180 C374 160 338 154 300 158 C262 160 232 166 212 182 C196 196 184 220 176 252 Z" fill="${C.hair}"/>
     <path d="M226 128 C244 70 334 46 388 88 C356 80 322 88 300 108 C284 92 254 100 226 128 Z" fill="#3B322D"/>
@@ -271,5 +276,5 @@
 </svg>`)
   }
 
-  window.LTNSAvatar = { svg, VIEWBOX: VB, POSES: Object.keys(POSES), EXPR: Object.keys(EXPR) }
+  window.LTNSAvatar = { svg, defaults, VIEWBOX: VB, POSES: Object.keys(POSES), EXPR: Object.keys(EXPR) }
 })()

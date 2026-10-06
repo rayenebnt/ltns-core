@@ -56,10 +56,4 @@ couverture à 0 s.
 
 ## Épisodes suivants
 
-| Épisode | Idée | Étape |
-|---|---|---|
-| 02 | « La phrase qui fait fuir tes clients en haut de ton site » | Notoriété |
-| 03 | « Ton site vs celui de ton concurrent : qui a le meilleur score ? » | Notoriété |
-| 04 | Réponse en vidéo : « Plombier, voici ce que je changerais » (avant / après) | Considération |
-| 05 | « J'ai refait le site d'un artisan : ce qui a changé » (PMSB, RBTI) | Considération |
-| 06 | « Combien coûte vraiment un site ? » (prix fixé, devis gratuit, lien en bio) | Conversion |
+Voir [`../IDEES.md`](../IDEES.md).
