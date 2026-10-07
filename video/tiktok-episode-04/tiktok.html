@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — TikTok « Coulisses : PMSB Gestion »</title>
+<!--
+  Épisode 04 : « J'ai créé le logiciel d'une entreprise du bâtiment » (série « Coulisses »)
+  PMSB faisait ses devis à la main ; LTNS° lui a créé PMSB Gestion, livré en 4 semaines.
+  Une scène 3D par étape : le devis manuscrit, l'écoute (post-its), le plan, la bibliothèque
+  de prix, l'envoi et les relances, les achats et l'échéancier, le tableau de bord, la livraison.
+  Les montants affichés sont des données de démonstration. La fin revient au devis manuscrit : la vidéo boucle.
+  Vidéo 1080 × 1920, 30 i/s.
+
+  Ouvrir via un serveur local (voir ../README.md) : la vidéo se joue toute seule.
+  ?t=12.5 fige l'image à 12,5 s · ?audio la joue avec voice.mp3.
+  Le minutage vient de timing.json (durées réelles de la voix) s'il existe,
+  sinon d'une estimation ; la bouche suit envelope.json (volume de la voix).
+-->
+<link rel="stylesheet" href="../commun/fonts.css">
+<style>
+  :root {
+    --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
+    --line: rgba(22, 22, 26, 0.09); --line-strong: rgba(22, 22, 26, 0.18);
+    --accent: rgb(8, 145, 178); --accent-rgb: 8, 145, 178;
+    --blue: #1D6FD8; --blue-soft: #E8F1FC; --green: #16A34A; --red: #DC2626; --amber: #D97706;
+    --display: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace; --hand: 'Caveat', cursive;
+    --ui: 'Montserrat', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 1080px; height: 1920px; overflow: hidden;
+    background:
+      linear-gradient(var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      linear-gradient(90deg, var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      var(--paper);
+    font-family: var(--display); color: var(--ink);
+  }
+  #glow { position: absolute; left: 50%; top: 980px; width: 1300px; height: 1300px; margin: -650px 0 0 -650px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(29, 111, 216, .22), rgba(29, 111, 216, 0)); }
+  #avatar, #caption, #hud, .panel, #fx, .note, #stamp, #mphone { will-change: transform, opacity; }
+
+  /* Bandeau : marque, semaines, étapes */
+  #hud { position: absolute; left: 70px; right: 70px; top: 170px; font-family: var(--mono); font-size: 31px; letter-spacing: 3px; color: var(--dim); }
+  #hud .row { display: flex; align-items: center; gap: 22px; padding-bottom: 16px; border-bottom: 2px solid var(--line-strong); white-space: nowrap; position: relative; }
+  #hud .brand b { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -1px; color: var(--ink); }
+  #hud .brand span { color: var(--accent); }
+  #hud .tag b { color: var(--ink); font-weight: 500; }
+  #week { margin-left: auto; display: flex; align-items: baseline; gap: 12px; color: var(--ink); transform-origin: 100% 50%; }
+  #week small { font-size: 22px; color: var(--mute); }
+  #week b { font-weight: 500; font-size: 52px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  #prog { position: absolute; left: 0; bottom: -2px; height: 6px; width: 100%; background: var(--accent); transform-origin: 0 50%; }
+  #steps { display: flex; gap: 10px; margin-top: 16px; }
+  #steps i { flex: 1; font-style: normal; text-align: center; font-size: 18px; letter-spacing: 1px; padding: 9px 0; border: 3px solid var(--line-strong); color: var(--mute); white-space: nowrap; }
+  #steps i.done { background: var(--ink); border-color: var(--ink); color: #fff; }
+  #steps i.now { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Sous-titres mot à mot */
+  #caption {
+    position: absolute; left: 70px; right: 70px; top: 348px; height: 230px;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 24px; text-align: center;
+    font-weight: 700; font-size: 82px; line-height: 1.02; letter-spacing: -2px; text-transform: uppercase;
+  }
+  #caption .w { display: inline-block; transform-origin: 50% 80%; }
+  #caption .w.hl { color: var(--accent); font-style: italic; font-weight: 500; }
+
+  /* Scène 3D : une « planche » par étape */
+  #scene { position: absolute; inset: 0; perspective: 2300px; perspective-origin: 50% 900px; }
+  .shadow { position: absolute; left: 50%; top: 1390px; width: 1000px; height: 120px; margin-left: -500px; border-radius: 50%; background: radial-gradient(closest-side, rgba(22, 22, 26, .26), rgba(22, 22, 26, 0)); }
+  .panel { position: absolute; left: 70px; top: 610px; width: 940px; height: 760px; transform-style: preserve-3d; opacity: 0; }
+  .win { position: absolute; left: 0; right: 0; top: 0; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 60px 120px -50px rgba(22, 22, 26, .55); overflow: hidden; }
+  .win .bar { height: 58px; background: #ece9e2; display: flex; align-items: center; gap: 14px; padding: 0 22px; border-bottom: 2px solid var(--line); }
+  .win .bar > i { width: 16px; height: 16px; border-radius: 50%; background: #c9c4ba; }
+  .win .bar span { margin-left: 14px; flex: 1; height: 36px; background: #fff; border-radius: 18px; display: flex; align-items: center; padding: 0 18px; font-family: var(--mono); font-size: 20px; color: var(--dim); }
+  .win .bar em { font-style: normal; font-family: var(--mono); font-size: 16px; letter-spacing: 1px; color: var(--mute); }
+  .corner::before, .corner::after { content: ''; position: absolute; width: 46px; height: 46px; border: 7px solid var(--accent); z-index: 3; }
+  .corner::before { left: -14px; top: -14px; border-right: 0; border-bottom: 0; }
+  .corner::after { right: -14px; bottom: -14px; border-left: 0; border-top: 0; }
+  .demo { position: absolute; right: 14px; bottom: 10px; font-family: var(--mono); font-size: 15px; letter-spacing: 1px; color: var(--mute); background: rgba(255,255,255,.85); padding: 3px 8px; border-radius: 6px; z-index: 4; }
+
+  /* Logo PMSB Gestion (simplifié) */
+  .plogo { display: flex; align-items: center; gap: 14px; font-family: var(--ui); }
+  .plogo svg { width: 58px; height: 58px; }
+  .plogo b { display: block; font-weight: 800; font-size: 34px; color: var(--blue); letter-spacing: 1px; line-height: 1; }
+  .plogo small { display: block; font-family: var(--mono); font-size: 14px; letter-spacing: 4px; color: var(--mute); margin-top: 4px; }
+
+  /* 0. Le devis à la main */
+  #pPaper .sheet { position: absolute; left: 90px; top: 0; width: 760px; height: 740px; background: #fffdf7; box-shadow: 0 50px 90px -40px rgba(22, 22, 26, .5); padding: 54px 60px;
+    background-image: repeating-linear-gradient(transparent 0 57px, rgba(29, 111, 216, .16) 57px 59px); background-position: 0 120px; transform: rotate(-3deg); }
+  #pPaper .sheet::before { content: ''; position: absolute; left: 92px; top: 0; bottom: 0; width: 3px; background: rgba(220, 38, 38, .35); }
+  #pPaper .hand { font-family: var(--hand); color: #1E3A8A; font-weight: 500; font-size: 46px; line-height: 59px; padding-left: 60px; position: relative; white-space: nowrap; }
+  #pPaper .hand.t { font-size: 64px; font-weight: 700; color: #16161A; }
+  #pPaper .hand s { text-decoration-thickness: 4px; text-decoration-color: #1E3A8A; }
+  #pPaper .hand .q { color: var(--red); font-weight: 700; }
+  #pPaper .stain { position: absolute; right: 70px; top: 330px; width: 190px; height: 190px; border-radius: 50%; border: 14px solid rgba(146, 92, 48, .18); }
+  #pPaper .pen { position: absolute; right: 30px; top: 480px; width: 420px; transform-origin: 90% 50%; }
+  #pPaper .scr { display: inline-block; width: 150px; height: 26px; background: #1E3A8A; border-radius: 14px; opacity: .8; vertical-align: middle; transform: rotate(-2deg); }
+
+  /* 0 bis. Ouverture du logiciel */
+  #pApp .win { height: 560px; }
+  #pApp .splash { position: absolute; left: 0; right: 0; top: 58px; bottom: 0; display: grid; place-items: center; align-content: center; gap: 34px; background: linear-gradient(180deg, #fff, #f3f6fb); }
+  #pApp .plogo { transform: scale(1.6); }
+  #pApp .load { width: 420px; height: 10px; border-radius: 5px; background: #e6ebf3; overflow: hidden; }
+  #pApp .load i { display: block; height: 100%; background: var(--blue); transform-origin: 0 50%; }
+
+  /* 1. Écouter : post-its */
+  #pNotes .board { position: absolute; left: 0; right: 0; top: 0; height: 700px; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 60px 120px -50px rgba(22, 22, 26, .45); }
+  #pNotes .board .head { padding: 26px 34px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); display: flex; justify-content: space-between; }
+  #pNotes .board .head b { color: var(--accent); font-weight: 500; }
+  .note { position: absolute; width: 360px; height: 230px; padding: 30px 30px; font-family: var(--hand); font-weight: 700; font-size: 50px; line-height: 1; color: #3a2a06; box-shadow: 0 30px 40px -24px rgba(22, 22, 26, .45); }
+  .note::before { content: ''; position: absolute; left: 50%; top: -14px; width: 120px; height: 34px; margin-left: -60px; background: rgba(255, 255, 255, .55); transform: rotate(-3deg); }
+
+  /* 2. Le plan */
+  #pPlan .board { position: absolute; inset: 0 0 60px; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 60px 120px -50px rgba(22, 22, 26, .45);
+    background-image: linear-gradient(rgba(29,111,216,.07) 2px, transparent 2px), linear-gradient(90deg, rgba(29,111,216,.07) 2px, transparent 2px); background-size: 40px 40px; }
+  #pPlan .board .head { padding: 26px 34px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); background: #fff; }
+  #pPlan svg.links { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .node { position: absolute; width: 250px; padding: 22px 0; text-align: center; background: #fff; border: 4px solid var(--blue); border-radius: 20px; font-family: var(--ui); font-weight: 800; font-size: 36px; color: var(--blue); box-shadow: 0 24px 40px -26px rgba(29, 111, 216, .7); }
+  .node small { display: block; font-family: var(--mono); font-weight: 500; font-size: 16px; letter-spacing: 2px; color: var(--mute); margin-top: 6px; }
+  .node.core { width: 360px; background: var(--blue); color: #fff; border-color: var(--blue); }
+  .node.core small { color: rgba(255,255,255,.8); }
+
+  /* 3. Bibliothèque de prix → devis */
+  #pQuote .win { height: 720px; }
+  #pQuote .cols { position: absolute; left: 0; right: 0; top: 58px; bottom: 0; display: grid; grid-template-columns: 330px 1fr; font-family: var(--ui); }
+  #pQuote .lib { background: #f4f6fa; border-right: 2px solid var(--line); padding: 24px 20px; }
+  .lbl { font-family: var(--mono); font-size: 17px; letter-spacing: 3px; color: var(--mute); margin-bottom: 16px; }
+  .lib .it { background: #fff; border: 2px solid #e1e6ee; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; position: relative; }
+  .lib .it b { display: block; font-size: 22px; font-weight: 700; }
+  .lib .it span { font-family: var(--mono); font-size: 18px; color: var(--blue); }
+  .lib .it.on { border-color: var(--blue); background: var(--blue-soft); }
+  #pQuote .doc { padding: 26px 30px; position: relative; }
+  #pQuote .doc h4 { font-size: 30px; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
+  #pQuote .doc h4 span { font-family: var(--mono); font-size: 18px; color: var(--mute); font-weight: 500; }
+  #pQuote .client { font-size: 20px; color: var(--dim); margin: 6px 0 22px; }
+  .qrow { display: grid; grid-template-columns: 1fr 120px 120px; gap: 10px; padding: 16px 4px; border-bottom: 2px solid var(--line); font-size: 21px; align-items: center; }
+  .qrow.h { font-family: var(--mono); font-size: 15px; letter-spacing: 2px; color: var(--mute); padding: 8px 4px; }
+  .qrow b { font-weight: 700; } .qrow span { font-family: var(--mono); font-size: 18px; text-align: right; } .qrow em { font-style: normal; font-weight: 700; text-align: right; }
+  .qrow.ghost { color: transparent; } .qrow.ghost::after { content: ''; grid-column: 1 / -1; height: 16px; margin-top: -26px; border-radius: 8px; background: #eef1f5; }
+  #pQuote .total { margin-top: 22px; display: flex; justify-content: space-between; align-items: center; background: var(--blue); color: #fff; padding: 18px 22px; border-radius: 14px; font-size: 24px; font-weight: 700; }
+  #pQuote .total b { font-size: 38px; font-variant-numeric: tabular-nums; }
+  #flyer { position: absolute; left: 0; top: 0; z-index: 6; background: #fff; border: 3px solid var(--blue); border-radius: 14px; padding: 12px 16px; font-family: var(--ui); font-weight: 700; font-size: 22px; box-shadow: 0 24px 34px -18px rgba(29,111,216,.7); white-space: nowrap; }
+  .cur { position: absolute; left: 0; top: 0; width: 46px; z-index: 7; filter: drop-shadow(0 6px 6px rgba(0,0,0,.3)); }
+
+  /* 4. Envoi et relances */
+  #pSend .doccard { position: absolute; left: 60px; top: 30px; width: 420px; height: 560px; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 40px 70px -40px rgba(22,22,26,.5); padding: 30px; font-family: var(--ui); }
+  #pSend .doccard h5 { font-size: 30px; font-weight: 800; } #pSend .doccard p { font-size: 18px; color: var(--mute); margin-top: 4px; font-family: var(--mono); }
+  #pSend .doccard i { display: block; height: 16px; background: #eef1f5; border-radius: 8px; margin-top: 22px; }
+  #pSend .doccard .tot { margin-top: 40px; display: flex; justify-content: space-between; font-weight: 800; font-size: 28px; color: var(--blue); }
+  #pSend .send { margin-top: 40px; text-align: center; background: var(--blue); color: #fff; font-weight: 700; font-size: 28px; padding: 18px; border-radius: 14px; }
+  #pSend .send.ok { background: var(--green); }
+  #pSend .relance { position: absolute; right: 0; top: 140px; width: 600px; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -40px rgba(22,22,26,.55); font-family: var(--ui); }
+  #pSend .relance .hd { display: flex; justify-content: space-between; align-items: center; padding: 22px 26px; border-bottom: 2px solid var(--line); }
+  #pSend .relance .hd b { font-size: 30px; font-weight: 800; }
+  #pSend .bell { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 18px; color: #fff; background: var(--amber); padding: 6px 14px; border-radius: 20px; }
+  #pSend .rr { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 18px 26px; border-bottom: 2px solid var(--line); align-items: center; }
+  #pSend .rr b { font-size: 24px; } #pSend .rr small { font-family: var(--mono); font-size: 16px; color: var(--mute); grid-column: 1; }
+  #pSend .rr em { grid-row: 1 / span 2; grid-column: 2; font-style: normal; font-weight: 700; font-size: 20px; padding: 10px 16px; border-radius: 12px; border: 3px solid var(--amber); color: var(--amber); }
+  #pSend .rr em.ok { background: var(--green); border-color: var(--green); color: #fff; }
+
+  /* 5. Achats et échéancier */
+  .card2 { position: absolute; top: 20px; width: 450px; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -40px rgba(22,22,26,.55); font-family: var(--ui); }
+  .card2 .hd { padding: 22px 26px; border-bottom: 2px solid var(--line); display: flex; align-items: center; gap: 14px; }
+  .card2 .hd b { font-size: 28px; font-weight: 800; }
+  .card2 .hd i { width: 40px; height: 40px; border-radius: 12px; background: var(--blue-soft); display: grid; place-items: center; font-style: normal; color: var(--blue); font-size: 22px; }
+  .card2 .r { display: flex; justify-content: space-between; align-items: center; padding: 18px 26px; border-bottom: 2px solid var(--line); font-size: 22px; }
+  .card2 .r span { font-family: var(--mono); font-size: 19px; }
+  .card2 .sum { padding: 18px 26px; display: flex; justify-content: space-between; font-weight: 800; font-size: 24px; color: var(--blue); }
+  .tl { position: relative; padding: 26px 26px 20px 74px; }
+  .tl::before { content: ''; position: absolute; left: 44px; top: 40px; bottom: 50px; width: 5px; background: #e6ebf3; }
+  .tl .fill { position: absolute; left: 44px; top: 40px; width: 5px; background: var(--green); transform-origin: 50% 0; }
+  .tl .st { position: relative; padding: 4px 0 30px; }
+  .tl .st::before { content: ''; position: absolute; left: -41px; top: 6px; width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 5px solid #cbd3df; }
+  .tl .st.ok::before { background: var(--green); border-color: var(--green); }
+  .tl .st b { display: block; font-size: 23px; } .tl .st small { font-family: var(--mono); font-size: 16px; color: var(--mute); }
+  .tl .st em { position: absolute; right: 0; top: 2px; font-style: normal; font-family: var(--mono); font-size: 16px; padding: 4px 10px; border-radius: 10px; background: #eef1f5; color: var(--dim); }
+  .tl .st.ok em { background: var(--green); color: #fff; }
+
+  /* 6. Le tableau de bord (fidèle à PMSB Gestion), dessiné en 1600 × 900 puis réduit */
+  #pDash .win { height: 588px; }
+  #dash { position: absolute; left: 0; top: 58px; width: 1600px; height: 900px; transform: scale(.58375); transform-origin: 0 0; display: grid; grid-template-columns: 258px 1fr; background: #F4F3EF; font-family: var(--ui); }
+  #dash .side { background: #fff; border-right: 2px solid #e8e6e1; padding: 30px 12px; }
+  #dash .side .plogo { justify-content: center; margin-bottom: 40px; }
+  #dash .nav { display: grid; gap: 4px; }
+  #dash .nav small { font-family: var(--ui); font-weight: 700; font-size: 13px; letter-spacing: 2px; color: #8a8a93; padding: 22px 16px 8px; }
+  #dash .nav i { font-style: normal; font-size: 18px; font-weight: 600; padding: 12px 16px; border-radius: 10px; color: #2b2b31; }
+  #dash .nav i.on { border: 2px solid var(--blue); color: var(--blue); background: #F5F9FE; }
+  #dash .main { padding: 36px 46px; }
+  #dash .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  #dash .top h2 { font-size: 34px; font-weight: 800; } #dash .top p { font-size: 18px; color: #6b6b75; margin-top: 4px; }
+  #dash .btns { display: flex; gap: 12px; } #dash .btns i { font-style: normal; font-weight: 700; font-size: 18px; padding: 12px 22px; border-radius: 10px; border: 2px solid #e1dfda; background: #fff; }
+  #dash .btns i.p { background: var(--blue); color: #fff; border-color: var(--blue); }
+  #dash .sec { font-weight: 700; font-size: 15px; letter-spacing: 2px; color: #6b6b75; margin: 34px 0 14px; }
+  #dash .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  #dash .k { background: #fff; border: 2px solid #e8e6e1; border-radius: 14px; padding: 22px 22px 20px; position: relative; }
+  #dash .k small { display: block; font-size: 16px; color: #4b4b55; } #dash .k b { display: block; font-size: 34px; font-weight: 800; margin: 12px 0 8px; font-variant-numeric: tabular-nums; }
+  #dash .k span { font-size: 14px; color: #8a8a93; }
+  #dash .k.hi { border-color: var(--blue); box-shadow: 0 0 0 6px rgba(29,111,216,.15); }
+  #dash .k.late b { color: var(--red); } #dash .k.ok b { color: var(--green); }
+  #dash .relist { margin-top: 22px; background: #fff; border: 2px solid #e8e6e1; border-radius: 14px; padding: 22px 26px; }
+  #dash .relist .t { display: flex; justify-content: space-between; } #dash .relist .t b { font-size: 20px; } #dash .relist .t span { font-size: 15px; color: var(--blue); }
+  #dash .relist .l { display: flex; justify-content: space-between; padding: 14px 0 0; font-size: 16px; color: #4b4b55; }
+  #stamp { position: absolute; left: 50%; top: 170px; margin-left: -260px; width: 520px; text-align: center; z-index: 8; border: 10px solid var(--green); color: var(--green); background: rgba(255,255,255,.95); font-weight: 700; font-size: 92px; letter-spacing: -2px; padding: 6px 0 14px; border-radius: 18px; opacity: 0; }
+  #stamp small { display: block; font-family: var(--mono); font-size: 26px; letter-spacing: 3px; font-weight: 500; color: var(--ink); }
+  #mphone { position: absolute; right: -10px; top: 250px; width: 280px; height: 560px; border-radius: 46px; background: linear-gradient(145deg, #2a2a33, #0f0f12); padding: 14px; z-index: 7; opacity: 0; box-shadow: 0 50px 80px -40px rgba(22,22,26,.7); }
+  #mphone .s { width: 100%; height: 100%; border-radius: 34px; background: #F4F3EF; overflow: hidden; font-family: var(--ui); }
+  #mphone .h { background: #fff; padding: 46px 18px 14px; border-bottom: 2px solid #e8e6e1; }
+  #mphone .h .plogo svg { width: 34px; height: 34px; } #mphone .h .plogo b { font-size: 20px; } #mphone .h .plogo small { font-size: 9px; letter-spacing: 2px; }
+  #mphone .c { margin: 12px 14px 0; background: #fff; border: 2px solid #e8e6e1; border-radius: 12px; padding: 12px 14px; }
+  #mphone .c small { font-size: 12px; color: #4b4b55; display: block; } #mphone .c b { font-size: 22px; font-weight: 800; }
+
+  /* 8. Commente ton métier */
+  #pCom .card { position: absolute; left: -20px; right: -20px; top: 10px; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, .45); }
+  #pCom .head { display: flex; justify-content: space-between; padding: 22px 30px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); }
+  #pCom .head b { color: var(--accent); font-weight: 500; }
+  #pCom .c { display: flex; align-items: center; gap: 22px; padding: 20px 30px; border-bottom: 2px solid var(--line); }
+  #pCom .av { width: 80px; height: 80px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 32px; flex: none; background: var(--ink); }
+  #pCom .c small { display: block; font-family: var(--mono); font-size: 20px; color: var(--mute); letter-spacing: 2px; }
+  #pCom .c span { font-weight: 700; font-size: 44px; letter-spacing: -1px; }
+  #pCom .c em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 21px; letter-spacing: 1px; color: #fff; padding: 10px 14px; background: var(--accent); white-space: nowrap; }
+  #pCom .input { margin: 24px 30px 30px; border: 3px solid var(--accent); padding: 20px 26px; font-family: var(--mono); font-size: 32px; color: var(--mute); display: flex; justify-content: space-between; }
+  #pCom .input b { color: var(--accent); }
+
+  #fx { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+  #fx i { position: absolute; left: 0; top: 0; width: 22px; height: 14px; border-radius: 3px; }
+
+  #avatar { position: absolute; left: -70px; top: 1245px; width: 640px; transform-origin: 50% 70%; z-index: 9; }
+  #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position: absolute">
+  <defs>
+    <!-- Immeubles stylisés, d'après le logo PMSB -->
+    <symbol id="pmsb" viewBox="0 0 60 60">
+      <path d="M50 10 A26 26 0 1 1 22 6" fill="none" stroke="#9AA3AF" stroke-width="3"/>
+      <g fill="none" stroke="#1D6FD8" stroke-width="4" stroke-linejoin="round"><path d="M8 22 l10 -6 l10 6 M8 30 l10 -6 l10 6 M8 38 l10 -6 l10 6"/></g>
+      <g fill="none" stroke="#6B7280" stroke-width="4" stroke-linejoin="round"><path d="M28 24 l10 -6 l10 6 M28 32 l10 -6 l10 6 M28 40 l10 -6 l10 6"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="stage">
+  <div id="glow"></div>
+  <div id="hud">
+    <div class="row">
+      <span class="brand"><b>LTNS<span>°</span></b></span>
+      <span class="tag">// <b>COULISSES</b> · PMSB</span>
+      <span id="week"><small>SEMAINE</small><b>—</b></span>
+      <div id="prog"></div>
+    </div>
+    <div id="steps"><i>BESOIN</i><i>PLAN</i><i>PRIX</i><i>RELANCES</i><i>PAIEMENTS</i><i>TABLEAU</i></div>
+  </div>
+
+  <div id="scene">
+    <div class="shadow" id="shadow"></div>
+
+    <!-- 0. Le devis à la main -->
+    <div class="panel" id="pPaper">
+      <div class="sheet">
+        <div class="hand t">Devis n° 47 ?</div>
+        <div class="hand">Client : <span class="scr"></span></div>
+        <div class="hand">Ravalement façade 120 m²</div>
+        <div class="hand">× <s>42</s> 45 € = <s>5 040</s> 5 400</div>
+        <div class="hand">Échafaudage … <span class="q">prix ??</span></div>
+        <div class="hand">Peinture boiseries <s>18</s> 20 m²</div>
+        <div class="hand">Total : <s>6 600</s> <span class="q">7 1?? €</span></div>
+        <div class="hand">→ recopier + relancer</div>
+        <div class="stain"></div>
+      </div>
+      <svg class="pen" viewBox="0 0 420 60"><g transform="rotate(-24 210 30)"><rect x="40" y="18" width="300" height="26" rx="13" fill="#1E3A8A"/><rect x="250" y="18" width="70" height="26" fill="#D4D8E0"/><path d="M40 18 L4 31 L40 44 Z" fill="#E9D7B5"/><path d="M16 27 L4 31 L16 35 Z" fill="#1E3A8A"/><rect x="300" y="10" width="12" height="40" rx="4" fill="#9AA3AF"/></g></svg>
+    </div>
+
+    <!-- 0 bis. Le logiciel s'ouvre -->
+    <div class="panel" id="pApp"><div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>pmsb · gestion</span><em>ACCÈS PRIVÉ</em></div>
+      <div class="splash">
+        <div class="plogo"><svg><use href="#pmsb"/></svg><div><b>PMSB</b><small>GESTION</small></div></div>
+        <div class="load"><i id="load"></i></div>
+      </div>
+    </div><div class="corner" style="position: absolute; left: 0; right: 0; top: 0; height: 560px"></div></div>
+
+    <!-- 1. Écouter -->
+    <div class="panel" id="pNotes">
+      <div class="board"><div class="head"><span>CE QUI FAIT PERDRE DU TEMPS</span><b>PMSB</b></div></div>
+      <div class="note" data-n="0" style="left: 50px; top: 120px; background: #FDE68A">Recopier chaque devis</div>
+      <div class="note" data-n="1" style="left: 520px; top: 110px; background: #FBCFE8">Retrouver les prix</div>
+      <div class="note" data-n="2" style="left: 70px; top: 400px; background: #BFDBFE">Qui doit encore payer ?</div>
+      <div class="note" data-n="3" style="left: 530px; top: 410px; background: #BBF7D0">Quel devis relancer ?</div>
+    </div>
+
+    <!-- 2. Le plan -->
+    <div class="panel" id="pPlan">
+      <div class="board"><div class="head">LE PLAN · PMSB GESTION</div>
+        <svg class="links" viewBox="0 0 940 700"><g fill="none" stroke="#1D6FD8" stroke-width="5" stroke-dasharray="14 10">
+          <path id="l0" d="M190 270 C 190 380, 470 380, 470 470"/>
+          <path id="l1" d="M470 270 L 470 470"/>
+          <path id="l2" d="M750 270 C 750 380, 470 380, 470 470"/>
+        </g></svg>
+      </div>
+      <div class="node" id="nClients" style="left: 65px; top: 160px">Clients<small>FICHES</small></div>
+      <div class="node" id="nDevis" style="left: 345px; top: 160px">Devis<small>CHIFFRAGE</small></div>
+      <div class="node" id="nFact" style="left: 625px; top: 160px">Factures<small>SUIVI</small></div>
+      <div class="node core" id="nCore" style="left: 290px; top: 470px">PMSB Gestion<small>AU MÊME ENDROIT</small></div>
+    </div>
+
+    <!-- 3. Bibliothèque de prix → devis -->
+    <div class="panel" id="pQuote"><div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>pmsb · gestion / devis / nouveau</span></div>
+      <div class="cols">
+        <div class="lib">
+          <div class="lbl">BIBLIOTHÈQUE DE PRIX</div>
+          <div class="it" data-lib="0"><b>Échafaudage</b><span>forfait · 1 200 €</span></div>
+          <div class="it" data-lib="1"><b>Ravalement façade</b><span>m² · 45 €</span></div>
+          <div class="it" data-lib="2"><b>Peinture boiseries</b><span>m² · 32 €</span></div>
+          <div class="it"><b>Isolation extérieure</b><span>m² · 120 €</span></div>
+          <div class="it"><b>Nettoyage toiture</b><span>m² · 18 €</span></div>
+        </div>
+        <div class="doc">
+          <h4>Devis D-2026-047<span>BROUILLON</span></h4>
+          <div class="client">Copropriété Les Tilleuls · façade rue</div>
+          <div class="qrow h"><span style="text-align: left">DÉSIGNATION</span><span>QTÉ</span><span>TOTAL HT</span></div>
+          <div class="qrow" data-q="0"><b>Échafaudage</b><span>1 forfait</span><em>1 200 €</em></div>
+          <div class="qrow" data-q="1"><b>Ravalement façade</b><span>120 m²</span><em>5 400 €</em></div>
+          <div class="qrow" data-q="2"><b>Peinture boiseries</b><span>18 m²</span><em>576 €</em></div>
+          <div class="total"><span>TOTAL HT</span><b id="qTotal">0 €</b></div>
+        </div>
+      </div>
+      <div class="demo">DONNÉES DE DÉMONSTRATION</div>
+    </div>
+    <div id="flyer"></div>
+    <svg class="cur" id="qCur" viewBox="0 0 40 52"><path d="M4 3 L4 42 L14 32 L21 48 L28 45 L21 29 L35 29 Z" fill="#16161A" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
+    </div>
+
+    <!-- 4. Envoi et relances -->
+    <div class="panel" id="pSend">
+      <div class="doccard" id="docCard"><h5>Devis D-2026-047</h5><p>COPROPRIÉTÉ LES TILLEULS</p><i></i><i style="width: 80%"></i><i style="width: 90%"></i><i style="width: 60%"></i>
+        <div class="tot"><span>Total HT</span><span>7 176 €</span></div>
+        <div class="send" id="sendBtn">Envoyer le devis</div></div>
+      <div class="relance" id="relance">
+        <div class="hd"><b>Devis à relancer</b><span class="bell">🔔 3</span></div>
+        <div class="rr" data-r="0"><b>M. et Mme D.</b><small>ISOLATION · ENVOYÉ IL Y A 9 J</small><em data-rel>Relancer</em></div>
+        <div class="rr" data-r="1"><b>SCI Horizon</b><small>FAÇADE · ENVOYÉ IL Y A 7 J</small><em>Relancer</em></div>
+        <div class="rr" data-r="2"><b>Copropriété Les Tilleuls</b><small>RAVALEMENT · ENVOYÉ AUJOURD'HUI</small><em>Dans 7 j</em></div>
+      </div>
+    </div>
+
+    <!-- 5. Achats et échéancier -->
+    <div class="panel" id="pMoney">
+      <div class="card2" id="cBuy" style="left: -20px">
+        <div class="hd"><i>🛒</i><b>Achats de matériel</b></div>
+        <div class="r" data-b="0">Enduit de façade × 12<span>384 €</span></div>
+        <div class="r" data-b="1">Location échafaudage<span>900 €</span></div>
+        <div class="r" data-b="2">Peinture façade × 8<span>520 €</span></div>
+        <div class="sum"><span>Chantier Les Tilleuls</span><span>1 804 €</span></div>
+      </div>
+      <div class="card2" id="cSched" style="left: 510px; top: 90px">
+        <div class="hd"><i>📅</i><b>Échéancier</b></div>
+        <div class="tl"><div class="fill" id="tlFill"></div>
+          <div class="st" data-s="0"><b>Acompte 30 %</b><small>2 153 € · 15 OCT.</small><em>PAYÉ</em></div>
+          <div class="st" data-s="1"><b>Situation n° 1</b><small>2 870 € · 15 NOV.</small><em>PAYÉ</em></div>
+          <div class="st" data-s="2"><b>Solde</b><small>2 153 € · FIN DE CHANTIER</small><em>À VENIR</em></div>
+        </div>
+      </div>
+      <div class="demo" style="right: 0; bottom: 120px">DONNÉES DE DÉMONSTRATION</div>
+    </div>
+
+    <!-- 6. Le tableau de bord -->
+    <div class="panel" id="pDash"><div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>pmsb · gestion / tableau de bord</span><em>ACCÈS PRIVÉ</em></div>
+      <div id="dash">
+        <div class="side">
+          <div class="plogo"><svg><use href="#pmsb"/></svg><div><b>PMSB</b><small>GESTION</small></div></div>
+          <div class="nav"><i class="on">Tableau de bord</i><small>COMMERCIAL</small><i>Clients</i><i>Devis</i><small>FINANCES</small><i>Factures</i><i>Achats de matériel</i><i>Échéancier</i><small>RÉGLAGES</small><i>Bibliothèque de prix</i><i>Paramètres</i></div>
+        </div>
+        <div class="main">
+          <div class="top"><div><h2>Bonjour</h2><p>Données de démonstration</p></div><div class="btns"><i>+ Client</i><i class="p">+ Devis</i></div></div>
+          <div class="sec">TRÉSORERIE</div>
+          <div class="kpis">
+            <div class="k" data-k="enc" data-v="12480"><small>À encaisser</small><b>0 €</b><span>4 factures</span></div>
+            <div class="k late" data-k="late" data-v="1850"><small>En retard</small><b>0 €</b><span>1 facture</span></div>
+            <div class="k ok" data-k="in" data-v="9320"><small>Encaissé ce mois-ci</small><b>0 €</b><span>paiements enregistrés</span></div>
+            <div class="k" data-k="ret" data-v="640"><small>Retenues de garantie</small><b>0 €</b><span>à récupérer</span></div>
+          </div>
+          <div class="sec">ACTIVITÉ COMMERCIALE</div>
+          <div class="kpis">
+            <div class="k" data-v="6" data-raw><small>Devis en attente</small><b>0</b><span>32 400 € HT</span></div>
+            <div class="k" data-v="18400"><small>Acceptés ce mois-ci</small><b>0 €</b><span>3 devis · HT</span></div>
+            <div class="k" data-v="42" data-pct><small>Taux de transformation</small><b>0 %</b><span>sur 12 mois</span></div>
+            <div class="k" data-v="7176"><small>Reste à facturer</small><b>0 €</b><span>2 chantiers · HT</span></div>
+          </div>
+          <div class="relist"><div class="t"><b>Devis à relancer</b><span>Tous les devis envoyés →</span></div><div class="l"><span>M. et Mme D. · Isolation</span><span>il y a 9 j</span></div><div class="l"><span>SCI Horizon · Façade</span><span>il y a 7 j</span></div></div>
+        </div>
+      </div>
+    </div><div class="corner" style="position: absolute; left: 0; right: 0; top: 0; height: 588px"></div>
+      <div id="stamp">LIVRÉ ✓<small>EN 4 SEMAINES</small></div>
+      <div id="mphone"><div class="s">
+        <div class="h"><div class="plogo"><svg><use href="#pmsb"/></svg><div><b>PMSB</b><small>GESTION</small></div></div></div>
+        <div class="c"><small>À encaisser</small><b>12 480 €</b></div>
+        <div class="c"><small>En retard</small><b style="color: var(--red)">1 850 €</b></div>
+        <div class="c"><small>Devis en attente</small><b>6</b></div>
+        <div class="c"><small>Taux de transformation</small><b>42 %</b></div>
+      </div></div>
+    </div>
+
+    <!-- 8. Commente ton métier -->
+    <div class="panel" id="pCom"><div class="card">
+      <div class="corner" style="position: absolute; inset: 0; pointer-events: none"></div>
+      <div class="head"><span>COMMENTAIRES</span><span>TON <b>LOGICIEL ?</b></span></div>
+      <div class="c" data-c="0"><div class="av">M</div><div><small>@garage.martin</small><span>Garagiste</span></div><em>→ PLANNING ATELIER</em></div>
+      <div class="c" data-c="1"><div class="av">S</div><div><small>@sarah.coiffure</small><span>Coiffeuse</span></div><em>→ RDV + FIDÉLITÉ</em></div>
+      <div class="c" data-c="2"><div class="av">L</div><div><small>@lea.fleurs</small><span>Fleuriste</span></div><em>→ COMMANDES</em></div>
+      <div class="input"><span>Ton métier…</span><b>|</b></div>
+    </div></div>
+  </div>
+
+  <div id="fx"></div>
+  <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
+  <div id="caption"></div>
+</div>
+
+<script src="../commun/avatar.js"></script>
+<script src="voice-files.js"></script>
+<script>
+/* ============================================================
+   1. Texte de la voix off (une phrase = un morceau de la voix),
+      découpé en morceaux de sous-titres : [texte, mot en couleur]
+   ============================================================ */
+const SENTENCES = [
+  { chunks: [['PMSB,', 'PMSB,'], ['une entreprise du bâtiment,', 'bâtiment,'], ['faisait tous ses devis', 'devis'], ['à la main.', 'main.'], ['Je lui ai créé', 'créé'], ['son propre logiciel.', 'logiciel.']] },
+  { chunks: [["D'abord, j'écoute :", "j'écoute"], ['comment elle travaille,', 'travaille,'], ['ce qui lui fait', 'fait'], ['perdre du temps.', 'temps.']] },
+  { chunks: [['Ensuite,', 'Ensuite,'], ['je dessine le plan :', 'plan'], ['clients,', 'clients,'], ['devis,', 'devis,'], ['factures,', 'factures,'], ['au même endroit.', 'endroit.']] },
+  { chunks: [['Une bibliothèque', 'bibliothèque'], ['de prix,', 'prix,'], ['pour chiffrer un chantier', 'chiffrer'], ['en quelques clics.', 'clics.']] },
+  { chunks: [['Le devis part,', 'part,'], ['et le logiciel rappelle', 'rappelle'], ['lesquels relancer.', 'relancer.']] },
+  { chunks: [['Les achats de matériel', 'achats'], ["et l'échéancier", "l'échéancier"], ['des paiements,', 'paiements,'], ['suivis au même endroit.', 'endroit.']] },
+  { chunks: [['Et le tableau de bord :', 'bord'], ["ce qu'il reste", 'reste'], ['à encaisser,', 'encaisser,'], ['les retards,', 'retards,'], ['les retenues', 'retenues'], ['de garantie.', 'garantie.']] },
+  { chunks: [['Livré en', 'Livré'], ['quatre semaines.', 'quatre'], ['Un logiciel qui suit', 'suit'], ['sa façon de travailler,', 'façon'], ["pas l'inverse.", "l'inverse."]] },
+  { chunks: [['Commente ton métier :', 'métier'], ['je te dis', 'dis'], ['ce que ton logiciel', 'logiciel'], ['ferait pour toi.', 'toi.']] },
+]
+
+/* ============================================================
+   2. Mise en scène
+      POSES : l'avatar, en fraction (0 → 1) de chaque phrase.
+      CUES  : [phrase, fraction] ou [phrase, 'mot', décalage en s], puis le son.
+   ============================================================ */
+const POSES = [
+  [{ at: 0, pose: 'shrug', expr: 'worried' }, { at: 0.62, pose: 'pointUp', expr: 'proud' }],
+  [{ at: 0, pose: 'think', expr: 'think' }],
+  [{ at: 0, pose: 'laptop', expr: 'happy' }],
+  [{ at: 0, pose: 'pointUp', expr: 'sly' }],
+  [{ at: 0, pose: 'laptop', expr: 'happy' }],
+  [{ at: 0, pose: 'thumbs', expr: 'happy' }],
+  [{ at: 0, pose: 'pointUp', expr: 'proud' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }],
+  [{ at: 0, pose: 'pointSide', expr: 'wink' }],
+]
+const CUES = {
+  app:      [0, 'créé', -0.15, 'whoosh'],
+  notes:    [1, 0.0, 'whoosh'],
+  n0:       [1, "j'écoute", 0, 'pop'],
+  n1:       [1, 'travaille,', -0.05, 'pop'],
+  n2:       [1, 'perdre', -0.1, 'pop'],
+  n3:       [1, 'temps.', -0.05, 'pop'],
+  plan:     [2, 0.0, 'whoosh'],
+  nClients: [2, 'clients,', -0.05, 'pop'],
+  nDevis:   [2, 'devis,', -0.05, 'pop'],
+  nFact:    [2, 'factures,', -0.05, 'pop'],
+  link:     [2, 'endroit.', -0.25, 'whoosh'],
+  quote:    [3, 0.0, 'whoosh'],
+  fill:     [3, 'chiffrer', -0.2, 'tick'],
+  total:    [3, 'clics.', 0, 'pop'],
+  send:     [4, 0.0, 'whoosh'],
+  sent:     [4, 'part,', -0.1, 'whoosh'],
+  remind:   [4, 'rappelle', -0.1, 'pop'],
+  relance:  [4, 'relancer.', -0.1, 'tick'],
+  money:    [5, 0.0, 'whoosh'],
+  buy:      [5, 'achats', -0.1, 'pop'],
+  sched:    [5, "l'échéancier", -0.1, 'pop'],
+  paid:     [5, 'paiements,', -0.05, 'tick'],
+  dash:     [6, 0.0, 'whoosh'],
+  kEnc:     [6, 'encaisser,', -0.15, 'pop'],
+  kLate:    [6, 'retards,', -0.1, 'pop'],
+  kRet:     [6, 'retenues', -0.1, 'pop'],
+  done:     [7, 'quatre', -0.15, 'ding'],
+  mobile:   [7, 'façon', -0.25, 'whoosh'],
+  com:      [8, 0.0, 'whoosh'],
+}
+// Couleur de chaque phrase : LTNS° (cyan), bleu PMSB pendant le logiciel, vert à la livraison
+const CYAN = [8, 145, 178], BLUE = [29, 111, 216], GREEN = [22, 163, 74]
+const SENTENCE_COLORS = [CYAN, CYAN, BLUE, BLUE, BLUE, BLUE, BLUE, GREEN, CYAN]
+const SENTENCE_STEP = [-1, 0, 1, 2, 3, 4, 5, 6, 6]
+const SENTENCE_WEEK = [0, 1, 1, 2, 2, 3, 4, 4, 4]
+
+/* ============================================================
+   3. Minutage : durées réelles (timing.json) ou estimation
+   ============================================================ */
+const FPS = 30
+const TAIL = 0.7 // la fin revient au devis manuscrit : la vidéo boucle
+let TIMES = null, ENVELOPE = null, WORDS = null, TL = null
+const C = {} // instants des étapes, en secondes
+
+function estimateTimes() {
+  let t = 0.1
+  return SENTENCES.map(s => {
+    const text = s.chunks.map(c => c[0]).join(' ')
+    const d = Math.max(1.3, text.length / 15)
+    const r = { start: t, end: t + d }
+    t += d + 0.25
+    return r
+  })
+}
+
+function buildWords() {
+  return SENTENCES.map((s, si) => {
+    const { start, end } = TIMES[si]
+    const words = []
+    // La ponctuation double (« : ») reste collée au mot qui la précède
+    s.chunks.forEach(([text, hl], ci) => text.replace(/ ([:;?!])/g, ' $1').split(' ').forEach(w => words.push({ w, ci, hl: w.split(' ')[0] === hl })))
+    const weights = words.map(x => x.w.replace(/[^\p{L}\p{N}]/gu, '').length + 2)
+    const total = weights.reduce((a, b) => a + b, 0)
+    const span = Math.max(0.4, (end - start) - 0.1)
+    let acc = 0
+    words.forEach((x, i) => {
+      x.t0 = start + (acc / total) * span
+      acc += weights[i]
+      x.t1 = start + (acc / total) * span
+      x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
+    })
+    snapToPauses(words, weights, TIMES[si])
+    return words
+  })
+}
+
+// Avec la vraie voix : les mots suivis d'une ponctuation se terminent sur une pause
+// mesurée (alignement dans l'ordre), les autres se répartissent entre les pauses.
+function snapToPauses(words, weights, { start, end, pauses }) {
+  if (!pauses || !pauses.length) return
+  const P = pauses.filter(p => p[1] - p[0] >= 0.12 && p[0] > start + 0.15 && p[1] < end - 0.1)
+  const A = words.map((x, i) => (i < words.length - 1 && /[,:;.?!…]$/.test(x.w) ? i : -1)).filter(i => i >= 0)
+  if (!P.length || !A.length) return
+  const n = A.length, m = P.length
+  const SKIP_ANCHOR = 0.35, skipPause = j => Math.max(0, P[j][1] - P[j][0] - 0.12) * 3
+  const cost = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const from = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null))
+  cost[0][0] = 0
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const c = cost[i][j]
+    if (c === Infinity) continue
+    if (i < n && c + SKIP_ANCHOR < cost[i + 1][j]) { cost[i + 1][j] = c + SKIP_ANCHOR; from[i + 1][j] = [i, j, false] }
+    if (j < m && c + skipPause(j) < cost[i][j + 1]) { cost[i][j + 1] = c + skipPause(j); from[i][j + 1] = [i, j, false] }
+    if (i < n && j < m) {
+      const d = Math.abs(P[j][0] - words[A[i]].t1)
+      if (d < 1.2 && c + d < cost[i + 1][j + 1]) { cost[i + 1][j + 1] = c + d; from[i + 1][j + 1] = [i, j, true] }
+    }
+  }
+  const pairs = []
+  for (let i = n, j = m; i > 0 || j > 0;) {
+    const [pi, pj, matched] = from[i][j]
+    if (matched) pairs.unshift([A[pi], P[pj]])
+    i = pi; j = pj
+  }
+  const bounds = [{ i: -1, next: start }, ...pairs.map(([i, p]) => ({ i, at: p[0], next: p[1] })), { i: words.length - 1, at: end }]
+  for (let b = 1; b < bounds.length; b++) {
+    const lo = bounds[b - 1].i + 1, hi = bounds[b].i
+    const t0 = bounds[b - 1].next, t1 = bounds[b].at
+    const tot = weights.slice(lo, hi + 1).reduce((x, y) => x + y, 0)
+    let acc = 0
+    for (let k = lo; k <= hi; k++) {
+      words[k].t0 = t0 + (acc / tot) * (t1 - t0)
+      acc += weights[k]
+      words[k].t1 = t0 + (acc / tot) * (t1 - t0)
+    }
+  }
+}
+
+// Ligne de temps : poses de l'avatar + étapes (et leurs sons, lus par render.mjs)
+function timeline() {
+  const at = (si, f) => TIMES[si].start + f * (TIMES[si].end - TIMES[si].start)
+  const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+  for (const [k, [si, f, off]] of Object.entries(CUES)) {
+    const word = typeof f === 'string' && WORDS[si].find(x => norm(x.w) === norm(f))
+    C[k] = word ? word.t0 + off : at(si, typeof f === 'string' ? 0 : f)
+  }
+  C.start = TIMES[1].start - 0.15
+  C.loop = TIMES[TIMES.length - 1].end + 0.1
+  const out = []
+  POSES.forEach((beats, si) => beats.forEach(b => out.push({ ...b, t: at(si, b.at), si })))
+  for (const [k, cue] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx: cue[cue.length - 1] })
+  for (let i = 1; i < 3; i++) out.push({ t: C.fill + i * 0.42, sfx: 'tick' })
+  // Retour au devis manuscrit, l'avatar reprend sa pose du début : la boucle est invisible
+  out.push({ t: C.loop + 0.1, sfx: 'whoosh' }, { ...POSES[0][0], t: C.loop + 0.1, si: TIMES.length - 1 })
+  return out.sort((a, b) => a.t - b.t)
+}
+
+/* ============================================================
+   4. Outils (fonctions pures du temps)
+   ============================================================ */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+const easeOut = p => 1 - Math.pow(1 - p, 3)
+function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
+const ramp = (t, t0, dur) => clamp((t - t0) / dur)
+const mix = (a, b, k) => a.map((v, j) => Math.round(v + (b[j] - v) * k))
+const rgb = c => `rgb(${c[0]}, ${c[1]}, ${c[2]})`
+const euro = v => Math.round(v).toLocaleString('fr-FR').replace(/ | /g, ' ') + ' €'
+
+function colorAt(t, si) {
+  const cur = SENTENCE_COLORS[si], prev = SENTENCE_COLORS[Math.max(0, si - 1)]
+  return mix(prev, cur, easeInOut(clamp((t - TIMES[si].start + 0.1) / 0.3)))
+}
+
+function mouthAt(t) {
+  if (ENVELOPE) return clamp(((ENVELOPE[Math.round(t * FPS)] || 0) - 0.06) * 1.6)
+  for (const words of WORDS) for (const x of words) {
+    if (t >= x.t0 && t < x.t1) return 0.12 + 0.8 * Math.abs(Math.sin(Math.PI * x.syl * (t - x.t0) / (x.t1 - x.t0)))
+  }
+  return 0
+}
+
+function blinkAt(t) {
+  const d = (t % 3.4) - 2.9
+  return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
+}
+
+function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647 }
+
+/* ============================================================
+   5. Rendu d'un instant t
+   ============================================================ */
+const $ = id => document.getElementById(id)
+const qa = (sel, root = document) => [...root.querySelectorAll(sel)]
+const stage = $('stage'), avatarEl = $('avatar'), captionEl = $('caption')
+const silEl = avatarEl.querySelector('.sil'), liveEl = avatarEl.querySelector('.live')
+const STEPS = qa('#steps i')
+const STEP_NAMES = STEPS.map(el => el.textContent)
+const CONFETTI = []
+
+// Contour d'autocollant précalculé par pose (voir ../commun/avatar.js)
+const SILHOUETTES = {}
+const silKey = b => `${b.pose}|${b.expr}`
+async function preloadSilhouettes() {
+  const keys = [...new Set(TL.filter(b => b.pose).map(silKey))]
+  await Promise.all(keys.map(k => {
+    const [pose, expr] = k.split('|')
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LTNSAvatar.svg({ pose, expr }))
+    SILHOUETTES[k] = url
+    const img = new Image(); img.src = url
+    return img.decode().catch(() => {})
+  }))
+}
+let lastSil = '', lastLive = ''
+window.settle = () => silEl.decode().catch(() => {})
+
+function sentenceAt(t) {
+  let idx = 0
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.05) idx = i
+  return idx
+}
+
+// Position d'un élément dans un ancêtre, sans tenir compte des transformations 3D
+function offsetIn(el, root) {
+  let x = 0, y = 0
+  for (let n = el; n && n !== root; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop }
+  return { x, y }
+}
+
+function setT(el, op, tr) { el.style.opacity = op; el.style.transform = tr || 'none' }
+
+// Planches : [id, début, fin] ; chacune pivote en 3D pour laisser place à la suivante
+function panels() {
+  return [
+    ['pPaper', -1, C.app], ['pApp', C.app, C.notes], ['pNotes', C.notes, C.plan], ['pPlan', C.plan, C.quote],
+    ['pQuote', C.quote, C.send], ['pSend', C.send, C.money], ['pMoney', C.money, C.dash], ['pDash', C.dash, C.com],
+    ['pCom', C.com, C.loop + 0.1], ['pPaper', C.loop + 0.1, Infinity],
+  ]
+}
+
+function renderPanels(t) {
+  const list = panels(), seen = {}
+  list.forEach(([id, a, b]) => {
+    const inP = a < 0 ? 1 : easeOut(ramp(t, a - 0.05, 0.45))
+    const outP = easeInOut(ramp(t, b - 0.2, 0.35))
+    const on = t >= a - 0.05 && t < b + 0.15
+    if (seen[id] && !on) return
+    seen[id] = true
+    const el = $(id)
+    el.style.opacity = on ? 1 : 0
+    if (!on) return
+    const rx = 6 + Math.sin(t * 0.9) * 2.5, ry = -8 + Math.sin(t * 0.6) * 4
+    el.style.transform = `translateY(${Math.sin(t * 1.4) * 10}px) rotateX(${rx}deg) rotateY(${ry + (1 - inP) * -85 + outP * 85}deg) translateZ(${(1 - inP) * -250 - outP * 250}px) scale(${0.85 + 0.15 * inP - 0.15 * outP})`
+    el.style.opacity = 1 - outP * (outP > 0.85 ? 1 : 0)
+  })
+  $('shadow').style.transform = `scaleX(${1 + Math.sin(t * 1.4) * 0.03})`
+}
+
+function renderScenes(t, tail) {
+  // 0. Le stylo griffonne ; le logiciel charge
+  $('pPaper').querySelector('.pen').style.transform = `translate(${Math.sin(t * 7) * 10}px, ${Math.cos(t * 9) * 6}px) rotate(${Math.sin(t * 7) * 3}deg)`
+  $('load').style.transform = `scaleX(${easeInOut(ramp(t, C.app + 0.2, Math.max(0.4, C.notes - C.app - 0.4)))})`
+
+  // 1. Post-its
+  qa('#pNotes .note').forEach((el, i) => {
+    const p = pop(t, C['n' + i], 0.4)
+    setT(el, p > 0 ? 1 : 0, `translateZ(${(1 - clamp(p)) * 500 + 60}px) rotate(${[-4, 3, 2, -3][i] + Math.sin(t * 1.5 + i) * 1.5}deg) scale(${0.4 + 0.6 * p})`)
+  })
+
+  // 2. Le plan : les trois modules, puis les liens vers le cœur
+  ;[['nClients', C.nClients], ['nDevis', C.nDevis], ['nFact', C.nFact]].forEach(([id, t0], i) => {
+    const p = pop(t, t0, 0.4)
+    setT($(id), p > 0 ? 1 : 0, `translateZ(${(1 - clamp(p)) * 400}px) rotateX(${(1 - p) * -70}deg)`)
+  })
+  const lk = easeInOut(ramp(t, C.link, 0.5))
+  ;['l0', 'l1', 'l2'].forEach(id => { const el = $(id); el.style.opacity = lk > 0 ? 1 : 0; el.style.strokeDashoffset = (1 - lk) * 400; el.style.strokeDasharray = lk < 1 ? `${lk * 400} 400` : '14 10' })
+  const pc = pop(t, C.link + 0.25, 0.45)
+  setT($('nCore'), pc > 0 ? 1 : 0, `scale(${0.5 + 0.5 * pc})`)
+
+  // 3. Les lignes volent de la bibliothèque au devis, le total grimpe
+  const vals = [1200, 5400, 576]
+  const flyer = $('flyer'), cur = $('qCur')
+  flyer.style.opacity = 0
+  qa('#pQuote [data-q]').forEach((row, i) => {
+    const t0 = C.fill + i * 0.42
+    const f = ramp(t, t0, 0.32)
+    const lib = $('pQuote').querySelector(`[data-lib="${i}"]`)
+    lib.classList.toggle('on', f > 0 && f < 1)
+    row.style.opacity = f >= 1 ? 1 : 0
+    row.style.transform = f >= 1 ? `scale(${1 + 0.06 * (1 - clamp(pop(t, t0 + 0.32, 0.25)))})` : 'none'
+    if (f > 0 && f < 1) {
+      const e = easeInOut(f)
+      flyer.textContent = lib.querySelector('b').textContent
+      flyer.style.opacity = 1
+      const a = offsetIn(lib, $('pQuote')), b = offsetIn(row, $('pQuote'))
+      flyer.style.transform = `translate(${a.x + (b.x - a.x) * e}px, ${a.y + (b.y - a.y) * e - Math.sin(f * Math.PI) * 60}px) rotate(${Math.sin(f * Math.PI) * -6}deg) scale(${1 + Math.sin(f * Math.PI) * 0.15})`
+    }
+  })
+  // Le total grimpe à chaque ligne posée
+  const tv = vals.reduce((sum, v, i) => sum + v * easeOut(ramp(t, C.fill + i * 0.42 + 0.32, 0.35)), 0)
+  $('qTotal').textContent = euro(tv)
+  const ci = Math.min(2, Math.max(0, Math.floor((t - C.fill) / 0.42)))
+  const cf = ramp(t, C.fill + ci * 0.42 - 0.25, 0.25)
+  const curOn = t > C.fill - 0.5 && t < C.fill + 1.6
+  const target = offsetIn($('pQuote').querySelector(`[data-lib="${ci}"]`), $('pQuote'))
+  setT(cur, curOn ? 1 : 0, `translate(${target.x + 220 - (1 - cf) * 60}px, ${target.y + 30 + (1 - cf) * 40}px) scale(${Math.abs(t - (C.fill + ci * 0.42)) < 0.07 ? 0.85 : 1})`)
+
+  // 4. Le devis part, la liste des relances arrive
+  const sp = ramp(t, C.sent, 0.55)
+  $('sendBtn').classList.toggle('ok', t >= C.sent)
+  $('sendBtn').textContent = t >= C.sent ? 'Envoyé ✓' : 'Envoyer le devis'
+  setT($('docCard'), 1 - easeInOut(ramp(t, C.sent + 0.3, 0.4)), `translate(${easeInOut(sp) * 520}px, ${-Math.sin(sp * Math.PI) * 160 - easeInOut(sp) * 120}px) rotate(${easeInOut(sp) * 18}deg) scale(${1 - 0.5 * easeInOut(sp)})`)
+  const pr = pop(t, C.remind, 0.45)
+  setT($('relance'), pr > 0 ? 1 : 0, `perspective(1400px) rotateY(${(1 - pr) * -70}deg) translateZ(${(1 - clamp(pr)) * 200}px)`)
+  qa('#pSend [data-r]').forEach((el, i) => {
+    const p = pop(t, C.remind + 0.2 + i * 0.14, 0.3)
+    setT(el, p > 0 ? 1 : 0, `translateX(${(1 - clamp(p)) * 80}px)`)
+  })
+  const rel = $('pSend').querySelector('[data-rel]')
+  rel.classList.toggle('ok', t >= C.relance)
+  rel.textContent = t >= C.relance ? 'Relancé ✓' : 'Relancer'
+  rel.style.transform = `scale(${1 + 0.15 * (1 - clamp(pop(t, C.relance, 0.3))) * (t >= C.relance ? 1 : 0)})`
+  $('pSend').querySelector('.bell').style.transform = `rotate(${t > C.remind + 0.3 && t < C.remind + 1.2 ? Math.sin(t * 40) * 14 : 0}deg)`
+
+  // 5. Achats puis échéancier
+  const pb = pop(t, C.buy, 0.45)
+  setT($('cBuy'), pb > 0 ? 1 : 0, `perspective(1400px) rotateY(${(1 - pb) * 70 + 8}deg) translateZ(${(1 - clamp(pb)) * 300}px)`)
+  qa('#cBuy [data-b]').forEach((el, i) => { const p = pop(t, C.buy + 0.25 + i * 0.15, 0.3); setT(el, p > 0 ? 1 : 0, `translateX(${(1 - clamp(p)) * -60}px)`) })
+  const ps = pop(t, C.sched, 0.45)
+  setT($('cSched'), ps > 0 ? 1 : 0, `perspective(1400px) rotateY(${(1 - ps) * -70 - 8}deg) translateZ(${(1 - clamp(ps)) * 300}px)`)
+  const fl = easeInOut(ramp(t, C.paid, 0.8))
+  $('tlFill').style.height = (fl * 128) + 'px'
+  qa('#cSched [data-s]').forEach((el, i) => el.classList.toggle('ok', i < 2 && fl >= (i === 0 ? 0.05 : 0.95)))
+
+  // 6. Tableau de bord : les cartes arrivent, les montants défilent, on met en avant ce qui est dit
+  qa('#dash .k').forEach((el, i) => {
+    const p = pop(t, C.dash + 0.15 + i * 0.07, 0.4)
+    setT(el, p > 0 ? 1 : 0, `perspective(1200px) rotateX(${(1 - p) * -80}deg) translateY(${(1 - clamp(p)) * 40}px)`)
+    const v = +el.dataset.v * easeOut(ramp(t, C.dash + 0.3 + i * 0.07, 1.1))
+    el.querySelector('b').textContent = 'raw' in el.dataset ? Math.round(v) : 'pct' in el.dataset ? Math.round(v) + ' %' : euro(v)
+    const k = el.dataset.k
+    const hiT = { enc: C.kEnc, late: C.kLate, ret: C.kRet }[k]
+    el.classList.toggle('hi', hiT !== undefined && t >= hiT && t < hiT + 0.9)
+  })
+  const ds = pop(t, C.done + 0.25, 0.4)
+  setT($('stamp'), ds > 0 ? 1 : 0, `translateZ(160px) rotate(${-8 + (1 - clamp(ds)) * 28}deg) scale(${2.4 - 1.4 * ds})`)
+  const mp = pop(t, C.mobile, 0.5)
+  setT($('mphone'), mp > 0 ? 1 : 0, `translateZ(${(1 - clamp(mp)) * 500 + 120}px) rotateY(${-22 + Math.sin(t * 0.8) * 5}deg) translateY(${Math.sin(t * 1.6) * 10}px) scale(${0.5 + 0.5 * mp})`)
+
+  // Confettis à la livraison
+  const ct = t - (C.done + 0.25)
+  CONFETTI.forEach(cf => {
+    const on = ct > 0 && ct < 1.8 && !tail
+    cf.el.style.opacity = on ? clamp(1.8 - ct) : 0
+    if (!on) return
+    cf.el.style.transform = `translate(${540 + cf.vx * ct}px, ${980 + cf.vy * ct + 900 * ct * ct}px) rotate(${cf.r + cf.vr * ct}deg) rotateX(${cf.vr * ct * 2}deg)`
+  })
+
+  // 8. Commentaires
+  qa('#pCom [data-c]').forEach((el, i) => { const p = pop(t, C.com + 0.4 + i * 0.22, 0.35); setT(el, p > 0 ? 1 : 0, `translateX(${(1 - clamp(p)) * 120}px)`) })
+  $('pCom').querySelector('.input b').style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0
+}
+
+function renderAt(t) {
+  const si = sentenceAt(t)
+  const c = colorAt(t, si)
+  stage.style.setProperty('--accent', rgb(c))
+  stage.style.setProperty('--accent-rgb', c.join(', '))
+  const tail = t >= C.loop
+
+  // Bandeau : semaine en cours, progression, étapes
+  const delivered = !tail && t >= C.done
+  const wk = tail ? 0 : SENTENCE_WEEK[si]
+  $('week').querySelector('b').textContent = delivered ? 'LIVRÉ ✓' : wk ? `${wk}/4` : '—'
+  $('week').querySelector('small').style.display = delivered ? 'none' : ''
+  $('week').style.color = delivered ? 'var(--green)' : 'var(--ink)'
+  $('week').style.transform = `scale(${delivered ? 1 + 0.25 * (1 - clamp(pop(t, C.done, 0.4))) : 1})`
+  $('prog').style.transform = `scaleX(${tail ? 0 : clamp((t - C.start) / (C.done - C.start))})`
+  const step = tail ? -1 : SENTENCE_STEP[si]
+  STEPS.forEach((el, i) => {
+    el.className = i < step ? 'done' : i === step ? 'now' : ''
+    el.textContent = (i < step ? '✓ ' : '') + STEP_NAMES[i]
+  })
+  $('glow').style.opacity = 0.6 + 0.4 * Math.sin(t * 0.8)
+
+  renderPanels(t)
+  renderScenes(t, tail)
+
+  // Avatar
+  let pose = TL.find(b => b.pose), avatarSince = 0
+  for (const bt of TL) { if (bt.t > t) break; if (bt.pose) { pose = bt; avatarSince = bt.t } }
+  const sk = silKey(pose)
+  if (sk !== lastSil) { silEl.src = SILHOUETTES[sk]; lastSil = sk }
+  const m = mouthAt(t), bl = blinkAt(t), acc = rgb(c)
+  const key = [sk, m.toFixed(2), bl.toFixed(2), acc].join('|')
+  if (key !== lastLive) {
+    liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: m, blink: bl, accent: acc, noFilter: true })
+    lastLive = key
+  }
+  const sc = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+  avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${sc})`
+
+  // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const words = WORDS[si]
+  if (t > TIMES[si].end + 0.5 || tail) { captionEl.innerHTML = ''; return }
+  let ci = 0
+  for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
+  captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
+    const q = si === 0 && ci === 0 ? 1 : pop(t, x.t0 - 0.03, 0.22)
+    if (q <= 0) return ''
+    return `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  }).join('')
+}
+
+/* ============================================================
+   6. Démarrage : lecture en direct, image figée (?t=) ou rendu MP4
+   ============================================================ */
+function fit() {
+  const k = Math.min(innerWidth / 1080, innerHeight / 1920)
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`
+}
+
+function buildConfetti() {
+  const r = rand(7), colors = ['#1D6FD8', '#16A34A', '#0891B2', '#F59E0B', '#16161A', '#93C5FD']
+  for (let i = 0; i < 46; i++) {
+    const el = document.createElement('i')
+    el.style.background = colors[i % colors.length]
+    $('fx').appendChild(el)
+    const a = -Math.PI / 2 + (r() - 0.5) * 2.4, v = 700 + r() * 900
+    CONFETTI.push({ el, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: r() * 360, vr: (r() - 0.5) * 900 })
+  }
+}
+
+async function boot() {
+  // timing.json et envelope.json n'existent qu'une fois la voix ajoutée (voir ../README.md)
+  const has = window.VOICE_FILES || []
+  if (has.includes('timing.json')) TIMES = (await (await fetch('timing.json', { cache: 'no-store' })).json()).sentences
+  if (has.includes('envelope.json')) ENVELOPE = (await (await fetch('envelope.json', { cache: 'no-store' })).json()).values
+  if (!TIMES) TIMES = estimateTimes()
+  WORDS = buildWords()
+  TL = timeline()
+  buildConfetti()
+  await preloadSilhouettes()
+  window.DURATION = TIMES[TIMES.length - 1].end + TAIL
+  await document.fonts.ready
+
+  const q = new URLSearchParams(location.search)
+  if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true; return }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); return }
+  const audio = q.has('audio') ? new Audio('voice.mp3') : null
+  if (audio) { audio.loop = true; audio.play().catch(() => {}) }
+  const t0 = performance.now()
+  const loop = () => {
+    renderAt(audio ? audio.currentTime : ((performance.now() - t0) / 1000) % window.DURATION)
+    requestAnimationFrame(loop)
+  }
+  loop()
+}
+boot()
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+PMSB, une entreprise du bâtiment, faisait tous ses devis à la main. Je lui ai créé son propre logiciel. [long pause]
+D'abord, j'écoute : comment elle travaille, ce qui lui fait perdre du temps. [long pause]
+Ensuite, je dessine le plan : clients, devis, factures, au même endroit. [long pause]
+Une bibliothèque de prix, pour chiffrer un chantier en quelques clics. [long pause]
+Le devis part, et le logiciel rappelle lesquels relancer. [long pause]
+Les achats de matériel et l'échéancier des paiements, suivis au même endroit. [long pause]
+Et le tableau de bord : ce qu'il reste à encaisser, les retards, les retenues de garantie. [long pause]
+Livré en quatre semaines. Un logiciel qui suit sa façon de travailler, pas l'inverse. [long pause]
+Commente ton métier : je te dis ce que ton logiciel ferait pour toi.
