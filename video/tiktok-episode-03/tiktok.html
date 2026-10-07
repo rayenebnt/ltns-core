@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — TikTok « Un site en 30 secondes »</title>
+<!--
+  Épisode 03 : « Je crée le site d'une boulangerie en 30 secondes »
+  Une page blanche devient, sous les yeux, le site d'une boulangerie : structure,
+  couleurs, produits, bouton de commande, avis, version téléphone, mise en ligne.
+  Un chrono va de 00:00 à 00:30 pile au moment de la mise en ligne.
+  La dernière image revient à la page blanche : la vidéo boucle.
+  Vidéo 1080 × 1920, 30 i/s.
+
+  Ouvrir via un serveur local (voir ../README.md) : la vidéo se joue toute seule.
+  ?t=12.5 fige l'image à 12,5 s · ?audio la joue avec voice.mp3.
+  Le minutage vient de timing.json (durées réelles de la voix) s'il existe,
+  sinon d'une estimation ; la bouche suit envelope.json (volume de la voix).
+-->
+<link rel="stylesheet" href="../commun/fonts.css">
+<style>
+  :root {
+    --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
+    --line: rgba(22, 22, 26, 0.09); --line-strong: rgba(22, 22, 26, 0.18);
+    --accent: rgb(8, 145, 178); --accent-rgb: 8, 145, 178;
+    --gold: #C8862A; --gold-light: #E7B25C; --brown: #3B2416; --cream: #FBF4E8; --green: #16A34A;
+    --display: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace; --serif: 'Fraunces', serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 1080px; height: 1920px; overflow: hidden;
+    background:
+      linear-gradient(var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      linear-gradient(90deg, var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      var(--paper);
+    font-family: var(--display); color: var(--ink);
+  }
+  /* Halo doré derrière le site, une fois les couleurs posées */
+  #glow { position: absolute; left: 50%; top: 980px; width: 1300px; height: 1300px; margin: -650px 0 0 -650px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(231, 178, 92, .55), rgba(231, 178, 92, 0)); opacity: 0; }
+  #avatar, #caption, #hud, #browser, #phone, #comments, #fx, #glow, .chip { will-change: transform, opacity; }
+
+  /* Bandeau : marque, chrono, étapes */
+  #hud { position: absolute; left: 70px; right: 70px; top: 170px; font-family: var(--mono); font-size: 31px; letter-spacing: 3px; color: var(--dim); }
+  #hud .row { display: flex; align-items: center; gap: 22px; padding-bottom: 16px; border-bottom: 2px solid var(--line-strong); white-space: nowrap; position: relative; }
+  #hud .brand b { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -1px; color: var(--ink); }
+  #hud .brand span { color: var(--accent); }
+  #hud .tag b { color: var(--ink); font-weight: 500; }
+  #chrono { margin-left: auto; display: flex; align-items: baseline; gap: 12px; color: var(--ink); }
+  #chrono i { width: 18px; height: 18px; border-radius: 50%; background: #E11D48; align-self: center; }
+  #chrono b { font-weight: 500; font-size: 58px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  #chrono small { font-size: 30px; color: var(--mute); font-variant-numeric: tabular-nums; }
+  #prog { position: absolute; left: 0; bottom: -2px; height: 6px; width: 100%; background: var(--accent); transform-origin: 0 50%; }
+  #steps { display: flex; gap: 10px; margin-top: 16px; }
+  #steps i { flex: 1; font-style: normal; text-align: center; font-size: 19px; letter-spacing: 1px; padding: 9px 0; border: 3px solid var(--line-strong); color: var(--mute); white-space: nowrap; }
+  #steps i.done { background: var(--ink); border-color: var(--ink); color: #fff; }
+  #steps i.now { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Sous-titres mot à mot */
+  #caption {
+    position: absolute; left: 70px; right: 70px; top: 348px; height: 230px;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 24px; text-align: center;
+    font-weight: 700; font-size: 82px; line-height: 1.02; letter-spacing: -2px; text-transform: uppercase;
+  }
+  #caption .w { display: inline-block; transform-origin: 50% 80%; }
+  #caption .w.hl { color: var(--accent); font-style: italic; font-weight: 500; }
+
+  /* Scène 3D */
+  #scene { position: absolute; inset: 0; perspective: 2300px; perspective-origin: 50% 900px; }
+  .shadow { position: absolute; left: 50%; border-radius: 50%; background: radial-gradient(closest-side, rgba(22, 22, 26, .28), rgba(22, 22, 26, 0)); }
+
+  /* Le navigateur */
+  #browser { position: absolute; left: 70px; top: 600px; width: 940px; height: 760px; transform-style: preserve-3d; }
+  #browser .win { position: absolute; inset: 0; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 60px 120px -50px rgba(22, 22, 26, .55); overflow: hidden; }
+  .corner::before, .corner::after { content: ''; position: absolute; width: 46px; height: 46px; border: 7px solid var(--accent); z-index: 3; }
+  .corner::before { left: -14px; top: -14px; border-right: 0; border-bottom: 0; }
+  .corner::after { right: -14px; bottom: -14px; border-left: 0; border-top: 0; }
+  #browser .bar { height: 62px; background: #ece9e2; display: flex; align-items: center; gap: 14px; padding: 0 24px; border-bottom: 2px solid var(--line); position: relative; z-index: 2; }
+  #browser .bar > i { width: 18px; height: 18px; border-radius: 50%; background: #c9c4ba; }
+  #url { margin-left: 18px; flex: 1; height: 40px; background: #fff; border-radius: 20px; display: flex; align-items: center; gap: 10px; padding: 0 20px; font-family: var(--mono); font-size: 22px; color: var(--dim); }
+  #url .lock { width: 14px; height: 14px; border-radius: 50%; background: #c9c4ba; }
+  #url .caret { width: 3px; height: 26px; background: var(--ink); }
+  .vp { position: absolute; left: 0; right: 0; top: 62px; bottom: 0; overflow: hidden; perspective: 1500px; background: var(--s-bg, #fff); }
+  #blank { position: absolute; inset: 0; display: grid; place-items: center; }
+  #blank .cur { width: 8px; height: 120px; background: var(--ink); }
+
+  /* La page de la boulangerie (couleurs posées par le script : --s-*) */
+  .pg { position: absolute; left: 0; right: 0; top: 0; padding: 0 0 140px; transform-style: preserve-3d; }
+  .blk { position: relative; transform-origin: 50% 0; }
+  .wf { outline: 3px dashed rgba(22, 22, 26, var(--wf, .3)); outline-offset: -3px; }
+  .sk { display: block; height: 16px; background: #dedad2; border-radius: 8px; }
+  .s-nav { height: 96px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; }
+  .logo { display: flex; align-items: center; gap: 14px; font-family: var(--serif); font-weight: 800; font-size: 40px; letter-spacing: -1px; color: var(--s-light, #16161A); white-space: nowrap; }
+  .logo svg { width: 44px; height: 44px; }
+  .links { display: flex; gap: 30px; font-size: 24px; font-weight: 500; color: var(--s-light, #16161A); }
+  .links .sk { width: 100px; background: rgba(255, 255, 255, .35); }
+  .s-hero { display: grid; grid-template-columns: 1.08fr 1fr; gap: 30px; padding: 40px 40px 34px; align-items: center; }
+  .kicker { font-family: var(--mono); font-size: 19px; letter-spacing: 3px; color: var(--s-gold, #6B6B75); margin-bottom: 16px; }
+  .h1 { font-family: var(--serif); font-weight: 800; font-size: 66px; line-height: .98; letter-spacing: -2px; color: var(--s-ink, #16161A); }
+  .h1 em { font-style: italic; font-weight: 600; color: var(--s-gold, #16161A); }
+  .h1-sk { display: grid; gap: 16px; }
+  .h1-sk .sk { height: 46px; border-radius: 10px; }
+  .addr { display: inline-flex; align-items: center; gap: 12px; margin-top: 24px; padding: 12px 20px; border-radius: 40px; background: var(--s-chip, #efece6); font-size: 22px; font-weight: 500; color: var(--s-ink, #16161A); white-space: nowrap; }
+  .addr .pin { width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--s-gold, #9a978f); position: relative; }
+  .addr .pin::after { content: ''; position: absolute; left: 7px; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  .hero-img { height: 330px; border-radius: 26px; position: relative; overflow: hidden; background: var(--s-img, #e7e4dd); transform-style: preserve-3d; }
+  .hero-img svg { position: absolute; left: 50%; top: 50%; width: 330px; margin: -120px 0 0 -165px; filter: drop-shadow(0 26px 22px rgba(59, 36, 22, .35)); }
+  .hero-img .ph { position: absolute; inset: 0; display: grid; place-items: center; }
+  .hero-img .ph::before { content: ''; width: 120px; height: 90px; border: 6px solid #cfcbc2; border-radius: 12px; }
+  .s-sec { padding: 26px 40px 10px; }
+  .s-title { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
+  .s-title h3 { font-family: var(--serif); font-weight: 800; font-size: 42px; letter-spacing: -1px; color: var(--s-ink, #16161A); }
+  .s-title span { font-family: var(--mono); font-size: 19px; letter-spacing: 3px; color: var(--s-gold, #6B6B75); }
+  .prods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; perspective: 1200px; }
+  .prod { border-radius: 22px; background: var(--s-card, #f2f0eb); padding: 18px 18px 22px; position: relative; transform-style: preserve-3d; }
+  .prod .pic { height: 150px; border-radius: 16px; background: var(--s-pic, #e7e4dd); display: grid; place-items: center; overflow: hidden; }
+  .prod .pic svg { width: 200px; filter: drop-shadow(0 14px 10px rgba(59, 36, 22, .3)); }
+  .prod b { display: block; margin-top: 14px; font-size: 25px; font-weight: 700; letter-spacing: -.5px; color: var(--s-ink, #16161A); white-space: nowrap; }
+  .prod .price { position: absolute; right: 14px; top: 14px; background: var(--brown); color: #fff; font-family: var(--mono); font-size: 22px; padding: 6px 12px; border-radius: 12px; }
+  .s-hours { margin: 24px 40px 0; padding: 22px 28px; border-radius: 20px; background: var(--s-brown, #e7e4dd); color: #fff; display: flex; align-items: center; gap: 18px; font-size: 26px; font-weight: 500; white-space: nowrap; }
+  .s-hours .dot { width: 18px; height: 18px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 0 6px rgba(74, 222, 128, .25); }
+  .s-hours b { font-weight: 700; }
+  .stars { display: flex; align-items: center; gap: 8px; font-size: 40px; color: var(--gold); }
+  .stars i { font-style: normal; display: inline-block; }
+  .stars span { margin-left: 14px; font-size: 24px; font-weight: 500; color: var(--s-ink, #16161A); }
+  .revs { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 20px; perspective: 1200px; }
+  .rev { border-radius: 20px; background: #fff; border: 2px solid rgba(59, 36, 22, .12); padding: 24px 24px 20px; box-shadow: 0 24px 40px -30px rgba(59, 36, 22, .45); }
+  .rev p { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 28px; line-height: 1.15; color: var(--brown); }
+  .rev small { display: block; margin-top: 14px; font-family: var(--mono); font-size: 18px; letter-spacing: 2px; color: var(--mute); }
+
+  /* Bouton collant de commande, curseur, notification */
+  .s-cta { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 40px; background: #3B2416; display: flex; align-items: center; justify-content: flex-end; z-index: 3; }
+  .s-cta span { font-size: 22px; color: rgba(255, 255, 255, .75); font-family: var(--mono); letter-spacing: 2px; }
+  .s-cta b { background: linear-gradient(180deg, var(--gold-light), var(--gold)); color: var(--brown); font-weight: 700; font-size: 32px; padding: 18px 34px; border-radius: 16px; letter-spacing: -.5px; }
+  #cursor { position: absolute; left: 0; top: 0; width: 54px; z-index: 5; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .3)); }
+  #ripple { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 5px solid #fff; z-index: 4; }
+  #toast { position: absolute; right: 26px; top: 26px; z-index: 4; background: #fff; border-radius: 20px; padding: 18px 24px; display: flex; gap: 16px; align-items: center; box-shadow: 0 30px 50px -20px rgba(22, 22, 26, .45); border: 2px solid rgba(22, 22, 26, .08); }
+  #toast .ok { width: 52px; height: 52px; border-radius: 50%; background: var(--green); color: #fff; display: grid; place-items: center; font-size: 30px; font-weight: 700; }
+  #toast b { display: block; font-size: 26px; }
+  #toast small { font-family: var(--mono); font-size: 18px; color: var(--mute); letter-spacing: 1px; }
+
+  /* La version téléphone */
+  #phone { position: absolute; left: 50%; top: 610px; width: 470px; height: 900px; margin-left: -235px; transform-style: preserve-3d; opacity: 0; }
+  #phone .body { position: absolute; inset: 0; border-radius: 70px; background: linear-gradient(145deg, #2a2a33, #0f0f12); padding: 20px; box-shadow: 0 70px 120px -50px rgba(22, 22, 26, .65), inset 0 0 0 3px rgba(255, 255, 255, .08); }
+  #phone .scr { position: relative; width: 100%; height: 100%; border-radius: 52px; overflow: hidden; background: var(--cream); }
+  #phone .notch { position: absolute; left: 50%; top: 14px; width: 120px; height: 34px; margin-left: -60px; border-radius: 20px; background: #0f0f12; z-index: 3; }
+  #phone .m { position: absolute; left: 0; right: 0; top: 0; }
+  .m-nav { background: var(--brown); padding: 70px 26px 22px; display: flex; justify-content: space-between; align-items: center; }
+  .m-nav .logo { font-size: 30px; color: #fff; } .m-nav .logo svg { width: 34px; height: 34px; }
+  .m-nav .burger { width: 34px; height: 22px; background: linear-gradient(#fff 0 4px, transparent 4px 9px, #fff 9px 13px, transparent 13px 18px, #fff 18px); }
+  .m-hero { padding: 28px 26px 24px; }
+  .m-hero .h1 { font-size: 46px; }
+  .m-img { margin-top: 20px; height: 210px; border-radius: 22px; background: linear-gradient(135deg, var(--gold-light), var(--gold)); position: relative; overflow: hidden; }
+  .m-img svg { position: absolute; left: 50%; top: 50%; width: 240px; margin: -82px 0 0 -120px; filter: drop-shadow(0 18px 14px rgba(59, 36, 22, .35)); }
+  .m-cta { margin: 20px 26px 0; text-align: center; background: linear-gradient(180deg, var(--gold-light), var(--gold)); color: var(--brown); font-weight: 700; font-size: 28px; padding: 22px; border-radius: 18px; }
+  .m-list { padding: 26px 26px 0; display: grid; gap: 14px; }
+  .m-list .it { display: flex; align-items: center; gap: 16px; background: #fff; border-radius: 18px; padding: 12px 16px; }
+  .m-list .it svg { width: 84px; flex: none; }
+  .m-list .it b { font-size: 24px; flex: 1; color: var(--brown); }
+  .m-list .it span { font-family: var(--mono); font-size: 20px; color: var(--brown); }
+  .m-rev { margin: 20px 26px 30px; background: #fff; border-radius: 18px; padding: 18px; }
+  .m-rev .stars { font-size: 30px; } .m-rev p { font-family: var(--serif); font-style: italic; font-size: 24px; color: var(--brown); margin-top: 8px; }
+  #stamp { position: absolute; left: 50%; top: 360px; margin-left: -220px; width: 440px; text-align: center; z-index: 6; border: 9px solid var(--green); color: var(--green); background: rgba(255, 255, 255, .94); font-weight: 700; font-size: 84px; letter-spacing: -2px; padding: 8px 0 14px; border-radius: 18px; opacity: 0; }
+  #stamp small { display: block; font-family: var(--mono); font-size: 24px; letter-spacing: 3px; font-weight: 500; color: var(--ink); }
+
+  /* Commente ton métier */
+  #comments { position: absolute; left: 50%; top: 640px; width: 900px; margin-left: -450px; opacity: 0; transform-style: preserve-3d; }
+  #comments .card { position: relative; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, .45); }
+  #comments .head { display: flex; justify-content: space-between; padding: 22px 30px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); }
+  #comments .head b { color: var(--accent); font-weight: 500; }
+  #comments .c { display: flex; align-items: center; gap: 24px; padding: 22px 32px; border-bottom: 2px solid var(--line); }
+  #comments .av { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 34px; flex: none; background: var(--ink); }
+  #comments .c small { display: block; font-family: var(--mono); font-size: 22px; color: var(--mute); letter-spacing: 2px; }
+  #comments .c span { font-weight: 700; font-size: 48px; letter-spacing: -1px; }
+  #comments .c em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 24px; letter-spacing: 2px; color: #fff; padding: 8px 14px; white-space: nowrap; background: var(--accent); }
+  #comments .input { margin: 26px 32px 32px; border: 3px solid var(--accent); padding: 22px 26px; font-family: var(--mono); font-size: 34px; color: var(--mute); display: flex; justify-content: space-between; }
+  #comments .input b { color: var(--accent); }
+
+  /* Pastilles de couleur qui flottent devant le site */
+  .chip { position: absolute; z-index: 7; display: flex; align-items: center; gap: 16px; background: #fff; border-radius: 22px; padding: 14px 24px 14px 14px; box-shadow: 0 30px 50px -24px rgba(22, 22, 26, .5); opacity: 0; }
+  .chip i { width: 64px; height: 64px; border-radius: 16px; }
+  .chip b { font-size: 30px; font-weight: 700; display: block; }
+  .chip small { font-family: var(--mono); font-size: 18px; color: var(--mute); letter-spacing: 1px; }
+
+  #fx { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+  #fx i { position: absolute; left: 0; top: 0; width: 22px; height: 14px; border-radius: 3px; }
+
+  /* Avatar : petit, en bas à gauche, il « construit » le site */
+  #avatar { position: absolute; left: -70px; top: 1245px; width: 640px; transform-origin: 50% 70%; z-index: 9; }
+  #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<!-- Formes partagées (pains) -->
+<svg width="0" height="0" style="position: absolute">
+  <defs>
+    <linearGradient id="gCrust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EDB866"/><stop offset=".55" stop-color="#C8862A"/><stop offset="1" stop-color="#8A4F17"/></linearGradient>
+    <linearGradient id="gCrois" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C474"/><stop offset=".6" stop-color="#D1902F"/><stop offset="1" stop-color="#9A5A1A"/></linearGradient>
+    <symbol id="boule" viewBox="0 0 240 170">
+      <ellipse cx="120" cy="96" rx="110" ry="66" fill="url(#gCrust)"/>
+      <path d="M40 92 Q120 40 200 92" stroke="#F7DFAE" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <path d="M58 118 Q120 78 182 118" stroke="#F7DFAE" stroke-width="7" fill="none" stroke-linecap="round" opacity=".8"/>
+      <g fill="#FFF6E2" opacity=".75"><circle cx="80" cy="62" r="3"/><circle cx="150" cy="56" r="2.5"/><circle cx="118" cy="48" r="3"/><circle cx="176" cy="74" r="2"/><circle cx="62" cy="80" r="2"/></g>
+    </symbol>
+    <symbol id="baguette" viewBox="0 0 240 120">
+      <g transform="rotate(-16 120 60)">
+        <rect x="10" y="40" width="220" height="44" rx="22" fill="url(#gCrust)"/>
+        <g stroke="#F7DFAE" stroke-width="7" stroke-linecap="round"><path d="M44 50 l26 20"/><path d="M88 50 l26 20"/><path d="M132 50 l26 20"/><path d="M176 50 l26 20"/></g>
+      </g>
+    </symbol>
+    <symbol id="croissant" viewBox="0 0 240 150">
+      <g fill="url(#gCrois)" stroke="#8A4F17" stroke-width="3" stroke-opacity=".45">
+        <ellipse cx="24" cy="112" rx="15" ry="10" transform="rotate(-50 24 112)"/>
+        <ellipse cx="216" cy="112" rx="15" ry="10" transform="rotate(50 216 112)"/>
+        <ellipse cx="50" cy="96" rx="24" ry="19" transform="rotate(-40 50 96)"/>
+        <ellipse cx="190" cy="96" rx="24" ry="19" transform="rotate(40 190 96)"/>
+        <ellipse cx="84" cy="80" rx="32" ry="27" transform="rotate(-22 84 80)"/>
+        <ellipse cx="156" cy="80" rx="32" ry="27" transform="rotate(22 156 80)"/>
+        <ellipse cx="120" cy="74" rx="38" ry="34"/>
+      </g>
+      <g fill="#FFF1D2" opacity=".55"><ellipse cx="112" cy="58" rx="16" ry="7"/><ellipse cx="78" cy="68" rx="11" ry="5" transform="rotate(-22 78 68)"/><ellipse cx="160" cy="68" rx="11" ry="5" transform="rotate(22 160 68)"/></g>
+    </symbol>
+    <symbol id="wheat" viewBox="0 0 48 48">
+      <path d="M24 44 V10" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+      <g fill="currentColor"><ellipse cx="18" cy="16" rx="5" ry="8" transform="rotate(-30 18 16)"/><ellipse cx="30" cy="16" rx="5" ry="8" transform="rotate(30 30 16)"/><ellipse cx="18" cy="28" rx="5" ry="8" transform="rotate(-30 18 28)"/><ellipse cx="30" cy="28" rx="5" ry="8" transform="rotate(30 30 28)"/><ellipse cx="24" cy="7" rx="4.5" ry="7"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="stage">
+  <div id="glow"></div>
+
+  <div id="hud">
+    <div class="row">
+      <span class="brand"><b>LTNS<span>°</span></b></span>
+      <span class="tag">// <b>UN SITE EN 30 S</b></span>
+      <span id="chrono"><i></i><b>00:00</b><small>,0</small></span>
+      <div id="prog"></div>
+    </div>
+    <div id="steps"><i>STRUCTURE</i><i>COULEURS</i><i>CONTENU</i><i>BOUTON</i><i>AVIS</i><i>MOBILE</i></div>
+  </div>
+
+  <div id="scene">
+    <div class="shadow" id="bShadow" style="top: 1350px; width: 1000px; height: 120px; margin-left: -500px"></div>
+
+    <div id="browser"><div class="win">
+      <div class="bar"><i></i><i></i><i></i><div id="url"><span class="lock"></span><span id="urlText"></span><span class="caret"></span></div></div>
+      <div class="vp" id="vp">
+        <div id="blank"><div class="cur"></div></div>
+        <div class="pg" id="pg">
+          <nav class="s-nav blk wf" data-in="0" data-paint="nav">
+            <div class="logo"><svg style="color: var(--s-gold-l, #9a978f)"><use href="#wheat"/></svg><span data-text>Au Pain Doré</span></div>
+            <div class="links"><span data-text>Pains</span><span data-text>Viennoiseries</span><span data-text>Commander</span></div>
+          </nav>
+          <section class="s-hero">
+            <div class="blk" data-in="1">
+              <div class="kicker" data-text>BOULANGERIE ARTISANALE · DEPUIS 1998</div>
+              <div class="h1" id="h1">Le pain du quartier, <em>cuit ce matin.</em></div>
+              <div class="h1-sk" id="h1sk"><i class="sk" style="width: 92%"></i><i class="sk" style="width: 70%"></i><i class="sk" style="width: 80%"></i></div>
+              <div class="addr" id="addr"><span class="pin"></span>12 rue des Lilas · Lyon 4e</div>
+            </div>
+            <div class="hero-img blk wf" data-in="2" data-paint="img">
+              <div class="ph" id="imgPh"></div>
+              <svg viewBox="0 0 240 170" id="heroBread"><use href="#boule"/></svg>
+            </div>
+          </section>
+          <section class="s-sec" id="secProd">
+            <div class="s-title blk" data-in="3"><h3 data-text>Nos incontournables</h3><span data-text>CUITS SUR PLACE</span></div>
+            <div class="prods">
+              <div class="prod blk wf" data-in="3" data-paint="card"><div class="pic"><svg viewBox="0 0 240 120" data-prod><use href="#baguette"/></svg></div><b data-prodname>Baguette tradition</b><span class="price" data-price>1,30 €</span></div>
+              <div class="prod blk wf" data-in="4" data-paint="card"><div class="pic"><svg viewBox="0 0 240 150" data-prod><use href="#croissant"/></svg></div><b data-prodname>Croissant pur beurre</b><span class="price" data-price>1,20 €</span></div>
+              <div class="prod blk wf" data-in="5" data-paint="card"><div class="pic"><svg viewBox="0 0 240 170" data-prod><use href="#boule"/></svg></div><b data-prodname>Pain de campagne</b><span class="price" data-price>4,50 €</span></div>
+            </div>
+          </section>
+          <div class="s-hours" id="hours"><span class="dot"></span><span>Ouvert <b>du mardi au dimanche</b> · 6h30 – 19h30</span></div>
+          <section class="s-sec" id="secRev">
+            <div class="s-title"><h3>Ce qu'en disent nos clients</h3></div>
+            <div class="stars" id="stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i><span>4,9 / 5 · 128 avis</span></div>
+            <div class="revs">
+              <div class="rev" data-rev><p>« Les meilleurs croissants du quartier. »</p><small>CAMILLE · IL Y A 2 JOURS</small></div>
+              <div class="rev" data-rev><p>« Commandé la veille, prêt à 7h. Parfait. »</p><small>JULIEN · CETTE SEMAINE</small></div>
+            </div>
+          </section>
+        </div>
+        <div class="s-cta" id="cta"><b id="ctaBtn">Commander à l'avance →</b></div>
+        <div id="ripple"></div>
+        <svg id="cursor" viewBox="0 0 40 52"><path d="M4 3 L4 42 L14 32 L21 48 L28 45 L21 29 L35 29 Z" fill="#16161A" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
+        <div id="toast"><div class="ok">✓</div><div><b>Commande reçue</b><small>2 CROISSANTS · DEMAIN 7H30</small></div></div>
+      </div>
+    </div><div class="corner" style="position: absolute; inset: 0"></div></div>
+
+    <div class="shadow" id="pShadow" style="top: 1500px; width: 560px; height: 90px; margin-left: -280px; opacity: 0"></div>
+    <div id="phone">
+      <div class="body"><div class="scr">
+        <div class="notch"></div>
+        <div class="m" id="m">
+          <div class="m-nav"><div class="logo"><svg style="color: var(--gold-light)"><use href="#wheat"/></svg>Au Pain Doré</div><div class="burger"></div></div>
+          <div class="m-hero">
+            <div class="kicker" style="color: var(--gold)">BOULANGERIE · DEPUIS 1998</div>
+            <div class="h1" style="color: var(--brown)">Le pain du quartier, <em style="color: var(--gold)">cuit ce matin.</em></div>
+            <div class="m-img"><svg viewBox="0 0 240 170"><use href="#boule"/></svg></div>
+          </div>
+          <div class="m-cta">Commander à l'avance →</div>
+          <div class="m-list">
+            <div class="it"><svg viewBox="0 0 240 120"><use href="#baguette"/></svg><b>Baguette tradition</b><span>1,30 €</span></div>
+            <div class="it"><svg viewBox="0 0 240 150"><use href="#croissant"/></svg><b>Croissant</b><span>1,20 €</span></div>
+            <div class="it"><svg viewBox="0 0 240 170"><use href="#boule"/></svg><b>Pain de campagne</b><span>4,50 €</span></div>
+          </div>
+          <div class="m-rev"><div class="stars">★★★★★<span>4,9 / 5</span></div><p>« Les meilleurs croissants du quartier. »</p></div>
+        </div>
+      </div></div>
+      <div id="stamp">EN LIGNE ✓<small>AU-PAIN-DORE.FR</small></div>
+    </div>
+
+    <div id="comments"><div class="card">
+      <div class="corner" style="position: absolute; inset: 0; pointer-events: none"></div>
+      <div class="head"><span>COMMENTAIRES</span><span>LE PROCHAIN <b>SITE ?</b></span></div>
+      <div class="c" data-c="0"><div class="av">S</div><div><small>@sarah.coiffure</small><span>Coiffeuse</span></div><em>LE PROCHAIN ?</em></div>
+      <div class="c" data-c="1"><div class="av">M</div><div><small>@garage.martin</small><span>Garagiste</span></div><em>LE PROCHAIN ?</em></div>
+      <div class="c" data-c="2"><div class="av">L</div><div><small>@lea.fleurs</small><span>Fleuriste</span></div><em>LE PROCHAIN ?</em></div>
+      <div class="input"><span>Ton métier…</span><b>|</b></div>
+    </div></div>
+
+    <div class="chip" id="chipGold" style="left: 640px; top: 1040px"><i style="background: linear-gradient(135deg, var(--gold-light), var(--gold))"></i><div><b>Doré</b><small>#C8862A</small></div></div>
+    <div class="chip" id="chipCream" style="left: 720px; top: 1180px"><i style="background: var(--cream); border: 2px solid #eadfcb"></i><div><b>Crème</b><small>#FBF4E8</small></div></div>
+    <div class="chip" id="chipBrown" style="left: 600px; top: 1300px"><i style="background: var(--brown)"></i><div><b>Brun</b><small>#3B2416</small></div></div>
+  </div>
+
+  <div id="fx"></div>
+  <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
+  <div id="caption"></div>
+</div>
+
+<script src="../commun/avatar.js"></script>
+<script src="voice-files.js"></script>
+<script>
+/* ============================================================
+   1. Texte de la voix off (une phrase = un fichier ElevenLabs),
+      découpé en morceaux de sous-titres : [texte, mot en couleur]
+   ============================================================ */
+const SENTENCES = [
+  { chunks: [['Page blanche.', 'blanche.'], ['Dans trente secondes,', 'trente'], ["c'est le site", 'site'], ["d'une boulangerie.", 'boulangerie.']] },
+  { chunks: [["D'abord,", "D'abord,"], ['la structure :', 'structure'], ["ce qu'on vend,", 'vend,'], ['et où.', 'où.']] },
+  { chunks: [['Ensuite,', 'Ensuite,'], ['les couleurs :', 'couleurs'], ['le doré du pain,', 'doré'], ['le crème de la farine.', 'crème']] },
+  { chunks: [['Les produits,', 'produits,'], ['les prix,', 'prix,'], ['les horaires.', 'horaires.']] },
+  { chunks: [['Un bouton', 'bouton'], ['pour commander', 'commander'], ["à l'avance :", "l'avance"], ["c'est lui", 'lui'], ['qui fait vendre.', 'vendre.']] },
+  { chunks: [['Les avis clients,', 'avis'], ['juste en dessous.', 'dessous.']] },
+  { chunks: [['Et maintenant,', 'maintenant,'], ['la version téléphone,', 'téléphone,'], ["parce que c'est là", 'là'], ['que tes clients', 'clients'], ['regardent.', 'regardent.']] },
+  { chunks: [['En ligne.', 'ligne.'], ['Trente secondes…', 'secondes…'], ['en version accélérée.', 'accélérée.']] },
+  { chunks: [['Commente ton métier :', 'métier'], ['le prochain site,', 'prochain'], ["c'est le tien.", 'tien.']] },
+]
+
+/* ============================================================
+   2. Mise en scène : instants en fraction (0 → 1) de chaque phrase.
+      POSES : l'avatar ; CUES : les étapes de construction du site.
+   ============================================================ */
+const POSES = [
+  [{ at: 0, pose: 'pointUp', expr: 'sly' }],
+  [{ at: 0, pose: 'laptop', expr: 'think' }],
+  [{ at: 0, pose: 'laptop', expr: 'happy' }],
+  [{ at: 0, pose: 'thumbs', expr: 'happy' }],
+  [{ at: 0, pose: 'pointUp', expr: 'proud' }],
+  [{ at: 0, pose: 'laptop', expr: 'happy' }],
+  [{ at: 0, pose: 'phone', expr: 'surprised' }, { at: 0.55, pose: 'phone', expr: 'happy' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }],
+  [{ at: 0, pose: 'pointSide', expr: 'wink' }],
+]
+const CUES = {
+  url:      [0, 0.42, 'tick'],
+  wire:     [1, 0.02, 'whoosh'],
+  title:    [1, 0.42, 'pop'],
+  where:    [1, 0.76, 'pop'],
+  gold:     [2, 0.36, 'whoosh'],
+  cream:    [2, 0.66, 'pop'],
+  products: [3, 0.0, 'whoosh'],
+  prices:   [3, 0.3, 'pop'],
+  hours:    [3, 0.62, 'pop'],
+  cta:      [4, 0.02, 'whoosh'],
+  click:    [4, 0.5, 'tick'],
+  toast:    [4, 0.56, 'pop'],
+  reviews:  [5, 0.0, 'whoosh'],
+  phone:    [6, 0.16, 'whoosh'],
+  online:   [7, 0.0, 'ding'],
+  comments: [8, 0.0, 'whoosh'],
+}
+// Couleur de chaque phrase : LTNS° (cyan), doré pour les couleurs, vert à la mise en ligne
+const CYAN = [8, 145, 178], GOLD = [200, 134, 42], GREEN = [22, 163, 74]
+const SENTENCE_COLORS = [CYAN, CYAN, GOLD, CYAN, CYAN, CYAN, CYAN, GREEN, CYAN]
+// Étape du bandeau en cours pendant chaque phrase (-1 : aucune, 6 : toutes faites)
+const SENTENCE_STEP = [-1, 0, 1, 2, 3, 4, 5, 6, 6]
+const URL_TEXT = 'au-pain-dore.fr'
+
+/* ============================================================
+   3. Minutage : durées réelles (timing.json) ou estimation
+   ============================================================ */
+const FPS = 30
+const TAIL = 0.7 // la fin revient à la page blanche : la vidéo boucle
+let TIMES = null, ENVELOPE = null, WORDS = null, TL = null
+const C = {} // instants des étapes, en secondes
+
+function estimateTimes() {
+  let t = 0.1
+  return SENTENCES.map(s => {
+    const text = s.chunks.map(c => c[0]).join(' ')
+    const d = Math.max(1.3, text.length / 15)
+    const r = { start: t, end: t + d }
+    t += d + 0.25
+    return r
+  })
+}
+
+function buildWords() {
+  return SENTENCES.map((s, si) => {
+    const { start, end } = TIMES[si]
+    const words = []
+    s.chunks.forEach(([text, hl], ci) => text.split(' ').forEach(w => words.push({ w, ci, hl: w === hl })))
+    const weights = words.map(x => x.w.replace(/[^\p{L}\p{N}]/gu, '').length + 2)
+    const total = weights.reduce((a, b) => a + b, 0)
+    const span = Math.max(0.4, (end - start) - 0.1)
+    let acc = 0
+    words.forEach((x, i) => {
+      x.t0 = start + (acc / total) * span
+      acc += weights[i]
+      x.t1 = start + (acc / total) * span
+      x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
+    })
+    snapToPauses(words, weights, TIMES[si])
+    return words
+  })
+}
+
+// Avec la vraie voix : les mots suivis d'une ponctuation se terminent sur une pause
+// mesurée (alignement dans l'ordre), les autres se répartissent entre les pauses.
+function snapToPauses(words, weights, { start, end, pauses }) {
+  if (!pauses || !pauses.length) return
+  const P = pauses.filter(p => p[1] - p[0] >= 0.12 && p[0] > start + 0.15 && p[1] < end - 0.1)
+  const A = words.map((x, i) => (i < words.length - 1 && /[,:;.?!…]$/.test(x.w) ? i : -1)).filter(i => i >= 0)
+  if (!P.length || !A.length) return
+  const n = A.length, m = P.length
+  const SKIP_ANCHOR = 0.35, skipPause = j => Math.max(0, P[j][1] - P[j][0] - 0.12) * 3
+  const cost = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const from = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null))
+  cost[0][0] = 0
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const c = cost[i][j]
+    if (c === Infinity) continue
+    if (i < n && c + SKIP_ANCHOR < cost[i + 1][j]) { cost[i + 1][j] = c + SKIP_ANCHOR; from[i + 1][j] = [i, j, false] }
+    if (j < m && c + skipPause(j) < cost[i][j + 1]) { cost[i][j + 1] = c + skipPause(j); from[i][j + 1] = [i, j, false] }
+    if (i < n && j < m) {
+      const d = Math.abs(P[j][0] - words[A[i]].t1)
+      if (d < 1.2 && c + d < cost[i + 1][j + 1]) { cost[i + 1][j + 1] = c + d; from[i + 1][j + 1] = [i, j, true] }
+    }
+  }
+  const pairs = []
+  for (let i = n, j = m; i > 0 || j > 0;) {
+    const [pi, pj, matched] = from[i][j]
+    if (matched) pairs.unshift([A[pi], P[pj]])
+    i = pi; j = pj
+  }
+  const bounds = [{ i: -1, next: start }, ...pairs.map(([i, p]) => ({ i, at: p[0], next: p[1] })), { i: words.length - 1, at: end }]
+  for (let b = 1; b < bounds.length; b++) {
+    const lo = bounds[b - 1].i + 1, hi = bounds[b].i
+    const t0 = bounds[b - 1].next, t1 = bounds[b].at
+    const tot = weights.slice(lo, hi + 1).reduce((x, y) => x + y, 0)
+    let acc = 0
+    for (let k = lo; k <= hi; k++) {
+      words[k].t0 = t0 + (acc / tot) * (t1 - t0)
+      acc += weights[k]
+      words[k].t1 = t0 + (acc / tot) * (t1 - t0)
+    }
+  }
+}
+
+// Ligne de temps : poses de l'avatar + étapes du site (et leurs sons, lus par render.mjs)
+function timeline() {
+  const at = (si, f) => TIMES[si].start + f * (TIMES[si].end - TIMES[si].start)
+  for (const [k, [si, f]] of Object.entries(CUES)) C[k] = at(si, f)
+  C.start = TIMES[1].start - 0.15             // le chrono démarre
+  C.loop = TIMES[TIMES.length - 1].end + 0.1  // retour à la page blanche
+  const out = []
+  POSES.forEach((beats, si) => beats.forEach(b => out.push({ ...b, t: at(si, b.at), si })))
+  for (const [k, [, , sfx]] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx })
+  // Frappe de l'adresse, cartes produits, prix et étoiles : petits sons en rafale
+  for (let i = 1; i < URL_TEXT.length; i += 3) out.push({ t: C.url + i * 0.045, sfx: 'tick' })
+  for (let i = 1; i < 3; i++) out.push({ t: C.products + i * 0.16, sfx: 'pop' }, { t: C.prices + i * 0.12, sfx: 'tick' })
+  for (let i = 0; i < 5; i++) out.push({ t: C.reviews + 0.35 + i * 0.09, sfx: 'tick' })
+  // Retour à la page blanche, l'avatar reprend sa pose du début : la boucle est invisible
+  out.push({ t: C.loop + 0.1, sfx: 'whoosh' }, { ...POSES[0][0], t: C.loop + 0.1, si: TIMES.length - 1 })
+  return out.sort((a, b) => a.t - b.t)
+}
+
+/* ============================================================
+   4. Outils (fonctions pures du temps)
+   ============================================================ */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+const easeOut = p => 1 - Math.pow(1 - p, 3)
+function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
+const ramp = (t, t0, dur) => clamp((t - t0) / dur)
+const mix = (a, b, k) => a.map((v, j) => Math.round(v + (b[j] - v) * k))
+const rgb = c => `rgb(${c[0]}, ${c[1]}, ${c[2]})`
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))
+
+function colorAt(t, si) {
+  const cur = SENTENCE_COLORS[si], prev = SENTENCE_COLORS[Math.max(0, si - 1)]
+  return mix(prev, cur, easeInOut(clamp((t - TIMES[si].start + 0.1) / 0.3)))
+}
+
+function mouthAt(t) {
+  if (ENVELOPE) return clamp(((ENVELOPE[Math.round(t * FPS)] || 0) - 0.06) * 1.6)
+  for (const words of WORDS) for (const x of words) {
+    if (t >= x.t0 && t < x.t1) return 0.12 + 0.8 * Math.abs(Math.sin(Math.PI * x.syl * (t - x.t0) / (x.t1 - x.t0)))
+  }
+  return 0
+}
+
+function blinkAt(t) {
+  const d = (t % 3.4) - 2.9
+  return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
+}
+
+// Petit générateur aléatoire déterministe (confettis)
+function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647 }
+
+/* ============================================================
+   5. Rendu d'un instant t
+   ============================================================ */
+const $ = id => document.getElementById(id)
+const qa = (sel, root = document) => [...root.querySelectorAll(sel)]
+const stage = $('stage'), avatarEl = $('avatar'), captionEl = $('caption')
+const silEl = avatarEl.querySelector('.sil'), liveEl = avatarEl.querySelector('.live')
+const browser = $('browser'), pg = $('pg'), vp = $('vp'), phone = $('phone'), comments = $('comments')
+const STEPS = qa('#steps i')
+const BLOCKS = qa('#pg [data-in]')
+const PAINT = qa('#pg [data-paint]')
+const TEXTS = qa('#pg [data-text]')
+const PRODS = qa('#pg .prod')
+const CONFETTI = []
+
+// Couleurs du site : maquette grise → boulangerie
+const WIRE = { bg: [255, 255, 255], nav: [231, 228, 221], img: [231, 228, 221], card: [242, 240, 235], pic: [231, 228, 221], ink: [22, 22, 26], gold: [154, 151, 143], chip: [239, 236, 230], hours: [231, 228, 221] }
+const BAKERY = { bg: hex('#FBF4E8'), nav: hex('#3B2416'), img: hex('#E7B25C'), card: [255, 255, 255], pic: hex('#F6E7CC'), ink: hex('#3B2416'), gold: hex('#C8862A'), chip: hex('#F3E4C8'), hours: hex('#3B2416') }
+
+// Contour d'autocollant précalculé par pose (voir ../commun/avatar.js)
+const SILHOUETTES = {}
+const silKey = b => `${b.pose}|${b.expr}`
+async function preloadSilhouettes() {
+  const keys = [...new Set(TL.filter(b => b.pose).map(silKey))]
+  await Promise.all(keys.map(k => {
+    const [pose, expr] = k.split('|')
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LTNSAvatar.svg({ pose, expr }))
+    SILHOUETTES[k] = url
+    const img = new Image(); img.src = url
+    return img.decode().catch(() => {})
+  }))
+}
+let lastSil = '', lastLive = ''
+window.settle = () => silEl.decode().catch(() => {})
+
+function sentenceAt(t) {
+  let idx = 0
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.05) idx = i
+  return idx
+}
+
+function setT(el, op, tr) { el.style.opacity = op; el.style.transform = tr || 'none' }
+
+// Le site à l'instant s (en fin de vidéo, s repart à 0 : page blanche)
+function renderSite(s, t) {
+  // Adresse tapée lettre par lettre
+  const typed = Math.floor(clamp((s - C.url) / 0.045, 0, URL_TEXT.length))
+  $('urlText').textContent = URL_TEXT.slice(0, typed)
+  $('url').querySelector('.caret').style.opacity = (typed < URL_TEXT.length && Math.floor(t * 2.5) % 2 === 0) || typed === 0 ? 1 : 0
+
+  // Page blanche : le curseur clignote
+  $('blank').style.opacity = s < C.wire ? 1 : 0
+  $('blank').querySelector('.cur').style.opacity = Math.floor(t * 2.2) % 2 === 0 ? 1 : 0
+
+  // Structure : les blocs arrivent en 3D, rabattus depuis la profondeur
+  BLOCKS.forEach(el => {
+    const t0 = C.wire + +el.dataset.in * 0.11
+    const p = pop(s, t0, 0.45), k = clamp(p)
+    el.style.opacity = p > 0 ? 1 : 0
+    el.style.transform = p > 0 ? `translateZ(${(1 - k) * 420}px) rotateX(${(1 - p) * -75}deg)` : 'none'
+  })
+  $('hours').style.visibility = s >= C.hours - 0.05 ? 'visible' : 'hidden'
+  const pr = pop(s, C.reviews, 0.45)
+  setT($('secRev'), pr > 0 ? 1 : 0, `translateY(${(1 - clamp(pr)) * 80}px)`)
+
+  // Couleurs : vague dorée puis crème, du haut à gauche vers le bas à droite
+  const g = i => easeInOut(ramp(s, C.gold + i * 0.07, 0.45))
+  const cr = easeInOut(ramp(s, C.cream, 0.5))
+  const col = (key, k) => rgb(mix(WIRE[key], BAKERY[key], k))
+  vp.style.setProperty('--s-bg', col('bg', cr))
+  pg.style.setProperty('--s-ink', col('ink', g(1)))
+  pg.style.setProperty('--s-gold', col('gold', g(1)))
+  pg.style.setProperty('--s-gold-l', col('gold', g(0)))
+  pg.style.setProperty('--s-chip', col('chip', cr))
+  pg.style.setProperty('--s-light', rgb(mix([22, 22, 26], [255, 255, 255], g(0))))
+  pg.style.setProperty('--wf', (0.3 * (1 - g(2))).toFixed(3))
+  PAINT.forEach(el => {
+    const kind = el.dataset.paint
+    if (kind === 'nav') el.style.background = col('nav', g(0))
+    if (kind === 'img') el.style.background = `linear-gradient(135deg, ${col('img', g(2))}, ${col('gold', g(2))})`
+    if (kind === 'card') el.style.background = col('card', cr)
+  })
+  qa('#pg .pic').forEach(el => el.style.background = col('pic', cr))
+  $('hours').style.background = col('hours', 1)
+  // Textes : squelettes gris jusqu'à « ce qu'on vend », puis le vrai texte
+  const tx = ramp(s, C.title, 0.3)
+  TEXTS.forEach(el => { el.style.opacity = s >= C.wire ? 0.25 + 0.75 * tx : 0 })
+  $('h1').style.clipPath = `inset(0 ${(1 - easeOut(ramp(s, C.title, 0.55))) * 100}% 0 0)`
+  $('h1sk').style.display = s >= C.title + 0.4 ? 'none' : 'grid'
+  $('h1sk').style.opacity = 1 - tx
+  $('h1').style.position = s >= C.title + 0.4 ? 'static' : 'absolute'
+  const pa = pop(s, C.where, 0.35)
+  setT($('addr'), pa > 0 ? 1 : 0, `scale(${0.5 + 0.5 * pa})`)
+  // Image du héros : le pain flotte en 3D
+  const pb = pop(s, C.gold + 0.15, 0.5)
+  $('imgPh').style.opacity = pb > 0 ? 0 : 1
+  setT($('heroBread'), pb > 0 ? 1 : 0, `translateY(${Math.sin(t * 1.8) * 8}px) rotate(${Math.sin(t * 1.2) * 4}deg) scale(${0.3 + 0.7 * pb})`)
+
+  // Produits : chaque carte se retourne en 3D, puis les prix tombent
+  PRODS.forEach((el, i) => {
+    const p = pop(s, C.products + i * 0.16, 0.5)
+    const svg = el.querySelector('[data-prod]'), name = el.querySelector('[data-prodname]'), price = el.querySelector('[data-price]')
+    setT(svg, p > 0 ? 1 : 0, `rotateY(${(1 - p) * 160}deg) scale(${0.4 + 0.6 * clamp(p)})`)
+    name.style.opacity = p > 0 ? 1 : 0.25
+    const q = pop(s, C.prices + i * 0.12, 0.35)
+    setT(price, q > 0 ? 1 : 0, `translateY(${(1 - clamp(q)) * -40}px) rotate(${(1 - q) * 25 + 6}deg) scale(${0.5 + 0.5 * q})`)
+  })
+  const ph = pop(s, C.hours, 0.4)
+  setT($('hours'), ph > 0 ? 1 : 0, `perspective(900px) rotateX(${(1 - ph) * 80}deg)`)
+
+  // Défilement de la page : vers les produits, puis vers les avis
+  const yProd = $('secProd').offsetTop - 30
+  const yRev = Math.min(pg.scrollHeight - vp.clientHeight, $('secRev').offsetTop - 120)
+  const scroll = yProd * easeInOut(ramp(s, C.products - 0.35, 0.6)) + (yRev - yProd) * easeInOut(ramp(s, C.reviews - 0.1, 0.7))
+  pg.style.transform = `translateY(${-scroll}px)`
+
+  // Bouton collant : il monte, pulse, le curseur clique, la commande arrive
+  const pc = pop(s, C.cta, 0.45)
+  $('cta').style.transform = `translateY(${(1 - clamp(pc)) * 120}%)`
+  const btn = $('ctaBtn')
+  btn.style.transform = `scale(${s > C.cta + 0.4 ? 1 + 0.04 * Math.sin((s - C.cta) * 9) * (s < C.click ? 1 : 0) - (Math.abs(s - C.click) < 0.08 ? 0.06 : 0) : 1})`
+  btn.style.boxShadow = s > C.cta + 0.4 ? `0 0 0 ${Math.round(6 + 6 * Math.sin((s - C.cta) * 9))}px rgba(231, 178, 92, .35)` : 'none'
+  const bx = 640, by = vp.clientHeight - 60
+  const mv = easeInOut(ramp(s, C.click - 0.55, 0.5))
+  const cursorOn = s > C.click - 0.6 && s < C.toast + 1.4
+  setT($('cursor'), cursorOn ? 1 : 0, `translate(${900 + (bx - 900) * mv}px, ${by - 260 + 260 * mv}px) scale(${Math.abs(s - C.click) < 0.08 ? 0.85 : 1})`)
+  const rp = ramp(s, C.click, 0.45)
+  $('ripple').style.left = bx + 'px'; $('ripple').style.top = (by + 10) + 'px'
+  setT($('ripple'), rp > 0 && rp < 1 ? 1 - rp : 0, `scale(${0.3 + 2.4 * rp})`)
+  const pt = pop(s, C.toast, 0.45), out = ramp(s, C.toast + 1.6, 0.3)
+  setT($('toast'), pt > 0 ? 1 - out : 0, `perspective(900px) rotateX(${(1 - pt) * -90}deg) translateY(${out * -40}px)`)
+
+  // Avis : les étoiles s'allument une à une, les cartes basculent
+  qa('#stars i').forEach((el, i) => {
+    const p = pop(s, C.reviews + 0.35 + i * 0.09, 0.3)
+    setT(el, p > 0 ? 1 : 0.15, `scale(${p > 0 ? 0.4 + 0.6 * p : 1}) rotate(${(1 - clamp(p)) * -90}deg)`)
+  })
+  qa('#pg [data-rev]').forEach((el, i) => {
+    const p = pop(s, C.reviews + 0.5 + i * 0.18, 0.45)
+    setT(el, p > 0 ? 1 : 0, `rotateY(${(1 - p) * (i ? -70 : 70)}deg) translateZ(${(1 - clamp(p)) * 200}px)`)
+  })
+}
+
+function renderAt(t) {
+  const si = sentenceAt(t)
+  const c = colorAt(t, si)
+  stage.style.setProperty('--accent', rgb(c))
+  stage.style.setProperty('--accent-rgb', c.join(', '))
+  const tail = t >= C.loop
+  const s = tail ? 0 : t // en fin de vidéo, tout revient à la page blanche
+
+  // Chrono : 00:00 → 00:30 pile à la mise en ligne
+  const sec = tail ? 0 : 30 * clamp((t - C.start) / (C.online - C.start))
+  $('chrono').querySelector('b').textContent = '00:' + String(Math.floor(sec)).padStart(2, '0')
+  $('chrono').querySelector('small').textContent = ',' + Math.floor((sec % 1) * 10)
+  const done = !tail && t >= C.online
+  $('chrono').style.color = done ? 'var(--green)' : 'var(--ink)'
+  $('chrono').querySelector('i').style.background = done ? 'var(--green)' : '#E11D48'
+  $('chrono').querySelector('i').style.opacity = done || Math.floor(t * 2) % 2 === 0 ? 1 : 0.25
+  const pk = done ? 1 + 0.25 * (1 - clamp(pop(t, C.online, 0.4))) : 1
+  $('chrono').style.transform = `scale(${pk})`
+  $('prog').style.transform = `scaleX(${sec / 30})`
+  const step = tail ? -1 : SENTENCE_STEP[si]
+  STEPS.forEach((el, i) => {
+    el.className = i < step ? 'done' : i === step ? 'now' : ''
+    el.textContent = (i < step ? '✓ ' : '') + ['STRUCTURE', 'COULEURS', 'CONTENU', 'BOUTON', 'AVIS', 'MOBILE'][i]
+  })
+
+  renderSite(s, t)
+
+  // Le navigateur flotte en 3D ; il pivote pour laisser place au téléphone
+  const intro = clamp(pop(t, 0, 0.5))
+  const flipOut = tail ? 0 : easeInOut(ramp(t, C.phone, 0.45))
+  const back = tail ? pop(t, C.loop + 0.12, 0.45) : 1
+  const bOn = tail ? back > 0 : flipOut < 1
+  const rx = 7 + Math.sin(t * 0.9) * 2.5, ry = -9 + Math.sin(t * 0.6) * 4
+  browser.style.opacity = bOn ? 1 : 0
+  browser.style.transform = `translateY(${Math.sin(t * 1.4) * 10}px) rotateX(${rx}deg) rotateY(${ry + flipOut * 95 + (tail ? (1 - back) * -60 : 0)}deg) scale(${(0.92 + 0.08 * intro) * (1 - flipOut * 0.25) * (tail ? 0.7 + 0.3 * back : 1)})`
+  $('bShadow').style.opacity = bOn ? (1 - flipOut) * 0.9 : 0
+  $('bShadow').style.transform = `scaleX(${1 + Math.sin(t * 1.4) * 0.03})`
+  $('glow').style.opacity = tail ? 0 : (0.9 * easeInOut(ramp(t, C.gold, 0.8)))
+  $('glow').style.transform = `scale(${1 + 0.05 * Math.sin(t * 1.1)})`
+
+  // Pastilles de couleur : elles jaillissent devant le site puis repartent
+  ;[['chipGold', C.gold - 0.25], ['chipCream', C.cream - 0.15], ['chipBrown', C.gold + 0.05]].forEach(([id, t0], i) => {
+    const p = pop(s, t0, 0.45), gone = ramp(s, C.products - 0.5, 0.35)
+    const el = $(id)
+    el.style.opacity = p > 0 && !tail ? 1 - gone : 0
+    el.style.transform = `translateZ(${(1 - clamp(p)) * 600 + 120}px) rotateY(${-18 + Math.sin(t * 1.3 + i) * 6}deg) rotateX(${8 + Math.sin(t * 1.1 + i * 2) * 5}deg) translateY(${Math.sin(t * 1.7 + i) * 10 - gone * 120}px) scale(${0.4 + 0.6 * clamp(p)})`
+  })
+
+  // Téléphone : il pivote à son tour, défile, puis passe « en ligne »
+  const pin = tail ? 0 : easeOut(ramp(t, C.phone + 0.3, 0.55))
+  const pout = tail ? 1 : easeInOut(ramp(t, C.comments - 0.05, 0.45))
+  const spin = easeInOut(ramp(t, C.online - 0.05, 0.7)) * 360
+  phone.style.opacity = pin > 0 && pout < 1 ? 1 : 0
+  phone.style.transform = `translateX(${60 + pout * -700}px) translateY(${Math.sin(t * 1.4) * 12 + (1 - pin) * 80}px) rotateY(${(1 - pin) * -95 - 14 + Math.sin(t * 0.7) * 5 + spin - pout * 60}deg) rotateX(${5 + Math.sin(t * 0.9) * 2}deg) scale(${(0.75 + 0.25 * pin) * (1 - pout * 0.3)})`
+  $('pShadow').style.opacity = phone.style.opacity * 0.9
+  $('pShadow').style.transform = `translateX(${60 + pout * -700}px) scaleX(${0.6 + 0.4 * pin})`
+  const mScroll = easeInOut(ramp(t, C.phone + 0.9, 2.6)) * ($('m').scrollHeight - 860)
+  $('m').style.transform = `translateY(${-mScroll}px)`
+  const ps = pop(t, C.online + 0.35, 0.4)
+  setT($('stamp'), ps > 0 ? 1 : 0, `translateZ(140px) rotate(${-10 + (1 - clamp(ps)) * 30}deg) scale(${2.4 - 1.4 * ps})`)
+
+  // Confettis dorés à la mise en ligne
+  const ct = t - (C.online + 0.35)
+  CONFETTI.forEach(cf => {
+    const on = ct > 0 && ct < 1.8 && !tail
+    cf.el.style.opacity = on ? clamp(1.8 - ct) : 0
+    if (!on) return
+    const x = 540 + cf.vx * ct, y = 1000 + cf.vy * ct + 900 * ct * ct
+    cf.el.style.transform = `translate(${x}px, ${y}px) rotate(${cf.r + cf.vr * ct}deg) rotateX(${cf.vr * ct * 2}deg)`
+  })
+
+  // Commentaires : la carte bascule en 3D, les métiers arrivent un par un
+  const pcm = tail ? 1 - ramp(t, C.loop, 0.2) : pop(t, C.comments + 0.1, 0.5)
+  comments.style.opacity = pcm > 0 ? 1 : 0
+  comments.style.transform = `perspective(1600px) rotateY(${(1 - pcm) * 80}deg) translateY(${Math.sin(t * 1.4) * 8}px) scale(${0.7 + 0.3 * pcm})`
+  qa('#comments [data-c]').forEach((el, i) => {
+    const p = pop(t, C.comments + 0.4 + i * 0.22, 0.35)
+    setT(el, p > 0 ? 1 : 0, `translateX(${(1 - clamp(p)) * 120}px)`)
+  })
+  qa('#comments .input b')[0].style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0
+
+  // Avatar
+  let pose = TL.find(b => b.pose), avatarSince = 0
+  for (const bt of TL) { if (bt.t > t) break; if (bt.pose) { pose = bt; avatarSince = bt.t } }
+  const sk = silKey(pose)
+  if (sk !== lastSil) { silEl.src = SILHOUETTES[sk]; lastSil = sk }
+  const m = mouthAt(t), bl = blinkAt(t), acc = rgb(c)
+  const key = [sk, m.toFixed(2), bl.toFixed(2), acc].join('|')
+  if (key !== lastLive) {
+    liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: m, blink: bl, accent: acc, noFilter: true })
+    lastLive = key
+  }
+  const sc = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+  avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${sc})`
+
+  // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const words = WORDS[si]
+  if (t > TIMES[si].end + 0.5 || tail) { captionEl.innerHTML = ''; return }
+  let ci = 0
+  for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
+  captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
+    const q = si === 0 && ci === 0 ? 1 : pop(t, x.t0 - 0.03, 0.22)
+    if (q <= 0) return ''
+    return `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  }).join('')
+}
+
+/* ============================================================
+   6. Démarrage : lecture en direct, image figée (?t=) ou rendu MP4
+   ============================================================ */
+function fit() {
+  const k = Math.min(innerWidth / 1080, innerHeight / 1920)
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`
+}
+
+function buildConfetti() {
+  const r = rand(42), colors = ['#C8862A', '#E7B25C', '#16A34A', '#0891B2', '#3B2416', '#F3E4C8']
+  for (let i = 0; i < 46; i++) {
+    const el = document.createElement('i')
+    el.style.background = colors[i % colors.length]
+    $('fx').appendChild(el)
+    const a = -Math.PI / 2 + (r() - 0.5) * 2.4, v = 700 + r() * 900
+    CONFETTI.push({ el, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: r() * 360, vr: (r() - 0.5) * 900 })
+  }
+}
+
+async function boot() {
+  // timing.json et envelope.json n'existent qu'une fois la voix ajoutée (voir ../README.md)
+  const has = window.VOICE_FILES || []
+  if (has.includes('timing.json')) TIMES = (await (await fetch('timing.json', { cache: 'no-store' })).json()).sentences
+  if (has.includes('envelope.json')) ENVELOPE = (await (await fetch('envelope.json', { cache: 'no-store' })).json()).values
+  if (!TIMES) TIMES = estimateTimes()
+  WORDS = buildWords()
+  TL = timeline()
+  buildConfetti()
+  await preloadSilhouettes()
+  window.DURATION = TIMES[TIMES.length - 1].end + TAIL
+  await document.fonts.ready
+
+  const q = new URLSearchParams(location.search)
+  if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true; return }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); return }
+  const audio = q.has('audio') ? new Audio('voice.mp3') : null
+  if (audio) { audio.loop = true; audio.play().catch(() => {}) }
+  const t0 = performance.now()
+  const loop = () => {
+    renderAt(audio ? audio.currentTime : ((performance.now() - t0) / 1000) % window.DURATION)
+    requestAnimationFrame(loop)
+  }
+  loop()
+}
+boot()
+</script>
+</body>
+</html>

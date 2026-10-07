@@ -5,6 +5,7 @@ python3 sfx.py events.json sortie.wav
 - pop    : petite bulle quand un encart apparaît
 - tick   : clic léger quand l'avatar change de pose
 - whoosh : souffle sur les fonds à motifs
+- ding   : clochette claire (mise en ligne)
 Pas de rythme en fond : la voix reste seule entre les effets.
 """
 import json
@@ -54,7 +55,16 @@ def main(events_path, out_path):
             out.append(0.55 * lp * env)
         return out
 
-    sounds = {"pop": pop(), "tick": tick(), "whoosh": whoosh()}
+    def ding():
+        # Clochette : deux partiels qui s'éteignent lentement
+        out = []
+        for k in range(int(0.9 * RATE)):
+            t = k / RATE
+            env = math.exp(-t * 5) * min(1.0, t / 0.004)
+            out.append(env * (0.22 * math.sin(2 * math.pi * 1318 * t) + 0.12 * math.sin(2 * math.pi * 1976 * t) + 0.06 * math.sin(2 * math.pi * 2637 * t)))
+        return out
+
+    sounds = {"pop": pop(), "tick": tick(), "whoosh": whoosh(), "ding": ding()}
     for e in data["events"]:
         add(max(0.0, e["t"] - (0.08 if e["kind"] == "whoosh" else 0.0)), sounds[e["kind"]])
 
