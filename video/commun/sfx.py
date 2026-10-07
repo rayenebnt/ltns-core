@@ -5,7 +5,7 @@ python3 sfx.py events.json sortie.wav
 - pop    : petite bulle quand un encart apparaît
 - tick   : clic léger quand l'avatar change de pose
 - whoosh : souffle sur les fonds à motifs
-Plus une pulsation très discrète en fond, à 100 battements par minute.
+Pas de rythme en fond : la voix reste seule entre les effets.
 """
 import json
 import math
@@ -57,20 +57,6 @@ def main(events_path, out_path):
     sounds = {"pop": pop(), "tick": tick(), "whoosh": whoosh()}
     for e in data["events"]:
         add(max(0.0, e["t"] - (0.08 if e["kind"] == "whoosh" else 0.0)), sounds[e["kind"]])
-
-    # Pulsation de fond : grosse caisse douce
-    beat = 60 / 100
-    kick = []
-    phase = 0.0
-    for k in range(int(0.18 * RATE)):
-        t = k / RATE
-        f = 50 + 70 * math.exp(-t * 30)
-        phase += 2 * math.pi * f / RATE
-        kick.append(0.16 * math.sin(phase) * math.exp(-t * 14))
-    t = 0.35
-    while t < data["duration"] - 1.0:
-        add(t, kick)
-        t += beat
 
     peak = max(1e-6, max(abs(v) for v in buf))
     gain = min(1.0, 0.9 / peak)
