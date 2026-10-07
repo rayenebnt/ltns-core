@@ -366,22 +366,23 @@ const POSES = [
   [{ at: 0, pose: 'cheer', expr: 'proud' }],
   [{ at: 0, pose: 'pointSide', expr: 'wink' }],
 ]
+// Étape : [phrase, fraction de la phrase] ou [phrase, 'mot', décalage en s] pour tomber sur un mot
 const CUES = {
   url:      [0, 0.42, 'tick'],
-  wire:     [1, 0.02, 'whoosh'],
-  title:    [1, 0.42, 'pop'],
-  where:    [1, 0.76, 'pop'],
-  gold:     [2, 0.36, 'whoosh'],
-  cream:    [2, 0.66, 'pop'],
-  products: [3, 0.0, 'whoosh'],
-  prices:   [3, 0.3, 'pop'],
-  hours:    [3, 0.62, 'pop'],
-  cta:      [4, 0.02, 'whoosh'],
-  click:    [4, 0.5, 'tick'],
-  toast:    [4, 0.56, 'pop'],
-  reviews:  [5, 0.0, 'whoosh'],
-  phone:    [6, 0.16, 'whoosh'],
-  online:   [7, 0.0, 'ding'],
+  wire:     [1, 'structure', -0.1, 'whoosh'],
+  title:    [1, 'vend', -0.3, 'pop'],
+  where:    [1, 'où', -0.05, 'pop'],
+  gold:     [2, 'doré', -0.15, 'whoosh'],
+  cream:    [2, 'crème', -0.1, 'pop'],
+  products: [3, 'produits', -0.15, 'whoosh'],
+  prices:   [3, 'prix', -0.1, 'pop'],
+  hours:    [3, 'horaires', -0.1, 'pop'],
+  cta:      [4, 'bouton', -0.1, 'whoosh'],
+  click:    [4, 'lui', -0.05, 'tick'],
+  toast:    [4, 'lui', 0.2, 'pop'],
+  reviews:  [5, 'avis', -0.2, 'whoosh'],
+  phone:    [6, 'téléphone', -0.35, 'whoosh'],
+  online:   [7, 'ligne', -0.1, 'ding'],
   comments: [8, 0.0, 'whoosh'],
 }
 // Couleur de chaque phrase : LTNS° (cyan), doré pour les couleurs, vert à la mise en ligne
@@ -414,7 +415,8 @@ function buildWords() {
   return SENTENCES.map((s, si) => {
     const { start, end } = TIMES[si]
     const words = []
-    s.chunks.forEach(([text, hl], ci) => text.split(' ').forEach(w => words.push({ w, ci, hl: w === hl })))
+    // La ponctuation double (« : ») reste collée au mot qui la précède
+    s.chunks.forEach(([text, hl], ci) => text.replace(/ ([:;?!])/g, '\u00a0$1').split(' ').forEach(w => words.push({ w, ci, hl: w.split('\u00a0')[0] === hl })))
     const weights = words.map(x => x.w.replace(/[^\p{L}\p{N}]/gu, '').length + 2)
     const total = weights.reduce((a, b) => a + b, 0)
     const span = Math.max(0.4, (end - start) - 0.1)
@@ -475,12 +477,16 @@ function snapToPauses(words, weights, { start, end, pauses }) {
 // Ligne de temps : poses de l'avatar + étapes du site (et leurs sons, lus par render.mjs)
 function timeline() {
   const at = (si, f) => TIMES[si].start + f * (TIMES[si].end - TIMES[si].start)
-  for (const [k, [si, f]] of Object.entries(CUES)) C[k] = at(si, f)
+  const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+  for (const [k, [si, f, off]] of Object.entries(CUES)) {
+    const word = typeof f === 'string' && WORDS[si].find(x => norm(x.w) === norm(f))
+    C[k] = word ? word.t0 + off : at(si, typeof f === 'string' ? 0 : f)
+  }
   C.start = TIMES[1].start - 0.15             // le chrono démarre
   C.loop = TIMES[TIMES.length - 1].end + 0.1  // retour à la page blanche
   const out = []
   POSES.forEach((beats, si) => beats.forEach(b => out.push({ ...b, t: at(si, b.at), si })))
-  for (const [k, [, , sfx]] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx })
+  for (const [k, cue] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx: cue[cue.length - 1] })
   // Frappe de l'adresse, cartes produits, prix et étoiles : petits sons en rafale
   for (let i = 1; i < URL_TEXT.length; i += 3) out.push({ t: C.url + i * 0.045, sfx: 'tick' })
   for (let i = 1; i < 3; i++) out.push({ t: C.products + i * 0.16, sfx: 'pop' }, { t: C.prices + i * 0.12, sfx: 'tick' })
