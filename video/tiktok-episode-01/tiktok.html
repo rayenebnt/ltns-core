@@ -480,9 +480,12 @@ function renderAt(t) {
   $('hit').style.opacity = hp < 0 ? 0 : (1 - Math.pow(hp, 3)).toFixed(3)
   $('hit').style.transform = `translateY(${hp < 0 ? 0 : hp * 22}px) scale(${hp < 0 ? 1 : 0.8 + 0.4 * pop(hit, 0, 0.25)})`
   $('flash').style.opacity = hp < 0 ? 0 : (Math.sin(Math.min(1, hp * 2) * Math.PI) * 0.9).toFixed(3)
+  // Un encart s'efface juste avant la phrase suivante, sauf si celle-ci enchaîne
+  // directement sur un autre encart : l'avatar ne doit pas apparaître entre les deux
   if (insert && !insert.hold) {
     const next = TIMES[insert.si + 1]
-    if (next && t >= next.start - 0.04) insert = null
+    const following = TL[TL.indexOf(insert) + 1]
+    if (next && t >= next.start - 0.04 && !(following && following.insert)) insert = null
   }
   SIGNS.forEach((el, i) => {
     el.classList.toggle('on', i < signs)

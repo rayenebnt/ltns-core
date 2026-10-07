@@ -468,9 +468,12 @@ function renderAt(t) {
     if (bt.insert) { insert = bt; insertSince = bt.t }
     if (bt.step) steps = bt.step
   }
+  // Un encart s'efface juste avant la phrase suivante, sauf si celle-ci enchaîne
+  // directement sur un autre encart : l'avatar ne doit pas apparaître entre les deux
   if (insert && !insert.hold) {
     const next = TIMES[insert.si + 1]
-    if (next && t >= next.start - 0.04) insert = null
+    const following = TL[TL.indexOf(insert) + 1]
+    if (next && t >= next.start - 0.04 && !(following && following.insert)) insert = null
   }
   STEPS.forEach((el, i) => { el.classList.toggle('on', i < steps); el.textContent = i < steps ? '✓' : String(i + 1) })
 
