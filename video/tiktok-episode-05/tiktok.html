@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — TikTok « Devine le prix »</title>
+<!--
+  Épisode 05 : « Même garage, trois sites : devine lequel coûte 490 € »
+  Trois sites pour le même garage (fictif), un par formule LTNS° :
+  Essentiel (une page), Pro (plusieurs pages, animations, textes modifiables),
+  Sur-mesure (rendez-vous en ligne, suivi de la réparation).
+  Un carrousel 3D présente chaque site, un compte à rebours laisse deviner,
+  puis les étiquettes « ? € » se retournent. Les prix sont ceux de la page Tarifs.
+  La fin revient aux trois étiquettes « ? € » : la vidéo boucle.
+  Vidéo 1080 × 1920, 30 i/s.
+
+  Ouvrir via un serveur local (voir ../README.md) : la vidéo se joue toute seule.
+  ?t=12.5 fige l'image à 12,5 s · ?audio la joue avec voice.mp3.
+-->
+<link rel="stylesheet" href="../commun/fonts.css">
+<style>
+  :root {
+    --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
+    --line: rgba(22, 22, 26, 0.09); --line-strong: rgba(22, 22, 26, 0.18);
+    --accent: rgb(8, 145, 178); --accent-rgb: 8, 145, 178;
+    --c1: #2563EB; --c2: #7C3AED; --c2l: #A78BFA; --c3: #EA580C; --green: #16A34A;
+    --display: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace; --ui: 'Montserrat', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 1080px; height: 1920px; overflow: hidden;
+    background:
+      linear-gradient(var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      linear-gradient(90deg, var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      var(--paper);
+    font-family: var(--display); color: var(--ink);
+  }
+  #glow { position: absolute; left: 50%; top: 1010px; width: 1400px; height: 1400px; margin: -700px 0 0 -700px; border-radius: 50%; }
+  /* Pas de will-change sur .site : Chrome couperait ce qui dépasse du cadre (étiquettes, numéros) */
+  #avatar, #caption, #hud, #fx, #count, #guess, #com, #flash { will-change: transform, opacity; }
+
+  /* Bandeau : marque, « réponse à la fin », tableau des prix */
+  #hud { position: absolute; left: 70px; right: 70px; top: 170px; font-family: var(--mono); font-size: 31px; letter-spacing: 3px; color: var(--dim); z-index: 30; }
+  #hud .row { display: flex; align-items: center; gap: 22px; padding-bottom: 16px; border-bottom: 2px solid var(--line-strong); white-space: nowrap; position: relative; }
+  #hud .brand b { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -1px; color: var(--ink); }
+  #hud .brand span { color: var(--accent); }
+  #hud .tag2 b { color: var(--ink); font-weight: 500; }
+  #ans { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 22px; color: var(--ink); }
+  #ans i { width: 16px; height: 16px; border-radius: 50%; background: #E11D48; }
+  #prog { position: absolute; left: 0; bottom: -2px; height: 6px; width: 100%; background: var(--accent); transform-origin: 0 50%; }
+  #slots { display: flex; gap: 10px; margin-top: 16px; }
+  #slots i { flex: 1; font-style: normal; display: flex; align-items: center; justify-content: space-between; padding: 6px 14px; border: 3px solid var(--line-strong); color: var(--mute); font-size: 19px; letter-spacing: 1px; white-space: nowrap; }
+  #slots i b { font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: 0; color: var(--ink); }
+  #slots i.now { border-color: var(--sc); color: var(--sc); }
+  #slots i.rev { background: var(--sc); border-color: var(--sc); color: #fff; }
+  #slots i.rev b { color: #fff; }
+
+  /* Sous-titres mot à mot */
+  #caption {
+    position: absolute; left: 70px; right: 70px; top: 348px; height: 230px; z-index: 30;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 24px; text-align: center;
+    font-weight: 700; font-size: 82px; line-height: 1.02; letter-spacing: -2px; text-transform: uppercase;
+  }
+  #caption .w { display: inline-block; transform-origin: 50% 80%; }
+  #caption .w.hl { color: var(--accent); font-style: italic; font-weight: 500; }
+
+  /* Scène 3D : le carrousel des trois sites */
+  #scene { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 50% 980px; transform-style: preserve-3d; }
+  .shadow { position: absolute; left: 50%; top: 1420px; width: 1000px; height: 120px; margin-left: -500px; border-radius: 50%; background: radial-gradient(closest-side, rgba(22, 22, 26, .25), rgba(22, 22, 26, 0)); }
+  .site { position: absolute; left: 140px; top: 640px; width: 800px; height: 740px; transform-style: preserve-3d; }
+  .win { position: absolute; inset: 0; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 60px 120px -50px rgba(22, 22, 26, .55); overflow: hidden; }
+  .bar { height: 58px; background: #ece9e2; display: flex; align-items: center; gap: 14px; padding: 0 22px; border-bottom: 2px solid var(--line); }
+  .bar > i { width: 16px; height: 16px; border-radius: 50%; background: #c9c4ba; }
+  .bar span { margin-left: 14px; flex: 1; height: 36px; background: #fff; border-radius: 18px; display: flex; align-items: center; padding: 0 18px; font-family: var(--mono); font-size: 19px; color: var(--dim); }
+  .bar em { font-style: normal; font-family: var(--mono); font-size: 16px; letter-spacing: 2px; color: #fff; background: var(--c); padding: 4px 10px; border-radius: 8px; }
+  .vp { position: absolute; left: 0; right: 0; top: 58px; bottom: 0; overflow: hidden; }
+  .num { position: absolute; left: -36px; top: -36px; width: 92px; height: 92px; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 52px; border: 7px solid var(--paper); box-shadow: 0 16px 30px -12px rgba(22, 22, 26, .5); }
+  svg.i { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* Étiquette de prix : « ? € » devant, le prix derrière */
+  .tag { position: absolute; left: 585px; top: -84px; width: 250px; height: 150px; transform-style: preserve-3d; }
+  .tag .face { position: absolute; inset: 0; border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; backface-visibility: hidden; box-shadow: 0 24px 40px -18px rgba(22, 22, 26, .6); }
+  .tag .face::before { content: ''; position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: var(--paper); box-shadow: inset 0 2px 3px rgba(0,0,0,.25); }
+  .tag .front { background: var(--ink); color: #fff; }
+  .tag .front small { font-family: var(--mono); font-size: 18px; letter-spacing: 4px; color: #FACC15; }
+  .tag .front b { font-size: 80px; font-weight: 700; letter-spacing: -2px; line-height: 1; }
+  .tag .back { background: var(--c); color: #fff; transform: rotateY(180deg); }
+  .tag .back small { font-family: var(--mono); font-size: 16px; letter-spacing: 3px; opacity: .9; }
+  .tag .back b { font-size: 66px; font-weight: 700; letter-spacing: -2px; line-height: 1.02; }
+  .tag .back b.sm { font-size: 42px; letter-spacing: -1px; }
+  .tag .back span { font-family: var(--mono); font-size: 16px; letter-spacing: 3px; margin-top: 6px; background: rgba(255, 255, 255, .22); padding: 3px 10px; border-radius: 8px; }
+
+  /* Site 1 — Essentiel : une page claire */
+  .s1 { background: #fff; font-family: var(--ui); color: #0F172A; }
+  .pg1 { position: absolute; left: 0; right: 0; top: 0; }
+  .s1 header, .s3 header { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
+  .s1 header { height: 84px; border-bottom: 2px solid #EEF2F7; }
+  .lg { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 25px; letter-spacing: -.5px; white-space: nowrap; }
+  .ic { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; background: var(--c); color: #fff; }
+  .s1 .tel { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 18px; color: #334155; }
+  .s1 .tel svg { color: var(--c1); width: 20px; height: 20px; }
+  .s1 .hero { position: relative; height: 330px; padding: 32px 28px; background: linear-gradient(180deg, #EFF6FF, #fff); overflow: hidden; }
+  .s1 .hero h2 { font-weight: 800; font-size: 46px; line-height: 1.04; letter-spacing: -1.5px; width: 470px; }
+  .s1 .hero h2 em { font-style: normal; color: var(--c1); }
+  .s1 .hero p { margin-top: 14px; font-size: 20px; color: #475569; width: 430px; }
+  .s1 .call { position: absolute; left: 28px; bottom: 32px; display: inline-flex; align-items: center; gap: 12px; background: var(--c1); color: #fff; font-weight: 700; font-size: 23px; padding: 16px 24px; border-radius: 14px; }
+  .s1 .hero .car { position: absolute; right: 6px; bottom: 22px; width: 290px; }
+  .s1 .hours { margin: 22px 28px 0; border: 2px solid #E2E8F0; border-radius: 16px; padding: 16px 22px; background: #fff; }
+  .s1 .hours .t, .s1 .form .t { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 16px; letter-spacing: 3px; color: #64748B; margin-bottom: 6px; }
+  .s1 .hours .r { display: flex; justify-content: space-between; font-size: 22px; padding: 5px 0; }
+  .s1 .hours .r b { font-weight: 800; }
+  .s1 .form { margin: 22px 28px 0; border-radius: 16px; background: #F8FAFC; border: 2px solid #E2E8F0; padding: 20px 22px; }
+  .s1 .form h3 { font-weight: 800; font-size: 30px; margin-bottom: 4px; }
+  .s1 .form label { display: block; font-family: var(--mono); font-size: 14px; letter-spacing: 2px; color: #64748B; margin: 10px 0 6px; }
+  .s1 .in { height: 52px; border: 2px solid #CBD5E1; border-radius: 10px; background: #fff; padding: 11px 14px; font-size: 21px; white-space: nowrap; overflow: hidden; }
+  .s1 .in.ta { height: 84px; white-space: normal; }
+  .s1 .btn { margin-top: 14px; display: inline-block; background: var(--c1); color: #fff; font-weight: 700; font-size: 22px; padding: 13px 26px; border-radius: 12px; }
+  .s1 .btn.ok { background: var(--green); }
+  .s1 footer { margin-top: 24px; background: #0F172A; color: #fff; padding: 26px 28px; display: flex; justify-content: space-between; font-size: 18px; }
+  .s1 footer span { color: #94A3B8; }
+  .track { position: absolute; right: 6px; top: 10px; bottom: 10px; width: 7px; border-radius: 4px; background: rgba(15, 23, 42, .08); }
+  .track i { position: absolute; left: 0; right: 0; border-radius: 4px; background: var(--c1); }
+  #onepage { position: absolute; right: 26px; top: 280px; background: var(--c1); color: #fff; font-family: var(--mono); font-size: 19px; letter-spacing: 2px; padding: 10px 16px; border-radius: 12px; opacity: 0; white-space: nowrap; box-shadow: 0 16px 30px -12px rgba(37, 99, 235, .8); }
+
+  /* Site 2 — Pro : sombre, plusieurs pages, animé */
+  .win.dark { background: #0B1020; border-color: rgba(22, 22, 26, .4); }
+  .win.dark .bar { background: #1A2035; border-color: rgba(255, 255, 255, .06); }
+  .win.dark .bar span { background: #0B1020; color: #94A3B8; }
+  .win.dark .bar > i { background: #3B4363; }
+  .s2 { background: #0B1020; color: #fff; font-family: var(--ui); }
+  .s2 header { height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 1px solid rgba(255, 255, 255, .08); position: relative; z-index: 2; background: #0B1020; }
+  .s2 .lg { font-size: 19px; letter-spacing: 3px; }
+  .s2 .lg span { color: var(--c2l); }
+  .s2 nav { display: flex; gap: 20px; position: relative; font-size: 17px; font-weight: 600; color: #94A3B8; }
+  .s2 nav i { font-style: normal; }
+  .s2 nav i.on { color: #fff; }
+  .s2 nav u { position: absolute; left: 0; bottom: -10px; height: 3px; border-radius: 2px; background: var(--c2l); }
+  .s2 .pages { position: absolute; left: 0; right: 0; top: 80px; bottom: 0; overflow: hidden; }
+  .s2 .page { position: absolute; inset: 0; padding: 40px 30px; background: #0B1020; }
+  .s2 .page.home { background: radial-gradient(circle at 78% 72%, rgba(124, 58, 237, .5), transparent 55%), radial-gradient(circle at 8% 8%, rgba(56, 189, 248, .16), transparent 40%), #0B1020; }
+  .s2 .page h3 { font-weight: 800; font-size: 44px; letter-spacing: -1px; margin-bottom: 22px; }
+  .s2 .page h3 small { display: block; font-family: var(--mono); font-weight: 500; font-size: 16px; letter-spacing: 3px; color: var(--c2l); margin-bottom: 8px; }
+  #s2h1 { font-weight: 800; font-size: 52px; line-height: 1.04; letter-spacing: -1.5px; width: 560px; min-height: 166px; outline-offset: 10px; border-radius: 6px; }
+  #s2h1 span { display: inline-block; }
+  #s2h1 .caret { display: inline-block; width: 5px; height: 48px; background: #FACC15; vertical-align: -6px; margin-left: 4px; }
+  .s2 .home p { margin-top: 14px; font-size: 20px; color: #C7D2FE; width: 450px; }
+  .s2 .cta { margin-top: 24px; display: inline-block; background: linear-gradient(135deg, #8B5CF6, #6D28D9); padding: 15px 26px; border-radius: 40px; font-weight: 700; font-size: 21px; box-shadow: 0 16px 30px -10px rgba(139, 92, 246, .8); }
+  .s2 .home .car { position: absolute; right: 18px; bottom: 44px; width: 400px; filter: drop-shadow(0 22px 26px rgba(139, 92, 246, .55)); }
+  #s2speed { position: absolute; right: 360px; bottom: 80px; width: 260px; height: 60px; background: repeating-linear-gradient(to bottom, rgba(196, 181, 253, .7) 0 4px, transparent 4px 16px); opacity: 0; border-radius: 4px; }
+  #s2badge { position: absolute; right: 32px; top: 30px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); border-radius: 16px; padding: 12px 18px; font-weight: 700; font-size: 19px; }
+  #s2badge b { color: #FACC15; }
+  .s2 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .s2 .sv { background: #151B33; border: 1px solid rgba(255, 255, 255, .08); border-radius: 18px; padding: 18px 20px; }
+  .s2 .sv .ii { width: 50px; height: 50px; border-radius: 14px; background: rgba(139, 92, 246, .22); color: #C4B5FD; display: grid; place-items: center; margin-bottom: 12px; }
+  .s2 .sv b { display: block; font-size: 24px; }
+  .s2 .sv span { font-family: var(--mono); font-size: 16px; color: #A5B4FC; }
+  .s2 .rowp { display: flex; justify-content: space-between; padding: 18px 4px; border-bottom: 1px solid rgba(255, 255, 255, .1); font-size: 23px; font-weight: 600; }
+  .s2 .rowp span { font-family: var(--mono); font-size: 20px; color: #C4B5FD; }
+  .s2 .big { display: flex; align-items: baseline; gap: 18px; }
+  .s2 .big b { font-size: 110px; font-weight: 800; letter-spacing: -4px; line-height: 1; }
+  .s2 .big span { font-size: 40px; color: #FACC15; letter-spacing: 4px; }
+  .s2 .quote { margin-top: 20px; background: #151B33; border-radius: 18px; padding: 18px 20px; font-size: 21px; color: #E0E7FF; }
+  .s2 .quote small { display: block; margin-top: 8px; font-family: var(--mono); font-size: 14px; letter-spacing: 2px; color: #94A3B8; }
+  .s2 .map { height: 300px; border-radius: 20px; background: linear-gradient(rgba(255,255,255,.06) 2px, transparent 2px) 0 0 / 46px 46px, linear-gradient(90deg, rgba(255,255,255,.06) 2px, transparent 2px) 0 0 / 46px 46px, #151B33; position: relative; }
+  .s2 .map svg { position: absolute; left: 50%; top: 50%; width: 70px; height: 70px; margin: -60px 0 0 -35px; color: var(--c2l); stroke-width: 2.4; }
+  .s2 .addr { margin-top: 18px; font-size: 22px; color: #C7D2FE; }
+  #editbar { position: absolute; left: 0; right: 0; top: 0; height: 56px; background: #FACC15; color: #0B1020; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-weight: 800; font-size: 19px; z-index: 5; transform: translateY(-100%); }
+  #editbar span { display: flex; align-items: center; gap: 10px; }
+  #editbar b { background: #0B1020; color: #fff; padding: 8px 14px; border-radius: 10px; font-size: 17px; }
+  #toast2 { position: absolute; left: 50%; bottom: 26px; background: var(--green); color: #fff; font-weight: 800; font-size: 20px; padding: 12px 20px; border-radius: 14px; z-index: 5; opacity: 0; white-space: nowrap; }
+  #pencil { position: absolute; left: 0; top: 0; width: 46px; height: 46px; color: #FACC15; z-index: 6; stroke-width: 2.4; filter: drop-shadow(0 6px 6px rgba(0,0,0,.5)); opacity: 0; }
+
+  /* Site 3 — Sur-mesure : rendez-vous en ligne et suivi de réparation */
+  .s3 { background: #F7F5F2; font-family: var(--ui); color: #1C1917; }
+  .s3 header { height: 72px; background: #fff; border-bottom: 2px solid #EEE9E3; }
+  .s3 .lg { font-size: 22px; }
+  .s3 .ic { width: 40px; height: 40px; }
+  .s3 .me { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: #57534E; }
+  .s3 .me i { font-style: normal; width: 40px; height: 40px; border-radius: 50%; background: var(--c3); color: #fff; display: grid; place-items: center; font-weight: 800; }
+  .s3 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+  .s3 .card { background: #fff; border-radius: 20px; padding: 16px; border: 2px solid #EEE9E3; box-shadow: 0 10px 30px -18px rgba(28, 25, 23, .35); }
+  .s3 .card .t { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 21px; margin-bottom: 10px; white-space: nowrap; }
+  .s3 .card .t svg { color: var(--c3); }
+  .s3 .mh { display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .s3 .mh span { color: #A8A29E; letter-spacing: 6px; }
+  .s3 .wd, .s3 .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+  .s3 .wd { font-family: var(--mono); font-size: 13px; color: #A8A29E; margin-bottom: 4px; }
+  .s3 .days i { font-style: normal; height: 38px; display: grid; place-items: center; font-size: 16px; font-weight: 600; border-radius: 10px; }
+  .s3 .days i.off { color: #D6D3D1; }
+  .s3 .days i.pick { background: var(--c3); color: #fff; }
+  .s3 .slots3 { display: flex; gap: 6px; margin-top: 10px; }
+  .s3 .slots3 i { flex: 1; font-style: normal; text-align: center; font-weight: 700; font-size: 15px; padding: 9px 0; border: 2px solid #E7E5E4; border-radius: 10px; }
+  .s3 .slots3 i.pick { background: var(--c3); color: #fff; border-color: var(--c3); }
+  #ok3 { margin-top: 10px; text-align: center; background: #1C1917; color: #fff; font-weight: 700; font-size: 17px; padding: 13px 6px; border-radius: 12px; white-space: nowrap; }
+  #ok3.done { background: var(--green); }
+  .s3 .carline { display: flex; align-items: center; gap: 12px; background: #FFF7ED; border-radius: 14px; padding: 10px 12px; margin-bottom: 14px; }
+  .s3 .carline svg { width: 116px; }
+  .s3 .carline b { font-family: var(--mono); font-size: 18px; border: 2px solid #1C1917; border-radius: 6px; padding: 2px 8px; background: #fff; white-space: nowrap; }
+  .s3 .carline small { display: block; font-size: 15px; color: #78716C; margin-top: 6px; }
+  .s3 .steps3 { position: relative; padding-left: 44px; }
+  .s3 .steps3::before { content: ''; position: absolute; left: 14px; top: 16px; height: 216px; width: 5px; background: #E7E5E4; border-radius: 3px; }
+  #fill3 { position: absolute; left: 14px; top: 16px; width: 5px; background: var(--green); border-radius: 3px; }
+  .s3 .st3 { position: relative; height: 72px; }
+  .s3 .st3::before { content: ''; position: absolute; left: -40px; top: 2px; width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 5px solid #D6D3D1; box-sizing: border-box; }
+  .s3 .st3.ok::before { background: var(--green); border-color: var(--green); }
+  .s3 .st3.now::before { border-color: var(--c3); }
+  .s3 .st3 b { display: block; font-size: 18px; white-space: nowrap; }
+  .s3 .st3 small { font-family: var(--mono); font-size: 14px; color: #A8A29E; }
+  #eta3 { background: #FFF7ED; color: var(--c3); font-weight: 800; font-size: 18px; text-align: center; padding: 11px; border-radius: 12px; }
+  #eta3.ok { background: #DCFCE7; color: var(--green); }
+  #sms3 { position: absolute; left: 50%; top: 14px; width: 580px; margin-left: -290px; background: rgba(28, 25, 23, .94); color: #fff; border-radius: 22px; padding: 16px 20px; display: flex; gap: 14px; align-items: center; z-index: 6; box-shadow: 0 20px 40px -16px rgba(0, 0, 0, .55); opacity: 0; }
+  #sms3 .mi { width: 50px; height: 50px; border-radius: 14px; background: var(--green); display: grid; place-items: center; flex: none; color: #fff; }
+  #sms3 b { display: block; font-size: 18px; }
+  #sms3 span { font-size: 17px; color: #E7E5E4; }
+  .cur { position: absolute; left: 0; top: 0; width: 44px; z-index: 7; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .3)); opacity: 0; }
+
+  /* Pointeur « 490 € ? », compte à rebours, éclair de révélation */
+  #guess { position: absolute; left: 540px; top: 610px; background: #FACC15; color: var(--ink); font-weight: 700; font-size: 46px; letter-spacing: -1px; padding: 10px 28px 14px; border-radius: 22px; white-space: nowrap; opacity: 0; box-shadow: 0 24px 40px -18px rgba(22, 22, 26, .55); }
+  #guess::after { content: ''; position: absolute; left: 50%; bottom: -22px; margin-left: -18px; border: 18px solid transparent; border-top-color: #FACC15; border-bottom: 0; }
+  #count { position: absolute; left: 0; right: 0; top: 700px; text-align: center; font-weight: 700; font-size: 560px; line-height: 1; letter-spacing: -20px; color: var(--accent); -webkit-text-stroke: 14px #fff; paint-order: stroke fill; text-shadow: 0 40px 80px rgba(22, 22, 26, .35); opacity: 0; }
+  #ring { position: absolute; left: 540px; top: 1000px; width: 600px; height: 600px; margin: -300px 0 0 -300px; border-radius: 50%; border: 18px solid var(--accent); opacity: 0; }
+  #flash { position: absolute; left: 540px; top: 1000px; width: 1300px; height: 1300px; margin: -650px 0 0 -650px; border-radius: 50%; opacity: 0; }
+
+  /* Commente ton métier */
+  #com { position: absolute; left: 70px; right: 70px; top: 650px; opacity: 0; transform-style: preserve-3d; }
+  #com .card { position: relative; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, .5); }
+  #com .card::before, #com .card::after { content: ''; position: absolute; width: 46px; height: 46px; border: 7px solid var(--accent); }
+  #com .card::before { left: -14px; top: -14px; border-right: 0; border-bottom: 0; }
+  #com .card::after { right: -14px; bottom: -14px; border-left: 0; border-top: 0; }
+  #com .head { display: flex; justify-content: space-between; padding: 22px 30px; border-bottom: 2px solid var(--line); font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--dim); }
+  #com .head b { color: var(--accent); font-weight: 500; }
+  #com .c { display: flex; align-items: center; gap: 22px; padding: 20px 30px; border-bottom: 2px solid var(--line); }
+  #com .av { width: 80px; height: 80px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 32px; flex: none; background: var(--ink); }
+  #com .c small { display: block; font-family: var(--mono); font-size: 20px; color: var(--mute); letter-spacing: 2px; }
+  #com .c span { font-weight: 700; font-size: 44px; letter-spacing: -1px; }
+  #com .c em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 22px; letter-spacing: 1px; color: #fff; padding: 10px 14px; white-space: nowrap; }
+  #com .input { margin: 24px 30px 30px; border: 3px solid var(--accent); padding: 20px 26px; font-family: var(--mono); font-size: 32px; color: var(--mute); display: flex; justify-content: space-between; }
+  #com .input b { color: var(--accent); }
+
+  #avatar { position: absolute; left: -70px; top: 1285px; width: 640px; transform-origin: 50% 70%; z-index: 40; }
+  #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position: absolute">
+  <defs>
+    <linearGradient id="gCarHi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <!-- Voiture vue de côté ; la couleur suit --car, les roues tournent avec --spin -->
+    <symbol id="car" viewBox="0 0 320 130">
+      <ellipse cx="160" cy="120" rx="140" ry="8" fill="rgba(0, 0, 0, .2)"/>
+      <path d="M18 92 C18 76 26 70 44 67 L92 60 C110 40 128 30 160 29 L196 29 C222 30 240 44 256 60 L286 66 C300 69 304 78 304 90 L304 98 C304 102 300 104 296 104 L24 104 C20 104 18 101 18 98 Z" fill="var(--car, #2563EB)"/>
+      <path d="M18 92 C18 76 26 70 44 67 L92 60 C110 40 128 30 160 29 L196 29 C222 30 240 44 256 60 L286 66 C300 69 304 78 304 90 Z" fill="url(#gCarHi)"/>
+      <path d="M104 60 C118 44 132 37 158 36 L172 36 L172 60 Z" fill="#DCE7F5"/>
+      <path d="M180 36 L196 36 C216 37 230 46 242 60 L180 60 Z" fill="#DCE7F5"/>
+      <path d="M176 62 L176 100" stroke="rgba(0, 0, 0, .2)" stroke-width="2"/>
+      <rect x="290" y="72" width="13" height="8" rx="3" fill="#FDE68A"/>
+      <rect x="18" y="74" width="8" height="10" rx="2" fill="#F87171"/>
+      <g style="transform: rotate(var(--spin, 0deg)); transform-origin: 82px 104px"><circle cx="82" cy="104" r="22" fill="#1F2937"/><circle cx="82" cy="104" r="11" fill="#CBD5E1"/><path d="M82 93 V115 M71 104 H93" stroke="#64748B" stroke-width="3"/></g>
+      <g style="transform: rotate(var(--spin, 0deg)); transform-origin: 244px 104px"><circle cx="244" cy="104" r="22" fill="#1F2937"/><circle cx="244" cy="104" r="11" fill="#CBD5E1"/><path d="M244 93 V115 M233 104 H255" stroke="#64748B" stroke-width="3"/></g>
+    </symbol>
+    <!-- Icônes (tracés Lucide, licence ISC) -->
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></symbol>
+    <symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol>
+    <symbol id="i-disc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+    <symbol id="i-tire" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></symbol>
+  </defs>
+</svg>
+
+<div id="stage">
+  <div id="glow"></div>
+  <div id="hud">
+    <div class="row">
+      <span class="brand"><b>LTNS<span>°</span></b></span>
+      <span class="tag2">// <b>DEVINE LE PRIX</b></span>
+      <span id="ans"><i></i><span>RÉPONSE À LA FIN</span></span>
+      <div id="prog"></div>
+    </div>
+    <div id="slots">
+      <i style="--sc: var(--c1)">SITE 1<b>? €</b></i>
+      <i style="--sc: var(--c2)">SITE 2<b>? €</b></i>
+      <i style="--sc: var(--c3)">SITE 3<b>? €</b></i>
+    </div>
+  </div>
+
+  <div id="scene">
+    <div class="shadow" id="shadow"></div>
+    <div id="flash"></div>
+
+    <!-- Site 1 : Essentiel -->
+    <div class="site" id="site0" style="--c: var(--c1)">
+      <div class="win">
+        <div class="bar"><i></i><i></i><i></i><span>garage-du-centre.fr</span><em>VERSION 1</em></div>
+        <div class="vp s1" id="vp1">
+          <div class="pg1" id="pg1">
+            <header><div class="lg"><span class="ic"><svg class="i"><use href="#i-wrench"/></svg></span>Garage du Centre</div><div class="tel"><svg class="i"><use href="#i-phone"/></svg>01 99 00 12 34</div></header>
+            <section class="hero">
+              <h2>Votre garage de confiance, <em>au centre-ville.</em></h2>
+              <p>Entretien, réparation, pneus : toutes marques.</p>
+              <div class="call" id="call1"><svg class="i" id="callIc"><use href="#i-phone"/></svg>Appeler · 01 99 00 12 34</div>
+              <svg class="car" viewBox="0 0 320 130" style="--car: #2563EB"><use href="#car"/></svg>
+            </section>
+            <section class="hours" id="hours1"><div class="t"><svg class="i"><use href="#i-clock"/></svg>HORAIRES</div><div class="r"><span>Lundi – vendredi</span><b>8h – 19h</b></div><div class="r"><span>Samedi</span><b>9h – 12h</b></div></section>
+            <section class="form" id="form1"><h3>Une question ?</h3><label>NOM</label><div class="in" id="f1n"></div><label>MESSAGE</label><div class="in ta" id="f1m"></div><div class="btn" id="f1b">Envoyer</div></section>
+            <footer>Garage du Centre · 12 rue de la Gare<span>Mentions légales</span></footer>
+          </div>
+          <div class="track"><i id="thumb1"></i></div>
+          <div id="onepage">UNE SEULE PAGE ↕</div>
+        </div>
+      </div>
+      <div class="num">1</div>
+      <div class="tag" id="tag0"><div class="face front"><small>DEVINE</small><b>? €</b></div><div class="face back"><small>À PARTIR DE</small><b>490 €</b><span>ESSENTIEL</span></div></div>
+    </div>
+
+    <!-- Site 2 : Pro -->
+    <div class="site" id="site1" style="--c: var(--c2)">
+      <div class="win dark">
+        <div class="bar"><i></i><i></i><i></i><span>garage-du-centre.fr</span><em>VERSION 2</em></div>
+        <div class="vp s2" id="vp2">
+          <header><div class="lg">GARAGE <span>●</span> DU CENTRE</div><nav id="nav2"><i>Accueil</i><i>Services</i><i>Tarifs</i><i>Avis</i><i>Contact</i><u id="nav2u"></u></nav></header>
+          <div class="pages">
+            <div class="page home" data-p="0">
+              <h2 id="s2h1"></h2>
+              <p>Révision, freins, pneus, diagnostic : on s'occupe de tout.</p>
+              <div class="cta">Nous contacter →</div>
+              <div id="s2badge"><b>★ 4,8</b> · 230 avis</div>
+              <div id="s2speed"></div>
+              <svg class="car" id="s2car" viewBox="0 0 320 130" style="--car: #8B5CF6"><use href="#car"/></svg>
+            </div>
+            <div class="page" data-p="1"><h3><small>CE QU'ON FAIT</small>Nos services</h3><div class="grid">
+              <div class="sv"><div class="ii"><svg class="i"><use href="#i-drop"/></svg></div><b>Vidange</b><span>dès 69 €</span></div>
+              <div class="sv"><div class="ii"><svg class="i"><use href="#i-disc"/></svg></div><b>Freinage</b><span>dès 89 €</span></div>
+              <div class="sv"><div class="ii"><svg class="i"><use href="#i-tire"/></svg></div><b>Pneus</b><span>dès 59 €</span></div>
+              <div class="sv"><div class="ii"><svg class="i"><use href="#i-gauge"/></svg></div><b>Diagnostic</b><span>49 €</span></div>
+            </div></div>
+            <div class="page" data-p="2"><h3><small>SANS SURPRISE</small>Tarifs</h3>
+              <div class="rowp">Vidange + filtre<span>dès 69 €</span></div>
+              <div class="rowp">Plaquettes de frein<span>dès 89 €</span></div>
+              <div class="rowp">Révision complète<span>dès 149 €</span></div>
+              <div class="rowp">Diagnostic électronique<span>49 €</span></div>
+            </div>
+            <div class="page" data-p="3"><h3><small>ILS EN PARLENT</small>Avis clients</h3>
+              <div class="big"><b>4,8</b><span>★★★★★</span></div>
+              <div class="quote">« Rapide, honnête, et le prix annoncé était le bon. »<small>THOMAS · IL Y A 3 JOURS</small></div>
+            </div>
+            <div class="page" data-p="4"><h3><small>NOUS TROUVER</small>Contact</h3>
+              <div class="map"><svg class="i"><use href="#i-pin"/></svg></div>
+              <div class="addr">12 rue de la Gare · 01 99 00 12 34</div>
+            </div>
+          </div>
+          <div id="editbar"><span><svg class="i"><use href="#i-pencil"/></svg>Mode édition</span><b>Enregistrer</b></div>
+          <div id="toast2">✓ Modifications enregistrées</div>
+          <svg class="i" id="pencil"><use href="#i-pencil"/></svg>
+        </div>
+      </div>
+      <div class="num">2</div>
+      <div class="tag" id="tag1"><div class="face front"><small>DEVINE</small><b>? €</b></div><div class="face back"><small>À PARTIR DE</small><b>990 €</b><span>PRO</span></div></div>
+    </div>
+
+    <!-- Site 3 : Sur-mesure -->
+    <div class="site" id="site2" style="--c: var(--c3)">
+      <div class="win">
+        <div class="bar"><i></i><i></i><i></i><span>garage-du-centre.fr / espace-client</span><em>VERSION 3</em></div>
+        <div class="vp s3" id="vp3">
+          <header><div class="lg"><span class="ic"><svg class="i"><use href="#i-wrench"/></svg></span>Garage du Centre</div><div class="me">Espace client<i>J</i></div></header>
+          <div class="cols">
+            <div class="card">
+              <div class="t"><svg class="i"><use href="#i-cal"/></svg>Prendre rendez-vous</div>
+              <div class="mh"><span style="letter-spacing: 0; color: #1C1917">Octobre 2026</span><span>‹ ›</span></div>
+              <div class="wd"><i>L</i><i>M</i><i>M</i><i>J</i><i>V</i><i>S</i><i>D</i></div>
+              <div class="days" id="days3"></div>
+              <div class="slots3" id="slots3"><i>9:00</i><i>10:30</i><i data-pick>14:30</i><i>16:00</i></div>
+              <div id="ok3">Confirmer le rendez-vous</div>
+            </div>
+            <div class="card">
+              <div class="t"><svg class="i"><use href="#i-wrench"/></svg>Suivi de réparation</div>
+              <div class="carline"><svg viewBox="0 0 320 130" style="--car: #EA580C"><use href="#car"/></svg><div><b>AB-123-CD</b><small>Citadine grise</small></div></div>
+              <div class="steps3"><div id="fill3"></div>
+                <div class="st3" data-s="0"><b>Voiture déposée</b><small>8:05</small></div>
+                <div class="st3" data-s="1"><b>Diagnostic</b><small>9:40</small></div>
+                <div class="st3" data-s="2"><b>Réparation</b><small>EN COURS</small></div>
+                <div class="st3" data-s="3"><b>Prête à récupérer</b><small>—</small></div>
+              </div>
+              <div id="eta3">Prête vers 17h</div>
+            </div>
+          </div>
+          <div id="sms3"><div class="mi"><svg class="i"><use href="#i-msg"/></svg></div><div><b>Garage du Centre</b><span>Votre voiture est prête ✓ Vous pouvez passer la récupérer.</span></div></div>
+          <svg class="cur" id="cur3" viewBox="0 0 40 52"><path d="M4 3 L4 42 L14 32 L21 48 L28 45 L21 29 L35 29 Z" fill="#16161A" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="num">3</div>
+      <div class="tag" id="tag2"><div class="face front"><small>DEVINE</small><b>? €</b></div><div class="face back"><small>PRIX FIXÉ AVANT</small><b class="sm">SUR MESURE</b><span>DEVIS GRATUIT</span></div></div>
+    </div>
+
+    <div id="ring"></div>
+    <div id="count"></div>
+    <div id="guess">490 € ?</div>
+
+    <div id="com"><div class="card">
+      <div class="head"><span>COMMENTAIRES</span><span>LEQUEL <b>POUR TOI ?</b></span></div>
+      <div class="c" data-c="0"><div class="av">M</div><div><small>@mathieu.plomberie</small><span>Plombier</span></div><em style="background: var(--c1)">→ ESSENTIEL</em></div>
+      <div class="c" data-c="1"><div class="av">L</div><div><small>@lea.restaurant</small><span>Restaurant</span></div><em style="background: var(--c2)">→ PRO</em></div>
+      <div class="c" data-c="2"><div class="av">K</div><div><small>@karim.autoecole</small><span>Auto-école</span></div><em style="background: var(--c3)">→ SUR MESURE</em></div>
+      <div class="input"><span>Ton métier…</span><b>|</b></div>
+    </div></div>
+  </div>
+
+  <div id="fx"></div>
+  <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
+  <div id="caption"></div>
+</div>
+
+<script src="../commun/avatar.js"></script>
+<script src="voice-files.js"></script>
+<script>
+/* ============================================================
+   1. Texte de la voix off (une phrase = un morceau de la voix),
+      découpé en morceaux de sous-titres : [texte, mot en couleur]
+      Les prix s'affichent en chiffres (« 490 € ») mais se disent en toutes lettres.
+   ============================================================ */
+const SENTENCES = [
+  { chunks: [['Même garage,', 'garage,'], ['trois sites.', 'sites.'], ['Devine lequel', 'Devine'], ['coûte 490 €.', '490']] },
+  { chunks: [['Le premier :', 'premier'], ['une seule page,', 'seule'], ['ton numéro,', 'numéro,'], ['tes horaires,', 'horaires,'], ['un formulaire.', 'formulaire.']] },
+  { chunks: [['Le deuxième :', 'deuxième'], ['plusieurs pages,', 'plusieurs'], ['des animations,', 'animations,'], ['et tu modifies', 'modifies'], ['tes textes toi-même.', 'toi-même.']] },
+  { chunks: [['Le troisième :', 'troisième'], ['tes clients prennent', 'prennent'], ['rendez-vous en ligne', 'rendez-vous'], ['et suivent', 'suivent'], ['leur réparation.', 'réparation.']] },
+  { chunks: [['Alors,', 'Alors,'], ['lequel ?', 'lequel'], ['Trois,', 'Trois,'], ['deux,', 'deux,'], ['un…', 'un…']] },
+  { chunks: [['Le premier :', 'premier'], ['à partir de 490 €.', '490'], ['Parfait', 'Parfait'], ['pour démarrer.', 'démarrer.']] },
+  { chunks: [['Le deuxième :', 'deuxième'], ['à partir de 990 €.', '990'], ['Un site', 'site'], ['qui travaille pour toi.', 'travaille']] },
+  { chunks: [['Le troisième :', 'troisième'], ['sur mesure,', 'mesure,'], ['avec un prix fixé', 'fixé'], ['avant de commencer.', 'commencer.']] },
+  { chunks: [['Commente ton métier :', 'métier'], ['je te dis', 'dis'], ['lequel il te faut.', 'faut.']] },
+]
+// Ce que la voix dit vraiment, pour répartir le temps entre les mots
+const SPOKEN = { '490': 'quatre cent quatre-vingt-dix', '990': 'neuf cent quatre-vingt-dix', '€': 'euros' }
+
+/* ============================================================
+   2. Mise en scène
+      POSES : l'avatar, en fraction (0 → 1) de chaque phrase.
+      CUES  : [phrase, fraction] ou [phrase, 'mot', décalage en s], puis le son.
+   ============================================================ */
+const POSES = [
+  [{ at: 0, pose: 'pointUp', expr: 'sly' }],
+  [{ at: 0, pose: 'thumbs', expr: 'happy' }],
+  [{ at: 0, pose: 'laptop', expr: 'happy' }],
+  [{ at: 0, pose: 'phone', expr: 'happy' }],
+  [{ at: 0, pose: 'think', expr: 'think' }, { at: 0.5, pose: 'shrug', expr: 'surprised' }],
+  [{ at: 0, pose: 'thumbs', expr: 'proud' }],
+  [{ at: 0, pose: 'pointUp', expr: 'proud' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }],
+  [{ at: 0, pose: 'pointSide', expr: 'wink' }],
+]
+const CUES = {
+  guess:   [0, 'Devine', -0.1, 'pop'],
+  s1page:  [1, 'seule', -0.15, 'whoosh'],
+  s1call:  [1, 'numéro,', -0.1, 'pop'],
+  s1hours: [1, 'horaires,', -0.1, 'pop'],
+  s1form:  [1, 'formulaire.', -0.2, 'tick'],
+  s2pages: [2, 'plusieurs', -0.1, 'whoosh'],
+  s2anim:  [2, 'animations,', -0.2, 'whoosh'],
+  s2edit:  [2, 'modifies', -0.15, 'pop'],
+  s3book:  [3, 'rendez-vous', -0.25, 'tick'],
+  s3track: [3, 'suivent', -0.1, 'pop'],
+  c3:      [4, 'Trois,', -0.05, 'pop'],
+  c2:      [4, 'deux,', -0.05, 'pop'],
+  c1:      [4, 'un…', -0.05, 'pop'],
+  r1:      [5, '490', -0.15, 'ding'],
+  r2:      [6, '990', -0.15, 'ding'],
+  r3:      [7, 'mesure,', -0.25, 'ding'],
+  com:     [8, 'métier', -0.35, 'whoosh'],
+}
+const CYAN = [8, 145, 178], BLUE = [37, 99, 235], VIOLET = [124, 58, 237], ORANGE = [234, 88, 12]
+const SITE_COLORS = [BLUE, VIOLET, ORANGE]
+const SENTENCE_COLORS = [CYAN, BLUE, VIOLET, ORANGE, CYAN, BLUE, VIOLET, ORANGE, CYAN]
+const SENTENCE_SITE = [-1, 0, 1, 2, -1, 0, 1, 2, -1]   // site mis en avant dans le bandeau
+const PRICES = ['490 €', '990 €', 'SUR MESURE']
+const H1_TEXT = "L'atelier qui prend soin de votre voiture."
+const H1_EDIT = 'Ouvert le samedi matin !'
+
+/* ============================================================
+   3. Minutage : durées réelles (timing.json) ou estimation
+   ============================================================ */
+const FPS = 30
+const TAIL = 0.7 // la fin revient aux étiquettes « ? € » : la vidéo boucle
+let TIMES = null, ENVELOPE = null, WORDS = null, TL = null
+const C = {} // instants des étapes, en secondes
+
+function estimateTimes() {
+  let t = 0.1
+  return SENTENCES.map(s => {
+    const text = s.chunks.map(c => c[0]).join(' ')
+    const d = Math.max(1.3, text.length / 15)
+    const r = { start: t, end: t + d }
+    t += d + 0.25
+    return r
+  })
+}
+
+const spokenLength = w => Object.entries(SPOKEN).reduce((x, [k, v]) => x.split(k).join(v), w).replace(/[^\p{L}\p{N}]/gu, '').length
+
+function buildWords() {
+  return SENTENCES.map((s, si) => {
+    const { start, end } = TIMES[si]
+    const words = []
+    // La ponctuation double (« : ») reste collée au mot qui la précède
+    s.chunks.forEach(([text, hl], ci) => text.replace(/ ([:;?!])/g, ' $1').split(' ').forEach(w => words.push({ w, ci, hl: w.split(' ')[0] === hl })))
+    const weights = words.map(x => spokenLength(x.w) + 2)
+    const total = weights.reduce((a, b) => a + b, 0)
+    // Les mots se répartissent sur le temps de parole, silences mesurés exclus
+    const gaps = (TIMES[si].pauses || []).filter(p => p[1] - p[0] >= 0.12 && p[0] > start && p[1] < end)
+    const speech = []
+    let a0 = start
+    gaps.forEach(p => { speech.push([a0, p[0]]); a0 = p[1] })
+    speech.push([a0, end])
+    const talk = speech.reduce((x, [a, b]) => x + b - a, 0)
+    const at = u => { let r = u * talk; for (const [a, b] of speech) { if (r <= b - a) return a + r; r -= b - a } return end }
+    let acc = 0
+    words.forEach((x, i) => {
+      x.t0 = at(acc / total)
+      acc += weights[i]
+      x.t1 = at(acc / total)
+      x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
+    })
+    snapToPauses(words, weights, TIMES[si])
+    return words
+  })
+}
+
+// Avec la vraie voix : les mots suivis d'une ponctuation se terminent sur une pause
+// mesurée (alignement dans l'ordre), les autres se répartissent entre les pauses.
+function snapToPauses(words, weights, { start, end, pauses }) {
+  if (!pauses || !pauses.length) return
+  const P = pauses.filter(p => p[1] - p[0] >= 0.12 && p[0] > start + 0.15 && p[1] < end - 0.1)
+  const A = words.map((x, i) => (i < words.length - 1 && /[,:;.?!…]$/.test(x.w) ? i : -1)).filter(i => i >= 0)
+  if (!P.length || !A.length) return
+  const n = A.length, m = P.length
+  const SKIP_ANCHOR = 0.35, skipPause = j => Math.max(0, P[j][1] - P[j][0] - 0.12) * 3
+  const cost = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const from = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null))
+  cost[0][0] = 0
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const c = cost[i][j]
+    if (c === Infinity) continue
+    if (i < n && c + SKIP_ANCHOR < cost[i + 1][j]) { cost[i + 1][j] = c + SKIP_ANCHOR; from[i + 1][j] = [i, j, false] }
+    if (j < m && c + skipPause(j) < cost[i][j + 1]) { cost[i][j + 1] = c + skipPause(j); from[i][j + 1] = [i, j, false] }
+    if (i < n && j < m) {
+      const d = Math.abs(P[j][0] - words[A[i]].t1)
+      if (d < 1.2 && c + d < cost[i + 1][j + 1]) { cost[i + 1][j + 1] = c + d; from[i + 1][j + 1] = [i, j, true] }
+    }
+  }
+  const pairs = []
+  for (let i = n, j = m; i > 0 || j > 0;) {
+    const [pi, pj, matched] = from[i][j]
+    if (matched) pairs.unshift([A[pi], P[pj]])
+    i = pi; j = pj
+  }
+  const bounds = [{ i: -1, next: start }, ...pairs.map(([i, p]) => ({ i, at: p[0], next: p[1] })), { i: words.length - 1, at: end }]
+  for (let b = 1; b < bounds.length; b++) {
+    const lo = bounds[b - 1].i + 1, hi = bounds[b].i
+    const t0 = bounds[b - 1].next, t1 = bounds[b].at
+    const tot = weights.slice(lo, hi + 1).reduce((x, y) => x + y, 0)
+    let acc = 0
+    for (let k = lo; k <= hi; k++) {
+      words[k].t0 = t0 + (acc / tot) * (t1 - t0)
+      acc += weights[k]
+      words[k].t1 = t0 + (acc / tot) * (t1 - t0)
+    }
+  }
+}
+
+// Ligne de temps : poses de l'avatar + étapes (et leurs sons, lus par render.mjs)
+function timeline() {
+  const at = (si, f) => TIMES[si].start + f * (TIMES[si].end - TIMES[si].start)
+  const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+  for (const [k, [si, f, off]] of Object.entries(CUES)) {
+    const word = typeof f === 'string' && WORDS[si].find(x => norm(x.w) === norm(f))
+    C[k] = word ? word.t0 + off : at(si, typeof f === 'string' ? 0 : f)
+  }
+  C.loop = TIMES[TIMES.length - 1].end + 0.1
+  const out = []
+  POSES.forEach((beats, si) => beats.forEach(b => out.push({ ...b, t: at(si, b.at), si })))
+  for (const [k, cue] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx: cue[cue.length - 1] })
+  // Le carrousel tourne d'un site à l'autre
+  for (let si = 1; si < TIMES.length; si++) out.push({ t: TIMES[si].start - 0.2, sfx: 'whoosh' })
+  // Frappe au clavier : formulaire du site 1, texte modifié du site 2 ; clics du site 3
+  for (let i = 0; i < 6; i++) out.push({ t: C.s1form + 0.2 + i * 0.12, sfx: 'tick' }, { t: C.s2edit + 0.75 + i * 0.11, sfx: 'tick' })
+  out.push({ t: C.s3book + 0.45, sfx: 'tick' }, { t: C.s3book + 0.9, sfx: 'pop' }, { t: C.s3track + 0.5, sfx: 'pop' })
+  // Retour aux étiquettes « ? € », l'avatar reprend sa pose du début : la boucle est invisible
+  out.push({ t: C.loop + 0.1, sfx: 'whoosh' }, { ...POSES[0][0], t: C.loop + 0.1, si: TIMES.length - 1 })
+  return out.sort((a, b) => a.t - b.t)
+}
+
+/* ============================================================
+   4. Outils (fonctions pures du temps)
+   ============================================================ */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+const easeOut = p => 1 - Math.pow(1 - p, 3)
+const easeIn = p => p * p * p
+function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
+const ramp = (t, t0, dur) => clamp((t - t0) / dur)
+const mix = (a, b, k) => a.map((v, j) => Math.round(v + (b[j] - v) * k))
+const rgb = c => `rgb(${c[0]}, ${c[1]}, ${c[2]})`
+const rgba = (c, a) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`
+// Impulsion 0 → 1 → 0 sur [t0, t0 + dur]
+const pulse = (t, t0, dur) => { const p = (t - t0) / dur; return p <= 0 || p >= 1 ? 0 : Math.sin(Math.PI * p) }
+
+function colorAt(t, si) {
+  const cur = SENTENCE_COLORS[si], prev = SENTENCE_COLORS[Math.max(0, si - 1)]
+  return mix(prev, cur, easeInOut(clamp((t - TIMES[si].start + 0.1) / 0.3)))
+}
+
+function mouthAt(t) {
+  if (ENVELOPE) return clamp(((ENVELOPE[Math.round(t * FPS)] || 0) - 0.06) * 1.6)
+  for (const words of WORDS) for (const x of words) {
+    if (t >= x.t0 && t < x.t1) return 0.12 + 0.8 * Math.abs(Math.sin(Math.PI * x.syl * (t - x.t0) / (x.t1 - x.t0)))
+  }
+  return 0
+}
+
+function blinkAt(t) {
+  const d = (t % 3.4) - 2.9
+  return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
+}
+
+/* ============================================================
+   5. Rendu d'un instant t
+   ============================================================ */
+const $ = id => document.getElementById(id)
+const qa = (sel, root = document) => [...root.querySelectorAll(sel)]
+const stage = $('stage'), avatarEl = $('avatar'), captionEl = $('caption')
+const silEl = avatarEl.querySelector('.sil'), liveEl = avatarEl.querySelector('.live')
+const SITES = [0, 1, 2].map(i => $('site' + i))
+const TAGS = [0, 1, 2].map(i => $('tag' + i))
+const SLOTS = qa('#slots i')
+
+// Contour d'autocollant précalculé par pose (voir ../commun/avatar.js)
+const SILHOUETTES = {}
+const silKey = b => `${b.pose}|${b.expr}`
+async function preloadSilhouettes() {
+  const keys = [...new Set(TL.filter(b => b.pose).map(silKey))]
+  await Promise.all(keys.map(k => {
+    const [pose, expr] = k.split('|')
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LTNSAvatar.svg({ pose, expr }))
+    SILHOUETTES[k] = url
+    const img = new Image(); img.src = url
+    return img.decode().catch(() => {})
+  }))
+}
+let lastSil = '', lastLive = ''
+window.settle = () => silEl.decode().catch(() => {})
+
+function sentenceAt(t) {
+  let idx = 0
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.05) idx = i
+  return idx
+}
+
+function setT(el, op, tr) { el.style.opacity = op; el.style.transform = tr || 'none' }
+const cache = new Map()
+function setHTML(el, html) { if (cache.get(el) !== html) { el.innerHTML = html; cache.set(el, html) } }
+
+// Position d'un élément dans un ancêtre, sans tenir compte des transformations 3D
+function offsetIn(el, root) {
+  let x = 0, y = 0
+  for (let n = el; n && n !== root; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop }
+  return { x, y }
+}
+
+// Carrousel : [instant, site au centre, zoom] ; zoom 1 = un site en grand, 0 = les trois en éventail
+function layoutAt(t) {
+  const T = TIMES.map(x => x.start - 0.2)
+  const keys = [[-1, 1, 0], [T[1], 0, 1], [T[2], 1, 1], [T[3], 2, 1], [T[4], 1, 0], [T[5], 0, 1], [T[6], 1, 1], [T[7], 2, 1], [T[8], 1, 0]]
+  let prev = keys[0], cur = keys[0]
+  for (const k of keys) if (t >= k[0]) { prev = cur; cur = k }
+  const e = easeInOut(ramp(t, cur[0], 0.65))
+  return { focus: prev[1] + (cur[1] - prev[1]) * e, zoom: prev[2] + (cur[2] - prev[2]) * e }
+}
+
+function renderCarousel(t, tail, dim) {
+  const { focus, zoom } = layoutAt(t)
+  SITES.forEach((el, i) => {
+    const rel = i - focus, a = Math.abs(rel)
+    const cx = rel * 650, cz = -a * 460, cry = clamp(-rel * 50, -62, 62)
+    const fx = rel * 325, fz = -a * 40, fry = -rel * 14
+    const x = fx + (cx - fx) * zoom, z = fz + (cz - fz) * zoom, ry = fry + (cry - fry) * zoom
+    const sc = 0.54 + 0.46 * zoom
+    const y = Math.sin(t * 1.4 + i * 1.7) * 8 - (1 - zoom) * 50
+    const rx = 4 + Math.sin(t * 0.9 + i) * 2
+    el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${ry}deg) rotateX(${rx}deg) scale(${sc})`
+    el.style.opacity = clamp(2.3 - a) * (1 - 0.65 * dim)
+    // Étiquettes : agrandies en éventail, secouées pendant le compte à rebours, retournées à la révélation
+    const flip = tail ? 1 - easeInOut(ramp(t, C.loop + 0.05, 0.45)) : easeInOut(ramp(t, C['r' + (i + 1)], 0.55))
+    const wob = t > TIMES[4].start - 0.1 && t < C.c1 + 0.35 ? Math.sin(t * 15 + i) * 6 : 0
+    const ts = (1 + 0.7 * (1 - zoom)) * (1 + 0.25 * Math.sin(Math.PI * flip))
+    // En éventail, l'étiquette se place au-dessus du centre de son site (sinon elle passe derrière le voisin)
+    const dx = -310 * (1 - zoom), dy = -70 * (1 - zoom)
+    TAGS[i].style.transform = `translate(${dx}px, ${dy}px) rotate(${8 * zoom + wob + Math.sin(t * 2 + i) * 2}deg) scale(${ts}) rotateY(${flip * 180}deg)`
+  })
+  const fc = SITE_COLORS[clamp(Math.round(focus), 0, 2)]
+  const gc = mix(CYAN, fc, zoom)
+  $('glow').style.background = `radial-gradient(closest-side, ${rgba(gc, 0.24)}, ${rgba(gc, 0)})`
+  $('shadow').style.transform = `scaleX(${0.75 + 0.25 * zoom + Math.sin(t * 1.4) * 0.03})`
+}
+
+// Site 1 : défilement « une seule page », bouton d'appel, horaires, formulaire
+function renderSite1(s, t) {
+  const pg = $('pg1'), vp = $('vp1')
+  const max = pg.scrollHeight - vp.clientHeight
+  const d = s - C.s1page
+  const page = d > 0 && d < 1.7 ? easeInOut(ramp(d, 0, 0.7)) - easeInOut(ramp(d, 1.0, 0.6)) : 0
+  const form = easeInOut(ramp(s, C.s1form - 0.15, 0.5)) * (1 - easeInOut(ramp(s, TIMES[2].start - 0.2, 0.7)))
+  const y = Math.max(page, form) * max
+  pg.style.transform = `translateY(${-y}px)`
+  const th = $('thumb1'), trackH = vp.clientHeight - 20, thumbH = trackH * vp.clientHeight / pg.scrollHeight
+  th.style.height = thumbH + 'px'
+  th.style.top = ((trackH - thumbH) * y / max) + 'px'
+  const ob = pop(s, C.s1page, 0.35) * (1 - ramp(d, 1.5, 0.25))
+  setT($('onepage'), ob > 0 ? 1 : 0, `scale(${ob})`)
+  // Bouton d'appel : anneaux qui pulsent, combiné qui vibre
+  const c = s - C.s1call, on = c > 0 && c < 1.4
+  $('call1').style.boxShadow = on ? `0 0 0 ${Math.round(6 + 18 * ((c * 2) % 1))}px rgba(37, 99, 235, ${(0.45 * (1 - (c * 2) % 1)).toFixed(2)})` : 'none'
+  $('call1').style.transform = `scale(${1 + 0.08 * pulse(s, C.s1call, 0.5)})`
+  $('callIc').style.transform = on ? `rotate(${Math.sin(c * 45) * 14}deg)` : 'none'
+  // Horaires mis en avant
+  const h = pulse(s, C.s1hours, 1.3)
+  $('hours1').style.transform = `scale(${1 + 0.05 * h})`
+  $('hours1').style.borderColor = h > 0.05 ? rgb(mix([226, 232, 240], BLUE, h)) : ''
+  $('hours1').style.boxShadow = h > 0.05 ? `0 16px 40px -16px rgba(37, 99, 235, ${0.6 * h})` : 'none'
+  // Formulaire rempli au clavier
+  const name = 'Julie', msg = 'Une vidange jeudi, c\'est possible ?'
+  const n1 = Math.floor(clamp((s - C.s1form - 0.2) / 0.05, 0, name.length))
+  const n2 = Math.floor(clamp((s - C.s1form - 0.35) / 0.016, 0, msg.length))
+  $('f1n').textContent = name.slice(0, n1)
+  $('f1m').textContent = msg.slice(0, n2)
+  const sent = s >= C.s1form + 1.0
+  $('f1b').classList.toggle('ok', sent)
+  $('f1b').textContent = sent ? 'Envoyé ✓' : 'Envoyer'
+}
+
+// Site 2 : pages qui défilent, voiture qui traverse, texte modifié en direct
+function renderSite2(s, t) {
+  // Pages : Accueil, puis Services, Tarifs, Avis, Contact, et retour à l'accueil
+  const ev = [[-Infinity, 0], [C.s2pages, 1], [C.s2pages + 0.24, 2], [C.s2pages + 0.48, 3], [C.s2pages + 0.72, 4], [C.s2pages + 0.98, 0]]
+  let ci = 0
+  ev.forEach((e, i) => { if (s >= e[0]) ci = i })
+  const cur = ev[ci][1], prev = ci > 0 ? ev[ci - 1][1] : cur
+  const k = ci > 0 ? easeOut(ramp(s, ev[ci][0], 0.2)) : 1
+  qa('#vp2 .page').forEach(el => {
+    const p = +el.dataset.p
+    if (p === cur) { el.style.display = ''; el.style.zIndex = 1; el.style.transform = `translateX(${(1 - k) * 100}%)`; el.style.opacity = 1 }
+    else if (p === prev && k < 1) { el.style.display = ''; el.style.zIndex = 0; el.style.transform = `translateX(${-k * 30}%)`; el.style.opacity = 1 - k * 0.6 }
+    else el.style.display = 'none'
+  })
+  const tabs = qa('#nav2 i')
+  tabs.forEach((el, i) => el.classList.toggle('on', i === cur))
+  const a = tabs[prev], b = tabs[cur]
+  $('nav2u').style.left = (a.offsetLeft + (b.offsetLeft - a.offsetLeft) * k) + 'px'
+  $('nav2u').style.width = (a.offsetWidth + (b.offsetWidth - a.offsetWidth) * k) + 'px'
+
+  // La voiture repart puis revient en trombe ; le titre ondule
+  const d = s - C.s2anim
+  let cx = 0
+  if (d > 0 && d < 0.35) cx = easeIn(d / 0.35) * 720
+  else if (d >= 0.35 && d < 1.05) cx = -720 + 720 * easeOut((d - 0.35) / 0.7)
+  const car = $('s2car')
+  car.style.transform = `translateX(${cx}px)`
+  car.style.setProperty('--spin', `${(cx / 22) * 57.3}deg`)
+  $('s2speed').style.opacity = d > 0.35 && d < 1.05 ? 0.9 * (1 - (d - 0.35) / 0.7) : 0
+  $('s2speed').style.transform = `translateX(${cx}px)`
+  const bp = pop(s, C.s2anim + 0.75, 0.4)
+  $('s2badge').style.transform = `scale(${d > 0.75 ? 0.6 + 0.4 * bp : 1}) rotate(${(1 - clamp(bp)) * -10 * (d > 0.75 ? 1 : 0)}deg)`
+
+  // Mode édition : le titre est effacé puis retapé, puis enregistré
+  const e = s - C.s2edit
+  const editing = e > 0 && e < 1.6
+  $('editbar').style.transform = `translateY(${(1 - easeOut(ramp(e, 0, 0.3)) + easeInOut(ramp(e, 1.5, 0.3))) * -100}%)`
+  const h1 = $('s2h1')
+  h1.style.outline = editing ? '3px dashed #FACC15' : 'none'
+  let html
+  if (e <= 0.3) {
+    // Avant la modification : les mots ondulent pendant l'animation
+    html = H1_TEXT.split(' ').map((w, i) => `<span style="transform: translateY(${(-16 * pulse(s, C.s2anim + 0.2 + i * 0.05, 0.4)).toFixed(1)}px)">${w}</span>`).join(' ')
+  } else if (e < 0.7) {
+    html = H1_TEXT.slice(0, Math.round(H1_TEXT.length * (1 - (e - 0.3) / 0.4)))
+  } else {
+    html = H1_EDIT.slice(0, Math.floor(clamp((e - 0.7) / 0.03, 0, H1_EDIT.length)))
+  }
+  if (editing && Math.floor(t * 4) % 2 === 0) html += '<i class="caret"></i>'
+  setHTML(h1, html)
+  const pc = offsetIn(h1, $('vp2'))
+  setT($('pencil'), editing ? 1 : 0, `translate(${pc.x + h1.offsetWidth - 40 + Math.sin(t * 9) * 6}px, ${pc.y + h1.offsetHeight - 10 + Math.cos(t * 11) * 4}px)`)
+  const tp = pop(s, C.s2edit + 1.45, 0.35) * (1 - ramp(s, C.s2edit + 2.8, 0.3))
+  setT($('toast2'), tp > 0 ? 1 : 0, `translateX(-50%) translateY(${(1 - clamp(tp)) * 40}px) scale(${0.7 + 0.3 * tp})`)
+}
+
+// Site 3 : rendez-vous pris en trois clics, puis la réparation avance jusqu'au SMS
+function renderSite3(s, t) {
+  const b = s - C.s3book
+  const days = qa('#days3 i'), day = days.find(x => x.textContent === '14')
+  const slot = $('slots3').querySelector('[data-pick]'), ok = $('ok3')
+  day.classList.toggle('pick', b >= 0)
+  day.style.transform = `scale(${1 + 0.3 * pulse(s, C.s3book, 0.3)})`
+  slot.classList.toggle('pick', b >= 0.45)
+  slot.style.transform = `scale(${1 + 0.15 * pulse(s, C.s3book + 0.45, 0.3)})`
+  ok.classList.toggle('done', b >= 0.9)
+  ok.textContent = b >= 0.9 ? 'Confirmé ✓ mer. 14 oct. · 14:30' : 'Confirmer le rendez-vous'
+  ok.style.transform = `scale(${1 + 0.06 * pulse(s, C.s3book + 0.9, 0.35)})`
+  // Le curseur va du jour au créneau puis au bouton
+  const vp = $('vp3')
+  const center = el => { const o = offsetIn(el, vp); return { x: o.x + el.offsetWidth / 2, y: o.y + el.offsetHeight / 2 } }
+  const P = [{ x: 700, y: 640 }, center(day), center(slot), center(ok)]
+  const seg = b < 0 ? [0, 1, ramp(b, -0.5, 0.45)] : b < 0.45 ? [1, 2, ramp(b, 0.05, 0.35)] : [2, 3, ramp(b, 0.5, 0.35)]
+  const m = easeInOut(seg[2]), A = P[seg[0]], B = P[seg[1]]
+  const click = [0, 0.45, 0.9].some(c => Math.abs(b - c) < 0.07)
+  const curOn = b > -0.5 && b < 1.5
+  setT($('cur3'), curOn ? 1 - ramp(b, 1.25, 0.25) : 0, `translate(${A.x + (B.x - A.x) * m - 6}px, ${A.y + (B.y - A.y) * m - 4}px) scale(${click ? 0.85 : 1})`)
+  // Suivi : réparation terminée, voiture prête, SMS
+  const k = s - C.s3track
+  const reached = k >= 0.45 ? 4 : k >= 0.2 ? 3 : 2 // nombre d'étapes terminées
+  qa('#vp3 .st3').forEach((el, i) => {
+    el.classList.toggle('ok', i < reached)
+    el.classList.toggle('now', i === 2 && k < 0.2)
+    if (i === 2) el.querySelector('small').textContent = k >= 0.2 ? 'TERMINÉE' : 'EN COURS'
+    if (i === 3) el.querySelector('small').textContent = k >= 0.45 ? '16:42' : '—'
+  })
+  const fillTo = 72 * (1 + easeInOut(ramp(k, 0, 0.2)) + easeInOut(ramp(k, 0.22, 0.23)))
+  $('fill3').style.height = (k < 0 ? 72 : fillTo) + 'px'
+  $('eta3').classList.toggle('ok', k >= 0.45)
+  $('eta3').textContent = k >= 0.45 ? 'Prête ✓ à récupérer' : 'Prête vers 17h'
+  const sm = pop(s, C.s3track + 0.5, 0.45) * (1 - easeInOut(ramp(t, TIMES[4].start + 0.3, 0.35)))
+  setT($('sms3'), sm > 0 ? 1 : 0, `translateY(${(1 - clamp(sm)) * -120}px) scale(${0.85 + 0.15 * clamp(sm)})`)
+}
+
+function renderAt(t) {
+  const si = sentenceAt(t)
+  const c = colorAt(t, si)
+  stage.style.setProperty('--accent', rgb(c))
+  stage.style.setProperty('--accent-rgb', c.join(', '))
+  const tail = t >= C.loop
+  const s = tail ? 0 : t // en fin de vidéo, les sites reviennent à leur état de départ
+
+  // Bandeau : « réponse à la fin », tableau des prix
+  const answered = !tail && t >= C.r1
+  $('ans').querySelector('span').textContent = answered ? 'RÉPONSE' : 'RÉPONSE À LA FIN'
+  $('ans').querySelector('i').style.background = answered ? 'var(--green)' : '#E11D48'
+  $('ans').querySelector('i').style.opacity = answered || Math.floor(t * 2.5) % 2 === 0 ? 1 : 0.25
+  $('prog').style.transform = `scaleX(${tail ? 0 : clamp(t / C.loop)})`
+  SLOTS.forEach((el, i) => {
+    const rev = !tail && t >= C['r' + (i + 1)] + 0.3
+    el.classList.toggle('rev', rev)
+    el.classList.toggle('now', !rev && SENTENCE_SITE[si] === i && !tail)
+    setHTML(el.querySelector('b'), rev ? PRICES[i] : '? €')
+    el.style.transform = `scale(${1 + 0.12 * pulse(t, C['r' + (i + 1)] + 0.3, 0.4)})`
+  })
+
+  // Commentaires (fin) : la carte passe devant l'éventail
+  const pcm = tail ? 1 - ramp(t, C.loop, 0.3) : pop(t, C.com, 0.5)
+  const dim = clamp(pcm)
+  renderCarousel(t, tail, dim)
+  renderSite1(s, t)
+  renderSite2(s, t)
+  renderSite3(s, t)
+
+  // « 490 € ? » se balade d'un site à l'autre dès la première image (et revient pour la boucle)
+  const gOut = tail ? 1 - clamp(pop(t, C.loop + 0.15, 0.4)) : ramp(t, TIMES[1].start - 0.3, 0.3)
+  const gb = 1 + 0.2 * pulse(t, C.guess, 0.35)
+  setT($('guess'), 1 - gOut, `translateX(-50%) translateX(${Math.sin(t * 2.7) * 325}px) translateY(${Math.sin(t * 5) * 6 - gOut * 60}px) translateZ(300px) scale(${gb * (1 - 0.4 * gOut)})`)
+
+  // Compte à rebours 3, 2, 1
+  const cues = [['3', C.c3], ['2', C.c2], ['1', C.c1]]
+  let cd = null
+  cues.forEach(([d, t0]) => { if (t >= t0) cd = [d, t0] })
+  const cdOut = ramp(t, TIMES[5].start - 0.3, 0.25)
+  if (cd && !tail && cdOut < 1) {
+    const p = pop(t, cd[1], 0.35)
+    setHTML($('count'), cd[0])
+    setT($('count'), 1 - cdOut, `translateZ(500px) scale(${2.2 - 1.2 * p})`)
+    const r = ramp(t, cd[1], 0.6)
+    setT($('ring'), (1 - r) * 0.8 * (1 - cdOut), `translateZ(400px) scale(${0.3 + 1.3 * easeOut(r)})`)
+  } else { $('count').style.opacity = 0; $('ring').style.opacity = 0 }
+
+  // Éclair coloré derrière l'étiquette qui se retourne
+  let fl = 0, fc = CYAN
+  ;[0, 1, 2].forEach(i => { const p = pulse(t, C['r' + (i + 1)] + 0.15, 0.8); if (p > fl && !tail) { fl = p; fc = SITE_COLORS[i] } })
+  $('flash').style.background = `radial-gradient(closest-side, ${rgba(fc, 0.45)}, ${rgba(fc, 0)})`
+  setT($('flash'), fl, `translateZ(-200px) scale(${0.6 + 0.6 * fl})`)
+
+  const com = $('com')
+  com.style.opacity = pcm > 0 ? 1 : 0
+  com.style.transform = `translateZ(350px) rotateY(${(1 - pcm) * 75}deg) translateY(${Math.sin(t * 1.4) * 8}px) scale(${0.7 + 0.3 * pcm})`
+  qa('#com [data-c]').forEach((el, i) => { const p = pop(t, C.com + 0.35 + i * 0.22, 0.35); setT(el, p > 0 ? 1 : 0, `translateX(${(1 - clamp(p)) * 120}px)`) })
+  com.querySelector('.input b').style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0
+
+  // Avatar
+  let pose = TL.find(b => b.pose), avatarSince = 0
+  for (const bt of TL) { if (bt.t > t) break; if (bt.pose) { pose = bt; avatarSince = bt.t } }
+  const sk = silKey(pose)
+  if (sk !== lastSil) { silEl.src = SILHOUETTES[sk]; lastSil = sk }
+  const m = mouthAt(t), bl = blinkAt(t), acc = rgb(c)
+  const key = [sk, m.toFixed(2), bl.toFixed(2), acc].join('|')
+  if (key !== lastLive) {
+    liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: m, blink: bl, accent: acc, noFilter: true })
+    lastLive = key
+  }
+  const sc = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+  avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${sc})`
+
+  // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const words = WORDS[si]
+  if (t > TIMES[si].end + 0.5 || tail) { captionEl.innerHTML = ''; return }
+  let ci = 0
+  for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
+  captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
+    const q = si === 0 && ci === 0 ? 1 : pop(t, x.t0 - 0.03, 0.22)
+    if (q <= 0) return ''
+    return `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  }).join('')
+}
+
+/* ============================================================
+   6. Démarrage : lecture en direct, image figée (?t=) ou rendu MP4
+   ============================================================ */
+function fit() {
+  const k = Math.min(innerWidth / 1080, innerHeight / 1920)
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`
+}
+
+// Octobre 2026 commence un jeudi ; jours passés et dimanches grisés
+function buildCalendar() {
+  const html = ['<i></i>', '<i></i>', '<i></i>']
+  for (let d = 1; d <= 31; d++) html.push(`<i class="${d < 10 || (d + 3) % 7 === 0 ? 'off' : ''}">${d}</i>`)
+  $('days3').innerHTML = html.join('')
+}
+
+async function boot() {
+  // timing.json et envelope.json n'existent qu'une fois la voix ajoutée (voir ../README.md)
+  const has = window.VOICE_FILES || []
+  if (has.includes('timing.json')) TIMES = (await (await fetch('timing.json', { cache: 'no-store' })).json()).sentences
+  if (has.includes('envelope.json')) ENVELOPE = (await (await fetch('envelope.json', { cache: 'no-store' })).json()).values
+  if (!TIMES) TIMES = estimateTimes()
+  WORDS = buildWords()
+  TL = timeline()
+  buildCalendar()
+  await preloadSilhouettes()
+  window.DURATION = TIMES[TIMES.length - 1].end + TAIL
+  await document.fonts.ready
+
+  const q = new URLSearchParams(location.search)
+  if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true; return }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); return }
+  const audio = q.has('audio') ? new Audio('voice.mp3') : null
+  if (audio) { audio.loop = true; audio.play().catch(() => {}) }
+  const t0 = performance.now()
+  const loop = () => {
+    renderAt(audio ? audio.currentTime : ((performance.now() - t0) / 1000) % window.DURATION)
+    requestAnimationFrame(loop)
+  }
+  loop()
+}
+boot()
+</script>
+</body>
+</html>
