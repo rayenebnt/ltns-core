@@ -10,7 +10,7 @@ Rien ici n'est publié sur le site.
 | `tiktok-episode-02/` | « Site, appli ou logiciel : de quoi a besoin ton entreprise ? » |
 | `tiktok-episode-03/` | « Je crée le site d'une boulangerie en 30 secondes » |
 | `tiktok-episode-04/` | « Coulisses : PMSB Gestion », le logiciel d'une entreprise du bâtiment |
-| `tiktok-episode-05/` | « Devine le prix » : même garage, trois sites, trois formules |
+| `tiktok-episode-05/` | « Devine le prix » (écarté, non publié) |
 | `IDEES.md` | Les idées d'épisodes, publiés et à venir |
 
 Chaque épisode contient son `tiktok.html` (textes, mise en scène), sa voix (`voice/01.mp3`…)

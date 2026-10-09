@@ -1,4 +1,7 @@
-# TikTok « Devine le prix » — Épisode 05
+# TikTok « Devine le prix » — Épisode 05 (écarté, non publié)
+
+> Écarté : la réponse est évidente (le site le plus simple est forcément le moins cher), donc aucun suspense.
+> Gardé pour son moteur (carrousel 3D, étiquettes qui se retournent, compte à rebours calé sur la voix).
 
 Même garage (fictif : « Garage du Centre »), trois sites, un par formule LTNS° :
 
