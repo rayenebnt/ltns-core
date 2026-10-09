@@ -22,3 +22,21 @@ l'existant. Chaque épisode reste utile à tous ; LTNS° signe, sans vendre fron
 | « En 30 secondes » appli / logiciel | La suite de l'épisode 03 : appli de réservation, logiciel de planning… | Notoriété |
 | « Le bouton qui fait vendre » | Micro-épisodes de 15 s sur un seul élément créé (réservation, avis, paiement…). | Considération |
 | « Coulisses » | Un vrai projet de l'idée à la livraison (épisode 04 : PMSB Gestion). Toujours avec l'accord du client. | Considération |
+
+## Plan issu de la recherche TikTok (9 octobre 2026)
+
+Détail et sources : [RECHERCHE-TIKTOK.md](RECHERCHE-TIKTOK.md). Classement du jury (3 juges, sur 30) :
+
+| Rang | Concept | Note |
+|---|---|---|
+| 1 | « Tu commentes, je crée » #01 : salon de coiffure, « Appeler ou Réserver ? » | 23,3 |
+| 2 | Variante du même concept (réponse vidéo à un vrai commentaire) | 22,5 |
+| 3 | « Combien coûte un site pour un artisan ? » Le ticket, ligne par ligne | 21,9 |
+| 4 | Même sujet, version « rétention » | 21,5 |
+| 5 | « Site gratuit ou site à 490 € ? » Je crée les deux | 20,8 |
+| 6 | « Facture électronique 2027 : vrai ou faux ? » + l'outil (J-327) | 20,6 |
+| 7 | « Site gratuit ou 490 € » pour un plombier | 20,0 |
+| 8 | « T'as Instagram, t'as pas besoin de site ? » Le test | 19,8 |
+
+Préalables : un vrai commentaire pour la série « Tu commentes, je crée » (sinon partir d'une recherche TikTok capturée, sans s'en excuser) ;
+le coût annuel après la 1re année pour l'épisode « ticket » ; les dates de la facture électronique vérifiées sur impots.gouv.fr.
