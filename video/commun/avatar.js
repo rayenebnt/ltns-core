@@ -206,7 +206,8 @@
   }
 
   /* ---------- Assemblage ---------- */
-  const VB = [-150, -40, 900, 1000]
+  // 1000 de large : le bras tendu (pointSide) et son contour tiennent dans le cadre
+  const VB = [-150, -40, 1000, 1000]
   // Identifiants uniques par dessin : plusieurs avatars peuvent cohabiter sur une page
   let uid = 0
   const scope = (markup) => {

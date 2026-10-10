@@ -49,15 +49,15 @@
   #hud .tag2 b { color: var(--ink); font-weight: 500; }
   #hud .ep { margin-left: auto; font-family: var(--display); font-weight: 700; font-size: 30px; color: #fff; background: var(--ink); padding: 4px 12px; letter-spacing: 0; }
   #prog { position: absolute; left: 0; bottom: -2px; height: 6px; width: 100%; background: var(--accent); transform-origin: 0 50%; }
-  #duel { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 20px; letter-spacing: 1px; }
+  #duel { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 24px; letter-spacing: 1px; }
   #duel > i { font-style: normal; display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 3px solid var(--line-strong); color: var(--mute); font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: 0; white-space: nowrap; }
   #duel > i svg { width: 22px; height: 22px; }
   #duel > i.on { border-color: var(--ink); color: var(--ink); }
   #duel > i.no { border-color: var(--line-strong); color: var(--red); text-decoration: line-through; text-decoration-thickness: 3px; }
   #duel > i.yes { background: var(--green); border-color: var(--green); color: #fff; }
   #duel > span { color: var(--mute); }
-  #ans { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 19px; color: var(--ink); }
-  #ans i { width: 14px; height: 14px; border-radius: 50%; background: #E11D48; }
+  #ans { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 700; color: var(--ink); }
+  #ans i { width: 16px; height: 16px; border-radius: 50%; background: #E11D48; }
 
   /* Sous-titres mot à mot */
   #caption {
@@ -87,7 +87,7 @@
   #closed { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: #fff; background: #6B7280; padding: 3px 8px; border-radius: 8px; opacity: 0; }
   #slot { position: relative; margin: 10px 14px 12px; height: 62px; border-radius: 16px; border: 3px dashed var(--lilac); display: grid; place-items: center; }
   #slot .q { font-family: var(--display); font-weight: 700; font-size: 34px; color: #A78BFA; }
-  #slot .q small { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; margin-left: 8px; vertical-align: 6px; }
+  #slot .q small { font-family: var(--mono); font-size: 18px; letter-spacing: 1px; margin-left: 10px; vertical-align: 5px; }
   #slotBtn { position: absolute; inset: -3px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 22px; opacity: 0; }
   #slotBtn.call { background: #fff; border: 3px solid var(--ink); color: var(--ink); }
   #slotBtn.book { background: var(--plum); color: #fff; box-shadow: 0 14px 26px -12px rgba(59, 30, 84, .8); }
@@ -114,7 +114,7 @@
   .map svg { position: absolute; left: 50%; top: 18px; width: 44px; height: 44px; margin-left: -22px; color: var(--plum); stroke-width: 2.4; fill: var(--lilac); }
   .map b { position: absolute; left: 12px; bottom: 10px; font-size: 13px; background: #fff; padding: 4px 8px; border-radius: 8px; }
   .mfoot { margin: 18px 0 0; padding: 16px; background: var(--plum); color: #E9D5FF; font-size: 13px; text-align: center; }
-  #exBadge { position: absolute; left: 50%; top: -34px; z-index: 7; font-family: var(--mono); font-size: 17px; letter-spacing: 2px; color: #fff; background: var(--ink); padding: 7px 14px; border-radius: 10px; opacity: 0; white-space: nowrap; box-shadow: 0 12px 20px -10px rgba(22, 22, 26, .6); }
+  #exBadge { position: absolute; left: 50%; top: -44px; z-index: 7; font-family: var(--mono); font-size: 24px; letter-spacing: 1px; color: #fff; background: var(--ink); padding: 7px 14px; border-radius: 10px; opacity: 0; white-space: nowrap; box-shadow: 0 12px 20px -10px rgba(22, 22, 26, .6); }
   /* Recherche « coiffeur près de moi » */
   #search { position: absolute; left: 0; right: 0; top: 40px; bottom: 0; background: #fff; z-index: 5; padding: 18px 16px; opacity: 0; }
   #search .bar { display: flex; align-items: center; gap: 10px; border: 2px solid #E5E7EB; border-radius: 26px; padding: 12px 16px; font-size: 17px; color: var(--ink); }
@@ -145,8 +145,10 @@
   .float { position: absolute; left: 0; top: 0; width: 300px; height: 100px; border-radius: 24px; display: flex; align-items: center; justify-content: center; gap: 14px; font-family: var(--ui); font-weight: 800; font-size: 34px; letter-spacing: -.5px; background: #fff; color: var(--ink); border: 4px solid var(--ink); box-shadow: 0 26px 44px -20px rgba(22, 22, 26, .55); z-index: 20; }
   .float svg { width: 38px; height: 38px; stroke-width: 2.4; }
   .float .x { position: absolute; inset: -4px; border-radius: 24px; display: grid; place-items: center; font-size: 96px; color: var(--red); font-family: var(--display); font-weight: 700; opacity: 0; }
-  #ou { position: absolute; left: 540px; top: 690px; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: #FACC15; display: grid; place-items: center; font-weight: 700; font-size: 40px; color: var(--ink); z-index: 21; box-shadow: 0 20px 34px -16px rgba(22, 22, 26, .5); }
+  #ou { position: absolute; left: 540px; top: 628px; width: 100px; height: 100px; margin: -50px 0 0 -50px; border-radius: 50%; background: #FACC15; display: grid; place-items: center; font-weight: 700; font-size: 34px; color: var(--ink); z-index: 21; box-shadow: 0 20px 34px -16px rgba(22, 22, 26, .5); }
   #scis { position: absolute; left: 790px; top: 600px; font-size: 150px; z-index: 22; opacity: 0; }
+  #nightTag { position: absolute; left: 745px; top: 800px; z-index: 22; display: flex; gap: 10px; align-items: center; font-family: var(--mono); font-size: 24px; letter-spacing: 1px; color: #fff; background: var(--ink); padding: 8px 14px; border-radius: 10px; opacity: 0; white-space: nowrap; }
+  #nightTag svg { width: 24px; height: 24px; color: #FACC15; }
   #busy { position: absolute; left: 745px; top: 800px; z-index: 22; font-family: var(--mono); font-size: 22px; letter-spacing: 2px; color: #fff; background: var(--red); padding: 8px 14px; border-radius: 10px; opacity: 0; }
 
   /* Version ordinateur */
@@ -166,7 +168,7 @@
   #desk .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 28px; }
   #desk .cards div { background: #fff; border: 1px solid #F1E6EA; border-radius: 14px; padding: 12px; font-weight: 700; font-size: 15px; }
   #desk .cards span { display: block; margin-top: 6px; font-family: var(--mono); font-size: 14px; color: #8B5CF6; }
-  #stampOn { position: absolute; left: 690px; top: 640px; z-index: 23; border: 8px solid var(--green); color: var(--green); background: rgba(255, 255, 255, .95); font-weight: 700; font-size: 54px; letter-spacing: -1px; padding: 4px 22px 8px; border-radius: 16px; opacity: 0; white-space: nowrap; }
+  #stampOn { position: absolute; left: 560px; top: 548px; z-index: 23; border: 8px solid var(--green); color: var(--green); background: rgba(255, 255, 255, .95); font-weight: 700; font-size: 54px; letter-spacing: -1px; padding: 4px 22px 8px; border-radius: 16px; opacity: 0; white-space: nowrap; }
   #banner { position: absolute; left: 60px; right: 60px; top: 780px; z-index: 24; background: var(--ink); color: #fff; text-align: center; font-weight: 700; font-size: 66px; letter-spacing: -2px; line-height: 1.02; padding: 26px 20px 30px; opacity: 0; box-shadow: 0 40px 70px -30px rgba(22, 22, 26, .6); }
   #banner small { display: block; font-family: var(--mono); font-weight: 500; font-size: 22px; letter-spacing: 3px; color: #FACC15; margin-top: 10px; }
 
@@ -188,7 +190,7 @@
   #fx i { position: absolute; left: 0; top: 0; width: 18px; height: 12px; border-radius: 3px; }
 
   /* Avatar remonté : la bouche reste au-dessus de la légende TikTok */
-  #avatar { position: absolute; left: -40px; top: 1010px; width: 520px; transform-origin: 50% 70%; z-index: 40; }
+  #avatar { position: absolute; left: -40px; top: 1010px; width: 578px; transform-origin: 45% 70%; z-index: 40; }
   #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
 </style>
 </head>
@@ -255,7 +257,7 @@
 
     <!-- Version ordinateur -->
     <div id="desk"><div class="win">
-      <div class="bar"><i></i><i></i><i></i><span>maison-lila-coiffure.fr</span></div>
+      <div class="bar"><i></i><i></i><i></i><span>maison-lila.exemple</span></div>
       <div class="nav"><div class="logo"><b>Maison Lila</b><small>COIFFURE</small></div><div class="links"><span>Prestations</span><span>Réalisations</span><span>Accès</span></div><div class="bk"><svg class="i"><use href="#i-cal"/></svg>Réserver</div></div>
       <div class="hero"><div><div class="h1">Coupe, couleur &amp; soin, <em>à deux pas.</em></div><p>Mardi – samedi · 9h – 19h</p></div><div class="photo"><svg><use href="#salon"/></svg></div></div>
       <div class="cards"><div>Coupe femme<span>38 €</span></div><div>Brushing<span>25 €</span></div><div>Couleur<span>dès 55 €</span></div><div>Coupe homme<span>22 €</span></div></div>
@@ -267,7 +269,7 @@
         <div class="sbar"><span id="clock">10:24</span><i class="notch"></i><span>5G ▮</span></div>
         <div class="m" id="m">
           <div class="mh"><div class="logo" id="logo"><b id="name">Maison Lila</b><small>COIFFURE</small></div><span id="closed">FERMÉ</span><i class="burger"></i></div>
-          <div id="slot"><div class="q" id="slotQ">?<small>EN HAUT</small></div><div id="slotBtn"></div></div>
+          <div id="slot"><div class="q" id="slotQ">?<small>EN HAUT DU SITE</small></div><div id="slotBtn"></div></div>
           <div class="blk"><div class="photo" id="photo"><svg><use href="#salon"/></svg></div><div class="sk" id="skPhoto"></div></div>
           <div class="blk"><div class="h1" id="h1">Coupe, couleur &amp; soin, <em>à deux pas.</em></div><div class="sk lines" id="skH1" style="padding-top: 16px"><i style="width: 90%"></i><i style="width: 60%"></i></div></div>
           <div class="sec" id="secP">PRESTATIONS</div>
@@ -297,10 +299,10 @@
         <div class="notif miss" data-n="1" style="top: 104px"><div class="ni"><svg class="i"><use href="#i-phone-x"/></svg></div><div><b>Appel manqué</b><span>07 ·· ·· ·· 18</span></div></div>
         <div class="notif miss" data-n="2" style="top: 162px"><div class="ni"><svg class="i"><use href="#i-phone-x"/></svg></div><div><b>Appel manqué</b><span>06 ·· ·· ·· 73</span></div></div>
         <div class="notif ok" id="okNotif" style="top: 46px"><div class="ni"><svg class="i"><use href="#i-check"/></svg></div><div><b>Nouveau rendez-vous</b><span>Mardi 14:30 · Coupe femme</span></div></div>
-        <div id="sheet"><div class="grab"></div><h5>Choisir un créneau</h5><p>MARDI 14 OCTOBRE</p><div class="sl"><i>10:00</i><i>11:30</i><i data-pick>14:30</i><i>16:00</i></div><div class="go" id="go">Réserver ce créneau</div></div>
+        <div id="sheet"><div class="grab"></div><h5>Choisir un créneau</h5><p>MARDI · CRÉNEAUX LIBRES</p><div class="sl"><i>10:00</i><i>11:30</i><i data-pick>14:30</i><i>16:00</i></div><div class="go" id="go">Réserver ce créneau</div></div>
       </div></div>
       <div id="ring"></div>
-      <div id="exBadge">EXEMPLE · ENTREPRISE FICTIVE</div>
+      <div id="exBadge">EXEMPLE · SALON FICTIF</div>
     </div>
 
     <div id="ou">OU</div>
@@ -308,6 +310,7 @@
     <div class="float" id="fBook"><svg class="i"><use href="#i-cal"/></svg>Réserver<div class="x">✕</div></div>
     <div id="scis">✂️</div>
     <div id="busy">CISEAUX EN MAIN</div>
+    <div id="nightTag"><svg class="i"><use href="#i-moon"/></svg>23:04 · FERMÉ</div>
     <div id="stampOn">EN LIGNE ✓</div>
     <div id="banner">UN EXEMPLE, PAS TON SITE<small>ENTREPRISE FICTIVE · CRÉÉE POUR LA VIDÉO</small></div>
 
@@ -368,7 +371,7 @@ const CUES = {
   ex:       [1, 'l\'exemple,', -0.1, 'pop'],
   park:     [1, 'tranche', -0.15, 'whoosh'],
   face:     [2, 'téléphone', -0.15, 'whoosh'],
-  search:   [2, 'là', -0.2, 'tick'],
+  search:   [2, 'téléphone', 0.35, 'tick'],
   name:     [3, 'nom,', -0.15, 'pop'],
   photo:    [3, 'photo,', -0.2, 'pop'],
   presta:   [3, 'prestations', -0.15, 'whoosh'],
@@ -493,14 +496,13 @@ function timeline() {
     C[k] = word ? word.t0 + off : at(si, typeof f === 'string' ? 0 : f)
   }
   C.loop = TIMES[TIMES.length - 1].end + 0.1
-  const out = [{ t: 0.02, sfx: 'whoosh' }]
+  const out = []
   POSES.forEach((beats, si) => beats.forEach(b => out.push({ ...b, t: at(si, b.at), si })))
   for (const [k, cue] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx: cue[cue.length - 1] })
   // Frappe dans la recherche, sonnerie, prix qui tombent
   for (let i = 0; i < 5; i++) out.push({ t: C.search + 0.15 + i * 0.08, sfx: 'tick' })
   for (let i = 0; i < 4; i++) out.push({ t: C.tryCall + 0.45 + i * 0.16, sfx: 'tick' })
   for (let i = 1; i < 3; i++) out.push({ t: C.fail + i * 0.14, sfx: 'pop' })
-  out.push({ t: C.slotPick + 0.45, sfx: 'pop' })
   // Retour à l'image de départ, l'avatar reprend sa pose du début : la boucle est invisible
   out.push({ t: C.loop + 0.1, sfx: 'whoosh' }, { ...POSES[0][0], t: C.loop + 0.1, si: TIMES.length - 1 })
   return out.sort((a, b) => a.t - b.t)
@@ -539,6 +541,9 @@ function blinkAt(t) {
   const d = (t % 3.4) - 2.9
   return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
 }
+
+// Oscillations : pendant la fin, elles rejoignent la phase qu'elles auront à l'image 0 (boucle sans saut)
+let osc = (t, f, k = 0) => Math.sin(t * f + k)
 
 function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647 }
 
@@ -591,9 +596,9 @@ function phoneState(t, tail) {
   const face = easeInOut(ramp(t, C.face, 0.5))
   const toDesk = tail ? 1 - easeInOut(ramp(t, C.loop, 0.45)) : easeInOut(ramp(t, C.desk, 0.55))
   const shake = t > C.tryCall + 0.3 && t < C.fail + 0.2 && !tail ? Math.sin(t * 70) * 3 : 0
-  const ry = lerp(-16, -3, tail ? 0 : face) + Math.sin(t * 0.8) * 2.5 - toDesk * 14
-  const rx = 5 + Math.sin(t * 1.1) * 2
-  return { x: toDesk * 280, y: toDesk * 150 + Math.sin(t * 1.5) * 8, sc: 1 - 0.38 * toDesk, ry, rx, rz: shake }
+  const ry = lerp(-16, -3, tail ? 0 : face) + osc(t, 0.8) * 2.5 - toDesk * 14
+  const rx = 5 + osc(t, 1.1) * 2
+  return { x: toDesk * 280, y: toDesk * 150 + osc(t, 1.5) * 8, sc: 1 - 0.38 * toDesk, ry, rx, rz: shake }
 }
 
 function renderPhone(t, s, tail) {
@@ -603,15 +608,15 @@ function renderPhone(t, s, tail) {
 
   // Badge « exemple » posé sur l'écran
   const eb = pop(s, C.ex, 0.4)
-  setT($('exBadge'), eb > 0 ? 1 : 0, `translateX(-50%) scale(${eb > 0 ? 0.6 + 0.4 * eb : 1})`)
+  setT($('exBadge'), eb > 0 ? 1 : 0, `translateX(-50%) scale(${(eb > 0 ? 0.6 + 0.4 * eb : 1) / Math.sqrt(p.sc)})`)
 
   // Recherche « coiffeur près de moi », puis le résultat, puis on entre sur le site
   const sq = 'coiffeur près de moi'
   const sOn = s > C.search - 0.1 && s < TIMES[3].start + 0.15
   const sOut = ramp(s, TIMES[3].start - 0.2, 0.3)
   setT($('search'), sOn ? 1 : 0, `translateX(${-sOut * 100}%)`)
-  setHTML($('q'), sq.slice(0, Math.floor(clamp((s - C.search) / 0.03, 0, sq.length))))
-  const rp = pop(s, C.search + 0.65, 0.35)
+  setHTML($('q'), sq.slice(0, Math.floor(clamp((s - C.search) / 0.02, 0, sq.length))))
+  const rp = pop(s, C.search + 0.45, 0.35)
   setT($('res'), rp > 0 ? 1 : 0, `scale(${0.8 + 0.2 * rp}) ${Math.abs(s - (TIMES[3].start - 0.3)) < 0.08 ? 'scale(0.96)' : ''}`)
 
   // Construction : nom, photo, titre, prestations et prix, réalisations, horaires, plan
@@ -676,7 +681,7 @@ function renderPhone(t, s, tail) {
   const sh = easeOut(ramp(s, C.slotPick - 0.35, 0.4)) * (1 - easeInOut(ramp(s, C.night + 0.9, 0.4)))
   $('sheet').style.transform = `translateY(${(1 - sh) * 105}%)`
   $('sheet').querySelector('[data-pick]').classList.toggle('pick', s >= C.slotPick)
-  const done = s >= C.slotPick + 0.45
+  const done = s >= C.night + 0.05
   $('go').classList.toggle('done', done)
   $('go').textContent = done ? 'Réservé ✓' : 'Réserver ce créneau'
   const night = s >= C.night - 0.1
@@ -691,7 +696,7 @@ function renderFloats(t, s, tail) {
   const slotC = centerOf($('slot')), hc = centerOf($('hCall')), hb = centerOf($('hBook'))
   const place = (el, x, y, sc, rot, op) => setT(el, op, `translate(${x - 150}px, ${y - 50}px) rotate(${rot}deg) scale(${sc})`)
   const chip = 0.42
-  const bob = (k) => Math.sin(t * 2.2 + k) * 8
+  const bob = (k) => osc(t, 2.2, k) * 8
   const parkK = easeInOut(ramp(t, C.park, 0.5))
   const back = tail ? easeInOut(ramp(t, C.loop + 0.05, 0.45)) : 0
   ;[['call', $('fCall'), hc, C.bCall], ['book', $('fBook'), hb, C.bBook]].forEach(([k, el, hud, cue]) => {
@@ -722,13 +727,15 @@ function renderFloats(t, s, tail) {
   })
   // « OU » au centre pendant l'accroche
   const ou = tail ? back : 1 - ramp(t, C.park, 0.25)
-  setT($('ou'), ou, `scale(${ou * (1 + 0.12 * Math.sin(t * 4))})`)
+  setT($('ou'), ou, `scale(${ou * (1 + 0.12 * osc(t, 4))})`)
 
   // Bandeau : les puces apparaissent quand les boutons s'y posent
-  const landed = !tail && t >= C.park + 0.45
-  $('hCall').className = !landed ? '' : s >= C.fail + 0.2 ? 'no' : 'on'
-  $('hCall').style.opacity = $('hBook').style.opacity = landed ? 1 : 0.35
-  $('hBook').className = !landed ? '' : s >= C.pick + 0.38 ? 'yes' : 'on'
+  const landed = !tail && t >= C.park + 0.5
+  const callAway = s >= C.tryCall && s < C.fail + 0.2, bookAway = s >= C.pick && s < C.pick + 0.38
+  $('hCall').className = !landed || callAway ? '' : s >= C.fail + 0.2 ? 'no' : 'on'
+  $('hCall').style.opacity = landed && !callAway ? 1 : 0.35
+  $('hBook').className = !landed || bookAway ? '' : s >= C.pick + 0.38 ? 'yes' : 'on'
+  $('hBook').style.opacity = landed && !bookAway ? 1 : 0.35
   const answered = !tail && t >= C.pick + 0.38
   $('ans').querySelector('span').textContent = answered ? 'RÉSERVER ✓' : 'RÉPONSE À LA FIN'
   $('ans').querySelector('i').style.background = answered ? 'var(--green)' : '#E11D48'
@@ -742,6 +749,8 @@ function renderAt(t) {
   stage.style.setProperty('--accent-rgb', c.join(', '))
   const tail = t >= C.loop
   const s = tail ? 0 : t // en fin de vidéo, le site revient à l'état de départ
+  const PERIOD = Math.ceil(window.DURATION * FPS) / FPS, wk = tail ? easeInOut(ramp(t, C.loop + 0.1, 0.45)) : 0
+  osc = (tt, f, k = 0) => lerp(Math.sin(tt * f + k), Math.sin((tt - PERIOD) * f + k), wk)
   $('prog').style.transform = `scaleX(${tail ? 0 : clamp(t / C.loop)})`
   const gc = t >= C.pick && !tail ? [139, 92, 246] : CYAN
   $('glow').style.background = `radial-gradient(closest-side, ${rgba(gc, 0.2)}, ${rgba(gc, 0)})`
@@ -753,6 +762,10 @@ function renderAt(t) {
   const sc = pop(s, C.scis, 0.35) * (1 - ramp(s, C.pick - 0.2, 0.3))
   setT($('scis'), sc > 0 ? 1 : 0, `rotate(${-20 + Math.sin(t * 16) * 12}deg) scale(${0.5 + 0.5 * sc})`)
   setT($('busy'), sc > 0 ? 1 : 0, `scale(${0.6 + 0.4 * clamp(sc)}) rotate(-4deg)`)
+
+  // La nuit : le salon est fermé, la réservation passe quand même
+  const nt = pop(s, C.night - 0.1, 0.35) * (1 - ramp(s, C.desk - 0.1, 0.25))
+  setT($('nightTag'), nt > 0 ? 1 : 0, `scale(${0.6 + 0.4 * clamp(nt)}) rotate(-3deg)`)
 
   // Confettis à la bonne réponse
   const ct = t - (C.pick + 0.38)
@@ -770,7 +783,7 @@ function renderAt(t) {
   $('desk').style.opacity = dk > 0.01 ? 1 - 0.6 * dim : 0
   $('desk').style.transform = `translateY(${Math.sin(t * 1.3) * 8}px) rotateY(${(1 - dk) * -70 + 6}deg) rotateX(4deg) translateZ(${(1 - dk) * -300}px) scale(${0.85 + 0.15 * dk})`
   const on = pop(t, C.online, 0.35)
-  setT($('stampOn'), on > 0 && !tail ? 1 - dim : 0, `rotate(${-8 + (1 - clamp(on)) * 20}deg) scale(${2 - on})`)
+  setT($('stampOn'), on > 0 && !tail ? (1 - dim) * (1 - ramp(t, C.banner - 0.1, 0.25)) : 0, `rotate(${-8 + (1 - clamp(on)) * 20}deg) scale(${2 - on})`)
   const bn = pop(t, C.banner, 0.4)
   setT($('banner'), bn > 0 && !tail ? 1 - ramp(t, C.poll - 0.2, 0.3) : 0, `rotate(-3deg) scale(${0.6 + 0.4 * bn})`)
 
@@ -793,12 +806,18 @@ function renderAt(t) {
     liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: mo, blink: bl, accent: acc, noFilter: true })
     lastLive = key
   }
-  const as = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
-  avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${as})`
+  const as = avatarSince <= TIMES[0].start ? 1 : 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+  avatarEl.style.transform = `translateY(${osc(t, 2.1) * 6}px) rotate(${osc(t, 1.3) * 1.2}deg) scale(${as})`
 
   // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const span = (x, q) => `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  if (tail) {
+    const q = pop(t, C.loop + 0.25, 0.22)
+    captionEl.innerHTML = q <= 0 ? '' : WORDS[0].filter(x => x.ci === 0).map(x => span(x, q)).join('')
+    return
+  }
   const words = WORDS[si]
-  if (t > TIMES[si].end + 0.5 || tail) { captionEl.innerHTML = ''; return }
+  if (t > TIMES[si].end + 0.5) { captionEl.innerHTML = ''; return }
   let ci = 0
   for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
   captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
