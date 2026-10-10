@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — TikTok « Tu commentes, je crée #01 »</title>
+<!--
+  Épisode 06 : « Tu commentes, je crée » #01, salon de coiffure.
+  La question de l'accroche : en haut du site, le bouton « Appeler » ou « Réserver » ?
+  Je crée un EXEMPLE de site (entreprise fictive « Maison Lila ») sur téléphone, la réponse
+  n'arrive qu'aux deux tiers : « Appeler » est essayé puis écarté (appels manqués),
+  « Réserver » prend la place. Version ordinateur, « un exemple, pas ton site »,
+  puis la question au public. La fin revient à l'image de départ : la vidéo boucle.
+  Mise en page tenant compte de l'interface TikTok : rien d'important sous y ≈ 1280,
+  ni dans les 140 px de droite entre y ≈ 900 et 1500.
+  Vidéo 1080 × 1920, 30 i/s.
+
+  Ouvrir via un serveur local (voir ../README.md) : la vidéo se joue toute seule.
+  ?t=12.5 fige l'image à 12,5 s · ?audio la joue avec voice.mp3.
+-->
+<link rel="stylesheet" href="../commun/fonts.css">
+<style>
+  :root {
+    --paper: #F5F3EE; --ink: #16161A; --dim: #4B4B55; --mute: #6B6B75;
+    --line: rgba(22, 22, 26, 0.09); --line-strong: rgba(22, 22, 26, 0.18);
+    --accent: rgb(8, 145, 178); --accent-rgb: 8, 145, 178;
+    --plum: #3B1E54; --lilac: #C4B5FD; --blush: #F9E3E8; --gold: #C9A227; --green: #16A34A; --red: #DC2626;
+    --display: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace; --ui: 'Montserrat', sans-serif; --serif: 'Fraunces', serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 1080px; height: 1920px; overflow: hidden;
+    background:
+      linear-gradient(var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      linear-gradient(90deg, var(--line) 2px, transparent 2px) 0 0 / 60px 60px,
+      var(--paper);
+    font-family: var(--display); color: var(--ink);
+  }
+  #glow { position: absolute; left: 50%; top: 920px; width: 1300px; height: 1300px; margin: -650px 0 0 -650px; border-radius: 50%; }
+  #avatar, #caption, #hud, .float, #fx, #banner, #poll, #stampOn, #scis { will-change: transform, opacity; }
+  svg.i { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* Bandeau : marque, série, le duel « Appeler ou Réserver » */
+  #hud { position: absolute; left: 70px; right: 70px; top: 160px; font-family: var(--mono); font-size: 30px; letter-spacing: 3px; color: var(--dim); z-index: 30; }
+  #hud .row { display: flex; align-items: center; gap: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--line-strong); white-space: nowrap; position: relative; }
+  #hud .brand b { font-family: var(--display); font-weight: 700; font-size: 42px; letter-spacing: -1px; color: var(--ink); }
+  #hud .brand span { color: var(--accent); }
+  #hud .tag2 b { color: var(--ink); font-weight: 500; }
+  #hud .ep { margin-left: auto; font-family: var(--display); font-weight: 700; font-size: 30px; color: #fff; background: var(--ink); padding: 4px 12px; letter-spacing: 0; }
+  #prog { position: absolute; left: 0; bottom: -2px; height: 6px; width: 100%; background: var(--accent); transform-origin: 0 50%; }
+  #duel { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 20px; letter-spacing: 1px; }
+  #duel > i { font-style: normal; display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 3px solid var(--line-strong); color: var(--mute); font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: 0; white-space: nowrap; }
+  #duel > i svg { width: 22px; height: 22px; }
+  #duel > i.on { border-color: var(--ink); color: var(--ink); }
+  #duel > i.no { border-color: var(--line-strong); color: var(--red); text-decoration: line-through; text-decoration-thickness: 3px; }
+  #duel > i.yes { background: var(--green); border-color: var(--green); color: #fff; }
+  #duel > span { color: var(--mute); }
+  #ans { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 19px; color: var(--ink); }
+  #ans i { width: 14px; height: 14px; border-radius: 50%; background: #E11D48; }
+
+  /* Sous-titres mot à mot */
+  #caption {
+    position: absolute; left: 60px; right: 60px; top: 330px; height: 210px; z-index: 30;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 22px; text-align: center;
+    font-weight: 700; font-size: 76px; line-height: 1.02; letter-spacing: -2px; text-transform: uppercase;
+  }
+  #caption .w { display: inline-block; transform-origin: 50% 80%; }
+  #caption .w.hl { color: var(--accent); font-style: italic; font-weight: 500; }
+
+  /* Scène 3D */
+  #scene { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 50% 900px; }
+  .shadow { position: absolute; left: 50%; border-radius: 50%; background: radial-gradient(closest-side, rgba(22, 22, 26, .26), rgba(22, 22, 26, 0)); }
+
+  /* Le téléphone (pas de will-change : Chrome couperait ce qui dépasse) */
+  #phone { position: absolute; left: 350px; top: 560px; width: 380px; height: 720px; transform-style: preserve-3d; }
+  #phone .body { position: absolute; inset: 0; border-radius: 58px; background: linear-gradient(145deg, #2a2a33, #0f0f12); padding: 14px; box-shadow: 0 60px 110px -50px rgba(22, 22, 26, .7), inset 0 0 0 3px rgba(255, 255, 255, .08); }
+  #phone .scr { position: relative; width: 100%; height: 100%; border-radius: 44px; overflow: hidden; background: #FFFBFC; font-family: var(--ui); color: var(--plum); }
+  .sbar { position: absolute; left: 0; right: 0; top: 0; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 15px; font-weight: 700; color: var(--ink); z-index: 6; background: #FFFBFC; }
+  .sbar .notch { position: absolute; left: 50%; top: 9px; width: 96px; height: 26px; margin-left: -48px; border-radius: 14px; background: #0f0f12; }
+  .sbar #clock { display: flex; align-items: center; gap: 6px; }
+  .m { position: absolute; left: 0; right: 0; top: 40px; }
+  .mh { height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid #F1E6EA; }
+  .logo b { display: block; font-family: var(--serif); font-weight: 800; font-size: 26px; letter-spacing: -.5px; line-height: 1; }
+  .logo small { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: #9B7FA8; margin-top: 3px; }
+  .burger { width: 26px; height: 16px; background: linear-gradient(var(--plum) 0 3px, transparent 3px 6.5px, var(--plum) 6.5px 9.5px, transparent 9.5px 13px, var(--plum) 13px); }
+  #closed { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: #fff; background: #6B7280; padding: 3px 8px; border-radius: 8px; opacity: 0; }
+  #slot { position: relative; margin: 10px 14px 12px; height: 62px; border-radius: 16px; border: 3px dashed var(--lilac); display: grid; place-items: center; }
+  #slot .q { font-family: var(--display); font-weight: 700; font-size: 34px; color: #A78BFA; }
+  #slot .q small { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; margin-left: 8px; vertical-align: 6px; }
+  #slotBtn { position: absolute; inset: -3px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; font-size: 22px; opacity: 0; }
+  #slotBtn.call { background: #fff; border: 3px solid var(--ink); color: var(--ink); }
+  #slotBtn.book { background: var(--plum); color: #fff; box-shadow: 0 14px 26px -12px rgba(59, 30, 84, .8); }
+  #slotBtn svg { width: 24px; height: 24px; }
+  .blk { position: relative; margin: 0 14px; }
+  .sk { position: absolute; inset: 0; border-radius: 16px; background: #EFE9EC; }
+  .sk.lines { background: none; display: grid; gap: 10px; align-content: start; }
+  .sk.lines i { display: block; height: 16px; border-radius: 8px; background: #EFE9EC; }
+  .photo { height: 196px; border-radius: 20px; overflow: hidden; }
+  .photo svg { width: 100%; height: 100%; display: block; }
+  .h1 { margin-top: 14px; min-height: 64px; font-family: var(--serif); font-weight: 800; font-size: 27px; line-height: 1.08; letter-spacing: -.5px; }
+  .h1 em { font-style: italic; font-weight: 600; color: #8B5CF6; }
+  .sec { margin: 18px 14px 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: #9B7FA8; }
+  .presta { display: grid; gap: 8px; }
+  .presta .r { position: relative; display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid #F1E6EA; border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: 16px; }
+  .presta .r span { font-family: var(--mono); font-size: 15px; color: #fff; background: var(--plum); padding: 3px 9px; border-radius: 9px; }
+  .gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gal div { height: 104px; border-radius: 14px; overflow: hidden; }
+  .gal svg { width: 100%; height: 100%; display: block; }
+  .hours { display: flex; justify-content: space-between; align-items: center; background: var(--blush); border-radius: 14px; padding: 14px; font-weight: 700; font-size: 16px; }
+  .hours small { font-family: var(--mono); font-size: 12px; color: #9B7FA8; }
+  .map { height: 120px; border-radius: 14px; position: relative; overflow: hidden; background: linear-gradient(rgba(59,30,84,.07) 2px, transparent 2px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(59,30,84,.07) 2px, transparent 2px) 0 0 / 28px 28px, #F4EEF6; }
+  .map::before { content: ''; position: absolute; left: -10%; right: -10%; top: 54%; height: 14px; background: #fff; transform: rotate(-8deg); }
+  .map svg { position: absolute; left: 50%; top: 18px; width: 44px; height: 44px; margin-left: -22px; color: var(--plum); stroke-width: 2.4; fill: var(--lilac); }
+  .map b { position: absolute; left: 12px; bottom: 10px; font-size: 13px; background: #fff; padding: 4px 8px; border-radius: 8px; }
+  .mfoot { margin: 18px 0 0; padding: 16px; background: var(--plum); color: #E9D5FF; font-size: 13px; text-align: center; }
+  #exBadge { position: absolute; left: 50%; top: -34px; z-index: 7; font-family: var(--mono); font-size: 17px; letter-spacing: 2px; color: #fff; background: var(--ink); padding: 7px 14px; border-radius: 10px; opacity: 0; white-space: nowrap; box-shadow: 0 12px 20px -10px rgba(22, 22, 26, .6); }
+  /* Recherche « coiffeur près de moi » */
+  #search { position: absolute; left: 0; right: 0; top: 40px; bottom: 0; background: #fff; z-index: 5; padding: 18px 16px; opacity: 0; }
+  #search .bar { display: flex; align-items: center; gap: 10px; border: 2px solid #E5E7EB; border-radius: 26px; padding: 12px 16px; font-size: 17px; color: var(--ink); }
+  #search .bar svg { width: 20px; height: 20px; color: #9CA3AF; }
+  #search .caret { display: inline-block; width: 2px; height: 20px; background: var(--ink); vertical-align: -4px; }
+  #search .res { margin-top: 18px; border: 1px solid #E5E7EB; border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: center; }
+  #search .res .th { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; flex: none; }
+  #search .res b { display: block; font-size: 17px; color: var(--plum); }
+  #search .res small { font-size: 13px; color: #6B7280; }
+  #search .res small i { font-style: normal; color: var(--green); font-weight: 700; }
+  /* Appels manqués, prise de rendez-vous */
+  .notif { position: absolute; left: 10px; right: 10px; z-index: 8; background: rgba(28, 25, 23, .94); color: #fff; border-radius: 18px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; opacity: 0; }
+  .notif .ni { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none; }
+  .notif b { display: block; font-size: 14px; } .notif span { font-size: 13px; color: #D6D3D1; }
+  .notif.miss .ni { background: var(--red); } .notif.ok .ni { background: var(--green); }
+  #sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: #fff; border-radius: 26px 26px 0 0; box-shadow: 0 -20px 40px -20px rgba(59, 30, 84, .5); padding: 14px 16px 22px; transform: translateY(105%); }
+  #sheet .grab { width: 54px; height: 5px; border-radius: 3px; background: #E5E7EB; margin: 0 auto 12px; }
+  #sheet h5 { font-size: 18px; font-weight: 800; }
+  #sheet p { font-family: var(--mono); font-size: 12px; color: #9B7FA8; margin: 4px 0 12px; letter-spacing: 1px; }
+  #sheet .sl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  #sheet .sl i { font-style: normal; text-align: center; font-weight: 700; font-size: 15px; padding: 10px 0; border: 2px solid #EDE9FE; border-radius: 10px; }
+  #sheet .sl i.pick { background: var(--plum); color: #fff; border-color: var(--plum); }
+  #sheet .go { margin-top: 12px; text-align: center; background: var(--plum); color: #fff; font-weight: 800; font-size: 17px; padding: 13px; border-radius: 12px; }
+  #sheet .go.done { background: var(--green); }
+  #ring { position: absolute; left: 50%; top: -40px; width: 300px; height: 300px; margin-left: -150px; border-radius: 50%; border: 8px solid var(--red); opacity: 0; }
+
+  /* Les deux boutons du dilemme, qui volent entre l'accroche, le bandeau et le site */
+  .float { position: absolute; left: 0; top: 0; width: 300px; height: 100px; border-radius: 24px; display: flex; align-items: center; justify-content: center; gap: 14px; font-family: var(--ui); font-weight: 800; font-size: 34px; letter-spacing: -.5px; background: #fff; color: var(--ink); border: 4px solid var(--ink); box-shadow: 0 26px 44px -20px rgba(22, 22, 26, .55); z-index: 20; }
+  .float svg { width: 38px; height: 38px; stroke-width: 2.4; }
+  .float .x { position: absolute; inset: -4px; border-radius: 24px; display: grid; place-items: center; font-size: 96px; color: var(--red); font-family: var(--display); font-weight: 700; opacity: 0; }
+  #ou { position: absolute; left: 540px; top: 690px; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: #FACC15; display: grid; place-items: center; font-weight: 700; font-size: 40px; color: var(--ink); z-index: 21; box-shadow: 0 20px 34px -16px rgba(22, 22, 26, .5); }
+  #scis { position: absolute; left: 790px; top: 600px; font-size: 150px; z-index: 22; opacity: 0; }
+  #busy { position: absolute; left: 745px; top: 800px; z-index: 22; font-family: var(--mono); font-size: 22px; letter-spacing: 2px; color: #fff; background: var(--red); padding: 8px 14px; border-radius: 10px; opacity: 0; }
+
+  /* Version ordinateur */
+  #desk { position: absolute; left: 90px; top: 600px; width: 900px; height: 500px; opacity: 0; transform-style: preserve-3d; }
+  #desk .win { position: absolute; inset: 0; background: #FFFBFC; border: 3px solid var(--line-strong); box-shadow: 0 60px 120px -50px rgba(22, 22, 26, .55); overflow: hidden; font-family: var(--ui); color: var(--plum); }
+  #desk .bar { height: 50px; background: #ece9e2; display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 2px solid var(--line); }
+  #desk .bar > i { width: 14px; height: 14px; border-radius: 50%; background: #c9c4ba; }
+  #desk .bar span { margin-left: 12px; flex: 1; height: 32px; background: #fff; border-radius: 16px; display: flex; align-items: center; padding: 0 16px; font-family: var(--mono); font-size: 17px; color: var(--dim); }
+  #desk .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; border-bottom: 1px solid #F1E6EA; }
+  #desk .nav .links { display: flex; gap: 22px; font-size: 16px; font-weight: 600; color: #6B5876; }
+  #desk .nav .bk { display: flex; align-items: center; gap: 8px; background: var(--plum); color: #fff; font-weight: 800; font-size: 17px; padding: 10px 18px; border-radius: 12px; }
+  #desk .nav .bk svg { width: 20px; height: 20px; }
+  #desk .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px 28px; align-items: center; }
+  #desk .hero .h1 { font-size: 40px; margin: 0; }
+  #desk .hero p { margin-top: 10px; font-size: 16px; color: #6B5876; }
+  #desk .hero .photo { height: 200px; }
+  #desk .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 28px; }
+  #desk .cards div { background: #fff; border: 1px solid #F1E6EA; border-radius: 14px; padding: 12px; font-weight: 700; font-size: 15px; }
+  #desk .cards span { display: block; margin-top: 6px; font-family: var(--mono); font-size: 14px; color: #8B5CF6; }
+  #stampOn { position: absolute; left: 690px; top: 640px; z-index: 23; border: 8px solid var(--green); color: var(--green); background: rgba(255, 255, 255, .95); font-weight: 700; font-size: 54px; letter-spacing: -1px; padding: 4px 22px 8px; border-radius: 16px; opacity: 0; white-space: nowrap; }
+  #banner { position: absolute; left: 60px; right: 60px; top: 780px; z-index: 24; background: var(--ink); color: #fff; text-align: center; font-weight: 700; font-size: 66px; letter-spacing: -2px; line-height: 1.02; padding: 26px 20px 30px; opacity: 0; box-shadow: 0 40px 70px -30px rgba(22, 22, 26, .6); }
+  #banner small { display: block; font-family: var(--mono); font-weight: 500; font-size: 22px; letter-spacing: 3px; color: #FACC15; margin-top: 10px; }
+
+  /* La question au public */
+  #poll { position: absolute; left: 70px; right: 70px; top: 590px; z-index: 25; background: #fff; border: 3px solid var(--line-strong); box-shadow: 0 50px 90px -50px rgba(22, 22, 26, .5); padding: 30px 32px 32px; opacity: 0; transform-style: preserve-3d; }
+  #poll::before, #poll::after { content: ''; position: absolute; width: 46px; height: 46px; border: 7px solid var(--accent); }
+  #poll::before { left: -14px; top: -14px; border-right: 0; border-bottom: 0; }
+  #poll::after { right: -14px; bottom: -14px; border-left: 0; border-top: 0; }
+  #poll .hd { font-family: var(--mono); font-size: 22px; letter-spacing: 3px; color: var(--dim); }
+  #poll h4 { font-weight: 700; font-size: 56px; letter-spacing: -2px; line-height: 1; margin: 12px 0 22px; }
+  #poll .ch { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  #poll .ch div { display: flex; align-items: center; justify-content: center; gap: 12px; border: 4px solid var(--ink); border-radius: 20px; padding: 22px 0; font-family: var(--ui); font-weight: 800; font-size: 32px; }
+  #poll .ch svg { width: 34px; height: 34px; stroke-width: 2.4; }
+  #poll .in { margin-top: 22px; border: 3px solid var(--accent); padding: 18px 22px; font-family: var(--mono); font-size: 30px; color: var(--mute); display: flex; justify-content: space-between; }
+  #poll .in b { color: var(--accent); }
+  #poll .nx { margin-top: 14px; font-family: var(--mono); font-size: 19px; letter-spacing: 2px; color: var(--mute); text-align: center; }
+
+  #fx { position: absolute; inset: 0; pointer-events: none; z-index: 26; }
+  #fx i { position: absolute; left: 0; top: 0; width: 18px; height: 12px; border-radius: 3px; }
+
+  /* Avatar remonté : la bouche reste au-dessus de la légende TikTok */
+  #avatar { position: absolute; left: -40px; top: 1010px; width: 520px; transform-origin: 50% 70%; z-index: 40; }
+  #avatar .sil, #avatar .live svg { position: absolute; left: 0; top: 0; width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position: absolute">
+  <defs>
+    <linearGradient id="gMirror" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9DDF3"/></linearGradient>
+    <!-- Intérieur de salon, illustration à plat -->
+    <symbol id="salon" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice">
+      <rect width="320" height="200" fill="#F9E3E8"/>
+      <rect y="150" width="320" height="50" fill="#F1CFD8"/>
+      <path d="M48 150 V62 a45 45 0 0 1 90 0 V150 Z" fill="#C9A227"/>
+      <path d="M56 150 V64 a37 37 0 0 1 74 0 V150 Z" fill="url(#gMirror)"/>
+      <path d="M70 90 l30 -30 M78 110 l40 -40" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+      <path d="M64 128 h58 a10 10 0 0 1 10 10 v16 h-78 v-16 a10 10 0 0 1 10 -10z" fill="#3B1E54"/>
+      <rect x="72" y="104" width="42" height="28" rx="12" fill="#5B3478"/>
+      <rect x="90" y="154" width="6" height="26" fill="#2A1540"/>
+      <rect x="74" y="178" width="38" height="6" rx="3" fill="#2A1540"/>
+      <path d="M220 0 V40" stroke="#3B1E54" stroke-width="3"/>
+      <path d="M200 58 a20 20 0 0 1 40 0 z" fill="#C9A227"/>
+      <circle cx="220" cy="62" r="5" fill="#FDE68A"/>
+      <rect x="168" y="96" width="70" height="6" rx="3" fill="#C9A227"/>
+      <rect x="174" y="78" width="10" height="18" rx="3" fill="#8B5CF6"/><rect x="190" y="72" width="12" height="24" rx="3" fill="#F472B6"/><rect x="208" y="82" width="9" height="14" rx="3" fill="#3B1E54"/><rect x="222" y="76" width="10" height="20" rx="3" fill="#A78BFA"/>
+      <path d="M268 150 l6 -36 h28 l6 36 z" fill="#3B1E54"/>
+      <path d="M288 116 C270 96 262 80 270 64 C282 80 288 96 288 116 Z M288 116 C300 92 312 84 318 70 C316 92 302 106 288 116 Z M288 116 C284 90 292 70 300 56 C302 80 296 100 288 116 Z" fill="#4D7C5A"/>
+    </symbol>
+    <!-- Coiffure (réalisation) : la couleur suit --h -->
+    <symbol id="hair" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+      <rect width="100" height="100" fill="var(--bg, #F4EEF6)"/>
+      <path d="M20 64 C17 32 34 14 50 14 C66 14 83 32 80 64 C80 80 72 92 64 96 L36 96 C28 92 20 80 20 64Z" fill="var(--h, #3B1E54)"/>
+      <ellipse cx="50" cy="54" rx="17" ry="21" fill="#F2C9A8"/>
+      <path d="M31 47 C34 28 66 26 70 48 C60 39 45 37 31 47Z" fill="var(--h, #3B1E54)"/>
+      <path d="M28 100 C30 86 70 86 72 100Z" fill="#fff" opacity=".85"/>
+    </symbol>
+    <!-- Icônes (tracés Lucide, licence ISC) -->
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-phone-x" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/><path d="m16 2 6 6M22 2l-6 6"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  </defs>
+</svg>
+
+<div id="stage">
+  <div id="glow"></div>
+  <div id="hud">
+    <div class="row">
+      <span class="brand"><b>LTNS<span>°</span></b></span>
+      <span class="tag2">// <b>TU COMMENTES, JE CRÉE</b></span>
+      <span class="ep">#01</span>
+      <div id="prog"></div>
+    </div>
+    <div id="duel">
+      <i id="hCall"><svg class="i"><use href="#i-phone"/></svg>APPELER</i><span>OU</span>
+      <i id="hBook"><svg class="i"><use href="#i-cal"/></svg>RÉSERVER</i>
+      <span id="ans"><i></i><span>RÉPONSE À LA FIN</span></span>
+    </div>
+  </div>
+
+  <div id="scene">
+    <div class="shadow" id="pShadow" style="top: 1270px; width: 520px; height: 70px; margin-left: -260px"></div>
+
+    <!-- Version ordinateur -->
+    <div id="desk"><div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>maison-lila-coiffure.fr</span></div>
+      <div class="nav"><div class="logo"><b>Maison Lila</b><small>COIFFURE</small></div><div class="links"><span>Prestations</span><span>Réalisations</span><span>Accès</span></div><div class="bk"><svg class="i"><use href="#i-cal"/></svg>Réserver</div></div>
+      <div class="hero"><div><div class="h1">Coupe, couleur &amp; soin, <em>à deux pas.</em></div><p>Mardi – samedi · 9h – 19h</p></div><div class="photo"><svg><use href="#salon"/></svg></div></div>
+      <div class="cards"><div>Coupe femme<span>38 €</span></div><div>Brushing<span>25 €</span></div><div>Couleur<span>dès 55 €</span></div><div>Coupe homme<span>22 €</span></div></div>
+    </div></div>
+
+    <!-- Le téléphone -->
+    <div id="phone">
+      <div class="body"><div class="scr" id="scr">
+        <div class="sbar"><span id="clock">10:24</span><i class="notch"></i><span>5G ▮</span></div>
+        <div class="m" id="m">
+          <div class="mh"><div class="logo" id="logo"><b id="name">Maison Lila</b><small>COIFFURE</small></div><span id="closed">FERMÉ</span><i class="burger"></i></div>
+          <div id="slot"><div class="q" id="slotQ">?<small>EN HAUT</small></div><div id="slotBtn"></div></div>
+          <div class="blk"><div class="photo" id="photo"><svg><use href="#salon"/></svg></div><div class="sk" id="skPhoto"></div></div>
+          <div class="blk"><div class="h1" id="h1">Coupe, couleur &amp; soin, <em>à deux pas.</em></div><div class="sk lines" id="skH1" style="padding-top: 16px"><i style="width: 90%"></i><i style="width: 60%"></i></div></div>
+          <div class="sec" id="secP">PRESTATIONS</div>
+          <div class="blk presta" id="presta">
+            <div class="r" data-r="0">Coupe femme<span data-p>38 €</span></div>
+            <div class="r" data-r="1">Brushing<span data-p>25 €</span></div>
+            <div class="r" data-r="2">Couleur<span data-p>dès 55 €</span></div>
+            <div class="r" data-r="3">Coupe homme<span data-p>22 €</span></div>
+          </div>
+          <div class="sec" id="secG">RÉALISATIONS</div>
+          <div class="blk gal" id="gal">
+            <div data-g="0"><svg style="--h: #6B3E26; --bg: #F9E3E8"><use href="#hair"/></svg></div>
+            <div data-g="1"><svg style="--h: #E8B04B; --bg: #EDE9FE"><use href="#hair"/></svg></div>
+            <div data-g="2"><svg style="--h: #A3402A; --bg: #FCE7F3"><use href="#hair"/></svg></div>
+          </div>
+          <div class="sec" id="secH">HORAIRES</div>
+          <div class="blk hours" id="hours"><span>Mardi – samedi</span><span>9h – 19h <small>· lun. fermé</small></span></div>
+          <div class="sec" id="secM">ACCÈS</div>
+          <div class="blk map" id="map"><svg class="i"><use href="#i-pin"/></svg><b>12 rue des Acacias</b></div>
+          <div class="mfoot">Maison Lila · coiffure · entreprise fictive</div>
+        </div>
+        <div id="search">
+          <div class="bar"><svg class="i"><use href="#i-search"/></svg><span id="q"></span><i class="caret"></i></div>
+          <div class="res" id="res"><div class="th"><svg width="64" height="64"><use href="#salon"/></svg></div><div><b>Maison Lila · Coiffure</b><small><i>Ouvert</i> · à 400 m</small></div></div>
+        </div>
+        <div class="notif miss" data-n="0" style="top: 46px"><div class="ni"><svg class="i"><use href="#i-phone-x"/></svg></div><div><b>Appel manqué</b><span>06 ·· ·· ·· 41</span></div></div>
+        <div class="notif miss" data-n="1" style="top: 104px"><div class="ni"><svg class="i"><use href="#i-phone-x"/></svg></div><div><b>Appel manqué</b><span>07 ·· ·· ·· 18</span></div></div>
+        <div class="notif miss" data-n="2" style="top: 162px"><div class="ni"><svg class="i"><use href="#i-phone-x"/></svg></div><div><b>Appel manqué</b><span>06 ·· ·· ·· 73</span></div></div>
+        <div class="notif ok" id="okNotif" style="top: 46px"><div class="ni"><svg class="i"><use href="#i-check"/></svg></div><div><b>Nouveau rendez-vous</b><span>Mardi 14:30 · Coupe femme</span></div></div>
+        <div id="sheet"><div class="grab"></div><h5>Choisir un créneau</h5><p>MARDI 14 OCTOBRE</p><div class="sl"><i>10:00</i><i>11:30</i><i data-pick>14:30</i><i>16:00</i></div><div class="go" id="go">Réserver ce créneau</div></div>
+      </div></div>
+      <div id="ring"></div>
+      <div id="exBadge">EXEMPLE · ENTREPRISE FICTIVE</div>
+    </div>
+
+    <div id="ou">OU</div>
+    <div class="float" id="fCall"><svg class="i"><use href="#i-phone"/></svg>Appeler<div class="x">✕</div></div>
+    <div class="float" id="fBook"><svg class="i"><use href="#i-cal"/></svg>Réserver<div class="x">✕</div></div>
+    <div id="scis">✂️</div>
+    <div id="busy">CISEAUX EN MAIN</div>
+    <div id="stampOn">EN LIGNE ✓</div>
+    <div id="banner">UN EXEMPLE, PAS TON SITE<small>ENTREPRISE FICTIVE · CRÉÉE POUR LA VIDÉO</small></div>
+
+    <div id="poll">
+      <div class="hd">ET TOI ?</div>
+      <h4>T'AURAIS MIS QUOI EN HAUT ?</h4>
+      <div class="ch"><div><svg class="i"><use href="#i-phone"/></svg>Appeler</div><div><svg class="i"><use href="#i-cal"/></svg>Réserver</div></div>
+      <div class="in"><span>Ton métier…</span><b>|</b></div>
+      <div class="nx">LE PROCHAIN EXEMPLE, C'EST PEUT-ÊTRE LE TIEN</div>
+    </div>
+  </div>
+
+  <div id="fx"></div>
+  <div id="avatar"><img class="sil" alt=""><div class="live"></div></div>
+  <div id="caption"></div>
+</div>
+
+<script src="../commun/avatar.js"></script>
+<script src="voice-files.js"></script>
+<script>
+/* ============================================================
+   1. Texte de la voix off (une phrase = un morceau de la voix),
+      découpé en morceaux de sous-titres : [texte, mot en couleur]
+   ============================================================ */
+const SENTENCES = [
+  { chunks: [['Salon de coiffure :', 'coiffure'], ['en haut du site,', 'haut'], ['tu mets le bouton', 'bouton'], ['Appeler,', 'Appeler,'], ['ou Réserver ?', 'Réserver']] },
+  { chunks: [['Je te crée l\'exemple,', 'l\'exemple,'], ['et je tranche', 'tranche'], ['à la fin.', 'fin.']] },
+  { chunks: [['Je commence', 'commence'], ['par le téléphone :', 'téléphone'], ['c\'est là', 'là'], ['qu\'on te cherche.', 'cherche.']] },
+  { chunks: [['Un nom,', 'nom,'], ['une belle photo,', 'photo,'], ['et tes prestations', 'prestations'], ['avec leurs prix.', 'prix.']] },
+  { chunks: [['Tes réalisations,', 'réalisations,'], ['tes horaires,', 'horaires,'], ['le plan', 'plan'], ['pour venir.', 'venir.']] },
+  { chunks: [['Maintenant,', 'Maintenant,'], ['le bouton.', 'bouton.'], ['Appeler ?', 'Appeler'], ['Tu as les ciseaux', 'ciseaux'], ['à la main,', 'main,'], ['tu ne décroches pas.', 'décroches']] },
+  { chunks: [['Donc', 'Donc'], ['c\'est Réserver :', 'Réserver'], ['ta cliente choisit', 'choisit'], ['son créneau,', 'créneau,'], ['même à', 'même'], ['vingt-trois heures.', 'vingt-trois']] },
+  { chunks: [['La version', 'version'], ['ordinateur,', 'ordinateur,'], ['et c\'est en ligne.', 'ligne.'], ['Un exemple,', 'exemple,'], ['pas ton site.', 'pas']] },
+  { chunks: [['Et toi,', 'toi,'], ['t\'aurais mis quoi', 'quoi'], ['en haut ?', 'haut'], ['Dis-moi', 'Dis-moi'], ['ton métier :', 'métier'], ['le prochain exemple,', 'prochain'], ['c\'est peut-être', 'peut-être'], ['le tien.', 'tien.']] },
+]
+const SPOKEN = { '23': 'vingt-trois' }
+
+/* ============================================================
+   2. Mise en scène
+      POSES : l'avatar, en fraction (0 → 1) de chaque phrase.
+      CUES  : [phrase, fraction] ou [phrase, 'mot', décalage en s], puis le son.
+   ============================================================ */
+const POSES = [
+  [{ at: 0, pose: 'think', expr: 'sly' }],
+  [{ at: 0, pose: 'pointUp', expr: 'proud' }],
+  [{ at: 0, pose: 'phone', expr: 'happy' }],
+  [{ at: 0, pose: 'laptop', expr: 'happy' }],
+  [{ at: 0, pose: 'thumbs', expr: 'happy' }],
+  [{ at: 0, pose: 'pointUp', expr: 'think' }, { at: 0.45, pose: 'shrug', expr: 'worried' }],
+  [{ at: 0, pose: 'cheer', expr: 'proud' }],
+  [{ at: 0, pose: 'thumbs', expr: 'proud' }],
+  [{ at: 0, pose: 'pointSide', expr: 'wink' }],
+]
+const CUES = {
+  slot:     [0, 'haut', -0.1, 'pop'],
+  bCall:    [0, 'Appeler,', -0.05, 'pop'],
+  bBook:    [0, 'Réserver', -0.05, 'pop'],
+  ex:       [1, 'l\'exemple,', -0.1, 'pop'],
+  park:     [1, 'tranche', -0.15, 'whoosh'],
+  face:     [2, 'téléphone', -0.15, 'whoosh'],
+  search:   [2, 'là', -0.2, 'tick'],
+  name:     [3, 'nom,', -0.15, 'pop'],
+  photo:    [3, 'photo,', -0.2, 'pop'],
+  presta:   [3, 'prestations', -0.15, 'whoosh'],
+  prix:     [3, 'prix.', -0.15, 'pop'],
+  gal:      [4, 'réalisations,', -0.2, 'whoosh'],
+  hours:    [4, 'horaires,', -0.1, 'pop'],
+  map:      [4, 'plan', -0.1, 'pop'],
+  top:      [5, 'bouton.', -0.2, 'whoosh'],
+  tryCall:  [5, 'Appeler', -0.1, 'pop'],
+  scis:     [5, 'ciseaux', -0.1, 'tick'],
+  fail:     [5, 'décroches', -0.1, 'buzz'],
+  pick:     [6, 'Réserver', -0.15, 'ding'],
+  slotPick: [6, 'créneau,', -0.25, 'tick'],
+  night:    [6, 'vingt-trois', -0.15, 'pop'],
+  desk:     [7, 'ordinateur,', -0.25, 'whoosh'],
+  online:   [7, 'ligne.', -0.15, 'pop'],
+  banner:   [7, 'exemple,', -0.15, 'pop'],
+  poll:     [8, 'quoi', -0.2, 'whoosh'],
+  metier:   [8, 'métier', -0.15, 'pop'],
+}
+const CYAN = [8, 145, 178], RED = [220, 38, 38], GREEN = [22, 163, 74], PLUM = [124, 58, 237]
+const SENTENCE_COLORS = [CYAN, CYAN, CYAN, PLUM, PLUM, RED, GREEN, CYAN, CYAN]
+
+/* ============================================================
+   3. Minutage : durées réelles (timing.json) ou estimation
+   ============================================================ */
+const FPS = 30
+const TAIL = 0.7 // la fin revient à l'image de départ : la vidéo boucle
+let TIMES = null, ENVELOPE = null, WORDS = null, TL = null
+const C = {} // instants des étapes, en secondes
+
+function estimateTimes() {
+  let t = 0.1
+  return SENTENCES.map(s => {
+    const text = s.chunks.map(c => c[0]).join(' ')
+    const d = Math.max(1.3, text.length / 15)
+    const r = { start: t, end: t + d }
+    t += d + 0.25
+    return r
+  })
+}
+
+const spokenLength = w => Object.entries(SPOKEN).reduce((x, [k, v]) => x.split(k).join(v), w).replace(/[^\p{L}\p{N}]/gu, '').length
+
+function buildWords() {
+  return SENTENCES.map((s, si) => {
+    const { start, end } = TIMES[si]
+    const words = []
+    // La ponctuation double (« : ») reste collée au mot qui la précède
+    s.chunks.forEach(([text, hl], ci) => text.replace(/ ([:;?!])/g, ' $1').split(' ').forEach(w => words.push({ w, ci, hl: w.split(' ')[0] === hl })))
+    const weights = words.map(x => spokenLength(x.w) + 2)
+    const total = weights.reduce((a, b) => a + b, 0)
+    // Les mots se répartissent sur le temps de parole, silences mesurés exclus
+    const gaps = (TIMES[si].pauses || []).filter(p => p[1] - p[0] >= 0.12 && p[0] > start && p[1] < end)
+    const speech = []
+    let a0 = start
+    gaps.forEach(p => { speech.push([a0, p[0]]); a0 = p[1] })
+    speech.push([a0, end])
+    const talk = speech.reduce((x, [a, b]) => x + b - a, 0)
+    const at = u => { let r = u * talk; for (const [a, b] of speech) { if (r <= b - a) return a + r; r -= b - a } return end }
+    let acc = 0
+    words.forEach((x, i) => {
+      x.t0 = at(acc / total)
+      acc += weights[i]
+      x.t1 = at(acc / total)
+      x.syl = Math.max(1, (x.w.toLowerCase().match(/[aeiouyéèêàâîôûù]+/g) || []).length)
+    })
+    snapToPauses(words, weights, TIMES[si])
+    return words
+  })
+}
+
+// Avec la vraie voix : les mots suivis d'une ponctuation se terminent sur une pause
+// mesurée (alignement dans l'ordre), les autres se répartissent entre les pauses.
+function snapToPauses(words, weights, { start, end, pauses }) {
+  if (!pauses || !pauses.length) return
+  const P = pauses.filter(p => p[1] - p[0] >= 0.12 && p[0] > start + 0.15 && p[1] < end - 0.1)
+  const A = words.map((x, i) => (i < words.length - 1 && /[,:;.?!…]$/.test(x.w) ? i : -1)).filter(i => i >= 0)
+  if (!P.length || !A.length) return
+  const n = A.length, m = P.length
+  const SKIP_ANCHOR = 0.35, skipPause = j => Math.max(0, P[j][1] - P[j][0] - 0.12) * 3
+  const cost = Array.from({ length: n + 1 }, () => Array(m + 1).fill(Infinity))
+  const from = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null))
+  cost[0][0] = 0
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const c = cost[i][j]
+    if (c === Infinity) continue
+    if (i < n && c + SKIP_ANCHOR < cost[i + 1][j]) { cost[i + 1][j] = c + SKIP_ANCHOR; from[i + 1][j] = [i, j, false] }
+    if (j < m && c + skipPause(j) < cost[i][j + 1]) { cost[i][j + 1] = c + skipPause(j); from[i][j + 1] = [i, j, false] }
+    if (i < n && j < m) {
+      const d = Math.abs(P[j][0] - words[A[i]].t1)
+      if (d < 1.2 && c + d < cost[i + 1][j + 1]) { cost[i + 1][j + 1] = c + d; from[i + 1][j + 1] = [i, j, true] }
+    }
+  }
+  const pairs = []
+  for (let i = n, j = m; i > 0 || j > 0;) {
+    const [pi, pj, matched] = from[i][j]
+    if (matched) pairs.unshift([A[pi], P[pj]])
+    i = pi; j = pj
+  }
+  const bounds = [{ i: -1, next: start }, ...pairs.map(([i, p]) => ({ i, at: p[0], next: p[1] })), { i: words.length - 1, at: end }]
+  for (let b = 1; b < bounds.length; b++) {
+    const lo = bounds[b - 1].i + 1, hi = bounds[b].i
+    const t0 = bounds[b - 1].next, t1 = bounds[b].at
+    const tot = weights.slice(lo, hi + 1).reduce((x, y) => x + y, 0)
+    let acc = 0
+    for (let k = lo; k <= hi; k++) {
+      words[k].t0 = t0 + (acc / tot) * (t1 - t0)
+      acc += weights[k]
+      words[k].t1 = t0 + (acc / tot) * (t1 - t0)
+    }
+  }
+}
+
+// Ligne de temps : poses de l'avatar + étapes (et leurs sons, lus par render.mjs)
+function timeline() {
+  const at = (si, f) => TIMES[si].start + f * (TIMES[si].end - TIMES[si].start)
+  const norm = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+  for (const [k, [si, f, off]] of Object.entries(CUES)) {
+    const word = typeof f === 'string' && WORDS[si].find(x => norm(x.w) === norm(f))
+    if (typeof f === 'string' && !word) console.warn('mot introuvable', k, f)
+    C[k] = word ? word.t0 + off : at(si, typeof f === 'string' ? 0 : f)
+  }
+  C.loop = TIMES[TIMES.length - 1].end + 0.1
+  const out = [{ t: 0.02, sfx: 'whoosh' }]
+  POSES.forEach((beats, si) => beats.forEach(b => out.push({ ...b, t: at(si, b.at), si })))
+  for (const [k, cue] of Object.entries(CUES)) out.push({ cue: k, t: C[k], sfx: cue[cue.length - 1] })
+  // Frappe dans la recherche, sonnerie, prix qui tombent
+  for (let i = 0; i < 5; i++) out.push({ t: C.search + 0.15 + i * 0.08, sfx: 'tick' })
+  for (let i = 0; i < 4; i++) out.push({ t: C.tryCall + 0.45 + i * 0.16, sfx: 'tick' })
+  for (let i = 1; i < 3; i++) out.push({ t: C.fail + i * 0.14, sfx: 'pop' })
+  out.push({ t: C.slotPick + 0.45, sfx: 'pop' })
+  // Retour à l'image de départ, l'avatar reprend sa pose du début : la boucle est invisible
+  out.push({ t: C.loop + 0.1, sfx: 'whoosh' }, { ...POSES[0][0], t: C.loop + 0.1, si: TIMES.length - 1 })
+  return out.sort((a, b) => a.t - b.t)
+}
+
+/* ============================================================
+   4. Outils (fonctions pures du temps)
+   ============================================================ */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const backOut = (p, s = 2.0) => 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+const easeOut = p => 1 - Math.pow(1 - p, 3)
+const easeIn = p => p * p * p
+function pop(t, t0, dur = 0.28) { const p = clamp((t - t0) / dur); return p <= 0 ? 0 : backOut(p) }
+const ramp = (t, t0, dur) => clamp((t - t0) / dur)
+const pulse = (t, t0, dur) => { const p = (t - t0) / dur; return p <= 0 || p >= 1 ? 0 : Math.sin(Math.PI * p) }
+const mix = (a, b, k) => a.map((v, j) => Math.round(v + (b[j] - v) * k))
+const lerp = (a, b, k) => a + (b - a) * k
+const rgb = c => `rgb(${c[0]}, ${c[1]}, ${c[2]})`
+const rgba = (c, a) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`
+
+function colorAt(t, si) {
+  const cur = SENTENCE_COLORS[si], prev = SENTENCE_COLORS[Math.max(0, si - 1)]
+  return mix(prev, cur, easeInOut(clamp((t - TIMES[si].start + 0.1) / 0.3)))
+}
+
+function mouthAt(t) {
+  if (ENVELOPE) return clamp(((ENVELOPE[Math.round(t * FPS)] || 0) - 0.06) * 1.6)
+  for (const words of WORDS) for (const x of words) {
+    if (t >= x.t0 && t < x.t1) return 0.12 + 0.8 * Math.abs(Math.sin(Math.PI * x.syl * (t - x.t0) / (x.t1 - x.t0)))
+  }
+  return 0
+}
+
+function blinkAt(t) {
+  const d = (t % 3.4) - 2.9
+  return d > 0 && d < 0.14 ? Math.sin((d / 0.14) * Math.PI) : 0
+}
+
+function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647 }
+
+/* ============================================================
+   5. Rendu d'un instant t
+   ============================================================ */
+const $ = id => document.getElementById(id)
+const qa = (sel, root = document) => [...root.querySelectorAll(sel)]
+const stage = $('stage'), avatarEl = $('avatar'), captionEl = $('caption')
+const silEl = avatarEl.querySelector('.sil'), liveEl = avatarEl.querySelector('.live')
+const CONFETTI = []
+
+// Contour d'autocollant précalculé par pose (voir ../commun/avatar.js)
+const SILHOUETTES = {}
+const silKey = b => `${b.pose}|${b.expr}`
+async function preloadSilhouettes() {
+  const keys = [...new Set(TL.filter(b => b.pose).map(silKey))]
+  await Promise.all(keys.map(k => {
+    const [pose, expr] = k.split('|')
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(LTNSAvatar.svg({ pose, expr }))
+    SILHOUETTES[k] = url
+    const img = new Image(); img.src = url
+    return img.decode().catch(() => {})
+  }))
+}
+let lastSil = '', lastLive = ''
+window.settle = () => silEl.decode().catch(() => {})
+
+function sentenceAt(t) {
+  let idx = 0
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.05) idx = i
+  return idx
+}
+
+function setT(el, op, tr) { el.style.opacity = op; el.style.transform = tr || 'none' }
+const cache = new Map()
+function setHTML(el, html) { if (cache.get(el) !== html) { el.innerHTML = html; cache.set(el, html) } }
+
+// Position (centre) d'un élément dans la scène, d'après sa boîte à l'écran
+function centerOf(el) {
+  const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), k = s.width / 1080
+  return { x: (r.left + r.width / 2 - s.left) / k, y: (r.top + r.height / 2 - s.top) / k, w: r.width / k, h: r.height / k }
+}
+
+// Positions fixes des deux boutons dans l'accroche
+const HOOK = { call: { x: 225, y: 700 }, book: { x: 855, y: 700 } }
+
+// Téléphone : de face pendant la construction, en petit à droite pour la version ordinateur
+function phoneState(t, tail) {
+  const face = easeInOut(ramp(t, C.face, 0.5))
+  const toDesk = tail ? 1 - easeInOut(ramp(t, C.loop, 0.45)) : easeInOut(ramp(t, C.desk, 0.55))
+  const shake = t > C.tryCall + 0.3 && t < C.fail + 0.2 && !tail ? Math.sin(t * 70) * 3 : 0
+  const ry = lerp(-16, -3, tail ? 0 : face) + Math.sin(t * 0.8) * 2.5 - toDesk * 14
+  const rx = 5 + Math.sin(t * 1.1) * 2
+  return { x: toDesk * 280, y: toDesk * 150 + Math.sin(t * 1.5) * 8, sc: 1 - 0.38 * toDesk, ry, rx, rz: shake }
+}
+
+function renderPhone(t, s, tail) {
+  const p = phoneState(t, tail)
+  $('phone').style.transform = `translate(${p.x}px, ${p.y}px) rotateY(${p.ry}deg) rotateX(${p.rx}deg) rotateZ(${p.rz}deg) scale(${p.sc})`
+  $('pShadow').style.transform = `translate(${p.x}px, ${p.y * 0.4}px) scaleX(${p.sc})`
+
+  // Badge « exemple » posé sur l'écran
+  const eb = pop(s, C.ex, 0.4)
+  setT($('exBadge'), eb > 0 ? 1 : 0, `translateX(-50%) scale(${eb > 0 ? 0.6 + 0.4 * eb : 1})`)
+
+  // Recherche « coiffeur près de moi », puis le résultat, puis on entre sur le site
+  const sq = 'coiffeur près de moi'
+  const sOn = s > C.search - 0.1 && s < TIMES[3].start + 0.15
+  const sOut = ramp(s, TIMES[3].start - 0.2, 0.3)
+  setT($('search'), sOn ? 1 : 0, `translateX(${-sOut * 100}%)`)
+  setHTML($('q'), sq.slice(0, Math.floor(clamp((s - C.search) / 0.03, 0, sq.length))))
+  const rp = pop(s, C.search + 0.65, 0.35)
+  setT($('res'), rp > 0 ? 1 : 0, `scale(${0.8 + 0.2 * rp}) ${Math.abs(s - (TIMES[3].start - 0.3)) < 0.08 ? 'scale(0.96)' : ''}`)
+
+  // Construction : nom, photo, titre, prestations et prix, réalisations, horaires, plan
+  const nm = 'Maison Lila', n = Math.floor(clamp((s - C.name) / 0.05, 0, nm.length))
+  setHTML($('name'), s < C.name ? '<span style="display:inline-block;width:150px;height:22px;border-radius:8px;background:#EFE9EC"></span>' : nm.slice(0, n) || '&nbsp;')
+  const ph = pop(s, C.photo, 0.45)
+  setT($('photo'), ph > 0 ? 1 : 0, `scale(${ph > 0 ? 0.7 + 0.3 * ph : 1})`)
+  $('skPhoto').style.opacity = ph > 0 ? 0 : 1
+  const hp = ramp(s, C.photo + 0.2, 0.4)
+  $('h1').style.clipPath = `inset(0 ${(1 - easeOut(hp)) * 100}% 0 0)`
+  $('skH1').style.opacity = 1 - hp
+  qa('#presta .r').forEach((el, i) => {
+    const q = pop(s, C.presta + i * 0.12, 0.35)
+    setT(el, q > 0 ? 1 : 0.35, q > 0 ? `perspective(600px) rotateX(${(1 - q) * -70}deg)` : 'none')
+    el.style.background = q > 0 ? '' : '#EFE9EC'
+    el.style.color = q > 0 ? '' : 'transparent'
+    const pr = pop(s, C.prix + i * 0.1, 0.3)
+    setT(el.querySelector('[data-p]'), pr > 0 ? 1 : 0, `scale(${0.4 + 0.6 * pr}) rotate(${(1 - clamp(pr)) * 12}deg)`)
+  })
+  qa('#gal [data-g]').forEach((el, i) => {
+    const q = pop(s, C.gal + i * 0.14, 0.4)
+    el.style.background = '#EFE9EC'
+    setT(el.firstElementChild, q > 0 ? 1 : 0, `perspective(500px) rotateY(${(1 - q) * 120}deg)`)
+  })
+  ;[['hours', C.hours], ['map', C.map]].forEach(([id, t0]) => {
+    const q = pop(s, t0, 0.4)
+    $(id).style.opacity = q > 0 ? 1 : 0.35
+    $(id).style.transform = `scale(${q > 0 ? 0.85 + 0.15 * q : 1})`
+    $(id).style.filter = q > 0 ? 'none' : 'grayscale(1) contrast(.4) brightness(1.3)'
+  })
+  $('map').querySelector('svg').style.transform = `translateY(${(1 - clamp(pop(s, C.map + 0.15, 0.35))) * -40}px)`
+
+  // Défilement : prestations, réalisations, puis retour en haut pour le bouton
+  const m = $('m'), max = m.scrollHeight - ($('scr').clientHeight - 40)
+  const y = easeInOut(ramp(s, C.presta - 0.25, 0.5)) * 300
+          + easeInOut(ramp(s, C.gal - 0.3, 0.5)) * (max - 300)
+          - easeInOut(ramp(s, C.top - 0.1, 0.5)) * max
+  m.style.transform = `translateY(${-clamp(y, 0, max)}px)`
+
+  // L'emplacement du bouton : clignote dans l'accroche, puis reçoit Appeler (raté) et Réserver
+  const slot = $('slot'), btn = $('slotBtn')
+  slot.style.transform = `scale(${1 + 0.08 * pulse(t, C.slot, 0.5) + 0.06 * pulse(s, C.top, 0.6)})`
+  slot.style.borderColor = (pulse(t, C.slot, 0.8) > 0.2 || pulse(s, C.top, 0.8) > 0.2) ? '#8B5CF6' : ''
+  const callIn = s >= C.tryCall + 0.35 && s < C.fail + 0.05
+  const bookIn = s >= C.pick + 0.38
+  btn.className = bookIn ? 'book' : callIn ? 'call' : ''
+  setHTML(btn, bookIn ? '<svg class="i"><use href="#i-cal"/></svg>Réserver' : callIn ? '<svg class="i"><use href="#i-phone"/></svg>Appeler' : '')
+  const bp = bookIn ? pop(s, C.pick + 0.38, 0.4) : 1
+  setT(btn, callIn || bookIn ? 1 : 0, `scale(${bookIn ? 0.7 + 0.3 * bp : 1})`)
+  $('slotQ').style.opacity = callIn || bookIn ? 0 : 1
+
+  // Appel entrant pendant qu'on a les ciseaux en main : appels manqués
+  const rg = t > C.tryCall + 0.3 && t < C.fail + 0.1 && !tail
+  const rr = ((t - C.tryCall) * 1.6) % 1
+  setT($('ring'), rg ? (1 - rr) * 0.8 : 0, `scale(${0.4 + 1.2 * rr})`)
+  qa('#scr .notif.miss').forEach((el, i) => {
+    const q = pop(s, C.fail + i * 0.14, 0.35) * (1 - ramp(s, C.pick, 0.3))
+    setT(el, q > 0 ? 1 : 0, `translateY(${(1 - clamp(q)) * -40}px) scale(${0.9 + 0.1 * clamp(q)})`)
+  })
+
+  // Réserver : la cliente choisit son créneau, même la nuit (salon fermé)
+  const sh = easeOut(ramp(s, C.slotPick - 0.35, 0.4)) * (1 - easeInOut(ramp(s, C.night + 0.9, 0.4)))
+  $('sheet').style.transform = `translateY(${(1 - sh) * 105}%)`
+  $('sheet').querySelector('[data-pick]').classList.toggle('pick', s >= C.slotPick)
+  const done = s >= C.slotPick + 0.45
+  $('go').classList.toggle('done', done)
+  $('go').textContent = done ? 'Réservé ✓' : 'Réserver ce créneau'
+  const night = s >= C.night - 0.1
+  setHTML($('clock'), night ? '<svg class="i" style="width:15px;height:15px;stroke-width:2.6"><use href="#i-moon"/></svg>23:04' : '10:24')
+  setT($('closed'), night ? 1 : 0)
+  const ok = pop(s, C.night + 0.25, 0.4)
+  setT($('okNotif'), ok > 0 ? 1 : 0, `translateY(${(1 - clamp(ok)) * -40}px)`)
+}
+
+// Les deux boutons : accroche → bandeau → emplacement du site ; retour en fin de vidéo
+function renderFloats(t, s, tail) {
+  const slotC = centerOf($('slot')), hc = centerOf($('hCall')), hb = centerOf($('hBook'))
+  const place = (el, x, y, sc, rot, op) => setT(el, op, `translate(${x - 150}px, ${y - 50}px) rotate(${rot}deg) scale(${sc})`)
+  const chip = 0.42
+  const bob = (k) => Math.sin(t * 2.2 + k) * 8
+  const parkK = easeInOut(ramp(t, C.park, 0.5))
+  const back = tail ? easeInOut(ramp(t, C.loop + 0.05, 0.45)) : 0
+  ;[['call', $('fCall'), hc, C.bCall], ['book', $('fBook'), hb, C.bBook]].forEach(([k, el, hud, cue]) => {
+    const h = HOOK[k]
+    const bounce = 1 + 0.18 * pulse(t, cue, 0.4)
+    if (tail) {
+      // Retour vers l'accroche depuis le bandeau (Appeler) ou l'emplacement (Réserver)
+      const from = k === 'book' ? slotC : hud
+      place(el, lerp(from.x, h.x, back), lerp(from.y, h.y, back) + bob(k === 'call' ? 0 : 2) * back, lerp(k === 'book' ? 0.9 : chip, 1, back), lerp(0, k === 'call' ? -5 : 5, back), back > 0.05 ? 1 : 0)
+      el.querySelector('.x').style.opacity = 0
+      return
+    }
+    if (t < C.park) { place(el, h.x, h.y + bob(k === 'call' ? 0 : 2), bounce, k === 'call' ? -5 : 5, 1); return }
+    // Vers le bandeau
+    let x = lerp(h.x, hud.x, parkK), y = lerp(h.y, hud.y, parkK), sc = lerp(1, chip, parkK), op = parkK < 1 ? 1 : 0, rot = 0
+    if (k === 'call') {
+      const a = easeInOut(ramp(s, C.tryCall, 0.35)), fall = ramp(s, C.fail + 0.1, 0.55)
+      if (s >= C.tryCall && fall < 1) {
+        x = lerp(hud.x, slotC.x, a); y = lerp(hud.y, slotC.y, a) + easeIn(fall) * 420; sc = lerp(chip, 0.9, a); rot = fall * 35; op = s >= C.tryCall + 0.35 && s < C.fail + 0.05 ? 0 : 1 - fall
+      }
+      el.querySelector('.x').style.opacity = s >= C.fail ? 1 : 0
+    } else {
+      const a = easeInOut(ramp(s, C.pick, 0.38))
+      if (s >= C.pick && s < C.pick + 0.38) { x = lerp(hud.x, slotC.x, a); y = lerp(hud.y, slotC.y, a); sc = lerp(chip, 1.05, a); op = 1 }
+      el.querySelector('.x').style.opacity = 0
+    }
+    place(el, x, y, sc, rot, op)
+  })
+  // « OU » au centre pendant l'accroche
+  const ou = tail ? back : 1 - ramp(t, C.park, 0.25)
+  setT($('ou'), ou, `scale(${ou * (1 + 0.12 * Math.sin(t * 4))})`)
+
+  // Bandeau : les puces apparaissent quand les boutons s'y posent
+  const landed = !tail && t >= C.park + 0.45
+  $('hCall').className = !landed ? '' : s >= C.fail + 0.2 ? 'no' : 'on'
+  $('hCall').style.opacity = $('hBook').style.opacity = landed ? 1 : 0.35
+  $('hBook').className = !landed ? '' : s >= C.pick + 0.38 ? 'yes' : 'on'
+  const answered = !tail && t >= C.pick + 0.38
+  $('ans').querySelector('span').textContent = answered ? 'RÉSERVER ✓' : 'RÉPONSE À LA FIN'
+  $('ans').querySelector('i').style.background = answered ? 'var(--green)' : '#E11D48'
+  $('ans').querySelector('i').style.opacity = answered || Math.floor(t * 2.5) % 2 === 0 ? 1 : 0.25
+}
+
+function renderAt(t) {
+  const si = sentenceAt(t)
+  const c = colorAt(t, si)
+  stage.style.setProperty('--accent', rgb(c))
+  stage.style.setProperty('--accent-rgb', c.join(', '))
+  const tail = t >= C.loop
+  const s = tail ? 0 : t // en fin de vidéo, le site revient à l'état de départ
+  $('prog').style.transform = `scaleX(${tail ? 0 : clamp(t / C.loop)})`
+  const gc = t >= C.pick && !tail ? [139, 92, 246] : CYAN
+  $('glow').style.background = `radial-gradient(closest-side, ${rgba(gc, 0.2)}, ${rgba(gc, 0)})`
+
+  renderPhone(t, s, tail)
+  renderFloats(t, s, tail)
+
+  // Ciseaux en main : on ne décroche pas
+  const sc = pop(s, C.scis, 0.35) * (1 - ramp(s, C.pick - 0.2, 0.3))
+  setT($('scis'), sc > 0 ? 1 : 0, `rotate(${-20 + Math.sin(t * 16) * 12}deg) scale(${0.5 + 0.5 * sc})`)
+  setT($('busy'), sc > 0 ? 1 : 0, `scale(${0.6 + 0.4 * clamp(sc)}) rotate(-4deg)`)
+
+  // Confettis à la bonne réponse
+  const ct = t - (C.pick + 0.38)
+  const sl = centerOf($('slot'))
+  CONFETTI.forEach(cf => {
+    const on = ct > 0 && ct < 1.6 && !tail
+    cf.el.style.opacity = on ? clamp(1.6 - ct) : 0
+    if (!on) return
+    cf.el.style.transform = `translate(${sl.x + cf.vx * ct}px, ${sl.y + cf.vy * ct + 800 * ct * ct}px) rotate(${cf.r + cf.vr * ct}deg)`
+  })
+
+  // Version ordinateur, « en ligne », puis « un exemple, pas ton site »
+  const dk = tail ? 1 - easeInOut(ramp(t, C.loop, 0.4)) : easeOut(ramp(t, C.desk, 0.55))
+  const dim = tail ? 1 - ramp(t, C.loop, 0.3) : clamp(pop(t, C.poll, 0.45))
+  $('desk').style.opacity = dk > 0.01 ? 1 - 0.6 * dim : 0
+  $('desk').style.transform = `translateY(${Math.sin(t * 1.3) * 8}px) rotateY(${(1 - dk) * -70 + 6}deg) rotateX(4deg) translateZ(${(1 - dk) * -300}px) scale(${0.85 + 0.15 * dk})`
+  const on = pop(t, C.online, 0.35)
+  setT($('stampOn'), on > 0 && !tail ? 1 - dim : 0, `rotate(${-8 + (1 - clamp(on)) * 20}deg) scale(${2 - on})`)
+  const bn = pop(t, C.banner, 0.4)
+  setT($('banner'), bn > 0 && !tail ? 1 - ramp(t, C.poll - 0.2, 0.3) : 0, `rotate(-3deg) scale(${0.6 + 0.4 * bn})`)
+
+  // Question au public
+  const pl = tail ? 1 - ramp(t, C.loop, 0.3) : pop(t, C.poll, 0.45)
+  setT($('poll'), pl > 0 ? 1 : 0, `perspective(1600px) rotateY(${(1 - pl) * 70}deg) translateY(${Math.sin(t * 1.4) * 6}px) scale(${0.7 + 0.3 * pl})`)
+  const pin = $('poll').querySelector('.in')
+  pin.style.transform = `scale(${1 + 0.06 * pulse(t, C.metier, 0.5)})`
+  pin.querySelector('b').style.opacity = Math.floor(t * 2.5) % 2 ? 1 : 0
+  $('phone').style.opacity = 1 - 0.6 * (tail ? 0 : dim)
+
+  // Avatar
+  let pose = TL.find(b => b.pose), avatarSince = 0
+  for (const bt of TL) { if (bt.t > t) break; if (bt.pose) { pose = bt; avatarSince = bt.t } }
+  const sk = silKey(pose)
+  if (sk !== lastSil) { silEl.src = SILHOUETTES[sk]; lastSil = sk }
+  const mo = mouthAt(t), bl = blinkAt(t), acc = rgb(c)
+  const key = [sk, mo.toFixed(2), bl.toFixed(2), acc].join('|')
+  if (key !== lastLive) {
+    liveEl.innerHTML = LTNSAvatar.svg({ pose: pose.pose, expr: pose.expr, mouth: mo, blink: bl, accent: acc, noFilter: true })
+    lastLive = key
+  }
+  const as = 0.9 + 0.1 * pop(t, avatarSince, 0.3)
+  avatarEl.style.transform = `translateY(${Math.sin(t * 2.1) * 6}px) rotate(${Math.sin(t * 1.3) * 1.2}deg) scale(${as})`
+
+  // Sous-titres mot à mot ; la toute première image montre déjà l'accroche
+  const words = WORDS[si]
+  if (t > TIMES[si].end + 0.5 || tail) { captionEl.innerHTML = ''; return }
+  let ci = 0
+  for (const x of words) if (t >= x.t0 - 0.02) ci = x.ci
+  captionEl.innerHTML = words.filter(x => x.ci === ci).map(x => {
+    const q = si === 0 && ci === 0 ? 1 : pop(t, x.t0 - 0.03, 0.22)
+    if (q <= 0) return ''
+    return `<span class="w${x.hl ? ' hl' : ''}" style="transform: translateY(${(1 - clamp(q)) * 40}px) scale(${0.6 + 0.4 * q})">${x.w}</span>`
+  }).join('')
+}
+
+/* ============================================================
+   6. Démarrage : lecture en direct, image figée (?t=) ou rendu MP4
+   ============================================================ */
+function fit() {
+  const k = Math.min(innerWidth / 1080, innerHeight / 1920)
+  stage.style.transform = `translate(-50%, -50%) scale(${k})`
+}
+
+function buildConfetti() {
+  const r = rand(11), colors = ['#3B1E54', '#C4B5FD', '#F472B6', '#16A34A', '#FACC15', '#0891B2']
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('i')
+    el.style.background = colors[i % colors.length]
+    $('fx').appendChild(el)
+    const a = -Math.PI / 2 + (r() - 0.5) * 2.6, v = 500 + r() * 800
+    CONFETTI.push({ el, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: r() * 360, vr: (r() - 0.5) * 900 })
+  }
+}
+
+async function boot() {
+  // timing.json et envelope.json n'existent qu'une fois la voix ajoutée (voir ../README.md)
+  const has = window.VOICE_FILES || []
+  if (has.includes('timing.json')) TIMES = (await (await fetch('timing.json', { cache: 'no-store' })).json()).sentences
+  if (has.includes('envelope.json')) ENVELOPE = (await (await fetch('envelope.json', { cache: 'no-store' })).json()).values
+  if (!TIMES) TIMES = estimateTimes()
+  WORDS = buildWords()
+  TL = timeline()
+  buildConfetti()
+  await preloadSilhouettes()
+  window.DURATION = TIMES[TIMES.length - 1].end + TAIL
+  await document.fonts.ready
+
+  const q = new URLSearchParams(location.search)
+  if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true; return }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); return }
+  const audio = q.has('audio') ? new Audio('voice.mp3') : null
+  if (audio) { audio.loop = true; audio.play().catch(() => {}) }
+  const t0 = performance.now()
+  const loop = () => {
+    renderAt(audio ? audio.currentTime : ((performance.now() - t0) / 1000) % window.DURATION)
+    requestAnimationFrame(loop)
+  }
+  loop()
+}
+boot()
+</script>
+</body>
+</html>

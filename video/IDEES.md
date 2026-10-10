@@ -10,6 +10,7 @@ l'existant. Chaque épisode reste utile à tous ; LTNS° signe, sans vendre fron
 | ✅ Prêt à publier | 03 | **« Je crée un site de zéro en 30 secondes »** — épisode 03 : une boulangerie. — construction accélérée pour un métier (page blanche → maquette → couleurs et textes → version téléphone → en ligne). Appel : « Commente ton métier, je crée le prochain pour toi en vidéo. » Peut devenir une série : un métier tiré des commentaires par épisode (site, puis appli, puis logiciel). | Notoriété → considération |
 | ✅ Prêt à publier | 04 | **« Coulisses : PMSB Gestion »** — série « Coulisses » : devis à la main → logiciel sur mesure livré en 4 semaines. Accord du client, pas de chiffres réels (données de démonstration). | Considération |
 | ⛔ Écarté | 05 | **« Devine le prix »** — même garage, trois sites (Essentiel 490 €, Pro 990 €, Sur-mesure). Non publié : la réponse est évidente (le site le plus simple est forcément le moins cher), aucun suspense. | — |
+| ✅ Prêt à publier | 06 | **« Tu commentes, je crée » #01** — salon de coiffure : en haut du site, Appeler ou Réserver ? Exemple fictif, réponse aux deux tiers. | Notoriété → considération |
 | 💡 À faire | — | « Combien coûte vraiment un site ? » — devis décortiqué (domaine, hébergement, création, maintenance) avec les vrais prix LTNS°. Plutôt après plusieurs épisodes. | Conversion |
 
 ## Séries proposées
