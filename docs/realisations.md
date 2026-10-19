@@ -22,7 +22,9 @@ Le nom du fichier est défini par le champ `img.name` du projet, dans
    qui ne lisent ni l'AVIF ni le WebP.
 2. **Renseigne le champ `img`** du projet avec sa taille réelle en pixels :
    `img: { name: 'exemple', width: 1600, height: 900 }`. La largeur et la
-   hauteur réservent la place de l'image avant son chargement.
+   hauteur réservent la place de l'image avant son chargement. Ajoute aussi
+   le champ `alt` : une phrase qui décrit la capture (ex. « Page d'accueil du
+   site vitrine de … »), lue par Google et par les lecteurs d'écran.
 3. **Facultatif, recommandé : les variantes légères.** Le navigateur charge
    alors une version AVIF (ou WebP) à la largeur de l'écran, bien plus
    légère que le JPG (3 à 9 fois pour les photos actuelles). Depuis la
@@ -71,6 +73,11 @@ Pour un outil privé, ne mets ni `url` ni `domain` : la carte n'est plus cliquab
 la flèche disparaît et la barre affiche le texte du champ `chrome`. Le champ
 `features` affiche les modules en pastilles, et `wide: true` étale la carte sur
 toute la largeur.
+
+Le champ `caseStudy` (ex. `'/realisations/pmsb'`) fait mener la carte vers
+l'étude de cas du site, avec une flèche →, au lieu du site du client. Il ne
+s'applique que si l'étude est publiée (`flags.pmsbCaseStudy` dans
+`src/data/site.js`).
 
 Avant de publier une capture d'un outil privé, masque toute donnée personnelle
 (noms, emails, adresses, initiales). Pour `pmsb-gestion.jpg`, le prénom de

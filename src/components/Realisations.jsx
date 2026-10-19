@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react'
 import CtaBand from './CtaBand'
 import ProjectPicture from './ProjectPicture'
+import { SITE } from '../data/site'
 
-// Aussi repris par les pages intérieures (ex. la carte PMSB)
+// Aussi repris par les pages intérieures (ex. la carte PMSB).
+// alt : description de la capture ; caseStudy : page de l'étude de cas sur le site,
+// vers laquelle mène la carte quand l'étude est publiée (SITE.flags.pmsbCaseStudy)
 export const projects = [
   {
     id: 'P01',
@@ -15,6 +18,7 @@ export const projects = [
     description:
       'Site de présentation pour une activité de sous-location immobilière : offre, biens et mise en relation propriétaires / locataires, avec un parcours de contact direct.',
     img: { name: 'rbti', width: 1600, height: 898, variants: true },
+    alt: 'Aperçu du site de RBTI (rbti.fr), activité de sous-location immobilière',
     bg: 'linear-gradient(135deg, #00101c 0%, #00223c 50%, #00080e 100%)',
     hi: '#0284c7',
   },
@@ -29,11 +33,13 @@ export const projects = [
     description:
       "Prestations Multi Services Bâtiment — entreprise de travaux tous corps d'état en Île-de-France. Site vitrine des prestations (ravalement de façade, isolation, peinture intérieure, rénovation complète), avec galerie de chantiers et demande de devis.",
     img: { name: 'pmsb', width: 1600, height: 916, variants: true },
+    alt: "Page d'accueil du site vitrine de PMSB (pmsbbatiment.fr), entreprise du bâtiment en Île-de-France",
+    caseStudy: '/realisations/pmsb',
     bg: 'linear-gradient(135deg, #1c1206 0%, #3a2409 50%, #0e0803 100%)',
     hi: '#b45309',
   },
   {
-    // Outil privé : pas de lien public, la carte n'est pas cliquable
+    // Outil privé : pas de lien public ; la carte ne mène qu'à l'étude de cas
     id: 'P03',
     year: '2026',
     name: 'PMSB Gestion',
@@ -44,6 +50,8 @@ export const projects = [
       "Le logiciel interne de PMSB, pensé pour le quotidien d'une entreprise du bâtiment. Clients, devis et factures au même endroit, achats de matériel, échéancier des paiements et bibliothèque de prix pour chiffrer plus vite. Le tableau de bord suit la trésorerie (à encaisser, retards, retenues de garantie) et l'activité commerciale : devis en attente, taux de transformation et devis à relancer.",
     features: ['Tableau de bord', 'Clients', 'Devis', 'Factures', 'Achats de matériel', 'Échéancier', 'Bibliothèque de prix'],
     img: { name: 'pmsb-gestion', width: 1600, height: 899, variants: true },
+    alt: 'Aperçu du logiciel de gestion PMSB Gestion',
+    caseStudy: '/realisations/pmsb#logiciel',
     bg: 'linear-gradient(135deg, #04101f 0%, #0a2340 50%, #030a14 100%)',
     hi: '#2563eb',
     wide: true,
@@ -86,11 +94,64 @@ function MockPreview({ bg, hi }) {
 const SIZES = '(max-width: 900px) 100vw, 640px'
 const SIZES_WIDE = '(max-width: 860px) 100vw, 770px'
 
+// La capture d'un projet dans sa fausse fenêtre de navigateur (barre, photo, reflet).
+// Sans photo, ou si elle échoue au chargement, l'aperçu généré prend sa place.
+export function ProjectScreen({ name, domain, chrome, type, img, alt, bg, hi, wide }) {
+  const [hasPhoto, setHasPhoto] = useState(Boolean(img))
+
+  return (
+    <div className="realisation-screen" style={{ background: bg }}>
+      <div className="realisation-chrome" style={{ borderColor: `${hi}20` }}>
+        <span className="chrome-dots">
+          {[0, 1, 2].map((i) => (
+            <i key={i} style={{ background: `${hi}55` }} />
+          ))}
+        </span>
+        <span className="chrome-url">{chrome || domain}</span>
+      </div>
+
+      <div className="realisation-shot">
+        {hasPhoto ? (
+          <ProjectPicture
+            {...img}
+            alt={alt || (domain ? `Aperçu du site ${name} — ${domain}` : `Aperçu de ${name} — ${type}`)}
+            sizes={wide ? SIZES_WIDE : SIZES}
+            onError={() => setHasPhoto(false)}
+          />
+        ) : (
+          <MockPreview bg={bg} hi={hi} />
+        )}
+      </div>
+
+      <div className="realisation-shine" style={{ background: `linear-gradient(180deg, transparent 55%, ${hi}14 100%)` }} />
+    </div>
+  )
+}
+
+// La capture seule, dans le cadre des cartes, avec une légende courte
+// (pages intérieures : étude de cas, logiciel sur mesure). Toujours sur une
+// demi-largeur au plus : jamais la taille d'une carte large.
+export function ProjectFigure({ caption, ...p }) {
+  return (
+    <figure className="realisation">
+      <ProjectScreen {...p} wide={false} />
+      <figcaption className="realisation-body">
+        <div className="realisation-head">
+          <span>{caption}</span>
+          <span>{p.year}</span>
+        </div>
+      </figcaption>
+    </figure>
+  )
+}
+
+// Lien de la carte vers l'étude de cas, seulement quand elle est publiée
+export const caseLink = p => (SITE.flags.pmsbCaseStudy && p.caseStudy) || undefined
+
 // href : lien interne facultatif (ex. vers l'étude de cas) ; il prime sur url,
 // le lien externe qui s'ouvre dans un nouvel onglet
-export function ProjectCard({ id, year, name, url, href, domain, chrome, type, tag, description, features, img, bg, hi, wide }) {
+export function ProjectCard({ id, year, name, url, href, domain, chrome, type, tag, description, features, img, alt, bg, hi, wide }) {
   const ref = useRef(null)
-  const [hasPhoto, setHasPhoto] = useState(Boolean(img))
 
   const onMouseMove = (e) => {
     const card = ref.current
@@ -117,31 +178,7 @@ export function ProjectCard({ id, year, name, url, href, domain, chrome, type, t
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
     >
-      <div className="realisation-screen" style={{ background: bg }}>
-        <div className="realisation-chrome" style={{ borderColor: `${hi}20` }}>
-          <span className="chrome-dots">
-            {[0, 1, 2].map((i) => (
-              <i key={i} style={{ background: `${hi}55` }} />
-            ))}
-          </span>
-          <span className="chrome-url">{chrome || domain}</span>
-        </div>
-
-        <div className="realisation-shot">
-          {hasPhoto ? (
-            <ProjectPicture
-              {...img}
-              alt={domain ? `Aperçu du site ${name} — ${domain}` : `Aperçu de ${name} — ${type}`}
-              sizes={wide ? SIZES_WIDE : SIZES}
-              onError={() => setHasPhoto(false)}
-            />
-          ) : (
-            <MockPreview bg={bg} hi={hi} />
-          )}
-        </div>
-
-        <div className="realisation-shine" style={{ background: `linear-gradient(180deg, transparent 55%, ${hi}14 100%)` }} />
-      </div>
+      <ProjectScreen name={name} domain={domain} chrome={chrome} type={type} img={img} alt={alt} bg={bg} hi={hi} wide={wide} />
 
       <div className="realisation-body">
         <div className="realisation-head">
@@ -189,7 +226,7 @@ export default function Realisations() {
 
       <div className="realisations-grid reveal">
         {projects.map((p) => (
-          <ProjectCard key={p.id} {...p} />
+          <ProjectCard key={p.id} {...p} href={caseLink(p)} />
         ))}
       </div>
 

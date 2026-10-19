@@ -2,7 +2,8 @@ import { useRef } from 'react'
 import { prefillDevis } from './Contact'
 import { useSectionHref } from '../lib/route'
 
-const services = [
+// Aussi repris par les pages intérieures (textes de leurs données structurées)
+export const services = [
   { id: 'S01', projet: 'Site de présentation', temp: '34°', title: 'Sites de présentation', desc: 'Artisans, indépendants, particuliers : un site simple et soigné pour vous faire connaître et être trouvé sur internet.', tag: 'DEVIS GRATUIT' },
   { id: 'S02', projet: 'Site de présentation', temp: '48°', title: 'Sites d\'entreprise', desc: 'Entreprises et associations : un site à plusieurs pages, avec les fonctions dont vous avez vraiment besoin.', tag: 'SUR-MESURE' },
   { id: 'S03', projet: 'Site avec boutique ou espace client', temp: '62°', title: 'Boutiques et espaces clients', desc: 'Vendre en ligne, créer des comptes clients, gérer vos contenus vous-même : un site qui garde vos informations en sécurité.', tag: 'SUR-MESURE' },

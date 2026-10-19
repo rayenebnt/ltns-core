@@ -34,13 +34,16 @@ const zoneRefs = () => zone().map(z => ref(z['@id']))
 // fixé (avec un lien vers la page du site vitrine), sinon sur devis, sans prix
 const offerId = f => id('/', 'offre-' + slug(f.name))
 
+// Fin de la description : le délai, et « sur devis gratuit » quand il n'y a pas de prix
+const terms = f => (f.price ? `Délai : ${lowerFirst(f.delai)}.` : `Sur devis gratuit, délai ${lowerFirst(f.delai)}.`)
+
 const offer = f => {
   const serviceType = f.price ? 'Création de site internet' : 'Développement web et mobile sur mesure'
   return {
     '@type': 'Offer',
     '@id': offerId(f),
     name: `Formule ${f.name}`,
-    description: `${f.pitch} ${f.features.filter(x => !x.includes('Google')).join(' · ')}. Délai : ${lowerFirst(f.delai)}.`,
+    description: `${f.pitch} ${f.features.filter(x => !x.includes('Google')).join(' · ')}. ${terms(f)}`,
     url: f.price ? abs('/creation-site-vitrine') : id('/', 'tarifs'),
     ...(f.price && {
       priceSpecification: { '@type': 'PriceSpecification', minPrice: f.price, priceCurrency: 'EUR' },

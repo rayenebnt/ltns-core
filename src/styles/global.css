@@ -3822,3 +3822,18 @@ footer {
 @media (max-width: 960px) {
   .tf-grid--2 { grid-template-columns: 1fr; max-width: 560px; }
 }
+
+/* Capture et texte côte à côte (étude de cas, exemples) ; l'un sous l'autre
+   sous 861 px, comme la grille des réalisations */
+.page-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 48px;
+  align-items: start;
+}
+@media (max-width: 860px) { .page-split { grid-template-columns: 1fr; } }
+/* Blocs qui se suivent dans une section : texte, pastilles, cartes de liens */
+.prose + .chips, .chips + .prose, .prose + .link-cards,
+figure.realisation + .chips { margin-top: 24px; }
+/* Capture seule (<figure>) : une légende d'une ligne, sans marge dessous */
+figure.realisation .realisation-head { margin-bottom: 0; }
