@@ -6,35 +6,55 @@ Les règles de Google ont été vérifiées en octobre 2026 (sources en bas de p
 
 ---
 
-## 0. À régler avant de cliquer sur « Créer » (bloquant)
+## 0. Ce qui est réglé, et ce qu'il reste à faire
 
-**1. Est-ce que tu rencontres des clients en personne ?** Chez eux ou sur leur lieu de travail, même pour une partie des projets (comme chez PMSB).
-- **Oui** : tu peux créer la fiche en « entreprise de services » (adresse masquée).
-- **Non, tout se fait par téléphone, e-mail ou visio** : Google considère que l'activité est 100 % en ligne. La fiche n'y a pas droit et risque d'être suspendue. Dans ce cas, ne la crée pas.
+**Tes réponses du 19 octobre**
 
-**2. Rassemble ces éléments (15 min) :**
+| Point | Réponse |
+|---|---|
+| Rendez-vous en personne | Tu proposes désormais de te déplacer chez les clients en Île-de-France. Tu as donc droit à une fiche « entreprise de services ». Ce doit être une vraie offre : si un client demande un rendez-vous chez lui, tu y vas. |
+| Zone desservie | Toute l'Île-de-France |
+| Site | `https://ltns.fr` fonctionne. |
+| Téléphone public | `06 25 20 64 93` |
+| Compte Google | `ltnscore@gmail.com` |
+| Devis ou facture LTNS° avec SIRET | Aucun pour l'instant. Tu ne sais pas encore si ton entreprise est déclarée : voir juste en dessous. |
+
+**À vérifier avant de créer la fiche (5 min) : ton entreprise est-elle déclarée ?**
+1. Va sur **annuaire-entreprises.data.gouv.fr** (le site officiel de l'État, gratuit) et tape ton prénom et ton nom.
+2. **Une fiche apparaît** (« entrepreneur individuel », avec un SIRET) : ton entreprise est déclarée.
+   - Note le SIRET, la date de création et le « nom commercial » s'il y en a un.
+   - Télécharge l'**avis de situation SIRENE** (PDF officiel) sur **avis-situation-sirene.insee.fr** en tapant ton SIRET.
+   - Tu peux créer la fiche Google aujourd'hui.
+3. **Rien n'apparaît** : ton entreprise n'est pas déclarée.
+   - Déclare une micro-entreprise sur **formalites.entreprises.gouv.fr** : c'est en ligne et gratuit. Déclare « LTNS » comme nom commercial au même moment. Le SIRET arrive en général en 1 à 4 semaines.
+   - Sans SIRET, tu ne peux pas facturer légalement, ni envoyer les devis que la fiche et le site annoncent.
+   - Crée la fiche une fois le SIRET reçu : la validation sera plus sûre.
+4. **Fiche trouvée, mais sans « LTNS » comme nom commercial** : ce n'est pas bloquant pour Google. Tu pourras ajouter ce nom commercial plus tard, gratuitement, sur le même site formalites.entreprises.gouv.fr. Montrer le site ltns.fr dans la vidéo de validation fait déjà le lien entre ton nom et LTNS°.
+
+**À avoir sous la main**
 
 | Quoi | Pourquoi |
 |---|---|
-| L'adresse exacte du site qui marche (taper `ltns.fr` dans un navigateur et vérifier que LTNS° s'affiche) | Un lien cassé enfreint les règles de Google. `ltns.fr` n'apparaît que sur l'affiche, et je n'ai pas pu vérifier qu'il est en ligne. |
 | Ton adresse de domicile réelle | Elle sert seulement à la validation et reste masquée. Pas de domiciliation, de boîte postale ni de bureau virtuel. |
-| Un devis ou une facture LTNS° avec ton SIRET | Il prouve que le nom « LTNS° » est bien ton entreprise. L'avis de situation SIRENE seul n'affiche peut-être que ton nom. |
-| La liste des communes où tu te déplaces vraiment (10-15 km, 20 au maximum) | Pour la zone desservie |
+| L'avis de situation SIRENE (PDF) | Pour la vidéo de validation |
+| Tes accès au compte de l'hébergeur du site et au compte où le nom de domaine ltns.fr est enregistré | Pour la vidéo : ils prouvent que c'est toi qui gères LTNS°. |
 | Le logo : **déjà prêt** dans `docs/fiche-google/` | Voir la section 4 |
 
 ---
 
 ## 1. Création, étape par étape
 
-1. **Connexion.** Va sur https://business.google.com et connecte-toi avec le compte Google qui gérera la fiche (par exemple `ltnscore@gmail.com`). Clique sur « Commencer » ou « Gérer maintenant ».
-2. **Nom.** Tape exactement `LTNS°` si tes devis et factures portent le °, sinon `LTNS`. N'ajoute rien d'autre : ni « création site internet », ni la ville, ni de slogan. Un mot-clé dans le nom est la première cause de suspension. Si Google te propose une fiche qui n'est pas la tienne, choisis « Créer un établissement avec ce nom ».
+1. **Connexion.** Va sur https://business.google.com et connecte-toi avec `ltnscore@gmail.com`. Clique sur « Commencer » ou « Gérer maintenant ».
+2. **Nom.** Tape exactement `LTNS°`, comme sur le site et le logo. N'ajoute rien d'autre : ni « création site internet », ni la ville, ni de slogan. Un mot-clé dans le nom est la première cause de suspension. Si Google te propose une fiche qui n'est pas la tienne, choisis « Créer un établissement avec ce nom ». Tes futurs devis et factures devront porter le même nom, « LTNS° ».
 3. **Type** (si l'écran apparaît). Coche seulement **« Entreprise de services »**. Ne coche ni « Magasin physique » ni « Boutique en ligne ».
 4. **Catégorie.** Tape « Concepteur de sites » et choisis le libellé proposé par Google (« Concepteur de sites Web » ou une variante proche).
-5. **Lieu.** À la question « Voulez-vous ajouter un lieu où les clients peuvent se rendre ? », réponds **NON**. À la question « Proposez-vous des services à domicile ou sur place ? », réponds **OUI**, seulement si la réponse au point 0.1 est oui. La formulation exacte peut varier un peu.
-6. **Zone desservie.** Ta ville, puis les communes proches où tu te déplaces vraiment (20 au maximum). Ni toute la France, ni toute l'Île-de-France : Google recommande de rester à moins de 2 h de trajet.
+5. **Lieu.** À la question « Voulez-vous ajouter un lieu où les clients peuvent se rendre ? », réponds **NON**. À la question « Proposez-vous des services à domicile ou sur place ? », réponds **OUI** : tu te déplaces chez les clients. La formulation exacte peut varier un peu.
+6. **Zone desservie.** Tape `Île-de-France` et choisis la région proposée dans la liste. C'est accepté : Google demande seulement que la zone reste à environ 2 h de route de chez toi, et c'est le cas de l'Île-de-France.
+
+   **À savoir :** Google affiche surtout la fiche aux gens proches de ton adresse, même si elle est masquée. Les recherches à l'autre bout de la région te trouveront moins. C'est normal, et les avis et les posts aident à compenser.
 7. **Coordonnées.**
    - Téléphone : `06 25 20 64 93`. Il sera public, et Google peut l'utiliser pour la validation : garde ton téléphone à portée de main.
-   - Site Web : l'adresse vérifiée au point 0.
+   - Site Web : `https://ltns.fr`.
    - Aucun lien de prise de rendez-vous.
 8. **Adresse pour la validation.** Ton domicile. Après la création, ouvre « Modifier le profil » > « Emplacement » et vérifie que l'adresse **n'est pas affichée**. Afficher l'adresse du domicile sans recevoir de clients peut faire suspendre la fiche.
 9. **Remplir la fiche AVANT la validation.** Si Google te le permet (bouton « Valider plus tard », ou accès au tableau de bord avant la vidéo), remplis d'abord, avec les textes ci-dessous :
@@ -47,8 +67,11 @@ Les règles de Google ont été vérifiées en octobre 2026 (sources en bas de p
 10. **Validation.** C'est Google qui choisit la méthode. Par téléphone, SMS ou e-mail, c'est presque immédiat ; aujourd'hui, c'est le plus souvent par **vidéo**. Elle n'est pas publiée : seule l'équipe Google la voit.
     - Filme en **un seul plan**, sans coupure, de 30 s à environ 2 min. Ton visage n'a pas à apparaître : filme tes mains et ce que tu montres (*non confirmé officiellement*).
     - **a.** Dehors : la plaque de ta rue, le numéro de l'immeuble et les repères autour.
-    - **b.** Ton espace de travail : l'ordinateur avec le site LTNS° à l'écran.
-    - **c.** La preuve que tu gères l'entreprise : un devis ou une facture LTNS° avec le SIRET, puis la connexion à l'administration du site ou de l'hébergeur.
+    - **b.** Ton espace de travail : l'ordinateur avec `ltns.fr` à l'écran.
+    - **c.** La preuve que tu gères l'entreprise : Google demande de montrer « un accès réservé à l'entreprise ». Sans devis ni facture, montre :
+      - ta connexion au compte de l'hébergeur, avec le projet ltns.fr ;
+      - ta connexion au compte où le domaine ltns.fr est enregistré ;
+      - l'avis de situation SIRENE (PDF) ouvert à l'écran, si ton entreprise est déclarée (voir section 0).
     - Avant de filmer, ferme les onglets et les notifications : aucun nom de client ni aucun montant ne doit être visible.
     - Google annonce jusqu'à 5 jours ouvrés d'examen, parfois plus.
 11. **Pendant l'examen, ne modifie rien** : ni le nom, ni la catégorie, ni l'adresse, ni la zone, ni la description. Une modification peut relancer l'examen (conseil des experts de la communauté Google, *non confirmé officiellement*).
@@ -63,14 +86,14 @@ Les règles de Google ont été vérifiées en octobre 2026 (sources en bas de p
 
 | Champ | À écrire | Remarque |
 |---|---|---|
-| Nom | `LTNS°` | Ou `LTNS`, selon ce qui est écrit sur tes devis. Choisis une fois pour toutes. |
-| Type | Entreprise de services, adresse masquée | Seulement si la réponse au point 0.1 est oui |
+| Nom | `LTNS°` | Comme sur le site. Ne le change plus ensuite. |
+| Type | Entreprise de services, adresse masquée | Tu te déplaces chez les clients. |
 | Catégorie principale | Concepteur de sites Web | Le libellé exact proposé par Google |
 | Catégories secondaires (0 à 2, facultatives) | La catégorie « logiciel » que Google propose (PMSB Gestion en est un vrai exemple) ; « Graphiste » seulement si tu fais vraiment des logos | Pas de catégorie « applications » tant qu'aucune application n'est livrée. Pas de « marketing Internet ». |
-| Zone desservie | `[VILLE]`, `[COMMUNE 2]`, `[COMMUNE 3]`… | 20 au maximum, seulement des communes où tu vas vraiment |
+| Zone desservie | `Île-de-France` | La région, choisie dans la liste de Google |
 | Adresse | `[ADRESSE DU DOMICILE]`, **masquée** | La même que dans la vidéo de validation |
-| Téléphone | `06 25 20 64 93` | Celui du site |
-| Site Web | `[URL QUI MARCHE]` | À tester avant de la saisir |
+| Téléphone | `06 25 20 64 93` | Celui du site, rendu public |
+| Site Web | `https://ltns.fr` | Tu as confirmé qu'il fonctionne. |
 | Horaires | Aucun (recommandé), ou tes vraies heures de disponibilité au téléphone | Google n'a pas d'option « sur rendez-vous ». |
 | Date d'ouverture | `[MOIS ET ANNÉE DE CRÉATION]` (sur l'avis SIRENE) | Laisse vide si tu ne l'as pas sous la main. |
 | Lien de rendez-vous | Ne pas remplir | Le formulaire du site sert à demander un devis, pas à réserver un créneau. |
@@ -87,7 +110,14 @@ LTNS° est un studio indépendant de création web basé en Île-de-France, tenu
 
 - Le texte ne contient ni lien, ni prix, ni promotion, ni chiffre invérifiable. Chaque phrase vient du site.
 - Les clients ne sont pas nommés.
-- Pour ajouter ta ville, remplace « basé en Île-de-France » par « basé à [VILLE], en Île-de-France ». Le texte doit rester sous 750 caractères.
+
+**Variante qui dit que tu te déplaces (737 caractères sur 750)**
+
+Elle est utile si le site l'annonce aussi : Google compare la fiche et le site.
+
+```
+LTNS° est un studio indépendant de création web en Île-de-France, tenu par une seule personne : le même interlocuteur du premier échange à la mise en ligne, et je me déplace chez vous. Je crée des sites internet de présentation et d'entreprise, des boutiques en ligne et espaces clients, des logiciels de gestion pensés pour un métier et des applications mobiles iPhone et Android. Chaque projet est conçu sur mesure, sans modèle tout prêt, pour les artisans, indépendants, entreprises, associations et particuliers. Le prix est fixé avant de commencer et tous les accès vous sont remis à la livraison. Réalisations : le site et le logiciel de gestion d'une entreprise du bâtiment, et le site d'une activité de sous-location immobilière.
+```
 
 ---
 
@@ -178,7 +208,7 @@ Un échange de 20 minutes, gratuit et sans engagement, puis un devis détaillé 
 
 Ne recopie que le texte. Ces posts n'ont pas de titre, et le nom de chaque post ci-dessous est un repère pour toi. Ne choisis pas le type « Offre », qui demande des dates. N'écris pas le numéro dans le texte.
 
-**Post 1 – Les formules** (le jour de la validation, avec le logo en photo). Bouton « En savoir plus » vers `[URL DU SITE]/#tarifs`.
+**Post 1 – Les formules** (le jour de la validation, avec le logo en photo). Bouton « En savoir plus » vers `https://ltns.fr/#tarifs`.
 ```
 LTNS° est maintenant sur Google. Trois formules, avec les prix publiés sur le site :
 - Essentiel : un site d'une seule page, à partir de 490 € TTC, environ 2 semaines.
@@ -187,17 +217,17 @@ LTNS° est maintenant sur Google. Trois formules, avec les prix publiés sur le 
 Dans toutes les formules : devis gratuit sous 48 h, prix fixé avant de commencer, un seul interlocuteur, et tous les accès remis à la livraison.
 ```
 
-**Post 2 – Le site PMSB** (la semaine suivante, photo `pmsb.jpg`). Bouton vers `[URL DU SITE]/#realisations`.
+**Post 2 – Le site PMSB** (la semaine suivante, photo `pmsb.jpg`). Bouton vers `https://ltns.fr/#realisations`.
 ```
 Réalisation 2025 : le site vitrine de PMSB (Prestations Multi Services Bâtiment), entreprise de travaux tous corps d'état en Île-de-France. Le site présente ses prestations (ravalement de façade, isolation, peinture intérieure, rénovation complète), avec une galerie de chantiers et une demande de devis. Le projet est à voir dans la rubrique Réalisations de mon site.
 ```
 
-**Post 3 – PMSB Gestion** (seulement après le « oui » écrit de PMSB, photo `pmsb-gestion.jpg`). Bouton vers `[URL DU SITE]/#realisations`.
+**Post 3 – PMSB Gestion** (seulement après le « oui » écrit de PMSB, photo `pmsb-gestion.jpg`). Bouton vers `https://ltns.fr/#realisations`.
 ```
 Réalisation 2026 : PMSB Gestion, le logiciel de gestion créé sur mesure pour PMSB, entreprise du bâtiment. Clients, devis et factures au même endroit, achats de matériel, échéancier des paiements et bibliothèque de prix pour chiffrer plus vite. C'est un outil interne à accès réservé : la capture montre des données de démonstration, aucune donnée réelle.
 ```
 
-**Post 4 – Le site RBTI** (seulement après le « oui » écrit de RBTI, photo `rbti.jpg`). Bouton vers `[URL DU SITE]/#realisations`.
+**Post 4 – Le site RBTI** (seulement après le « oui » écrit de RBTI, photo `rbti.jpg`). Bouton vers `https://ltns.fr/#realisations`.
 ```
 Réalisation 2025 : le site de présentation de RBTI, une activité de sous-location immobilière. Il présente l'offre et les biens, organise la mise en relation entre propriétaires et locataires et propose un parcours de contact direct. Le projet est à voir dans la rubrique Réalisations de mon site.
 ```
@@ -246,16 +276,13 @@ Tutoie-les si c'est ton habitude avec eux.
 ## 7. Questions pour toi
 
 **Aujourd'hui (bloquant) :**
-1. Rencontres-tu des clients en personne, au moins pour une partie des projets ?
-2. Dans quelle ville es-tu basé, et quelles communes veux-tu desservir ?
-3. L'adresse de validation est-elle bien ton domicile réel ?
-4. Quelle adresse du site marche vraiment (`ltns.fr` ?) ?
-5. Le `06 25 20 64 93` est-il bien le numéro à rendre public ?
-6. Quel compte Google utiliser (`ltnscore@gmail.com` ?) ?
-7. Tes devis portent-ils « LTNS° » ou « LTNS » ? As-tu un devis ou une facture avec ton SIRET à montrer dans la vidéo ?
+1. Ton entreprise est-elle déclarée ? Vérifie-le sur annuaire-entreprises.data.gouv.fr (section 0).
+
+**Réglé le 19 octobre :** déplacement chez les clients, zone Île-de-France, site `https://ltns.fr`, téléphone public, compte `ltnscore@gmail.com`, adresse de validation au domicile.
 
 **Plus tard :**
-- La date de création de l'entreprise.
+- La date de création de l'entreprise (elle est sur l'annuaire des entreprises).
+- Un modèle de devis et de facture LTNS° avec tes mentions légales : je peux le préparer une fois que j'ai ton SIRET.
 - Des horaires ou non ?
 - Des catégories secondaires (logiciel, graphiste) ?
 - Fais-tu des visios ?
