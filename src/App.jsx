@@ -14,6 +14,7 @@ import Footer from './components/Footer'
 import { ParcoursProvider } from './components/Parcours'
 import { RouteProvider } from './lib/route'
 import { resolve } from './routes'
+import { SITE } from './data/site'
 import useReveal from './hooks/useReveal'
 import useThermal from './hooks/useThermal'
 
@@ -24,6 +25,17 @@ function ThermalRail() {
       <div className="thermal-rail-label" aria-hidden="true" data-nosnippet="">CHAUFFE</div>
     </>
   )
+}
+
+// Mesure d'audience Vercel : rien n'est envoyé si le visiteur l'a désactivée sur
+// cet appareil (bouton des mentions légales, src/components/OptOutButton.jsx).
+// Umami, lui, ne compte que sur ltns.fr (data-domains dans index.html).
+const optOut = e => {
+  try {
+    return localStorage.getItem('ltns-optout') === '1' ? null : e
+  } catch {
+    return e
+  }
 }
 
 export default function App({ path }) {
@@ -89,7 +101,7 @@ export default function App({ path }) {
         </main>
         <Footer />
         <StickyCta />
-        <Analytics />
+        {SITE.analytics.vercel && <Analytics beforeSend={optOut} />}
       </ParcoursProvider>
     </RouteProvider>
   )

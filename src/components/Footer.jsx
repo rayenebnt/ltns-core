@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useSectionHref } from '../lib/route'
 import { subscribeThermal, thermal } from '../hooks/useThermal'
+import { SITE } from '../data/site'
+
+// Les pages du site, après les sections de l'accueil. L'étude de cas suit
+// SITE.flags.pmsbCaseStudy ; TikTok n'apparaît qu'avec une vraie adresse https.
+const PAGES = [
+  { href: '/creation-site-vitrine', label: 'SITE VITRINE' },
+  { href: '/logiciel-sur-mesure', label: 'LOGICIEL SUR MESURE' },
+  ...(SITE.flags.pmsbCaseStudy ? [{ href: '/realisations/pmsb', label: 'RÉALISATION PMSB' }] : []),
+]
+const TIKTOK = /^https:\/\//.test(SITE.sameAs.tiktok) ? SITE.sameAs.tiktok : null
 
 function fmtUtc(d) {
   const hh = String(d.getHours()).padStart(2, '0')
@@ -33,12 +43,20 @@ export default function Footer() {
         <div>
           <div className="footer-logo">LTNS<span className="deg">°</span></div>
           <div className="footer-tag">LE WEB AU BON DEGRÉ</div>
+          {/* Zone et coordonnées, tirées de src/data/site.js comme partout ailleurs */}
+          <div className="footer-nap">
+            <span>Partout en France ·</span> <span>{`déplacements en ${SITE.area}`}</span><br />
+            <a href={`tel:${SITE.phoneE164}`}>{SITE.phoneDisplay}</a>
+            {' · '}<a className="footer-mail" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          </div>
         </div>
         <div className="footer-meta">
           <a href={href('services')}>SERVICES</a>
           <a href={href('process')}>PROCESS</a>
           <a href={href('faq')}>FAQ</a>
           <a href={href('contact')}>CONTACT</a>
+          {PAGES.map(p => <a key={p.href} href={p.href}>{p.label}</a>)}
+          {TIKTOK && <a href={TIKTOK} target="_blank" rel="me noopener">TIKTOK</a>}
         </div>
         <div className="footer-readout" data-nosnippet="">
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>
@@ -48,7 +66,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© {year} LTNS° · TOUS DROITS RÉSERVÉS</span>
+        <span>© {year} LTNS° · TOUS DROITS RÉSERVÉS · <a href="/mentions-legales">MENTIONS LÉGALES</a></span>
         <span>FAIT MAIN · RÉGLÉ AU DEGRÉ PRÈS</span>
       </div>
     </footer>

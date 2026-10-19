@@ -48,6 +48,15 @@ export const prefillDevis = (projet, { formule = '' } = {}) =>
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// Sous les formulaires (devis et demande de formule) : à quoi servent les
+// informations envoyées, avec le lien vers la partie données personnelles
+export const FormNotice = props => (
+  <p className="form-notice" {...props}>
+    Vos informations servent uniquement à répondre à votre demande. Détails et droits&nbsp;:{' '}
+    <a href="/mentions-legales#donnees-personnelles">données personnelles</a>.
+  </p>
+)
+
 function heatLabel(t) {
   if (t < 25) return 'FROID'
   if (t < 50) return 'TIÈDE'
@@ -695,28 +704,31 @@ export default function Contact({ initialProjet = '', num = '02' }) {
             )}
 
             {!sent && (
-              <div className="devis-nav">
-                {step > 0 ? (
-                  <button type="button" className="btn btn-ghost" onClick={() => goTo(step - 1)} disabled={status === 'sending'}>
-                    <span className="arrow back">←</span> Retour
-                  </button>
-                ) : <span />}
+              <>
+                <div className="devis-nav">
+                  {step > 0 ? (
+                    <button type="button" className="btn btn-ghost" onClick={() => goTo(step - 1)} disabled={status === 'sending'}>
+                      <span className="arrow back">←</span> Retour
+                    </button>
+                  ) : <span />}
 
-                {step < DEVIS_STEPS.length - 1 ? (
-                  <button type="submit" className="btn btn-primary" disabled={!canNext}>
-                    Suivant <span className="arrow">→</span>
-                  </button>
-                ) : (
-                  <button type="submit" className={`btn btn-primary devis-submit${status === 'error' ? ' is-error' : ''}`} disabled={status === 'sending'}>
-                    <span className="devis-submit-fill" ref={submitFillRef} aria-hidden="true" />
-                    <span className="devis-submit-txt">
-                      {status === 'error' ? 'Échec — réessayez' :
-                       status === 'sending' ? 'Envoi en cours…' :
-                       <>Recevoir mon devis <span className="arrow">→</span></>}
-                    </span>
-                  </button>
-                )}
-              </div>
+                  {step < DEVIS_STEPS.length - 1 ? (
+                    <button type="submit" className="btn btn-primary" disabled={!canNext}>
+                      Suivant <span className="arrow">→</span>
+                    </button>
+                  ) : (
+                    <button type="submit" className={`btn btn-primary devis-submit${status === 'error' ? ' is-error' : ''}`} disabled={status === 'sending'}>
+                      <span className="devis-submit-fill" ref={submitFillRef} aria-hidden="true" />
+                      <span className="devis-submit-txt">
+                        {status === 'error' ? 'Échec — réessayez' :
+                         status === 'sending' ? 'Envoi en cours…' :
+                         <>Recevoir mon devis <span className="arrow">→</span></>}
+                      </span>
+                    </button>
+                  )}
+                </div>
+                <FormNotice />
+              </>
             )}
           </form>
         </div>

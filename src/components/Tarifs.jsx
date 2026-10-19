@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
 import { inkOn, tempColor } from '../hooks/useThermal'
-import { EMAIL, EMAIL_RE, FORMSPREE_URL, makeReference, prefillDevis } from './Contact'
+import { EMAIL, EMAIL_RE, FORMSPREE_URL, FormNotice, makeReference, prefillDevis } from './Contact'
 import { FORMULES, INCLUS, fmtPrice, priceLabel } from '../data/formules'
 import { useSectionHref } from '../lib/route'
 
@@ -335,6 +335,8 @@ function FormuleDialog({ f, origin, onClose }) {
               </p>
             )}
 
+            <FormNotice data-fq />
+
             <button type="submit" className="btn btn-primary fq-submit" data-fq disabled={status === 'sending'}>
               {status === 'sending' ? 'Envoi en cours…' : 'Être recontacté'} <span className="arrow">→</span>
             </button>
@@ -346,6 +348,12 @@ function FormuleDialog({ f, origin, onClose }) {
   )
 }
 
+// Phrase d'aide par défaut sous la grille : le renvoi vers le devis
+function HelpDevis() {
+  const href = useSectionHref()
+  return <>Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</>
+}
+
 /* La grille des formules, ce que toutes comprennent et la demande directe.
    Réutilisée telle quelle par les pages intérieures (ex. seulement Essentiel et Pro).
    help : la phrase d'aide sous la grille (par défaut, le renvoi vers le devis) ;
@@ -353,7 +361,6 @@ function FormuleDialog({ f, origin, onClose }) {
 export function TarifsBlock({ formules = FORMULES, help }) {
   const gridRef = useRef(null)
   const footRef = useRef(null)
-  const href = useSectionHref()
   const [chosen, setChosen] = useState(null)
   const triggerRef = useRef(null)
 
@@ -449,9 +456,7 @@ export function TarifsBlock({ formules = FORMULES, help }) {
     }
   }, [])
 
-  const helpText = help === undefined
-    ? <>Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</>
-    : help
+  const helpText = help === undefined ? <HelpDevis /> : help
 
   return (
     <>
@@ -491,7 +496,13 @@ export default function Tarifs() {
         </div>
       </div>
 
-      <TarifsBlock />
+      {/* Le renvoi vers le devis, puis vers les pages qui détaillent les offres */}
+      <TarifsBlock
+        help={<>
+          <HelpDevis /> Tout le détail&nbsp;: <a href="/creation-site-vitrine">site vitrine</a>
+          {' · '}<a href="/logiciel-sur-mesure">logiciel sur mesure</a>.
+        </>}
+      />
     </section>
   )
 }

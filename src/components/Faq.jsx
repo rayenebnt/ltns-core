@@ -2,8 +2,9 @@ import { useState, useRef } from 'react'
 import CtaBand from './CtaBand'
 import { FAQ } from '../data/faq'
 
-// Une réponse : textes simples et listes à puces (voir src/data/faq.js)
-function FaqAnswer({ a, link }) {
+// Une réponse : textes simples et listes à puces (voir src/data/faq.js).
+// Réponse repliée : son lien ne reçoit pas le focus au clavier (il est caché).
+function FaqAnswer({ a, link, open }) {
   const parts = Array.isArray(a) ? a : [a]
   return (
     <>
@@ -12,7 +13,7 @@ function FaqAnswer({ a, link }) {
           {part.list.map(({ b, t }) => <li key={b}><b>{b}</b>{` : ${t}`}</li>)}
         </ul>
       ))}
-      {link && <>{' '}<a className="faq-link" href={link.href}>{link.label}</a></>}
+      {link && <>{' '}<a className="faq-link" href={link.href} tabIndex={open ? undefined : -1}>{link.label}</a></>}
     </>
   )
 }
@@ -37,7 +38,7 @@ export function FaqItem({ q, a, link, idx }) {
         ref={answerRef}
         style={{ maxHeight: open ? answerRef.current?.scrollHeight + 'px' : '0' }}
       >
-        <div className="faq-a-inner"><FaqAnswer a={a} link={link} /></div>
+        <div className="faq-a-inner"><FaqAnswer a={a} link={link} open={open} /></div>
       </div>
     </div>
   )

@@ -2,31 +2,42 @@
 
 > Le web au bon degré.
 
-Site one-page de présentation pour activité freelance de création de sites internet.
-Version **React + Vite**.
+Site de présentation pour activité freelance de création de sites internet :
+l'accueil, des pages de service, une étude de cas et les mentions légales.
+Version **React + Vite**, pré-rendue en HTML statique au build.
 
 ## 🚀 Stack
 
 - **React 18** — composants réutilisables, hooks
 - **Vite** — build ultra rapide, HMR instantané
 - **Three.js** — scène 3D de la visite guidée (chargée à la demande)
-- **GSAP + ScrollTrigger** — animations d'entrée et au scroll
+- **GSAP** — animations (lancées au scroll par IntersectionObserver)
 - **CSS pur** (variables CSS, Grid, Flexbox)
-- **Google Fonts** : Space Grotesk · Inter Tight · JetBrains Mono
+- **Polices servies par le site** (`public/fonts`) : Space Grotesk · Inter Tight · JetBrains Mono
 
 ## 📁 Structure
 
 ```
 ltns-react/
-├── index.html              # Point d'entrée HTML (Vite)
+├── index.html              # Point d'entrée HTML (Vite), modèle des pages pré-rendues
 ├── package.json
 ├── vite.config.js
+├── vercel.json             # Adresses, redirection, cache (Vercel)
+├── scripts/
+│   ├── prerender.mjs       # Pré-rendu et contrôles SEO du build
+│   └── check-hydration.mjs # npm run check:hydration
 ├── public/                 # Fichiers statiques
 │   └── realisations/       # Photos de présentation des projets
 └── src/
-    ├── main.jsx            # Bootstrap React
-    ├── App.jsx             # Composant racine
+    ├── main.jsx            # Bootstrap React (reprend le HTML pré-rendu)
+    ├── entry-server.jsx    # Rendu des pages pour le pré-rendu
+    ├── App.jsx             # Coquille commune à toutes les pages
+    ├── routes.jsx          # Table des pages : contenu, titre, description…
+    ├── data/               # site.js (infos du propriétaire), formules.js (prix), faq.js, steps.js
+    ├── pages/              # Une page par fichier (Home, CreationSiteVitrine, NotFound…)
+    ├── seo/                # <head> et JSON-LD de chaque page
     ├── components/
+    │   ├── page/           # Blocs des pages intérieures (PageHero, PageSection…)
     │   ├── Loader.jsx
     │   ├── Cursor.jsx      # Curseur custom néon
     │   ├── Nav.jsx
@@ -72,18 +83,16 @@ Puis dans le terminal intégré : `npm install` puis `npm run dev`.
 
 ## ✏️ Personnalisation
 
-### Coordonnées (Contact)
+### Coordonnées et mentions légales
 
-Dans `src/components/Contact.jsx`, modifie en haut du fichier :
-```js
-const EMAIL = 'ton@email.com'
-const PHONE = '+33612345678'
-```
+Tout est dans `src/data/site.js` (email, téléphone, zone, liens, mentions légales) :
+voir « SEO, pages et build » plus bas.
 
 ### Tarifs
 
 Section placée juste après l'accueil, au-dessus du devis. Les formules (prix, contenu,
-délai, public) sont dans le tableau `FORMULES` en haut de `src/components/Tarifs.jsx`.
+délai, public) sont dans le tableau `FORMULES` de `src/data/formules.js`, seul endroit
+où écrire un prix.
 
 - **Essentiel / Pro** (formules avec un prix) : le bouton ouvre une demande directe.
   Le visiteur laisse seulement nom, email, téléphone et activité (facultatifs pour les
@@ -93,9 +102,9 @@ délai, public) sont dans le tableau `FORMULES` en haut de `src/components/Tarif
 - **Sur-mesure** (`price: null`, affiché « Sur devis ») : le bouton mène au devis
   détaillé, avec la formule pré-remplie.
 
-Motion design (GSAP + ScrollTrigger) : les cartes montent, la jauge de chauffe
-s'allume segment par segment, température et prix défilent, le badge « le plus
-choisi » se tamponne, puis la formule Pro garde une bordure qui tourne. La demande
+Motion design (GSAP) : les cartes montent, la jauge de chauffe
+s'allume segment par segment, température et prix défilent, le badge « recommandé »
+se tamponne, puis la formule Pro garde une bordure qui tourne. La demande
 directe s'ouvre en se propageant depuis le bouton cliqué, et son thermomètre monte
 jusqu'à 99° à l'envoi. Tout est
 désactivé si le visiteur a choisi de réduire les animations.
@@ -117,13 +126,14 @@ Alternatives :
 
 ### Services / FAQ / Process
 
-Chaque section a ses données en haut du composant, dans un tableau facile à modifier.
+Services : tableau `services` en haut de `src/components/Services.jsx`. FAQ de
+l'accueil : `src/data/faq.js`. Étapes d'un projet : `src/data/steps.js`.
 
 ### Réalisations
 
 Les projets sont listés dans le tableau `projects` en haut de
 `src/components/Realisations.jsx`. Chaque entrée porte son descriptif
-(`description`) et sa photo de présentation (`image`), à déposer dans
+(`description`) et sa photo de présentation (`img`), à déposer dans
 `public/realisations/`.
 
 Sans photo, la carte affiche automatiquement un aperçu filaire généré aux
@@ -147,6 +157,52 @@ Les textes sont dans le HTML, les temps de chaque scène dans l'objet `AT` du sc
 La version vidéo avec voix off est dans `public/film/` et s'affiche dans la section
 « Le film », juste après l'accueil (`src/components/Film.jsx`) : format vertical sur
 téléphone, paysage ailleurs. Texte de la voix off et détails : [`docs/film.md`](docs/film.md).
+
+## 🔎 SEO, pages et build
+
+**Le build** (`npm run build`, en Node pur, sur Vercel comme en local) :
+1. `vite build` : le site pour le navigateur, dans `dist/` ;
+2. `vite build --ssr src/entry-server.jsx --outDir .ssr` : le même site, pour Node ;
+3. `node scripts/prerender.mjs` : une page HTML complète par adresse de `src/routes.jsx`
+   (contenu, titre, description, canonical, aperçu de partage, JSON-LD), puis `404.html`,
+   `sitemap.xml` et `robots.txt`. Il contrôle chaque page (un seul titre, une description,
+   un h1, longueurs, canonical, données structurées, formulations, liens et ancres) : à la
+   moindre erreur, le build échoue et le site déjà en ligne reste en place.
+
+`dist/` contient alors `index.html`, `creation-site-vitrine.html`, `logiciel-sur-mesure.html`,
+`realisations/pmsb.html`, `mentions-legales.html`, `404.html`, le sitemap, le robots.txt,
+`assets/` et les fichiers de `public/`.
+
+**Ajouter une page**
+1. Une entrée dans `ROUTES` (`src/routes.jsx`) : titre (60 signes au plus), description
+   (70 à 155), `updated`, `sections` (ancres de l'accueil présentes sur la page, ex.
+   `['contact']`), fil d'Ariane, données structurées. Le commentaire en tête du fichier
+   décrit chaque champ.
+2. Le composant dans `src/pages/`, avec les blocs de `src/components/page/` : `PageHero`
+   porte le seul `<h1>`, `PageSection` les `<h2>`.
+3. Des liens vers la page : pied de page (`src/components/Footer.jsx`) et une page voisine.
+4. Changer `updated` seulement quand le contenu change vraiment (c'est la date du sitemap).
+
+**Règle du rendu serveur** : pendant le rendu d'un composant, ne jamais lire `window`,
+`document`, `localStorage`, `matchMedia`, `Date` ou `Math.random` ; ces lectures vont dans
+un `useEffect`. `npm run build && npm run check:hydration` reprend chaque page de `dist/`
+(bureau et téléphone) et échoue au moindre écart entre le HTML et le navigateur.
+
+**`src/data/site.js`** est le seul endroit pour le nom, le téléphone, l'email, les liens
+(TikTok, fiche Google) et les mentions légales. Une valeur `TODO` s'affiche
+« [à compléter] » ; tant qu'il en reste une dans `LEGAL`, `/mentions-legales` reste hors
+de Google, puis devient indexable d'elle-même au build suivant.
+
+**`vercel.json`** : adresses sans `.html` ni `/` final, aucune réécriture (une adresse
+inconnue reçoit `404.html` avec le code 404), `/realisations` redirige vers
+`/#realisations`, cache long pour `/assets` et `/fonts`.
+
+**Règles de contenu** (le build en vérifie une partie) : aucun avis ni note, ni balisage
+d'avis dans les données structurées ; aucune promesse de position sur Google ; aucun
+chiffre ni témoignage inventé ; les prix viennent uniquement de `src/data/formules.js` ;
+pas de pages par ville.
+
+Captures des réalisations (formats, variantes AVIF/WebP) : [`docs/realisations.md`](docs/realisations.md).
 
 ## 📬 Activer le formulaire de contact
 
@@ -172,29 +228,14 @@ Crée ton endpoint sur [formspree.io](https://formspree.io) (gratuit).
 
 ## 🌐 Déploiement
 
-### Netlify (recommandé)
-
-1. Push ton projet sur GitHub
-2. Sur [netlify.com](https://netlify.com) : "Add new site" → "Import existing project"
-3. Build command : `npm run build`
-4. Publish directory : `dist`
-
-### Vercel
-
-```bash
-npm i -g vercel
-vercel
-```
-
-### GitHub Pages (avec vite-plugin)
-
-Voir docs Vite : https://vitejs.dev/guide/static-deploy.html
+Le site est déployé par **Vercel** à chaque mise à jour de la branche `main`
+(build : `npm run build`, dossier publié : `dist`). Les adresses propres, la page 404,
+la redirection et le cache viennent de `vercel.json` : un autre hébergeur ne les
+appliquerait pas.
 
 ## ⚡ Optimisations possibles
 
 - Migrer vers TypeScript (`.tsx`)
-- Lazy-load Three.js (`React.lazy`) pour réduire le bundle initial
-- Ajouter un router (React Router) si tu veux des pages séparées
 - PWA avec `vite-plugin-pwa`
 - Animations Motion / Framer Motion à la place de GSAP
 

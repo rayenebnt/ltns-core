@@ -2,9 +2,10 @@ import Home from './pages/Home'
 import CreationSiteVitrine from './pages/CreationSiteVitrine'
 import LogicielSurMesure from './pages/LogicielSurMesure'
 import RealisationPmsb from './pages/RealisationPmsb'
+import MentionsLegales from './pages/MentionsLegales'
 import NotFound from './pages/NotFound'
 import { FORMULES, MIN_PRICE, fmtPrice } from './data/formules'
-import { SITE } from './data/site'
+import { LEGAL, SITE, legalComplete } from './data/site'
 import { services } from './components/Services'
 
 // Table des pages du site : c'est d'ici que partent le rendu (navigateur et
@@ -26,6 +27,9 @@ import { services } from './components/Services'
 //   construites par src/seo/schema.js ;
 // - schemaData : ce que ces données ont de propre à la page ('service' :
 //   { name, serviceType, description, offers? } ; 'case' : { about }).
+//
+// Ajouter une page : une entrée ici, son composant dans src/pages/, puis des liens
+// vers elle (pied de page, page voisine). Voir « SEO, pages et build » dans README.md.
 
 // Formules à prix fixe (Essentiel, Pro) et à prix sur devis (Sur-mesure)
 const AVEC_PRIX = FORMULES.filter(f => f.price)
@@ -116,6 +120,20 @@ export const ROUTES = {
       },
     },
   }),
+
+  // Hors de Google tant qu'une mention obligatoire manque dans src/data/site.js
+  // (« [à compléter] » sur la page) ; indexée d'elle-même une fois tout rempli
+  '/mentions-legales': {
+    Page: MentionsLegales,
+    title: 'Mentions légales | LTNS°',
+    description: "Mentions légales et données personnelles du site ltns.fr : éditeur, hébergeur, formulaires de devis, mesure d'audience et vos droits.",
+    updated: LEGAL.updated,
+    noindex: !legalComplete(),
+    sections: [],
+    loader: false,
+    breadcrumb: ariane('Mentions légales', '/mentions-legales'),
+    schema: 'legal',
+  },
 }
 
 // Toute adresse inconnue : rendue dans dist/404.html, jamais indexée

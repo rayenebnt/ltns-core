@@ -51,7 +51,9 @@ export default function Services() {
           <h2 className="section-title">Six services web,<br/><em>un seul artisan</em>.</h2>
           <p className="section-intro">
             Du petit site de présentation à l'application mobile : tout est créé
-            pour vous, à la main, jamais copié d'un modèle tout prêt.
+            pour vous, à la main, jamais copié d'un modèle tout prêt. Le détail&nbsp;:{' '}
+            <a href="/creation-site-vitrine">création de site vitrine</a> et{' '}
+            <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a>.
           </p>
         </div>
         <div className="section-temp">
