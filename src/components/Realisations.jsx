@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import CtaBand from './CtaBand'
+import ProjectPicture from './ProjectPicture'
 
 const projects = [
   {
@@ -12,7 +13,7 @@ const projects = [
     tag: 'SITE DE PRÉSENTATION',
     description:
       'Site de présentation pour une activité de sous-location immobilière : offre, biens et mise en relation propriétaires / locataires, avec un parcours de contact direct.',
-    image: '/realisations/rbti.jpg',
+    img: { name: 'rbti', width: 1600, height: 898, variants: true },
     bg: 'linear-gradient(135deg, #00101c 0%, #00223c 50%, #00080e 100%)',
     hi: '#0284c7',
   },
@@ -26,7 +27,7 @@ const projects = [
     tag: 'SITE VITRINE',
     description:
       "Prestations Multi Services Bâtiment — entreprise de travaux tous corps d'état en Île-de-France. Site vitrine des prestations (ravalement de façade, isolation, peinture intérieure, rénovation complète), avec galerie de chantiers et demande de devis.",
-    image: '/realisations/pmsb.jpg',
+    img: { name: 'pmsb', width: 1600, height: 916, variants: true },
     bg: 'linear-gradient(135deg, #1c1206 0%, #3a2409 50%, #0e0803 100%)',
     hi: '#b45309',
   },
@@ -41,7 +42,7 @@ const projects = [
     description:
       "Le logiciel interne de PMSB, pensé pour le quotidien d'une entreprise du bâtiment. Clients, devis et factures au même endroit, achats de matériel, échéancier des paiements et bibliothèque de prix pour chiffrer plus vite. Le tableau de bord suit la trésorerie (à encaisser, retards, retenues de garantie) et l'activité commerciale : devis en attente, taux de transformation et devis à relancer.",
     features: ['Tableau de bord', 'Clients', 'Devis', 'Factures', 'Achats de matériel', 'Échéancier', 'Bibliothèque de prix'],
-    image: '/realisations/pmsb-gestion.jpg',
+    img: { name: 'pmsb-gestion', width: 1600, height: 899, variants: true },
     bg: 'linear-gradient(135deg, #04101f 0%, #0a2340 50%, #030a14 100%)',
     hi: '#2563eb',
     wide: true,
@@ -79,9 +80,14 @@ function MockPreview({ bg, hi }) {
   )
 }
 
-function ProjectCard({ id, year, name, url, domain, chrome, type, tag, description, features, image, bg, hi, wide }) {
+// Largeur affichée de la capture, pour que le navigateur choisisse la bonne variante.
+// Carte large : pleine largeur sur une colonne, 766 px au plus sur deux colonnes.
+const SIZES = '(max-width: 900px) 100vw, 640px'
+const SIZES_WIDE = '(max-width: 860px) 100vw, 770px'
+
+function ProjectCard({ id, year, name, url, domain, chrome, type, tag, description, features, img, bg, hi, wide }) {
   const ref = useRef(null)
-  const [hasPhoto, setHasPhoto] = useState(Boolean(image))
+  const [hasPhoto, setHasPhoto] = useState(Boolean(img))
 
   const onMouseMove = (e) => {
     const card = ref.current
@@ -120,11 +126,10 @@ function ProjectCard({ id, year, name, url, domain, chrome, type, tag, descripti
 
         <div className="realisation-shot">
           {hasPhoto ? (
-            <img
-              src={image}
+            <ProjectPicture
+              {...img}
               alt={domain ? `Aperçu du site ${name} — ${domain}` : `Aperçu de ${name} — ${type}`}
-              loading="lazy"
-              decoding="async"
+              sizes={wide ? SIZES_WIDE : SIZES}
               onError={() => setHasPhoto(false)}
             />
           ) : (

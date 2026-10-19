@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { subscribeThermal, thermal } from '../hooks/useThermal'
 
 // Fond instrument : grille fine + courbe thermique animée qui scroll avec la page.
 // Léger (canvas 2D), pas de Three.js — la "vraie" identité visuelle est ailleurs.
+// Le fond et les deux grilles sont peints une fois par taille d'écran dans une
+// toile cachée ; chaque image ne redessine que la courbe et ses repères.
+// 60 images/s à la souris, 30 sur écran tactile, vitesse de la vague identique.
 export default function Background() {
   const ref = useRef(null)
 
@@ -9,77 +13,63 @@ export default function Background() {
     const canvas = ref.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
+    const grid = document.createElement('canvas')
+    const gctx = grid.getContext('2d')
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const frameMs = window.matchMedia('(pointer: fine)').matches ? 1000 / 60 : 1000 / 30
 
     let W = 0, H = 0, dpr = 1
     let raf = 0
-    let progress = 0
+    let running = false
+    let last = 0
     let t = 0
-
-    const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2)
-      W = window.innerWidth
-      H = window.innerHeight
-      canvas.width = W * dpr
-      canvas.height = H * dpr
-      canvas.style.width = W + 'px'
-      canvas.style.height = H + 'px'
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight
-      progress = max > 0 ? window.scrollY / max : 0
-    }
-
-    const readAccent = () => {
-      const rgb = getComputedStyle(document.documentElement)
-        .getPropertyValue('--accent-rgb').trim() || '8, 145, 178'
-      return rgb
-    }
 
     const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f5f3ee'
 
-    const draw = () => {
-      raf = requestAnimationFrame(draw)
-      t += 0.012
+    // Couches fixes : couleur de page, grille principale (~80px) et grille fine
+    const paintGrid = () => {
+      grid.width = W * dpr
+      grid.height = H * dpr
+      gctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
-      ctx.clearRect(0, 0, W, H)
+      gctx.fillStyle = bg
+      gctx.fillRect(0, 0, W, H)
 
-      // Fond : la couleur de page du thème
-      ctx.fillStyle = bg
-      ctx.fillRect(0, 0, W, H)
-
-      // Grille principale (carrés ~80px)
       const cell = 80
-      ctx.strokeStyle = 'rgba(22,22,26,0.045)'
-      ctx.lineWidth = 1
-      ctx.beginPath()
+      gctx.strokeStyle = 'rgba(22,22,26,0.045)'
+      gctx.lineWidth = 1
+      gctx.beginPath()
       for (let x = 0; x <= W; x += cell) {
-        ctx.moveTo(x + 0.5, 0)
-        ctx.lineTo(x + 0.5, H)
+        gctx.moveTo(x + 0.5, 0)
+        gctx.lineTo(x + 0.5, H)
       }
       for (let y = 0; y <= H; y += cell) {
-        ctx.moveTo(0, y + 0.5)
-        ctx.lineTo(W, y + 0.5)
+        gctx.moveTo(0, y + 0.5)
+        gctx.lineTo(W, y + 0.5)
       }
-      ctx.stroke()
+      gctx.stroke()
 
-      // Grille fine (subdivisions)
-      ctx.strokeStyle = 'rgba(22,22,26,0.02)'
-      ctx.beginPath()
+      gctx.strokeStyle = 'rgba(22,22,26,0.02)'
+      gctx.beginPath()
       const sub = cell / 4
       for (let x = 0; x <= W; x += sub) {
-        ctx.moveTo(x + 0.5, 0)
-        ctx.lineTo(x + 0.5, H)
+        gctx.moveTo(x + 0.5, 0)
+        gctx.lineTo(x + 0.5, H)
       }
       for (let y = 0; y <= H; y += sub) {
-        ctx.moveTo(0, y + 0.5)
-        ctx.lineTo(W, y + 0.5)
+        gctx.moveTo(0, y + 0.5)
+        gctx.lineTo(W, y + 0.5)
       }
-      ctx.stroke()
+      gctx.stroke()
+    }
+
+    const draw = () => {
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.drawImage(grid, 0, 0)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
       // Repères majeurs (lignes horizontales bleutées, plus marquées en bas du viewport)
-      const accent = readAccent()
+      const accent = thermal.rgb
       ctx.strokeStyle = `rgba(${accent}, 0.07)`
       ctx.lineWidth = 1
       ctx.beginPath()
@@ -88,7 +78,7 @@ export default function Background() {
       ctx.stroke()
 
       // Courbe thermique : sinus modulé qui se "chauffe" avec le scroll
-      const amp = 18 + progress * 50
+      const amp = 18 + thermal.t * 50
       const freq = 0.006
       const baseY = H * 0.5
       const points = 220
@@ -122,8 +112,6 @@ export default function Background() {
 
       // Marqueurs verticaux gauche/droite (style instrument)
       ctx.strokeStyle = 'rgba(22,22,26,0.12)'
-      ctx.fillStyle = 'rgba(22,22,26,0.3)'
-      ctx.font = '9px JetBrains Mono, monospace'
       const margin = 18
       const ticks = 8
       for (let i = 0; i <= ticks; i++) {
@@ -135,16 +123,62 @@ export default function Background() {
       }
     }
 
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      W = window.innerWidth
+      H = window.innerHeight
+      canvas.width = W * dpr
+      canvas.height = H * dpr
+      canvas.style.width = W + 'px'
+      canvas.style.height = H + 'px'
+      paintGrid()
+      draw()
+    }
+
+    // La vague avance selon le temps écoulé (0,012 par image à 60 images/s),
+    // pas selon le nombre d'images : même vitesse à 30 qu'à 60.
+    const loop = (now) => {
+      raf = requestAnimationFrame(loop)
+      const dt = now - last
+      if (dt < frameMs - 4) return
+      t += 0.012 * Math.min(dt, 100) / 16.667
+      last = now
+      draw()
+    }
+
+    const start = () => {
+      if (running || reduce || document.hidden) return
+      running = true
+      last = performance.now()
+      raf = requestAnimationFrame(loop)
+    }
+    const stop = () => {
+      running = false
+      cancelAnimationFrame(raf)
+    }
+    const onVisibility = () => {
+      if (document.hidden) stop()
+      else if (document.readyState === 'complete') start()
+    }
+
+    // Boucle à l'arrêt (mouvement réduit, page encore en chargement, onglet caché) :
+    // l'image fixe est redessinée quand la température change, donc au scroll
+    const unsubscribe = subscribeThermal(() => { if (!running) draw() })
+
     resize()
-    onScroll()
-    draw()
     window.addEventListener('resize', resize)
-    window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('visibilitychange', onVisibility)
+
+    // La boucle attend la fin du chargement de la page
+    if (document.readyState === 'complete') start()
+    else window.addEventListener('load', start)
 
     return () => {
-      cancelAnimationFrame(raf)
+      stop()
+      unsubscribe()
       window.removeEventListener('resize', resize)
-      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('load', start)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 

@@ -97,7 +97,25 @@ function ParcoursOverlay({ onClose }) {
     let disposed = false
     let cleanup = () => {}
 
-    import('three').then((THREE) => {
+    // Import nommé : seules les briques utilisées de three.js partent dans le
+    // fichier chargé à l'ouverture de la visite. Toute nouvelle brique THREE.x
+    // doit être ajoutée aux deux listes ci-dessous.
+    import('three').then(({
+      BoxGeometry, BufferAttribute, BufferGeometry, CatmullRomCurve3, Clock, Color,
+      DodecahedronGeometry, DoubleSide, EdgesGeometry, FogExp2, GridHelper, Group,
+      IcosahedronGeometry, Line, LineBasicMaterial, LineDashedMaterial,
+      LineSegments, Mesh, MeshBasicMaterial, OctahedronGeometry, PerspectiveCamera,
+      Points, PointsMaterial, RingGeometry, Scene, TorusGeometry,
+      TorusKnotGeometry, Vector3, WebGLRenderer
+    }) => {
+      const THREE = {
+        BoxGeometry, BufferAttribute, BufferGeometry, CatmullRomCurve3, Clock, Color,
+        DodecahedronGeometry, DoubleSide, EdgesGeometry, FogExp2, GridHelper, Group,
+        IcosahedronGeometry, Line, LineBasicMaterial, LineDashedMaterial,
+        LineSegments, Mesh, MeshBasicMaterial, OctahedronGeometry, PerspectiveCamera,
+        Points, PointsMaterial, RingGeometry, Scene, TorusGeometry,
+        TorusKnotGeometry, Vector3, WebGLRenderer
+      }
       const canvas = canvasRef.current
       if (disposed || !canvas) return
 

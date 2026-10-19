@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 
 // Pilote la "température" du site en fonction du scroll.
-// Expose --t (0→1), --temp (degrés affichés), --accent (couleur cold→hot)
-// sur :root, écoutables par tout le CSS et par les composants via une lecture
-// instantanée du DOM.
+// Expose --t (0→1) et --accent (couleur cold→hot) sur :root pour le CSS.
+// Les composants (Nav, Footer, Cursor, Background) lisent la température et la
+// couleur dans le petit magasin `thermal` ci-dessous, sans relire le DOM.
 //
 // Échelle :   0%  scroll → 12.0° (froid, cyan)
 //           100% scroll → 99.0° (chaud, rouge)
@@ -48,33 +48,71 @@ export function inkOn({ r, g, b }) {
   return L > 0.19 ? '#111114' : '#ffffff'
 }
 
+// Valeurs courantes, partagées sans passer par le DOM.
+// Une lecture de --temp par getComputedStyle forçait un recalcul de style.
+export const thermal = { t: 0, temp: '12.0', rgb: '8, 145, 178' }
+
+const listeners = new Set()
+
+// Abonnement aux changements de température ; renvoie la désinscription
+export function subscribeThermal(fn) {
+  listeners.add(fn)
+  return () => listeners.delete(fn)
+}
+
+// 200 crans sur toute la page : un écart de 1 ou 2 niveaux RVB entre deux
+// crans, invisible. Hors changement de cran, on n'écrit rien sur :root, car
+// chaque écriture fait recalculer le style de toute la page.
+const STEPS = 200
+
 export default function useThermal() {
   useEffect(() => {
     const root = document.documentElement
+    let lastQ = -1
+    let pending = false
 
     const update = () => {
+      pending = false
       const max = document.documentElement.scrollHeight - window.innerHeight
-      const t = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
-      const temp = COLD_TEMP + t * (HOT_TEMP - COLD_TEMP)
+      const raw = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+      const q = Math.round(raw * STEPS)
+      if (q === lastQ) return
+      lastQ = q
+
+      // Valeur du cran : la même position de scroll donne toujours la même couleur
+      const t = q / STEPS
       const c = tempColor(t)
       const hot = `${c.r}, ${c.g}, ${c.b}`
+      thermal.t = t
+      thermal.temp = (COLD_TEMP + t * (HOT_TEMP - COLD_TEMP)).toFixed(1)
+      thermal.rgb = hot
 
       root.style.setProperty('--t', t.toFixed(4))
-      root.style.setProperty('--temp', temp.toFixed(1))
       root.style.setProperty('--accent', `rgb(${hot})`)
       root.style.setProperty('--accent-rgb', hot)
       root.style.setProperty('--accent-soft', `rgba(${hot}, 0.12)`)
       root.style.setProperty('--accent-glow', `rgba(${hot}, 0.3)`)
       root.style.setProperty('--on-accent', inkOn(c))
       root.style.setProperty('--accent-line', `rgba(${hot}, 0.35)`)
+
+      listeners.forEach(fn => fn(thermal))
+    }
+
+    // Une seule mise à jour par image, quel que soit le nombre d'événements
+    let raf = 0
+    const schedule = () => {
+      if (pending) return
+      pending = true
+      raf = requestAnimationFrame(update)
     }
 
     update()
-    window.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
     return () => {
-      window.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
+      cancelAnimationFrame(raf)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
     }
   }, [])
 }

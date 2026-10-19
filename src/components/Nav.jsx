@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import ParcoursTrigger from './ParcoursTrigger'
 import { useIsHome, useSectionHref } from '../lib/route'
+import { subscribeThermal, thermal } from '../hooks/useThermal'
 
 function fmtTime(d) {
   const hh = String(d.getHours()).padStart(2, '0')
@@ -17,18 +18,22 @@ export default function Nav() {
   const isHome = useIsHome()
 
   // Heure lue dans le navigateur seulement : le HTML pré-rendu affiche --:--:--
+  // Une mise à jour par seconde, calée sur le changement de seconde.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
-    setTime(fmtTime(new Date()))
-    onScroll()
-    const id = setInterval(() => {
+    let id
+    const tick = () => {
       setTime(fmtTime(new Date()))
-      const t = getComputedStyle(document.documentElement).getPropertyValue('--temp').trim()
-      if (t) setTemp(t)
-    }, 250)
+      id = setTimeout(tick, 1000 - (Date.now() % 1000) + 5)
+    }
+    tick()
+    onScroll()
+    setTemp(thermal.temp)
+    const unsubscribe = subscribeThermal(s => setTemp(s.temp))
     window.addEventListener('scroll', onScroll)
     return () => {
-      clearInterval(id)
+      clearTimeout(id)
+      unsubscribe()
       window.removeEventListener('scroll', onScroll)
     }
   }, [])

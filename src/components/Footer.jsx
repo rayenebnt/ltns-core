@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSectionHref } from '../lib/route'
+import { subscribeThermal, thermal } from '../hooks/useThermal'
 
 function fmtUtc(d) {
   const hh = String(d.getHours()).padStart(2, '0')
@@ -17,12 +18,13 @@ export default function Footer() {
   useEffect(() => {
     setTime(fmtUtc(new Date()))
     setYear(new Date().getFullYear())
-    const id = setInterval(() => {
-      setTime(fmtUtc(new Date()))
-      const t = getComputedStyle(document.documentElement).getPropertyValue('--temp').trim()
-      if (t) setTemp(t)
-    }, 500)
-    return () => clearInterval(id)
+    setTemp(thermal.temp)
+    const unsubscribe = subscribeThermal(s => setTemp(s.temp))
+    const id = setInterval(() => setTime(fmtUtc(new Date())), 1000)
+    return () => {
+      clearInterval(id)
+      unsubscribe()
+    }
   }, [])
 
   return (
