@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import CtaBand from './CtaBand'
 import ProjectPicture from './ProjectPicture'
 import { SITE } from '../data/site'
+import { nbsp } from '../lib/typo'
 
 // Aussi repris par les pages intérieures (ex. la carte PMSB).
 // alt : description de la capture ; caseStudy : page de l'étude de cas sur le site,
@@ -187,7 +188,7 @@ export function ProjectCard({ id, year, name, url, href, domain, chrome, type, t
         </div>
         <h3>{name}</h3>
         <p className="realisation-type">{type}</p>
-        <p className="realisation-desc">{description}</p>
+        <p className="realisation-desc">{nbsp(description)}</p>
         {features && (
           <ul className="realisation-features">
             {features.map(f => <li key={f} style={{ borderColor: `${hi}33` }}>{f}</li>)}

@@ -49,11 +49,11 @@ export default function MentionsLegales() {
             le nom {SITE.name}.
           </p>
           <ul>
-            <li><b>SIRET</b> : <V v={LEGAL.siret} /></li>
-            <li><b>Adresse</b> : <V v={LEGAL.address} /></li>
-            <li><b>Téléphone</b> : <a href={`tel:${SITE.phoneE164}`}>{SITE.phoneDisplay}</a></li>
-            <li><b>Email</b> : {MAIL}</li>
-            <li><b>TVA</b> : <V v={LEGAL.vat} /></li>
+            <li><b>SIRET</b>&nbsp;: <V v={LEGAL.siret} /></li>
+            <li><b>Adresse</b>&nbsp;: <V v={LEGAL.address} /></li>
+            <li><b>Téléphone</b>&nbsp;: <a href={`tel:${SITE.phoneE164}`}>{SITE.phoneDisplay}</a></li>
+            <li><b>Email</b>&nbsp;: {MAIL}</li>
+            <li><b>TVA</b>&nbsp;: <V v={LEGAL.vat} /></li>
           </ul>
         </div>
       </PageSection>
@@ -80,8 +80,8 @@ export default function MentionsLegales() {
 
           <h3>Données collectées</h3>
           <ul>
-            <li><b>Formulaire de devis</b> : projet, formule, budget, fonctions souhaitées, message, nom, email.</li>
-            <li><b>Demande de formule</b> : nom, email, téléphone (facultatif), activité (facultative).</li>
+            <li><b>Formulaire de devis</b>&nbsp;: projet, formule, budget, fonctions souhaitées, message, nom, email.</li>
+            <li><b>Demande de formule</b>&nbsp;: nom, email, téléphone (facultatif), activité (facultative).</li>
           </ul>
           <p>Les champs obligatoires sont le nom et l'email.</p>
 
@@ -89,15 +89,15 @@ export default function MentionsLegales() {
           <p>
             Les informations envoyées par le <a href={href('contact')}>formulaire de devis</a> ou
             par une demande de formule servent à répondre à votre demande et à établir votre devis.
-            Base légale : mesures précontractuelles prises à votre demande (art. 6.1.b RGPD).
+            Base légale&nbsp;: mesures précontractuelles prises à votre demande (art. 6.1.b RGPD).
           </p>
 
           <h3>Destinataires et prestataires</h3>
           <ul>
-            <li><b>Formspree</b> : transmission des formulaires ;</li>
-            <li><b>Google</b> : messagerie Gmail ;</li>
-            <li><b>Vercel</b> : hébergement{SITE.analytics.vercel && " et, si elle est activée, mesure d'audience"} ;</li>
-            <li><b>Umami</b> : mesure d'audience ;</li>
+            <li><b>Formspree</b>&nbsp;: transmission des formulaires&nbsp;;</li>
+            <li><b>Google</b>&nbsp;: messagerie Gmail&nbsp;;</li>
+            <li><b>Vercel</b>&nbsp;: hébergement{SITE.analytics.vercel && " et mesure d'audience"}&nbsp;;</li>
+            <li><b>Umami</b>&nbsp;: mesure d'audience&nbsp;;</li>
             <li><b>WhatsApp (Meta)</b>, si vous me contactez par WhatsApp.</li>
           </ul>
 
@@ -122,11 +122,11 @@ export default function MentionsLegales() {
       <PageSection id="mesure-audience" num={num()} label="AUDIENCE" title="Mesure d'audience">
         <div className="prose">
           <p>
-            Ce site mesure sa fréquentation avec Umami{SITE.analytics.vercel && ' et Vercel Web Analytics'} :
-            des statistiques de fréquentation agrégées, sans cookie. Base légale : intérêt légitime
+            Ce site mesure sa fréquentation avec Umami{SITE.analytics.vercel && ' et Vercel Web Analytics'}&nbsp;:
+            des statistiques de fréquentation agrégées, sans cookie. Base légale&nbsp;: intérêt légitime
             (art. 6.1.f RGPD).
           </p>
-          <p>Vous pouvez désactiver cette mesure sur cet appareil :</p>
+          <p>Vous pouvez désactiver cette mesure sur cet appareil&nbsp;:</p>
           <p className="optout"><OptOutButton /></p>
         </div>
       </PageSection>
@@ -134,7 +134,7 @@ export default function MentionsLegales() {
       <PageSection id="mediation" num={num()} label="MÉDIATION" title="Médiation de la consommation">
         <div className="prose">
           <p>
-            En cas de litige, vous pouvez faire appel au médiateur de la consommation :{' '}
+            En cas de litige, vous pouvez faire appel au médiateur de la consommation&nbsp;:{' '}
             <V v={LEGAL.mediator.name} />, <Url v={LEGAL.mediator.url} />.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function MentionsLegales() {
           <p>Polices Space Grotesk, JetBrains Mono et Inter Tight, sous licence SIL Open Font License.</p>
         </div>
         <p className="page-updated">
-          Dernière mise à jour : <time dateTime={LEGAL.updated}>{dateFr(LEGAL.updated)}</time>
+          Dernière mise à jour&nbsp;: <time dateTime={LEGAL.updated}>{dateFr(LEGAL.updated)}</time>
         </p>
       </PageSection>
     </>

@@ -22,9 +22,9 @@ export default function NotFound() {
     {
       href: href('tarifs'),
       title: 'Tarifs',
-      text: `Les formules ${FORMULES.map(f => f.name).join(', ').replace(/, ([^,]*)$/, ' et $1')} : prix fixé avant de commencer.`,
+      text: `Les formules ${FORMULES.map(f => f.name).join(', ').replace(/, ([^,]*)$/, ' et $1')}\u00a0: prix fixé avant de commencer.`,
     },
-    { href: href('contact'), title: 'Demander un devis gratuit', text: 'Décrivez votre projet en 1 minute : devis détaillé sous 48h, sans engagement.' },
+    { href: href('contact'), title: 'Demander un devis gratuit', text: 'Décrivez votre projet en 1 minute\u00a0: devis détaillé sous 48h, sans engagement.' },
     { href: `tel:${SITE.phoneE164}`, title: `Appeler · ${SITE.phoneDisplay}`, text: 'Pour parler directement de votre projet.' },
   ]
 

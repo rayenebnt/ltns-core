@@ -1,4 +1,4 @@
-import { FORMULES, priceLabel } from './formules'
+import { FORMULES, priceText, delaiText, enDelai } from './formules'
 import { SITE } from './site'
 
 // Questions fréquentes de l'accueil, sous forme de données.
@@ -9,10 +9,6 @@ import { SITE } from './site'
 // Prix et délais viennent de src/data/formules.js, jamais écrits en dur.
 
 const [ESSENTIEL, PRO] = FORMULES.filter(f => f.price)
-// « ≈ 2 semaines » → « en 2 semaines environ » ; « 2 à 4 semaines » → « en 2 à 4 semaines »
-const enDelai = f => (f.delai.startsWith('≈') ? `en ${f.delai.slice(1).trim()} environ` : `en ${f.delai}`)
-// « à partir de 490 € TTC », le prix et « € » jamais séparés en fin de ligne
-const prix = f => priceLabel(f).replace(' €', '\u00a0€')
 
 export const FAQ = [
   {
@@ -21,16 +17,16 @@ export const FAQ = [
   },
   {
     q: 'Combien coûte un site internet ?',
-    a: [`Un site d'une seule page (formule ${ESSENTIEL.name}) : ${prix(ESSENTIEL)}, ${enDelai(ESSENTIEL)}. Un site jusqu'à 6 pages (formule ${PRO.name}) : ${prix(PRO)}, ${enDelai(PRO)}. Boutique en ligne, espace client, logiciel ou application : sur devis gratuit. Dans tous les cas, le prix est fixé avant de commencer.`],
+    a: [`Un site d'une seule page (formule ${ESSENTIEL.name}) : ${priceText(ESSENTIEL)}, ${enDelai(ESSENTIEL)}. Un site jusqu'à 6 pages (formule ${PRO.name}) : ${priceText(PRO)}, ${enDelai(PRO)}. Boutique en ligne, espace client, logiciel ou application : sur devis gratuit. Dans tous les cas, le prix est fixé avant de commencer.`],
     link: { href: '/creation-site-vitrine', label: 'Tout savoir sur la création de site vitrine' },
   },
   {
     q: 'Combien de temps faut-il pour créer mon projet ?',
-    a: ["Un site de présentation : environ 2 semaines. Un site avec boutique ou espace client : 4 à 8 semaines selon ce qu'il doit faire. Pour un logiciel ou une application mobile, la date de livraison est indiquée dans le devis, une fois qu'on a listé ensemble ce que vous voulez."],
+    a: [`Un site d'une seule page : ${delaiText(ESSENTIEL)} ; un site jusqu'à 6 pages : ${delaiText(PRO)}. Un site avec boutique ou espace client : 4 à 8 semaines selon ce qu'il doit faire. Pour un logiciel ou une application mobile, la date de livraison est indiquée dans le devis, une fois qu'on a listé ensemble ce que vous voulez.`],
   },
   {
     q: "Travaillez-vous en dehors de l'Île-de-France ?",
-    a: ['Oui, partout en France : tout peut se faire à distance (téléphone, visio, email). En Île-de-France, je peux aussi venir vous rencontrer sur place.'],
+    a: ['Oui, partout en France : tout peut se faire à distance (téléphone, WhatsApp, email). En Île-de-France, je peux aussi venir vous rencontrer sur place.'],
   },
   {
     q: 'Comment se passe le devis ?',

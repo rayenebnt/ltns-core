@@ -179,7 +179,9 @@ téléphone, paysage ailleurs. Texte de la voix off et détails : [`docs/film.md
    `['contact']`), fil d'Ariane, données structurées. Le commentaire en tête du fichier
    décrit chaque champ.
 2. Le composant dans `src/pages/`, avec les blocs de `src/components/page/` : `PageHero`
-   porte le seul `<h1>`, `PageSection` les `<h2>`.
+   porte le seul `<h1>`, `PageSection` les `<h2>`. Les textes passés à ces blocs (et à
+   `FaqList`, `StepsList`, `CtaBand`) reçoivent les espaces insécables avant `: ; ? !`
+   (`src/lib/typo.js`) ; dans le texte écrit en JSX, mettre `&nbsp;` soi-même.
 3. Des liens vers la page : pied de page (`src/components/Footer.jsx`) et une page voisine.
 4. Changer `updated` seulement quand le contenu change vraiment (c'est la date du sitemap).
 
@@ -193,9 +195,10 @@ un `useEffect`. `npm run build && npm run check:hydration` reprend chaque page d
 « [à compléter] » ; tant qu'il en reste une dans `LEGAL`, `/mentions-legales` reste hors
 de Google, puis devient indexable d'elle-même au build suivant.
 
-**`vercel.json`** : adresses sans `.html` ni `/` final, aucune réécriture (une adresse
-inconnue reçoit `404.html` avec le code 404), `/realisations` redirige vers
-`/#realisations`, cache long pour `/assets` et `/fonts`.
+**`vercel.json`** : commande de build (`npm run build`) et dossier publié (`dist`),
+adresses sans `.html` ni `/` final, aucune réécriture (une adresse inconnue reçoit
+`404.html` avec le code 404), `/realisations` redirige vers `/#realisations`, cache
+long pour `/assets` et `/fonts`.
 
 **Règles de contenu** (le build en vérifie une partie) : aucun avis ni note, ni balisage
 d'avis dans les données structurées ; aucune promesse de position sur Google ; aucun
@@ -229,9 +232,11 @@ Crée ton endpoint sur [formspree.io](https://formspree.io) (gratuit).
 ## 🌐 Déploiement
 
 Le site est déployé par **Vercel** à chaque mise à jour de la branche `main`
-(build : `npm run build`, dossier publié : `dist`). Les adresses propres, la page 404,
-la redirection et le cache viennent de `vercel.json` : un autre hébergeur ne les
-appliquerait pas.
+(build : `npm run build`, dossier publié : `dist`). Ces deux réglages sont écrits dans
+`vercel.json` et passent avant ceux du tableau de bord Vercel : un simple `vite build`
+publierait un site sans titres, sans pages intérieures, sans 404 ni sitemap, et sans
+aucun des contrôles du build. Les adresses propres, la page 404, la redirection et le
+cache viennent aussi de `vercel.json` : un autre hébergeur ne les appliquerait pas.
 
 ## ⚡ Optimisations possibles
 

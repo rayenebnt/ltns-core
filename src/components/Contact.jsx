@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { gsap } from 'gsap'
 import { inkOn, tempColor } from '../hooks/useThermal'
 import { SITE } from '../data/site'
+import { nbsp } from '../lib/typo'
 
 export const EMAIL = SITE.email
 
@@ -101,15 +102,20 @@ function Scramble({ text, className }) {
       frame++
       const reveal = Math.floor((frame / total) * text.length)
       setShown(text.split('').map((c, i) =>
-        i < reveal || c === ' ' ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]).join(''))
+        i < reveal || /\s/.test(c) ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]).join(''))
       if (frame < total) raf = requestAnimationFrame(tick)
       else setShown(text)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [text])
-  // Le texte lu (lecteurs d'écran, moteurs) reste le vrai texte ; l'animation est décorative
-  return <span className={className}><span className="sr-only">{text}</span><span aria-hidden="true">{shown}</span></span>
+  // Le texte lu (lecteurs d'écran, moteurs) reste le vrai texte ; l'animation est décorative.
+  // Hors animation (et dans le HTML pré-rendu), le texte n'est écrit qu'une fois.
+  return (
+    <span className={className}>
+      {shown === text ? text : <><span className="sr-only">{text}</span><span aria-hidden="true">{shown}</span></>}
+    </span>
+  )
 }
 
 /* Étincelles : petits carrés aux couleurs thermiques, dessinés sur un canvas */
@@ -519,7 +525,7 @@ export default function Contact({ initialProjet = '', num = '02' }) {
           </span>
           <h2 className="section-title">Devis gratuit <em>en 1 minute</em>.</h2>
           <p className="section-intro">
-            4 questions, et je vous réponds sous 48h avec une proposition claire :
+            4 questions, et je vous réponds sous 48h avec une proposition claire&nbsp;:
             ce qui est prévu, le délai et le prix. Gratuit et sans engagement.
           </p>
         </div>
@@ -541,9 +547,9 @@ export default function Contact({ initialProjet = '', num = '02' }) {
             </div>
             <p>
               Votre devis en 4 étapes, moins d'une minute. Vous recevez une réponse
-              en moins de 48 heures, écrite à la main. Je travaille avec des clients
-              partout en France. En Île-de-France, je peux aussi venir vous rencontrer
-              sur place. Vous préférez parler directement ?
+              en moins de 48 heures, écrite à la main. Où que vous soyez en France, on
+              peut travailler ensemble à distance. En Île-de-France, je peux aussi venir
+              vous rencontrer sur place. Vous préférez parler directement&nbsp;?
             </p>
             <div className="contact-direct">
               <a href={`mailto:${EMAIL}`}>
@@ -575,11 +581,11 @@ export default function Contact({ initialProjet = '', num = '02' }) {
             ) : (
               <div key={step} ref={panelRef} className="devis-panel">
                 <span className="devis-count" data-anim>ÉTAPE {step + 1} / {DEVIS_STEPS.length}{data.formule && ` · FORMULE ${data.formule.toUpperCase()}`}</span>
-                <h3 className="devis-title" data-anim><Scramble text={current.title} /></h3>
+                <h3 className="devis-title" data-anim><Scramble text={nbsp(current.title)} /></h3>
 
                 {step === 0 && (
                   <fieldset className="devis-options">
-                    <legend className="sr-only">{current.title}</legend>
+                    <legend className="sr-only">{nbsp(current.title)}</legend>
                     {PROJETS.map(p => (
                       <label
                         key={p.value}
@@ -609,7 +615,7 @@ export default function Contact({ initialProjet = '', num = '02' }) {
 
                 {step === 1 && (
                   <fieldset className="devis-options">
-                    <legend className="sr-only">{current.title}</legend>
+                    <legend className="sr-only">{nbsp(current.title)}</legend>
                     {BUDGETS.map(b => (
                       <label
                         key={b.value}

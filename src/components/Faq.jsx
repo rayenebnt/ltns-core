@@ -1,16 +1,18 @@
 import { useState, useRef } from 'react'
 import CtaBand from './CtaBand'
 import { FAQ } from '../data/faq'
+import { nbsp } from '../lib/typo'
 
-// Une réponse : textes simples et listes à puces (voir src/data/faq.js).
+// Une réponse : textes simples et listes à puces (voir src/data/faq.js), en
+// typographie française (src/lib/typo.js).
 // Réponse repliée : son lien ne reçoit pas le focus au clavier (il est caché).
 function FaqAnswer({ a, link, open }) {
   const parts = Array.isArray(a) ? a : [a]
   return (
     <>
-      {parts.map((part, i) => typeof part === 'string' ? part : (
+      {parts.map((part, i) => typeof part === 'string' ? nbsp(part) : (
         <ul key={i} className="faq-maint">
-          {part.list.map(({ b, t }) => <li key={b}><b>{b}</b>{` : ${t}`}</li>)}
+          {part.list.map(({ b, t }) => <li key={b}><b>{b}</b>{nbsp(` : ${t}`)}</li>)}
         </ul>
       ))}
       {link && <>{' '}<a className="faq-link" href={link.href} tabIndex={open ? undefined : -1}>{link.label}</a></>}
@@ -30,7 +32,7 @@ export function FaqItem({ q, a, link, idx }) {
         onClick={() => setOpen(!open)}
       >
         <span className="idx">Q.{String(idx + 1).padStart(2, '0')}</span>
-        <span>{q}</span>
+        <span>{nbsp(q)}</span>
         <span className="faq-icon" aria-hidden="true"></span>
       </button>
       <div

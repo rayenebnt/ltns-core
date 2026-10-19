@@ -34,7 +34,7 @@ export const STEPS = [
     title: 'Relecture',
     desc: "Vous testez tout à votre rythme et vous me listez ce qui doit changer. Je corrige. On boucle les derniers détails avant la mise en ligne.",
     you: 'Tester et lister',
-    out: 'Aller-retours de corrections inclus',
+    out: 'Allers-retours de corrections inclus',
   },
   {
     num: '06', temp: 99, color: '#dc2626', shape: 'dodeca',

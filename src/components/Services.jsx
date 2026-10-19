@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { prefillDevis } from './Contact'
 import { useSectionHref } from '../lib/route'
+import { nbsp } from '../lib/typo'
 
 // Aussi repris par les pages intérieures (textes de leurs données structurées)
 export const services = [
@@ -31,7 +32,7 @@ function ServiceCard({ id, projet, temp, title, desc, tag }) {
         <span className="service-temp">{temp}</span>
       </div>
       <h3>{title}</h3>
-      <p>{desc}</p>
+      <p>{nbsp(desc)}</p>
       <div className="service-meta">
         <span className="tag">{tag}</span>
         <span className="service-cta">Demander un devis <span className="arrow">→</span></span>

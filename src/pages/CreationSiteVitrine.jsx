@@ -6,7 +6,7 @@ import { TarifsBlock } from '../components/Tarifs'
 import Contact from '../components/Contact'
 import CtaBand from '../components/CtaBand'
 import { ProjectCard, projects } from '../components/Realisations'
-import { FORMULES, fmtPrice, priceLabel } from '../data/formules'
+import { FORMULES, fmtPrice, priceText, delaiText, enDelai } from '../data/formules'
 import { STEPS } from '../data/steps'
 import { SITE } from '../data/site'
 import { useSectionHref } from '../lib/route'
@@ -21,17 +21,15 @@ const SUR_MESURE = FORMULES.find(f => !f.price)
 const PMSB = projects.find(p => p.id === 'P02')
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
-// « ≈ 2 semaines » → « environ 2 semaines », pour l'écrire dans une phrase
-const delai = f => f.delai.replace('≈', 'environ')
 
 const FAQ_VITRINE = [
   {
     q: 'En combien de temps mon site vitrine est-il en ligne ?',
-    a: `${cap(delai(ESSENTIEL))} pour un site d'une page (${ESSENTIEL.name}), ${delai(PRO)} jusqu'à 6 pages (${PRO.name}). Le délai exact est écrit dans le devis.`,
+    a: `${cap(delaiText(ESSENTIEL))} pour un site d'une page (${ESSENTIEL.name}), ${delaiText(PRO)} jusqu'à 6 pages (${PRO.name}). Le délai exact est écrit dans le devis.`,
   },
   {
     q: 'Pouvez-vous venir me voir ?',
-    a: "Oui, partout en Île-de-France : je me déplace chez vous pour parler de votre projet. Ailleurs en France, tout se fait à distance, par téléphone, en visio ou par email.",
+    a: "Oui, partout en Île-de-France : je me déplace chez vous pour parler de votre projet. Ailleurs en France, tout se fait à distance : par téléphone, sur WhatsApp ou par email.",
   },
   {
     q: 'Pourrai-je modifier mes textes moi-même ?',
@@ -39,7 +37,8 @@ const FAQ_VITRINE = [
   },
   {
     q: "Un site internet pas cher, c'est possible ?",
-    a: `Oui : le site d'une page commence à ${fmtPrice(ESSENTIEL.price)} € TTC, avec un design créé pour vous, lisible sur téléphone, un formulaire de contact et la 1re année en ligne offerte. Le prix est fixé avant de commencer.`,
+    a: `Oui : le site d'une page commence à ${fmtPrice(ESSENTIEL.price)} € TTC, et son prix est fixé avant de commencer, sans surprise en cours de route.`,
+    link: { href: '#prix', label: 'Voir les deux formules et leur contenu' },
   },
 ]
 
@@ -65,7 +64,7 @@ export default function CreationSiteVitrine() {
       <PageSection id="prix" num={num()} label="PRIX" title="Combien coûte un site vitrine ?" intro="Deux formules, un prix fixé avant de commencer.">
         <TarifsBlock
           formules={[ESSENTIEL, PRO]}
-          help={<>Boutique en ligne, espace client ou logiciel ? C'est sur devis gratuit : <a href="#sur-mesure">formule {SUR_MESURE.name}</a> · <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a>.</>}
+          help={<>Boutique en ligne, espace client ou logiciel&nbsp;? C'est sur devis gratuit&nbsp;: <a href="#sur-mesure">formule {SUR_MESURE.name}</a> · <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a>.</>}
         />
       </PageSection>
 
@@ -74,31 +73,31 @@ export default function CreationSiteVitrine() {
           <h3>Formule {ESSENTIEL.name}</h3>
           <p>
             Un site d'une seule page, pour être présent sur internet, simplement.
-            Idéal pour : {ESSENTIEL.pour.toLowerCase()}. <b>{cap(priceLabel(ESSENTIEL))}</b>, en {delai(ESSENTIEL)}.
+            Idéal pour&nbsp;: {ESSENTIEL.pour.toLowerCase()}. <b>{cap(priceText(ESSENTIEL))}</b>, {enDelai(ESSENTIEL)}.
           </p>
           <h3>Formule {PRO.name}</h3>
           <p>
-            Jusqu'à 6 pages : un site complet qui travaille pour vous, avec un espace pour
+            Jusqu'à 6 pages&nbsp;: un site complet qui travaille pour vous, avec un espace pour
             modifier vos textes, des animations créées pour vous, un référencement Google
             plus poussé et le suivi des visites.
-            Idéal pour : {PRO.pour.toLowerCase()}. <b>{cap(priceLabel(PRO))}</b>, en {delai(PRO)}.
+            Idéal pour&nbsp;: {PRO.pour.toLowerCase()}. <b>{cap(priceText(PRO))}</b>, {enDelai(PRO)}.
           </p>
-          <p>Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</p>
+          <p>Vous hésitez&nbsp;? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</p>
         </div>
       </PageSection>
 
       <PageSection id="inclus" num={num()} label="CONTENU" title="Ce que contient votre site">
         <div className="prose">
-          <p>Votre site vitrine comprend :</p>
+          <p>Votre site vitrine comprend&nbsp;:</p>
           <ul>
-            <li>un design créé pour vous, jamais copié d'un modèle tout prêt ;</li>
-            <li>un affichage lisible sur ordinateur comme sur téléphone ;</li>
-            <li>un formulaire de contact ;</li>
-            <li>les bases pour être trouvé sur Google, et un référencement plus poussé avec la formule {PRO.name} ;</li>
+            <li>un design créé pour vous, jamais copié d'un modèle tout prêt&nbsp;;</li>
+            <li>un affichage lisible sur ordinateur comme sur téléphone&nbsp;;</li>
+            <li>un formulaire de contact&nbsp;;</li>
+            <li>les bases pour être trouvé sur Google, et un référencement plus poussé avec la formule {PRO.name}&nbsp;;</li>
             <li>la 1<sup className="ord">re</sup> année en ligne offerte.</li>
           </ul>
           <p>
-            Selon votre activité, on peut ajouter, chiffré dans le devis : prise de rendez-vous,
+            Selon votre activité, on peut ajouter, chiffré dans le devis&nbsp;: prise de rendez-vous,
             galerie photos, paiement en ligne, espace client, plusieurs langues.
           </p>
         </div>
@@ -107,11 +106,11 @@ export default function CreationSiteVitrine() {
       <PageSection id="sur-mesure" num={num()} label={SUR_MESURE.name.toUpperCase()} title="Besoin d'une boutique ou d'un espace client ?">
         <div className="prose">
           <p>
-            C'est la formule {SUR_MESURE.name} : boutique en ligne ou espace client, des fonctions
-            rien que pour vous, connexion avec vos autres outils. Prix sur devis gratuit ; comptez
+            C'est la formule {SUR_MESURE.name}&nbsp;: boutique en ligne ou espace client, des fonctions
+            rien que pour vous, connexion avec vos autres outils. Prix sur devis gratuit&nbsp;; comptez
             4 à 8 semaines selon ce que le site doit faire.
           </p>
-          <p>Vous cherchez plutôt un outil de gestion ? <a href="/logiciel-sur-mesure">{'Voir le logiciel de gestion sur mesure\u00a0→'}</a></p>
+          <p>Vous cherchez plutôt un outil de gestion&nbsp;? <a href="/logiciel-sur-mesure">{'Voir le logiciel de gestion sur mesure\u00a0→'}</a></p>
         </div>
       </PageSection>
 
@@ -127,13 +126,13 @@ export default function CreationSiteVitrine() {
 
       <PageSection id="a-distance" num={num()} label="À DISTANCE" title="Partout en France, à distance">
         <div className="prose">
-          <p>Où que vous soyez en France, votre projet peut se faire entièrement à distance :</p>
+          <p>Où que vous soyez en France, votre projet peut se faire entièrement à distance&nbsp;:</p>
           <ul>
-            <li><b>Les échanges</b> : par téléphone, en visio, par email ou sur WhatsApp.</li>
-            <li><b>Le devis</b> : détaillé, envoyé par email sous 48h.</li>
-            <li><b>La maquette</b> : vous la découvrez en ligne, on l'ajuste ensemble, puis vous la validez.</li>
-            <li><b>La construction</b> : vous suivez l'avancement sur un lien privé.</li>
-            <li><b>La mise en ligne</b> : je vous remets tous les accès et je vous montre comment gérer votre site.</li>
+            <li><b>Les échanges</b>&nbsp;: par téléphone, par email ou sur WhatsApp.</li>
+            <li><b>Le devis</b>&nbsp;: détaillé, envoyé par email sous 48h.</li>
+            <li><b>La maquette</b>&nbsp;: vous la découvrez en ligne, on l'ajuste ensemble, puis vous la validez.</li>
+            <li><b>La construction</b>&nbsp;: vous suivez l'avancement sur un lien privé.</li>
+            <li><b>La mise en ligne</b>&nbsp;: je vous remets tous les accès et je vous montre comment gérer votre site.</li>
           </ul>
           <p>En Île-de-France, je peux aussi venir vous rencontrer sur place.</p>
         </div>
@@ -142,7 +141,7 @@ export default function CreationSiteVitrine() {
       <PageSection id="propriete" num={num()} label="PROPRIÉTÉ" title="Votre site vous appartient">
         <div className="prose">
           <p>
-            Le site, les textes, les images, les mots de passe, l'adresse internet : tout vous
+            Le site, les textes, les images, les mots de passe, l'adresse internet&nbsp;: tout vous
             revient le jour de la livraison. Si un jour vous voulez travailler avec quelqu'un
             d'autre, vous êtes libre de le faire.
           </p>
@@ -165,8 +164,8 @@ export default function CreationSiteVitrine() {
             <ProjectCard {...PMSB} href={PMSB.caseStudy} />
             <div className="prose">
               <p>
-                Le site vitrine d'une entreprise du bâtiment en Île-de-France : prestations,
-                galerie de chantiers et demande de devis.
+                Le même client a ensuite fait créer son logiciel de gestion sur mesure. Les deux
+                projets sont racontés sur la page de la réalisation.
               </p>
               <p><a href={PMSB.caseStudy}>{'Voir la réalisation PMSB\u00a0→'}</a></p>
             </div>
@@ -178,16 +177,16 @@ export default function CreationSiteVitrine() {
         <div className="prose">
           <p>
             Si vous le souhaitez, je continue de m'occuper de votre site avec un suivi de
-            maintenance, proposé en option dans votre devis avec un prix fixé à l'avance :
+            maintenance, proposé en option dans votre devis avec un prix fixé à l'avance&nbsp;:
           </p>
           <ul>
-            <li><b>Mises à jour et sécurité</b> : votre site reste à jour et protégé.</li>
-            <li><b>Sauvegardes régulières</b> : rien n'est perdu en cas de problème.</li>
-            <li><b>Surveillance</b> : je vérifie que le site reste en ligne et rapide.</li>
-            <li><b>Petites modifications</b> : un texte, une photo, un horaire à changer ? Un message suffit.</li>
-            <li><b>Un interlocuteur joignable</b> : en cas de souci, vous savez qui appeler.</li>
+            <li><b>Mises à jour et sécurité</b>&nbsp;: votre site reste à jour et protégé.</li>
+            <li><b>Sauvegardes régulières</b>&nbsp;: rien n'est perdu en cas de problème.</li>
+            <li><b>Surveillance</b>&nbsp;: je vérifie que le site reste en ligne et rapide.</li>
+            <li><b>Petites modifications</b>&nbsp;: un texte, une photo, un horaire à changer&nbsp;? Un message suffit.</li>
+            <li><b>Un interlocuteur joignable</b>&nbsp;: en cas de souci, vous savez qui appeler.</li>
           </ul>
-          <p>D'autres questions ? <a href={href('faq')}>Voir toutes les questions fréquentes</a>.</p>
+          <p>D'autres questions&nbsp;? <a href={href('faq')}>Voir toutes les questions fréquentes</a>.</p>
         </div>
       </PageSection>
 

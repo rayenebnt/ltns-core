@@ -59,6 +59,12 @@ export const INCLUS = [
 
 export const fmtPrice = v => Math.round(v).toLocaleString('fr-FR')
 export const priceLabel = f => `à partir de ${fmtPrice(f.price)} € TTC`
+// Dans une phrase : « à partir de 490 € TTC », le prix et « € » jamais séparés
+export const priceText = f => priceLabel(f).replace(' €', '\u00a0€')
+// Délai dans une phrase : « ≈ 2 semaines » → « environ 2 semaines » (delaiText)
+// ou « en 2 semaines environ » (enDelai) ; « 2 à 4 semaines » reste tel quel
+export const delaiText = f => f.delai.replace('≈', 'environ')
+export const enDelai = f => (f.delai.startsWith('≈') ? `en ${f.delai.slice(1).trim()} environ` : `en ${f.delai}`)
 
 // Le prix d'appel (« dès … € ») : la plus petite formule à prix fixe
 export const MIN_PRICE = Math.min(...FORMULES.filter(f => f.price).map(f => f.price))

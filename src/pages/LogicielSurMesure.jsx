@@ -17,7 +17,6 @@ const GESTION = projects.find(p => p.id === 'P03')
 // Textes des cartes de services de l'accueil : logiciels (S04) et applications (S05)
 const LOGICIEL = services.find(s => s.id === 'S04').desc
 const APPLICATION = services.find(s => s.id === 'S05').desc
-const lowerFirst = s => s.charAt(0).toLowerCase() + s.slice(1)
 
 const FONCTIONS = [
   'Clients', 'Devis et factures', 'Stocks', 'Plannings', 'Achats de matériel',
@@ -51,7 +50,7 @@ const FAQ_LOGICIEL = [
   },
   {
     q: 'Faites-vous aussi des applications mobiles ?',
-    a: `Oui : ${lowerFirst(APPLICATION)} Comme pour un logiciel, le prix est fixé dans un devis gratuit.`,
+    a: 'Oui. Comme pour un logiciel, on liste ensemble ce dont vous avez besoin, puis le prix et le délai sont fixés dans un devis gratuit.',
   },
 ]
 
@@ -76,7 +75,7 @@ export default function LogicielSurMesure() {
 
       <PageSection id="fonctions" num={num()} label="FONCTIONS" title="Ce que peut gérer votre logiciel">
         <div className="prose">
-          <p>Votre logiciel réunit au même endroit ce dont votre activité a besoin, par exemple :</p>
+          <p>Votre logiciel réunit au même endroit ce dont votre activité a besoin, par exemple&nbsp;:</p>
         </div>
         <ul className="chips">
           {FONCTIONS.map(f => <li key={f}>{f}</li>)}
@@ -84,10 +83,10 @@ export default function LogicielSurMesure() {
         <div className="prose">
           <p>
             Il est construit avec <b>des fonctions rien que pour vous</b>, et peut se connecter à
-            vos autres outils. Après la livraison : <b>suivi et mises à jour dans la durée</b>.
+            vos autres outils. Après la livraison&nbsp;: <b>suivi et mises à jour dans la durée</b>.
             Le prix est sur devis gratuit, fixé avant de commencer.
           </p>
-          <p>Besoin aussi d'un site ? <a href="/creation-site-vitrine">{'Voir la création de site vitrine\u00a0→'}</a></p>
+          <p>Besoin aussi d'un site&nbsp;? <a href="/creation-site-vitrine">{'Voir la création de site vitrine\u00a0→'}</a></p>
         </div>
       </PageSection>
 
@@ -101,7 +100,7 @@ export default function LogicielSurMesure() {
                   PMSB, entreprise du bâtiment en Île-de-France, faisait tous ses devis à la main.
                   Son logiciel, PMSB Gestion, réunit au même endroit clients, devis, factures, achats
                   de matériel, échéancier et bibliothèque de prix, avec un tableau de bord. Livré en
-                  4 semaines pour ce projet ; pour le vôtre, le délai est fixé dans le devis.
+                  4 semaines pour ce projet&nbsp;; pour le vôtre, le délai est fixé dans le devis.
                 </p>
               </div>
               <ul className="chips">
@@ -130,7 +129,7 @@ export default function LogicielSurMesure() {
 
       <PageSection id="application" num={num()} label="APPLICATION" title="Et une application mobile ?">
         <div className="prose">
-          <p>{`${APPLICATION.replace(/\.$/, '')} : sur devis gratuit.`}</p>
+          <p>{`${APPLICATION.replace(/\.$/, '')}\u00a0: sur devis gratuit.`}</p>
         </div>
       </PageSection>
 

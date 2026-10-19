@@ -78,6 +78,9 @@
   --accent-line: rgba(8, 145, 178, 0.35);
   /* Texte posé sur un aplat d'accent (noir ou blanc, recalculé au scroll) */
   --on-accent: #ffffff;
+  /* Accent assombri pour les petits textes des pages intérieures : contraste
+     d'au moins 4,8:1 sur le papier et les cartes, à chaque teinte du scroll */
+  --accent-ink: color-mix(in srgb, var(--accent) 70%, var(--fg));
 
   --display: 'Space Grotesk', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -3711,7 +3714,6 @@ footer {
 .prose li + li { margin-top: 6px; }
 .prose li::marker { color: var(--accent); }
 .prose b, .prose strong { color: var(--fg); font-weight: 500; }
-.prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
 /* Pastilles (modules d'un logiciel, fonctions) : comme celles des réalisations */
 .chips {
@@ -3763,7 +3765,7 @@ footer {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.15em;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-weight: 500;
 }
 .link-cards b {
@@ -3808,7 +3810,7 @@ footer {
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.15em;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-variant-numeric: tabular-nums;
 }
 .steps-list h3 {
@@ -3855,13 +3857,20 @@ figure.realisation + .chips { margin-top: 24px; }
 figure.realisation .realisation-head { margin-bottom: 0; }
 
 /* ============ LIENS DANS LE TEXTE, AVIS SOUS LES FORMULAIRES, MENTIONS ============ */
-/* Pas de règle de base pour <a> : chaque lien placé dans un texte a la sienne */
-.section-intro a, .faq-link, .form-notice a {
-  color: var(--accent);
+/* Pas de règle de base pour <a> : chaque lien placé dans un texte a la sienne.
+   Comme les liens de .tf-help : texte à l'encre, soulignement à l'accent (l'accent
+   seul, en petits caractères, n'est pas assez contrasté sur le papier). */
+.prose a, .section-intro a, .faq-link, .form-notice a {
+  color: var(--fg);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 4px;
+  transition: color 0.3s;
 }
+.prose a:hover, .section-intro a:hover, .faq-link:hover, .form-notice a:hover { color: var(--accent); }
 .faq-link { display: inline-block; margin-top: 10px; }
+/* Numéros des questions sur les pages intérieures (l'accueil garde les siens) */
+.page-section .faq-q .idx { color: var(--accent-ink); }
 
 /* Sous le devis et la demande de formule : à quoi servent les informations */
 .form-notice {

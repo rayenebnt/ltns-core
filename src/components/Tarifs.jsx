@@ -351,7 +351,7 @@ function FormuleDialog({ f, origin, onClose }) {
 // Phrase d'aide par défaut sous la grille : le renvoi vers le devis
 function HelpDevis() {
   const href = useSectionHref()
-  return <>Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</>
+  return <>Vous hésitez&nbsp;? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</>
 }
 
 /* La grille des formules, ce que toutes comprennent et la demande directe.

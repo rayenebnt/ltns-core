@@ -33,7 +33,7 @@ export const SITE = {
     path: '/og.jpg',
     width: 1200,
     height: 630,
-    alt: "LTNS° : « Vos futurs clients vous cherchent en ligne. » au-dessus d'une barre de recherche",
+    alt: "LTNS°\u00a0: «\u00a0Vos futurs clients vous cherchent en ligne.\u00a0» au-dessus d'une barre de recherche",
   },
 
   sameAs: {
@@ -42,6 +42,8 @@ export const SITE = {
     // Lien de la fiche Google (bouton « Partager » de la fiche) une fois validée
     googleMaps: TODO,
   },
+  // vercel : vrai seulement si Web Analytics est activé dans le projet Vercel (les
+  // mentions légales l'annoncent alors comme un fait) ; sinon false
   analytics: { vercel: true },
   flags: { pmsbCaseStudy: true },
   // Prix de l'hébergement après la 1re année offerte. Tant qu'il vaut null,

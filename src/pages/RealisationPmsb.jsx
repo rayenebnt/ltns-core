@@ -34,7 +34,7 @@ export default function RealisationPmsb() {
         <div className="prose">
           <p>
             PMSB intervient sur tous les corps d'état du bâtiment, en Île-de-France. Les
-            prestations présentées sur son site :
+            prestations présentées sur son site&nbsp;:
           </p>
         </div>
         <ul className="chips">
@@ -66,21 +66,21 @@ export default function RealisationPmsb() {
           <div className="prose">
             <p>Avant son logiciel, PMSB faisait tous ses devis à la main.</p>
             <p>
-              D'abord, écouter : comment l'entreprise travaille, et ce qui lui fait perdre du
-              temps. Ensuite, le plan : les clients, les devis et les factures, au même endroit.
+              D'abord, écouter&nbsp;: comment l'entreprise travaille, et ce qui lui fait perdre du
+              temps. Ensuite, le plan&nbsp;: les clients, les devis et les factures, au même endroit.
             </p>
             <ul>
-              <li><b>Bibliothèque de prix</b> : un chantier se chiffre en quelques clics.</li>
-              <li><b>Relances</b> : le devis part, et le logiciel rappelle lesquels relancer.</li>
-              <li><b>Achats et échéancier</b> : les achats de matériel et l'échéancier des paiements sont suivis au même endroit.</li>
+              <li><b>Bibliothèque de prix</b>&nbsp;: un chantier se chiffre en quelques clics.</li>
+              <li><b>Relances</b>&nbsp;: les devis partent, et le logiciel rappelle lesquels relancer.</li>
+              <li><b>Achats et échéancier</b>&nbsp;: les achats de matériel et l'échéancier des paiements sont suivis au même endroit.</li>
               <li>
-                <b>Tableau de bord</b> : ce qu'il reste à encaisser, les retards, les retenues de
+                <b>Tableau de bord</b>&nbsp;: ce qu'il reste à encaisser, les retards, les retenues de
                 garantie, mais aussi les devis en attente, le taux de transformation et les devis
                 à relancer.
               </li>
             </ul>
             <p>
-              Livré en 4 semaines : un logiciel qui suit la façon de travailler de l'entreprise,
+              Livré en 4 semaines&nbsp;: un logiciel qui suit la façon de travailler de l'entreprise,
               pas l'inverse.
             </p>
           </div>
@@ -96,7 +96,7 @@ export default function RealisationPmsb() {
             <a href="/creation-site-vitrine">
               <span className="num">01</span>
               <b>Un site vitrine pour votre entreprise</b>
-              <span>{`Une page dès ${fmtPrice(ESSENTIEL.price)} € TTC, jusqu'à 6 pages dès ${fmtPrice(PRO.price)} € TTC.`}</span>
+              <span>{`Une page dès ${fmtPrice(ESSENTIEL.price)}\u00a0€ TTC, jusqu'à 6 pages dès ${fmtPrice(PRO.price)}\u00a0€ TTC.`}</span>
               <span className="arrow" aria-hidden="true">→</span>
             </a>
           </li>
