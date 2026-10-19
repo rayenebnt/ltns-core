@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — Jour 1, version PC à filmer</title>
+<!--
+  Version PC du jour 1 : à lancer en plein écran sur l'ordinateur et à filmer au téléphone
+  (mains sur le clavier et le pavé tactile, pas de visage). Même site et même minutage que
+  tiktok.html, décalés de 3 s (compte à rebours). La voix est jouée : elle sert à caler le film
+  au montage. Rendu 1920 × 1080 : node video/commun/render.mjs video/semaine-1/j1 --page=pc.html --size=1920x1080 --delay=3
+-->
+<link rel="stylesheet" href="../../commun/fonts.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #111; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1920px; height: 1080px; overflow: hidden; background: #DADCE0; font-family: 'Montserrat', sans-serif; color: #0F172A; }
+  /* Fenêtre du navigateur */
+  .tabs { height: 46px; background: #DEE1E6; display: flex; align-items: flex-end; padding: 0 14px; gap: 8px; }
+  .tabs .dots { display: flex; gap: 8px; align-self: center; margin-right: 12px; }
+  .tabs .dots i { width: 13px; height: 13px; border-radius: 50%; background: #FF5F57; } .tabs .dots i:nth-child(2) { background: #FEBC2E; } .tabs .dots i:nth-child(3) { background: #28C840; }
+  .tab { height: 36px; padding: 0 18px; border-radius: 10px 10px 0 0; background: #fff; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+  .tab i { width: 16px; height: 16px; border-radius: 4px; background: #1D4ED8; }
+  .addr { height: 48px; background: #fff; display: flex; align-items: center; gap: 14px; padding: 0 16px; border-bottom: 1px solid #E5E7EB; }
+  .addr .url { flex: 1; height: 34px; border-radius: 17px; background: #F1F3F4; display: flex; align-items: center; padding: 0 16px; font-family: 'JetBrains Mono', monospace; font-size: 15px; color: #374151; }
+  .addr .mode { display: flex; gap: 6px; font-size: 13px; font-weight: 700; }
+  .addr .mode span { padding: 7px 12px; border-radius: 8px; background: #F1F3F4; color: #6B7280; }
+  .addr .mode span.on { background: #0F172A; color: #fff; }
+  .body { position: absolute; left: 0; right: 0; top: 94px; bottom: 0; display: grid; grid-template-columns: 420px 1fr 380px; background: #F3F4F6; }
+  /* Liste des blocs de la page */
+  .blocks { background: #fff; border-right: 1px solid #E5E7EB; padding: 26px 22px; }
+  .blocks h5 { font-size: 13px; letter-spacing: 3px; color: #6B7280; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .blocks h4 { font-size: 26px; font-weight: 800; margin: 6px 0 20px; }
+  .blk { display: flex; align-items: center; gap: 12px; padding: 14px 14px; border-radius: 12px; border: 2px solid #E5E7EB; margin-bottom: 10px; font-weight: 700; font-size: 18px; background: #fff; }
+  .blk i { width: 30px; height: 30px; border-radius: 8px; background: #DBEAFE; flex: none; }
+  .blk.on { border-color: #22D3EE; background: #ECFEFF; }
+  .blocks .note { margin-top: 18px; font-size: 14px; color: #6B7280; line-height: 1.4; }
+  /* Aperçu mobile */
+  .center { position: relative; display: grid; place-items: center; }
+  #phone { width: 470px; height: 920px; border-radius: 60px; padding: 12px; background: linear-gradient(145deg, #2a2a33, #0f0f12); box-shadow: 0 40px 80px -40px rgba(15, 23, 42, .6); }
+  #scr { position: relative; width: 100%; height: 100%; border-radius: 48px; overflow: hidden; background: #fff; }
+  #sbar { position: absolute; left: 0; right: 0; top: 0; height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-weight: 700; font-size: 14px; background: #fff; z-index: 3; }
+  #sbar i { position: absolute; left: 50%; top: 9px; width: 90px; height: 24px; margin-left: -45px; border-radius: 14px; background: #0f0f12; }
+  #view { position: absolute; left: 0; right: 0; top: 36px; bottom: 0; overflow: hidden; }
+  #site { width: 400px; transform-origin: 0 0; }
+  .side { background: #fff; border-left: 1px solid #E5E7EB; padding: 26px 22px; }
+  .side h5 { font-size: 13px; letter-spacing: 3px; color: #6B7280; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .side .row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F3F4F6; font-size: 16px; }
+  .side .row b { font-weight: 700; }
+  .side .ok { margin-top: 22px; display: inline-flex; align-items: center; gap: 8px; background: #16A34A; color: #fff; font-weight: 800; padding: 10px 16px; border-radius: 10px; font-size: 15px; }
+  /* Curseur, compte à rebours */
+  #cursor { position: absolute; left: 0; top: 0; width: 34px; z-index: 30; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .35)); }
+  #ripple { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 4px solid #22D3EE; z-index: 29; opacity: 0; }
+  #count { position: absolute; inset: 0; z-index: 40; background: #0F172A; color: #fff; display: grid; place-items: center; text-align: center; }
+  #count b { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 260px; line-height: 1; }
+  #count span { font-size: 34px; color: #94A3B8; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="tabs"><span class="dots"><i></i><i></i><i></i></span><span class="tab"><i></i>Plomberie Varenne · aperçu</span></div>
+  <div class="addr"><span class="url">plomberie-varenne.exemple</span><span class="mode"><span>Ordinateur</span><span class="on">Mobile</span></span></div>
+  <div class="body">
+    <div class="blocks"><h5>PAGE UNIQUE</h5><h4>Plomberie Varenne</h4>
+      <div class="blk" data-b="call"><i></i>Bouton Appeler</div>
+      <div class="blk" data-b="zone"><i></i>Zone · 15 km</div>
+      <div class="blk" data-b="serv"><i></i>Services</div>
+      <div class="blk" data-b="chant"><i></i>Chantiers</div>
+      <div class="blk" data-b="contact"><i></i>Contact</div>
+      <p class="note">Exemple · entreprise fictive.<br>Tout tient sur une seule page.</p>
+    </div>
+    <div class="center"><div id="phone"><div id="scr"><div id="sbar"><span>9:41</span><i></i><span>5G ▮</span></div><div id="view"><div id="site"></div></div></div></div></div>
+    <div class="side"><h5>RÉGLAGES</h5>
+      <div class="row"><span>Pages</span><b>1</b></div><div class="row"><span>Blocs</span><b>5</b></div><div class="row"><span>Version téléphone</span><b>oui</b></div>
+      <span class="ok">✓ Prêt à mettre en ligne</span>
+    </div>
+  </div>
+  <div id="ripple"></div>
+  <svg id="cursor" viewBox="0 0 40 52"><path d="M4 3 L4 42 L14 32 L21 48 L28 45 L21 29 L35 29 Z" fill="#111" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
+  <div id="count"><div><b id="cnum">3</b><span>Lance ton téléphone · mains sur le pavé tactile</span></div></div>
+</div>
+
+<script src="../../commun/engine.js"></script>
+<script src="site.js"></script>
+<script src="voice-files.js"></script>
+<script>
+const { clamp, easeInOut, easeOut, pop, ramp, pulse, lerp, $, qa, setT } = LTNS
+const LEAD = 3
+// Mêmes phrases et mêmes repères que tiktok.html
+const SENTENCES = [
+  { chunks: [['Plombier :', 'Plombier'], ['une page, pas six.', 'six.']] },
+  { chunks: [['Un coup de pouce,', 'pouce,'], ['et ton client a tout vu.', 'tout']] },
+  { chunks: [['Tes services, ta zone,', 'zone,'], ['tes chantiers, ton numéro.', 'numéro.']] },
+  { chunks: [['Ton client a une fuite,', 'fuite,'], ['il cherche pas ta page À propos.', 'propos.']] },
+  { chunks: [['Il veut savoir si tu viens chez lui,', 'viens'], ["c'est TOUT.", 'TOUT.']] },
+  { chunks: [['Et ton métier,', 'métier,'], ['il tient sur une page ?', 'page']] },
+]
+const CUES = {
+  scroll: [1, 'coup', -0.25, 'whoosh'],
+  serv: [2, 'services,', -0.1], zone: [2, 'zone,', -0.1], chant: [2, 'chantiers,', -0.1], num: [2, 'numéro.', -0.1],
+  up: [4, 0, -0.15, 'whoosh'], tap: [4, 'viens', -0.1, 'tick'], tout: [4, 'TOUT.', -0.05],
+}
+const GHOSTS = ['serv', 'zone', 'chant', 'num'], SECTION = { serv: 'serv', zone: 'zone', chant: 'chant', num: 'contact' }
+const SCALE = (470 - 24) / 400, VIEW_H = (920 - 24 - 36) / SCALE
+let site
+
+function scrollAt(t, C) {
+  const steps = [[C.scroll, 1.8, 1]]
+  GHOSTS.forEach(k => steps.push([C[k] + 0.5, 0.4, site.scrollFor(SECTION[k], VIEW_H)]))
+  steps.push([C.up, 0.4, 0])
+  let v = 0
+  for (const [t0, d, to] of steps) if (t >= t0) v = lerp(v, to, easeInOut(ramp(t, t0, d)))
+  return v
+}
+
+function render(t, k) {
+  const { C } = k
+  // Compte à rebours 3, 2, 1
+  $('count').style.opacity = 1 - ramp(t, LEAD - 0.25, 0.25)
+  $('cnum').textContent = String(Math.max(1, 3 - Math.floor(t)))
+  const sc = scrollAt(t, C)
+  const glow = {}
+  GHOSTS.forEach(g => { glow[SECTION[g]] = pulse(t, C[g] + 0.75, 0.6) })
+  glow.zone = Math.max(glow.zone || 0, pulse(t, C.tap, 0.7))
+  site.update({ scroll: sc, glow, zone: easeOut(ramp(t, C.tap, 0.4)), call: pulse(t, C.tout, 0.9), viewH: VIEW_H })
+  // Le bloc visible s'allume dans la liste
+  const active = GHOSTS.find(g => t >= C[g] && t < C[g] + 1.1)
+  qa('.blk').forEach(el => el.classList.toggle('on', (active && el.dataset.b === SECTION[active]) || (t >= C.tap && t < C.tap + 0.8 && el.dataset.b === 'zone') || (t >= C.tout && t < C.tout + 0.9 && el.dataset.b === 'call')))
+  // Curseur : sur l'aperçu pendant les défilements, puis clic sur la zone
+  const ph = $('phone').getBoundingClientRect(), st = $('stage').getBoundingClientRect(), z = st.width / 1920
+  const base = { x: (ph.left - st.left) / z + 330, y: (ph.top - st.top) / z + 560 }
+  const zr = site.sections.zone.getBoundingClientRect()
+  const zone = { x: (zr.left - st.left) / z + zr.width / z * 0.5, y: (zr.top - st.top) / z + zr.height / z * 0.6 }
+  const rest = { x: 1640, y: 760 }
+  const toBase = easeInOut(ramp(t, C.scroll - 0.6, 0.5)), toZone = easeInOut(ramp(t, C.tap - 0.45, 0.4)), away = easeInOut(ramp(t, C.tout + 0.6, 0.6))
+  let x = lerp(rest.x, base.x, toBase), y = lerp(rest.y, base.y, toBase)
+  x = lerp(x, zone.x, toZone); y = lerp(y, zone.y, toZone)
+  x = lerp(x, rest.x, away); y = lerp(y, rest.y, away)
+  setT($('cursor'), 1, `translate(${x}px, ${y}px) scale(${Math.abs(t - C.tap) < 0.08 ? 0.85 : 1})`)
+  const rp = ramp(t, C.tap, 0.45)
+  $('ripple').style.left = zone.x + 'px'; $('ripple').style.top = zone.y + 'px'
+  setT($('ripple'), rp > 0 && rp < 1 ? 1 - rp : 0, `scale(${0.4 + 1.8 * rp})`)
+}
+
+LTNS.start({
+  sentences: SENTENCES, cues: CUES, tail: 2.0, lead: LEAD, render,
+  extraEvents: () => [{ t: 0.02, sfx: 'tick' }, { t: 1, sfx: 'tick' }, { t: 2, sfx: 'tick' }],
+  ready: async () => { site = Site.build($('site')); $('site').style.transform = `scale(${SCALE})` },
+})
+</script>
+</body>
+</html>

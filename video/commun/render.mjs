@@ -1,6 +1,7 @@
 // Rendu MP4 d'un épisode (son tiktok.html) : capture image par image, puis assemblage ffmpeg.
 //   node video/commun/render.mjs video/tiktok-episode-02 [sortie.mp4]            (images + son)
 //   node video/commun/render.mjs video/tiktok-episode-02 [sortie.mp4] --mux-only (son seulement)
+//   options : --page=pc.html --size=1920x1080 pour rendre une autre page de l'épisode (ex. la version PC)
 // Prérequis : un serveur local à la racine du dépôt sur le port 8765
 //   python3 -m http.server 8765 --directory <racine du dépôt>
 // Si voice.mp3 existe dans le dossier de l'épisode, il est mixé avec l'habillage sonore.
@@ -18,9 +19,13 @@ const ROOT = resolve(COMMUN, '..', '..')
 const [episodeArg, outArg] = process.argv.slice(2).filter(a => !a.startsWith('--'))
 if (!episodeArg) { console.error('Usage : node render.mjs <dossier de l\'épisode> [sortie.mp4] [--mux-only]'); process.exit(1) }
 const HERE = resolve(episodeArg)
-const OUT = outArg ? resolve(outArg) : join(HERE, `ltns-${basename(HERE)}.mp4`)
-const FRAMES = join(HERE, '.frames')
-const URL = `http://localhost:8765/${relative(ROOT, HERE).split('\\').join('/')}/tiktok.html?render`
+const opt = name => (process.argv.find(a => a.startsWith(`--${name}=`)) || '').split('=')[1]
+const PAGE = opt('page') || 'tiktok.html'
+const [W, H] = (opt('size') || '1080x1920').split('x').map(Number)
+const SUFFIX = PAGE === 'tiktok.html' ? '' : `-${basename(PAGE, '.html')}`
+const OUT = outArg ? resolve(outArg) : join(HERE, `ltns-${basename(HERE)}${SUFFIX}.mp4`)
+const FRAMES = join(HERE, `.frames${SUFFIX}`)
+const URL = `http://localhost:8765/${relative(ROOT, HERE).split('\\').join('/')}/${PAGE}?render`
 const FPS = 30
 const WORKERS = Math.max(1, Math.min(3, cpus().length - 1))
 
@@ -32,7 +37,7 @@ mkdirSync(FRAMES, { recursive: true })
 const browser = await chromium.launch()
 
 async function openPage() {
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } })
+  const page = await browser.newPage({ viewport: { width: W, height: H } })
   page.on('pageerror', e => { console.error('Erreur page :', e.message); process.exit(1) })
   await page.goto(URL, { waitUntil: 'networkidle' })
   await page.waitForFunction(() => window.READY)
@@ -77,7 +82,9 @@ let filter
 if (existsSync(voice)) {
   args.push('-i', voice)
   // La voix devant, l'habillage en retrait
-  filter = '[1:a]volume=0.55[s];[2:a]volume=1.0[v];[s][v]amix=inputs=2:duration=first:normalize=0'
+  // --delay=3 : la voix démarre plus tard (pré-roll de la version PC)
+  const ms = Math.round(1000 * (+opt('delay') || 0))
+  filter = `[1:a]volume=0.55[s];[2:a]${ms ? `adelay=${ms}|${ms},` : ''}volume=1.0[v];[s][v]amix=inputs=2:duration=first:normalize=0`
 } else {
   filter = '[1:a]volume=0.8'
 }
