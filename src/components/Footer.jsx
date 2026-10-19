@@ -7,10 +7,14 @@ function fmtUtc(d) {
 }
 
 export default function Footer() {
-  const [time, setTime] = useState(() => fmtUtc(new Date()))
+  const [time, setTime] = useState('--:--')
   const [temp, setTemp] = useState('12.0')
+  const [year, setYear] = useState(__BUILD_YEAR__)
 
+  // Heure et année lues dans le navigateur seulement : le HTML pré-rendu reste neutre
   useEffect(() => {
+    setTime(fmtUtc(new Date()))
+    setYear(new Date().getFullYear())
     const id = setInterval(() => {
       setTime(fmtUtc(new Date()))
       const t = getComputedStyle(document.documentElement).getPropertyValue('--temp').trim()
@@ -40,7 +44,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} LTNS° · TOUS DROITS RÉSERVÉS</span>
+        <span>© {year} LTNS° · TOUS DROITS RÉSERVÉS</span>
         <span>FAIT MAIN · RÉGLÉ AU DEGRÉ PRÈS</span>
       </div>
     </footer>

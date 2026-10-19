@@ -14,13 +14,14 @@ export const playFilm = () => window.dispatchEvent(new Event('film:play'))
 export default function FilmPlayer() {
   const wrapRef = useRef(null)
   const videoRef = useRef(null)
-  const [tall, setTall] = useState(() => window.matchMedia(TALL_QUERY).matches)
+  const [tall, setTall] = useState(false)
   const [status, setStatus] = useState('idle') // idle → playing → ended
 
   // Suit l'orientation tant que le film n'a pas été lancé
   useEffect(() => {
     if (status !== 'idle') return
     const mq = window.matchMedia(TALL_QUERY)
+    setTall(mq.matches)
     const onChange = (e) => setTall(e.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)

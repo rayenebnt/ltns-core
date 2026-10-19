@@ -10,11 +10,14 @@ function fmtTime(d) {
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
-  const [time, setTime] = useState(() => fmtTime(new Date()))
+  const [time, setTime] = useState('--:--:--')
   const [temp, setTemp] = useState('12.0')
 
+  // Heure lue dans le navigateur seulement : le HTML pré-rendu affiche --:--:--
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
+    setTime(fmtTime(new Date()))
+    onScroll()
     const id = setInterval(() => {
       setTime(fmtTime(new Date()))
       const t = getComputedStyle(document.documentElement).getPropertyValue('--temp').trim()

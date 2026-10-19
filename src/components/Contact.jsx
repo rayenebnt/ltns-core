@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { inkOn, tempColor } from '../hooks/useThermal'
+import { SITE } from '../data/site'
 
-export const EMAIL = 'ltnscore@gmail.com'
+export const EMAIL = SITE.email
 const PHONE = '0625206493'
 const PHONE_INTL = '+33625206493'
 
@@ -26,7 +27,7 @@ const BUDGETS = [
 const FONCTIONS = ['Formulaire de contact', 'Prise de rendez-vous', 'Galerie photos', 'Paiement en ligne', 'Espace client', 'Plusieurs langues']
 
 // Chaque étape a sa température : le formulaire « chauffe » à mesure qu'on avance
-const STEPS = [
+const DEVIS_STEPS = [
   { key: 'projet', label: 'Projet', title: 'Quel est votre projet ?', temp: 12 },
   { key: 'budget', label: 'Budget', title: 'Quel budget envisagez-vous ?', temp: 38 },
   { key: 'message', label: 'Détails', title: "Dites-m'en un peu plus", temp: 60 },
@@ -192,7 +193,7 @@ function Thermostat({ readoutRef, labelRef, step, sent, goTo }) {
         </div>
       </div>
       <ol className="thermo-steps">
-        {STEPS.map((s, i) => {
+        {DEVIS_STEPS.map((s, i) => {
           const done = sent || i < step
           const reachable = !sent && i < step
           return (
@@ -317,7 +318,7 @@ export default function Contact() {
   }, [])
 
   const emailOk = EMAIL_RE.test(data.email.trim())
-  let target = STEPS[step].temp
+  let target = DEVIS_STEPS[step].temp
   if (step === 0 && data.projet) target = 30
   if (step === 1 && data.budget) target = 52
   if (step === 2) target = 60 + Math.min(18, data.message.trim().length / 12 + data.fonctions.length * 3)
@@ -443,7 +444,7 @@ export default function Contact() {
     e.preventDefault()
     if (status === 'sending') return
 
-    if (step < STEPS.length - 1) {
+    if (step < DEVIS_STEPS.length - 1) {
       if (canNext) goTo(step + 1)
       return
     }
@@ -494,7 +495,7 @@ export default function Contact() {
     setStep(0)
   }
 
-  const current = STEPS[step]
+  const current = DEVIS_STEPS[step]
   const sent = status === 'sent'
   const brief = Math.min(1, (data.message.trim().length + data.fonctions.length * 40) / 260)
 
@@ -559,7 +560,7 @@ export default function Contact() {
               <Ticket data={data} reference={reference} onRestart={restart} />
             ) : (
               <div key={step} ref={panelRef} className="devis-panel">
-                <span className="devis-count" data-anim>ÉTAPE {step + 1} / {STEPS.length}{data.formule && ` · FORMULE ${data.formule.toUpperCase()}`}</span>
+                <span className="devis-count" data-anim>ÉTAPE {step + 1} / {DEVIS_STEPS.length}{data.formule && ` · FORMULE ${data.formule.toUpperCase()}`}</span>
                 <h3 className="devis-title" data-anim><Scramble text={current.title} /></h3>
 
                 {step === 0 && (
@@ -696,7 +697,7 @@ export default function Contact() {
                   </button>
                 ) : <span />}
 
-                {step < STEPS.length - 1 ? (
+                {step < DEVIS_STEPS.length - 1 ? (
                   <button type="submit" className="btn btn-primary" disabled={!canNext}>
                     Suivant <span className="arrow">→</span>
                   </button>

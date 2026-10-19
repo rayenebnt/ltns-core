@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { STEPS, useParcours } from './Parcours'
+import { useParcours } from './Parcours'
+import { STEPS } from '../data/steps'
 
 function Cube() {
   return (

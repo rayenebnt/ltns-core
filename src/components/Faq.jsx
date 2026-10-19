@@ -1,43 +1,23 @@
 import { useState, useRef } from 'react'
 import CtaBand from './CtaBand'
+import { FAQ } from '../data/faq'
 
-const faqs = [
-  {
-    q: 'Quels types de projets faites-vous ?',
-    a: 'Quatre grandes familles : les sites de présentation (artisans, indépendants, entreprises, associations), les sites avec boutique en ligne ou espace client, les logiciels faits pour votre métier, et les applications pour téléphone. Tout est créé sur mesure, jamais à partir d\'un modèle tout prêt.'
-  },
-  {
-    q: 'Combien de temps faut-il pour créer mon projet ?',
-    a: 'Un site de présentation : environ 2 semaines. Un site avec boutique ou espace client : 4 à 8 semaines selon ce qu\'il doit faire. Pour un logiciel ou une application mobile, la date de livraison est indiquée dans le devis, une fois qu\'on a listé ensemble ce que vous voulez.'
-  },
-  {
-    q: 'À qui appartient le projet une fois livré ?',
-    a: 'À vous, et à vous seul. Le site, les textes, les images, les mots de passe, l\'adresse internet : tout vous revient le jour de la livraison. Si un jour vous voulez travailler avec quelqu\'un d\'autre, vous êtes libre de le faire.'
-  },
-  {
-    q: 'Comment se passe le devis ?',
-    a: 'Il est gratuit et ne vous engage à rien. Vous m\'écrivez avec le formulaire ou par email, et je vous réponds sous 48h avec une proposition détaillée : ce qui est prévu, le délai et le prix. On en parle ensemble avant de signer quoi que ce soit.'
-  },
-  {
-    q: 'Et après la mise en ligne, qui s\'occupe de mon site ?',
-    a: (
-      <>
-        Moi, si vous le souhaitez, avec un suivi de maintenance. Vous n'avez plus
-        à y penser :
-        <ul className="faq-maint">
-          <li><b>Mises à jour et sécurité</b> : votre site reste à jour et protégé.</li>
-          <li><b>Sauvegardes régulières</b> : rien n'est perdu en cas de problème.</li>
-          <li><b>Surveillance</b> : je vérifie que le site reste en ligne et rapide.</li>
-          <li><b>Petites modifications</b> : un texte, une photo, un horaire à changer ? Un message suffit, je m'en charge.</li>
-          <li><b>Un interlocuteur joignable</b> : en cas de souci, vous savez qui appeler.</li>
+// Une réponse : textes simples et listes à puces (voir src/data/faq.js)
+function FaqAnswer({ a, link }) {
+  const parts = Array.isArray(a) ? a : [a]
+  return (
+    <>
+      {parts.map((part, i) => typeof part === 'string' ? part : (
+        <ul key={i} className="faq-maint">
+          {part.list.map(({ b, t }) => <li key={b}><b>{b}</b>{` : ${t}`}</li>)}
         </ul>
-        La maintenance est proposée en option dans votre devis, avec un prix fixé à l'avance.
-      </>
-    )
-  }
-]
+      ))}
+      {link && <>{' '}<a className="faq-link" href={link.href}>{link.label}</a></>}
+    </>
+  )
+}
 
-function FaqItem({ q, a, idx }) {
+export function FaqItem({ q, a, link, idx }) {
   const [open, setOpen] = useState(false)
   const answerRef = useRef(null)
 
@@ -57,7 +37,7 @@ function FaqItem({ q, a, idx }) {
         ref={answerRef}
         style={{ maxHeight: open ? answerRef.current?.scrollHeight + 'px' : '0' }}
       >
-        <div className="faq-a-inner">{a}</div>
+        <div className="faq-a-inner"><FaqAnswer a={a} link={link} /></div>
       </div>
     </div>
   )
@@ -83,7 +63,7 @@ export default function Faq() {
         </div>
       </div>
       <div className="faq-list reveal">
-        {faqs.map((f, i) => <FaqItem key={i} idx={i} {...f} />)}
+        {FAQ.map((f, i) => <FaqItem key={i} idx={i} {...f} />)}
       </div>
 
       <CtaBand

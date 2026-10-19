@@ -1,4 +1,5 @@
-import { STEPS, useParcours } from './Parcours'
+import { useParcours } from './Parcours'
+import { STEPS } from '../data/steps'
 
 // Le process se découvre en vidéo interactive : un seul grand bouton
 // qui lance la visite guidée, avec un aperçu des étapes qui s'allument tour à tour.
