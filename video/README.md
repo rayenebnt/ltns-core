@@ -13,6 +13,8 @@ Rien ici n'est publié sur le site.
 | `tiktok-episode-05/` | « Devine le prix » (écarté, non publié) |
 | `tiktok-episode-06/` | « Tu commentes, je crée » #01 : salon de coiffure, Appeler ou Réserver ? |
 | `RECHERCHE-TIKTOK.md` | La recherche sur la demande TikTok (9 octobre 2026) et ses limites |
+| `PLAN-30-JOURS.md` | Diagnostic des statistiques (décrochage à 4 s) et plan 30 jours : maquettes personnalisées + 1 vidéo par semaine |
+| `diagnostic/` | Les 6 premières secondes des épisodes, image par image |
 | `IDEES.md` | Les idées d'épisodes, publiés et à venir |
 
 Chaque épisode contient son `tiktok.html` (textes, mise en scène), sa voix (`voice/01.mp3`…)
