@@ -6,6 +6,9 @@ node_modules/
 # Build
 dist/
 build/
+# Bundles serveur du pré-rendu et du test d'hydratation
+.ssr/
+.ssr-check/
 
 # Logs
 npm-debug.log*
