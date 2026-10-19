@@ -4,8 +4,6 @@ import { inkOn, tempColor } from '../hooks/useThermal'
 import { SITE } from '../data/site'
 
 export const EMAIL = SITE.email
-const PHONE = '0625206493'
-const PHONE_INTL = '+33625206493'
 
 // Choix proposés dans le devis — modifiables ici
 const PROJETS = [
@@ -101,7 +99,8 @@ function Scramble({ text, className }) {
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [text])
-  return <span className={className} aria-label={text}><span aria-hidden="true">{shown}</span></span>
+  // Le texte lu (lecteurs d'écran, moteurs) reste le vrai texte ; l'animation est décorative
+  return <span className={className}><span className="sr-only">{text}</span><span aria-hidden="true">{shown}</span></span>
 }
 
 /* Étincelles : petits carrés aux couleurs thermiques, dessinés sur un canvas */
@@ -264,9 +263,12 @@ function Ticket({ data, reference, onRestart }) {
   )
 }
 
-export default function Contact() {
+// initialProjet : type de projet déjà coché à l'arrivée (pages intérieures) ;
+// num : numéro de la section dans la page (« 02 » sur l'accueil)
+export default function Contact({ initialProjet = '', num = '02' }) {
+  const initial = { ...EMPTY, projet: initialProjet }
   const [step, setStep] = useState(0)
-  const [data, setData] = useState(EMPTY)
+  const [data, setData] = useState(initial)
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle')
   const [reference, setReference] = useState('')
@@ -488,7 +490,7 @@ export default function Contact() {
   }
 
   const restart = () => {
-    setData(EMPTY)
+    setData(initial)
     setErrors({})
     setStatus('idle')
     dirRef.current = -1
@@ -504,9 +506,9 @@ export default function Contact() {
       <div className="section-head reveal">
         <div>
           <span className="section-label">
-            <b>02</b><span className="sep">//</span> DEVIS GRATUIT
+            <b>{num}</b><span className="sep">//</span> DEVIS GRATUIT
           </span>
-          <h2 className="section-title">Votre devis <em>en 1 minute</em>.</h2>
+          <h2 className="section-title">Devis gratuit <em>en 1 minute</em>.</h2>
           <p className="section-intro">
             4 questions, et je vous réponds sous 48h avec une proposition claire :
             ce qui est prévu, le délai et le prix. Gratuit et sans engagement.
@@ -522,30 +524,33 @@ export default function Contact() {
         <div className="contact-grid">
           <div className="contact-info">
             <span className="section-label">
-              <b>02</b><span className="sep">//</span> ME CONTACTER
+              <b>{num}</b><span className="sep">//</span> ME CONTACTER
             </span>
-            <h2>
+            {/* Même allure qu'un titre, mais pas un titre : un seul h2 par section */}
+            <div className="contact-title">
               Parlons de votre <em>projet</em>.
-            </h2>
+            </div>
             <p>
               Votre devis en 4 étapes, moins d'une minute. Vous recevez une réponse
-              en moins de 48 heures, écrite à la main. Vous préférez parler directement ?
+              en moins de 48 heures, écrite à la main. Je travaille avec des clients
+              partout en France. En Île-de-France, je peux aussi venir vous rencontrer
+              sur place. Vous préférez parler directement ?
             </p>
             <div className="contact-direct">
               <a href={`mailto:${EMAIL}`}>
-                <span className="ch">01</span>
+                <span className="ch" aria-hidden="true">01</span>
                 <span>{EMAIL}</span>
-                <span>→</span>
+                <span aria-hidden="true">→</span>
               </a>
-              <a href={`tel:${PHONE}`}>
-                <span className="ch">02</span>
-                <span>{PHONE}</span>
-                <span>→</span>
+              <a href={`tel:${SITE.phoneE164}`}>
+                <span className="ch" aria-hidden="true">02</span>
+                <span>{SITE.phoneDisplay}</span>
+                <span aria-hidden="true">→</span>
               </a>
-              <a href={`https://wa.me/${PHONE_INTL}`} target="_blank" rel="noopener noreferrer">
-                <span className="ch">03</span>
+              <a href={`https://wa.me/${SITE.whatsapp}`} target="_blank" rel="noopener noreferrer">
+                <span className="ch" aria-hidden="true">03</span>
                 <span>WHATSAPP</span>
-                <span>→</span>
+                <span aria-hidden="true">→</span>
               </a>
             </div>
           </div>

@@ -485,6 +485,11 @@ nav .nav-left {
   text-transform: uppercase;
 }
 @media (max-width: 1080px) { .hero h1 { font-size: clamp(32px, 11vw, 96px); } }
+/* L'étiquette est dans le h1 : elle reprend l'allure qu'elle avait au-dessus
+   (graisse, interligne du corps de texte) au lieu d'hériter du grand titre */
+.hero h1 .hero-tag { display: flex; font-weight: 400; font-style: normal; line-height: 1.6; text-wrap: balance; }
+/* Sur une seule ligne jusqu'à 375 px de large */
+@media (max-width: 420px) { .hero h1 .hero-tag { letter-spacing: 0.08em; } }
 .hero h1 .line { display: block; overflow: hidden; position: relative; }
 .hero h1 .line span { display: inline-block; white-space: nowrap; }
 .hero h1 em {
@@ -863,7 +868,8 @@ a.service { color: inherit; text-decoration: none; }
   box-shadow: 0 0 14px var(--accent-glow);
 }
 .cta-band-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; color: var(--accent); }
-.cta-band h3 {
+.cta-band h3,
+.cta-band .cta-band-title {
   margin-top: 10px;
   font-family: var(--display);
   font-size: clamp(24px, 3vw, 36px);
@@ -1867,7 +1873,8 @@ a.service { color: inherit; text-decoration: none; }
   /* Sur mobile, le devis passe avant les coordonnées : on arrive directement dessus */
   .contact-grid .devis { order: -1; }
 }
-.contact-info h2 {
+.contact-info h2,
+.contact-info .contact-title {
   font-family: var(--display);
   font-size: clamp(32px, 4.6vw, 56px);
   font-weight: 500;
@@ -1876,7 +1883,7 @@ a.service { color: inherit; text-decoration: none; }
   line-height: 1;
   text-transform: uppercase;
 }
-.contact-info h2 em { color: var(--accent); font-style: italic; font-weight: 300; }
+.contact-info h2 em, .contact-info .contact-title em { color: var(--accent); font-style: italic; font-weight: 300; }
 .contact-info p {
   font-family: var(--mono);
   color: var(--fg-dim);
@@ -2821,6 +2828,8 @@ footer {
   transition: transform 0.3s var(--ease);
 }
 .realisation:hover .realisation-arrow { transform: translate(3px, -3px); }
+/* Lien interne (étude de cas) : la flèche avance au lieu de sortir */
+.realisation:hover .realisation-arrow--in { transform: translateX(4px); }
 
 /* Modules d'un logiciel, en pastilles */
 .realisation-features {
@@ -3588,4 +3597,228 @@ footer {
   .parcours-count, .parcours-hint { display: none; }
   .parcours-dots { gap: 6px; }
   .parcours-dot { width: 30px; height: 28px; }
+}
+
+/* ============ PAGES INTÉRIEURES ============ */
+/* Mêmes jetons que l'accueil (couleurs, polices, filets) ; marge de 18 px sur téléphone */
+
+/* En-tête : fil d'Ariane, étiquette, titre (h1), chapeau, boutons */
+.page-hero {
+  position: relative;
+  z-index: 2;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 160px 28px 40px;
+}
+@media (max-width: 720px) {
+  .page-hero { padding: 112px 18px 24px; }
+}
+/* Le fil d'Ariane est un <nav> : on annule le style de la barre du haut */
+.breadcrumb {
+  position: static;
+  z-index: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  margin-bottom: 28px;
+  background: none;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+  border: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--fg-mute);
+}
+.breadcrumb a { color: var(--fg-dim); text-decoration: none; transition: color 0.3s; }
+.breadcrumb a:hover { color: var(--accent); }
+/* Étiquette longue : ses morceaux passent à la ligne entiers sur téléphone */
+.page-hero .section-label { display: flex; flex-wrap: wrap; row-gap: 6px; }
+.page-title {
+  font-family: var(--display);
+  font-size: clamp(32px, 4.8vw, 68px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  max-width: 22ch;
+  margin-bottom: 28px;
+}
+.page-title em { font-style: italic; font-weight: 300; color: var(--accent); }
+.page-lead {
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+  max-width: 640px;
+}
+.page-lead b { color: var(--fg); font-weight: 500; }
+.page-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+@media (max-width: 540px) {
+  .page-ctas .btn { width: 100%; justify-content: center; }
+}
+
+/* Sections : .section-head, .section-label, .section-title et .section-intro de l'accueil.
+   Les cartes inclinées pendant leur entrée (tarifs) n'élargissent pas la page. */
+.page-section { padding-top: 72px; overflow-x: clip; }
+.section-title--sm { font-size: clamp(28px, 4.2vw, 56px); max-width: 20ch; }
+
+/* Texte courant */
+.prose {
+  max-width: 720px;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--fg-dim);
+  overflow-wrap: break-word;
+}
+.prose > * + * { margin-top: 16px; }
+.prose > * + h3 { margin-top: 36px; }
+.prose h3 {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.prose ul { padding-left: 1.2em; }
+.prose li + li { margin-top: 6px; }
+.prose li::marker { color: var(--accent); }
+.prose b, .prose strong { color: var(--fg); font-weight: 500; }
+.prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Pastilles (modules d'un logiciel, fonctions) : comme celles des réalisations */
+.chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chips li {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--fg-dim);
+  border: 1px solid var(--accent-line);
+  padding: 4px 8px;
+}
+
+/* Cartes de liens, deux par ligne, filets comme les services :
+   <ul class="link-cards"><li><a href>
+     <span class="num">01</span><b>Titre</b><span>Texte facultatif</span><span class="arrow">→</span>
+   </a></li></ul> */
+.link-cards {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+@media (max-width: 720px) { .link-cards { grid-template-columns: 1fr; } }
+.link-cards a { color: inherit; text-decoration: none; }
+.link-cards li > a,
+.link-cards > a {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 28px;
+  background: var(--bg);
+  cursor: none;
+  transition: background 0.5s var(--ease);
+}
+@media (max-width: 720px) {
+  .link-cards li > a, .link-cards > a { padding: 22px 18px; }
+}
+.link-cards a:hover { background: var(--bg-2); }
+.link-cards a:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+.link-cards .num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  font-weight: 500;
+}
+.link-cards b {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.link-cards span {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+}
+.link-cards .arrow {
+  margin-top: auto;
+  color: var(--fg);
+  transition: transform 0.3s var(--ease), color 0.3s ease;
+}
+.link-cards a:hover .arrow { color: var(--accent); transform: translateX(4px); }
+
+/* Étapes d'un projet : trois colonnes, une seule sur tablette et téléphone */
+.steps-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 900px) { .steps-list { grid-template-columns: 1fr; } }
+.steps-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+}
+.steps-list .num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.steps-list h3 {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.steps-list p {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+}
+.steps-list .steps-out {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--fg);
+}
+
+/* Tarifs avec deux formules seulement (ex. Essentiel et Pro) */
+.tf-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 900px; }
+@media (max-width: 960px) {
+  .tf-grid--2 { grid-template-columns: 1fr; max-width: 560px; }
 }

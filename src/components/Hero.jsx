@@ -31,16 +31,19 @@ export default function Hero({ loaded }) {
   return (
     <header className="hero">
       <div className="hero-main">
-        <span className="hero-tag">DISPONIBLE · DEVIS GRATUIT SOUS 48H</span>
+        {/* L'étiquette fait partie du titre : les mots-clés de la page sont dans le h1.
+            Les espaces séparent les lignes dans le texte lu par Google. */}
         <h1>
-          <span className="line"><span>VOTRE SITE</span></span>
-          <span className="line"><span>INTERNET,</span></span>
+          <span className="hero-tag">Création de site internet partout en France</span>{' '}
+          <span className="line"><span>VOTRE SITE</span></span>{' '}
+          <span className="line"><span>INTERNET,</span></span>{' '}
           <span className="line"><span>AU <em>BON</em> DEGRÉ<span className="deg-mark">°</span></span></span>
         </h1>
         <p className="hero-sub">
           Sites internet, logiciels et applications mobiles, créés sur mesure pour
           votre activité. <b>Un prix fixé à l'avance</b>, une seule personne en face
-          de vous, du premier appel à la mise en ligne.
+          de vous, du premier appel à la mise en ligne. Partout en France à distance,
+          et en Île-de-France je me déplace chez vous.
         </p>
         <div className="hero-ctas">
           <a href={href('contact')} className="btn btn-primary">

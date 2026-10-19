@@ -40,7 +40,7 @@ export default function Footer() {
           <a href={href('faq')}>FAQ</a>
           <a href={href('contact')}>CONTACT</a>
         </div>
-        <div className="footer-readout">
+        <div className="footer-readout" data-nosnippet="">
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>
           <div>{time}</div>
           <div>ATELIER <b>LTNS-01</b></div>

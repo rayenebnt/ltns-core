@@ -21,7 +21,7 @@ function ThermalRail() {
   return (
     <>
       <div className="thermal-rail" aria-hidden="true"></div>
-      <div className="thermal-rail-label" aria-hidden="true">CHAUFFE</div>
+      <div className="thermal-rail-label" aria-hidden="true" data-nosnippet="">CHAUFFE</div>
     </>
   )
 }

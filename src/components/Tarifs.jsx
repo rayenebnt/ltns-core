@@ -325,7 +325,7 @@ function FormuleDialog({ f, origin, onClose }) {
               </div>
               <div className="field" data-fq>
                 <label htmlFor="fq-msg"><span>Votre activité</span><span className="ch">FACULTATIF</span></label>
-                <input id="fq-msg" name="message" type="text" value={data.message} onChange={update} placeholder="Ex : boulangerie à Lyon" />
+                <input id="fq-msg" name="message" type="text" value={data.message} onChange={update} placeholder="Ex : boulangerie, plombier, association…" />
               </div>
             </div>
 
@@ -346,8 +346,13 @@ function FormuleDialog({ f, origin, onClose }) {
   )
 }
 
-export default function Tarifs() {
-  const rootRef = useRef(null)
+/* La grille des formules, ce que toutes comprennent et la demande directe.
+   Réutilisée telle quelle par les pages intérieures (ex. seulement Essentiel et Pro).
+   help : la phrase d'aide sous la grille (par défaut, le renvoi vers le devis) ;
+   null pour ne rien afficher. */
+export function TarifsBlock({ formules = FORMULES, help }) {
+  const gridRef = useRef(null)
+  const footRef = useRef(null)
   const href = useSectionHref()
   const [chosen, setChosen] = useState(null)
   const triggerRef = useRef(null)
@@ -368,9 +373,11 @@ export default function Tarifs() {
   // On anime l'enveloppe .tf-cell : la carte .tf garde ses effets de survol intacts.
   // Tout part quand la grille atteint 80 % de l'écran ; d'ici là, les vrais prix
   // restent dans la page (les compteurs ne repartent de zéro qu'au lancement).
+  // Les sélecteurs sont limités à cette grille : un autre bloc de la page n'est pas touché.
   useLayoutEffect(() => {
-    const root = rootRef.current
-    if (!root || prefersReducedMotion()) return
+    const grid = gridRef.current
+    const foot = footRef.current
+    if (!grid || !foot || prefersReducedMotion()) return
 
     const observers = []
     const ctx = gsap.context(() => {
@@ -380,7 +387,7 @@ export default function Tarifs() {
         paused: true,
         defaults: { ease: 'power3.out' },
         onStart: () => counters.forEach(el => { el.textContent = fmtPrice(+el.dataset.from) }),
-        onComplete: () => root.classList.add('is-live'),
+        onComplete: () => grid.classList.add('is-live'),
       })
 
       tl.fromTo(cells,
@@ -414,22 +421,27 @@ export default function Tarifs() {
             { y: 0, opacity: 1, duration: 0.4, clearProps: 'transform,opacity' }, at + 0.45)
       })
 
-      tl.fromTo('.tf-badge',
-        { scale: 2.2, opacity: 0, rotate: -12 },
-        { scale: 1, opacity: 1, rotate: 0, duration: 0.35, ease: 'power4.in', clearProps: 'transform,opacity' }, 0.9)
-        .fromTo('.tf-quote',
+      // Badge et « Sur devis » : seulement si la grille en contient (sinon GSAP avertit)
+      if (grid.querySelector('.tf-badge')) {
+        tl.fromTo('.tf-badge',
+          { scale: 2.2, opacity: 0, rotate: -12 },
+          { scale: 1, opacity: 1, rotate: 0, duration: 0.35, ease: 'power4.in', clearProps: 'transform,opacity' }, 0.9)
+      }
+      if (grid.querySelector('.tf-quote')) {
+        tl.fromTo('.tf-quote',
           { clipPath: 'inset(0 100% 0 0)' },
           { clipPath: 'inset(0 0% 0 0)', duration: 0.6, ease: 'steps(9)', clearProps: 'clipPath' }, 0.6)
+      }
 
-      const inclus = gsap.fromTo('.tf-inclus li',
+      const inclus = gsap.fromTo(foot.querySelectorAll('.tf-inclus li'),
         { y: 16, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power3.out', clearProps: 'transform,opacity', paused: true })
 
       observers.push(
-        onceInView(root.querySelector('.tf-grid'), '20%', () => tl.play()),
-        onceInView(root.querySelector('.tf-inclus'), '10%', () => inclus.play()),
+        onceInView(grid, '20%', () => tl.play()),
+        onceInView(foot.querySelector('.tf-inclus'), '10%', () => inclus.play()),
       )
-    }, root)
+    }, grid)
 
     return () => {
       observers.forEach(io => io.disconnect())
@@ -437,14 +449,37 @@ export default function Tarifs() {
     }
   }, [])
 
+  const helpText = help === undefined
+    ? <>Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</>
+    : help
+
   return (
-    <section id="tarifs" ref={rootRef}>
+    <>
+      <div className={`tf-grid${formules.length === 2 ? ' tf-grid--2' : ''}`} ref={gridRef}>
+        {formules.map(f => <TarifCard key={f.id} f={f} onChoose={choose} />)}
+      </div>
+
+      <div className="tf-foot" ref={footRef}>
+        <ul className="tf-inclus" aria-label="Inclus dans toutes les formules">
+          {INCLUS.map(x => <li key={x}><span aria-hidden="true">✓</span>{x}</li>)}
+        </ul>
+        {helpText && <p className="tf-help">{helpText}</p>}
+      </div>
+
+      {chosen && <FormuleDialog f={chosen.f} origin={chosen.origin} onClose={closeDialog} />}
+    </>
+  )
+}
+
+export default function Tarifs() {
+  return (
+    <section id="tarifs">
       <div className="section-head reveal">
         <div>
           <span className="section-label">
             <b>01</b><span className="sep">//</span> TARIFS
           </span>
-          <h2 className="section-title">Trois formules,<br/><em>zéro surprise</em>.</h2>
+          <h2 className="section-title">Prix d'un site,<br/><em>zéro surprise</em>.</h2>
           <p className="section-intro">
             Plus votre projet est complet, plus il chauffe. Choisissez votre formule,
             laissez vos coordonnées, je vous rappelle sous 48h.
@@ -456,20 +491,7 @@ export default function Tarifs() {
         </div>
       </div>
 
-      <div className="tf-grid">
-        {FORMULES.map(f => <TarifCard key={f.id} f={f} onChoose={choose} />)}
-      </div>
-
-      <div className="tf-foot">
-        <ul className="tf-inclus" aria-label="Inclus dans toutes les formules">
-          {INCLUS.map(x => <li key={x}><span aria-hidden="true">✓</span>{x}</li>)}
-        </ul>
-        <p className="tf-help">
-          Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.
-        </p>
-      </div>
-
-      {chosen && <FormuleDialog f={chosen.f} origin={chosen.origin} onClose={closeDialog} />}
+      <TarifsBlock />
     </section>
   )
 }

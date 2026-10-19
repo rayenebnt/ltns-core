@@ -47,7 +47,7 @@ export default function Nav() {
         <span className="nav-status">DISPONIBLE</span>
       </div>
 
-      <div className="nav-readout">
+      <div className="nav-readout" data-nosnippet="">
         <span>T<span className="sep">·</span><b>{temp}°</b></span>
         <span className="sep">//</span>
         <span>HEURE<span className="sep">·</span><b>{time}</b></span>

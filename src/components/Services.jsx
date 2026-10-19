@@ -47,7 +47,7 @@ export default function Services() {
           <span className="section-label">
             <b>04</b><span className="sep">//</span> SERVICES
           </span>
-          <h2 className="section-title">Six services,<br/><em>un seul artisan</em>.</h2>
+          <h2 className="section-title">Six services web,<br/><em>un seul artisan</em>.</h2>
           <p className="section-intro">
             Du petit site de présentation à l'application mobile : tout est créé
             pour vous, à la main, jamais copié d'un modèle tout prêt.

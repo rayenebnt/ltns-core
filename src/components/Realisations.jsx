@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import CtaBand from './CtaBand'
 import ProjectPicture from './ProjectPicture'
 
-const projects = [
+// Aussi repris par les pages intérieures (ex. la carte PMSB)
+export const projects = [
   {
     id: 'P01',
     year: '2025',
@@ -85,7 +86,9 @@ function MockPreview({ bg, hi }) {
 const SIZES = '(max-width: 900px) 100vw, 640px'
 const SIZES_WIDE = '(max-width: 860px) 100vw, 770px'
 
-function ProjectCard({ id, year, name, url, domain, chrome, type, tag, description, features, img, bg, hi, wide }) {
+// href : lien interne facultatif (ex. vers l'étude de cas) ; il prime sur url,
+// le lien externe qui s'ouvre dans un nouvel onglet
+export function ProjectCard({ id, year, name, url, href, domain, chrome, type, tag, description, features, img, bg, hi, wide }) {
   const ref = useRef(null)
   const [hasPhoto, setHasPhoto] = useState(Boolean(img))
 
@@ -102,9 +105,9 @@ function ProjectCard({ id, year, name, url, domain, chrome, type, tag, descripti
     if (ref.current) ref.current.style.transform = ''
   }
 
-  // Un projet sans lien public (outil privé) n'est pas cliquable
-  const Card = url ? 'a' : 'article'
-  const linkProps = url ? { href: url, target: '_blank', rel: 'noopener noreferrer' } : {}
+  // Un projet sans lien (outil privé) n'est pas cliquable
+  const Card = href || url ? 'a' : 'article'
+  const linkProps = href ? { href } : url ? { href: url, target: '_blank', rel: 'noopener noreferrer' } : {}
 
   return (
     <Card
@@ -156,7 +159,8 @@ function ProjectCard({ id, year, name, url, domain, chrome, type, tag, descripti
         <p className="realisation-url" style={{ color: hi }}>{domain || 'Outil interne · accès réservé'}</p>
         <div className="realisation-footer">
           <span className="tag" style={{ color: hi, borderColor: `${hi}33` }}>{tag}</span>
-          {url && <span className="realisation-arrow" style={{ color: hi }}>↗</span>}
+          {href ? <span className="realisation-arrow realisation-arrow--in" style={{ color: hi }}>→</span>
+            : url && <span className="realisation-arrow" style={{ color: hi }}>↗</span>}
         </div>
       </div>
     </Card>
@@ -171,7 +175,7 @@ export default function Realisations() {
           <span className="section-label">
             <b>03</b><span className="sep">//</span> RÉALISATIONS
           </span>
-          <h2 className="section-title">Des projets,<br /><em>livrés au degré</em>.</h2>
+          <h2 className="section-title">Sites et logiciel,<br /><em>livrés au degré</em>.</h2>
           <p className="section-intro">
             De la sous-location immobilière au logiciel de gestion d'une entreprise du
             bâtiment : chaque projet est taillé aux besoins du client, sans template générique.
