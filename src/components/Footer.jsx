@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSectionHref } from '../lib/route'
 
 function fmtUtc(d) {
   const hh = String(d.getHours()).padStart(2, '0')
@@ -10,6 +11,7 @@ export default function Footer() {
   const [time, setTime] = useState('--:--')
   const [temp, setTemp] = useState('12.0')
   const [year, setYear] = useState(__BUILD_YEAR__)
+  const href = useSectionHref()
 
   // Heure et année lues dans le navigateur seulement : le HTML pré-rendu reste neutre
   useEffect(() => {
@@ -31,10 +33,10 @@ export default function Footer() {
           <div className="footer-tag">LE WEB AU BON DEGRÉ</div>
         </div>
         <div className="footer-meta">
-          <a href="#services">SERVICES</a>
-          <a href="#process">PROCESS</a>
-          <a href="#faq">FAQ</a>
-          <a href="#contact">CONTACT</a>
+          <a href={href('services')}>SERVICES</a>
+          <a href={href('process')}>PROCESS</a>
+          <a href={href('faq')}>FAQ</a>
+          <a href={href('contact')}>CONTACT</a>
         </div>
         <div className="footer-readout">
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>

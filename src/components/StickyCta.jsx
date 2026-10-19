@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useSectionHref } from '../lib/route'
 
 // Bouton de devis toujours à portée de main pendant la lecture de la page.
 // Il se cache sur l'accueil, pendant le formulaire de devis et sur le pied de page.
 export default function StickyCta() {
   const [pastHero, setPastHero] = useState(false)
   const [inTheWay, setInTheWay] = useState(false)
+  const href = useSectionHref()
 
   useEffect(() => {
     const onScroll = () => setPastHero(window.scrollY > window.innerHeight * 0.8)
@@ -29,7 +31,7 @@ export default function StickyCta() {
 
   return (
     <a
-      href="#contact"
+      href={href('contact')}
       className={`sticky-cta${visible ? ' is-visible' : ''}`}
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}

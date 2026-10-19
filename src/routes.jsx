@@ -1,26 +1,32 @@
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
+import { MIN_PRICE, fmtPrice } from './data/formules'
 
 // Table des pages du site : c'est d'ici que partent le rendu (navigateur et
 // pré-rendu), le <head> de chaque page, le sitemap et le robots.txt.
 //
 // Chaque page :
 // - Page : le composant affiché dans <main> ;
-// - title, description : le <title> et la meta description ;
+// - title, description : le <title> (60 signes au plus) et la meta description
+//   (70 à 155 signes), vérifiés par le pré-rendu ;
+// - ogTitle, ogImage : titre et image de l'aperçu au partage, si différents
+//   (ogImage : { path, width, height, alt }) ;
 // - updated : date de dernière modification (AAAA-MM-JJ), reprise dans le sitemap ;
 // - noindex : vrai pour garder la page hors de Google (et du sitemap) ;
 // - sections : les ancres (#id) présentes sur la page ; les liens vers les
 //   autres ancres de l'accueil deviennent /#id ;
 // - loader : vrai pour afficher l'écran de chauffe à l'arrivée ;
 // - breadcrumb : fil d'Ariane [{ name, path }], ou null ;
-// - schema : type de données structurées ('home', 'service', 'case', 'legal') ou null.
+// - schema : type de données structurées ('home', 'service', 'case', 'legal') ou null,
+//   construites par src/seo/schema.js ;
+// - schemaData : ce que ces données ont de propre à la page ('service' :
+//   { name, serviceType, description, offers? } ; 'case' : { about }).
 export const ROUTES = {
   '/': {
     Page: Home,
-    // Provisoires : les textes d'avant le pré-rendu, remplacés avec les
-    // métadonnées de chaque page
-    title: 'LTNS° — Le web au bon degré.',
-    description: "LTNS° — Création de sites internet, de logiciels et d'applications mobiles pour les particuliers et les professionnels. Le web au bon degré.",
+    title: `Création de site internet en France dès ${fmtPrice(MIN_PRICE)} € | LTNS°`,
+    description: `Création de sites internet et de logiciels sur mesure, partout en France à distance, et sur place en Île-de-France. Dès ${fmtPrice(MIN_PRICE)} € TTC, devis gratuit sous 48h.`,
+    ogTitle: 'LTNS° — Le web au bon degré.',
     updated: '2026-10-19',
     sections: ['tarifs', 'contact', 'realisations', 'services', 'process', 'faq'],
     loader: true,

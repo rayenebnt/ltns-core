@@ -28,7 +28,7 @@ export const FORMULES = [
       'Design soigné, simple à utiliser',
       'Animations créées pour vous',
       'Un espace pour modifier vos textes',
-      'Mieux placé sur Google + suivi des visites',
+      'Référencement Google plus poussé + suivi des visites',
       '1ʳᵉ année en ligne offerte',
     ],
   },

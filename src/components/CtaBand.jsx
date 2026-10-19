@@ -1,7 +1,10 @@
+import { useSectionHref } from '../lib/route'
+
 const PHONE = '0625206493'
 
 // Bandeau de relance vers le devis, placé entre deux sections
 export default function CtaBand({ label, title, text }) {
+  const href = useSectionHref()
   return (
     <div className="cta-band reveal">
       <div className="cta-band-copy">
@@ -10,7 +13,7 @@ export default function CtaBand({ label, title, text }) {
         {text && <p>{text}</p>}
       </div>
       <div className="cta-band-actions">
-        <a href="#contact" className="btn btn-primary">
+        <a href={href('contact')} className="btn btn-primary">
           Demander mon devis gratuit <span className="arrow">→</span>
         </a>
         <a href={`tel:${PHONE}`} className="btn btn-ghost">

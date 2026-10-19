@@ -1,4 +1,5 @@
 import { SITE } from '../data/site.js'
+import { jsonLdFor } from './schema.js'
 
 // Le <head> propre à chaque page, inséré à la place de <!--app-head-->
 // dans index.html par le pré-rendu (scripts/prerender.mjs).
@@ -12,9 +13,14 @@ const esc = s => String(s)
 
 const meta = (attr, key, content) => `<meta ${attr}="${key}" content="${esc(content)}">`
 
+// JSON-LD dans une balise <script> : un « < » dans le texte ne doit jamais
+// pouvoir la refermer
+const jsonLd = graph => `<script type="application/ld+json">${JSON.stringify(graph).replace(/</g, '\\u003c')}</script>`
+
 export function headFor(path, route) {
   const canonical = SITE.url + (path === '/' ? '/' : path)
   const image = route.ogImage || SITE.ogImage
+  const graph = jsonLdFor(path, route)
 
   return [
     `<title>${esc(route.title)}</title>`,
@@ -41,5 +47,8 @@ export function headFor(path, route) {
     meta('property', 'og:image:height', image.height),
     meta('property', 'og:image:alt', image.alt),
     meta('name', 'twitter:card', 'summary_large_image'),
+
+    // Données structurées (src/seo/schema.js), absentes des pages hors de Google
+    ...(graph ? [jsonLd(graph)] : []),
   ].join('\n  ')
 }

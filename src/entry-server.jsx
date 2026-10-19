@@ -6,6 +6,7 @@ import App from './App.jsx'
 export { ROUTES, NOT_FOUND, normalize } from './routes.jsx'
 export { SITE } from './data/site.js'
 export { headFor } from './seo/head.js'
+export { jsonLdFor } from './seo/schema.js'
 
 export const render = path => renderToString(
   <React.StrictMode>

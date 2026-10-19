@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { prefillDevis } from './Contact'
+import { useSectionHref } from '../lib/route'
 
 const services = [
   { id: 'S01', projet: 'Site de présentation', temp: '34°', title: 'Sites de présentation', desc: 'Artisans, indépendants, particuliers : un site simple et soigné pour vous faire connaître et être trouvé sur internet.', tag: 'DEVIS GRATUIT' },
@@ -12,6 +13,7 @@ const services = [
 
 function ServiceCard({ id, projet, temp, title, desc, tag }) {
   const ref = useRef(null)
+  const href = useSectionHref()
 
   const onMouseMove = (e) => {
     const card = ref.current
@@ -22,7 +24,7 @@ function ServiceCard({ id, projet, temp, title, desc, tag }) {
   }
 
   return (
-    <a href="#contact" className="service" ref={ref} onMouseMove={onMouseMove} onClick={() => prefillDevis(projet)}>
+    <a href={href('contact')} className="service" ref={ref} onMouseMove={onMouseMove} onClick={() => prefillDevis(projet)}>
       <div className="service-head">
         <span>{id}</span>
         <span className="service-temp">{temp}</span>

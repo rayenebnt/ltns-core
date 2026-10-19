@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ParcoursTrigger from './ParcoursTrigger'
+import { useIsHome, useSectionHref } from '../lib/route'
 
 function fmtTime(d) {
   const hh = String(d.getHours()).padStart(2, '0')
@@ -12,6 +13,8 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [time, setTime] = useState('--:--:--')
   const [temp, setTemp] = useState('12.0')
+  const href = useSectionHref()
+  const isHome = useIsHome()
 
   // Heure lue dans le navigateur seulement : le HTML pré-rendu affiche --:--:--
   useEffect(() => {
@@ -33,7 +36,7 @@ export default function Nav() {
   return (
     <nav className={scrolled ? 'scrolled' : ''}>
       <div className="nav-left">
-        <a href="#" className="logo" aria-label="LTNS° accueil">
+        <a href={isHome ? '#' : '/'} className="logo" aria-label="LTNS° accueil">
           LTNS<span className="deg">°</span>
         </a>
         <span className="nav-status">DISPONIBLE</span>
@@ -50,15 +53,15 @@ export default function Nav() {
       <div className="nav-right">
         <ParcoursTrigger variant="nav" />
         <ul className="nav-links">
-          <li><a href="#tarifs">tarifs</a></li>
-          <li><a href="#realisations">réalisations</a></li>
-          <li><a href="#services">services</a></li>
-          <li><a href="#process">process</a></li>
-          <li><a href="#faq">faq</a></li>
+          <li><a href={href('tarifs')}>tarifs</a></li>
+          <li><a href={href('realisations')}>réalisations</a></li>
+          <li><a href={href('services')}>services</a></li>
+          <li><a href={href('process')}>process</a></li>
+          <li><a href={href('faq')}>faq</a></li>
         </ul>
         {/* Sur téléphone, les liens sont masqués : on garde un accès direct aux tarifs */}
-        <a href="#tarifs" className="nav-cta nav-tarifs">Tarifs</a>
-        <a href="#contact" className="nav-cta">Devis<span className="arrow">→</span></a>
+        <a href={href('tarifs')} className="nav-cta nav-tarifs">Tarifs</a>
+        <a href={href('contact')} className="nav-cta">Devis<span className="arrow">→</span></a>
       </div>
     </nav>
   )

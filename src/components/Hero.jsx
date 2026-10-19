@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { gsap } from 'gsap'
 import FilmPlayer, { playFilm } from './Film'
+import { useSectionHref } from '../lib/route'
 
 // Arguments affichés sous les boutons : ce qui rassure avant de demander un devis
 const PROOFS = [
@@ -11,6 +12,8 @@ const PROOFS = [
 ]
 
 export default function Hero({ loaded }) {
+  const href = useSectionHref()
+
   // Entrée GSAP
   useEffect(() => {
     if (!loaded) return
@@ -40,7 +43,7 @@ export default function Hero({ loaded }) {
           de vous, du premier appel à la mise en ligne.
         </p>
         <div className="hero-ctas">
-          <a href="#contact" className="btn btn-primary">
+          <a href={href('contact')} className="btn btn-primary">
             Demander mon devis gratuit <span className="arrow">→</span>
           </a>
           <button type="button" className="btn btn-ghost" onClick={playFilm}>

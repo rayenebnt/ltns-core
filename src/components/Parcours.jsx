@@ -5,6 +5,7 @@ import {
 import { createPortal } from 'react-dom'
 import { inkOn } from '../hooks/useThermal'
 import { STEPS } from '../data/steps'
+import { useSectionHref } from '../lib/route'
 
 // Parcours client de A à Z : une seule scène 3D, ouvrable depuis n'importe où
 // dans la page (hero, nav, section process, pastille flottante).
@@ -51,6 +52,7 @@ function ParcoursOverlay({ onClose }) {
   const canvasRef = useRef(null)
   const indexRef = useRef(0)
   const pointerRef = useRef({ x: 0, y: 0 })
+  const href = useSectionHref()
 
   const next = useCallback(() => setIndex(i => Math.min(STEPS.length - 1, i + 1)), [])
   const prev = useCallback(() => setIndex(i => Math.max(0, i - 1)), [])
@@ -414,7 +416,7 @@ function ParcoursOverlay({ onClose }) {
                       </div>
                     </dl>
                     {last && (
-                      <a href="#contact" className="parcours-slide-cta" tabIndex={active ? 0 : -1} onClick={onClose}>
+                      <a href={href('contact')} className="parcours-slide-cta" tabIndex={active ? 0 : -1} onClick={onClose}>
                         DEMANDER MON DEVIS <span aria-hidden="true">→</span>
                       </a>
                     )}

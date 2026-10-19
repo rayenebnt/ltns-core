@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSectionHref } from '../lib/route'
 
 // Le film de présentation : version verticale sur téléphone, paysage ailleurs.
 // Fichiers dans public/film/ (vidéo avec voix off, image d'aperçu, sous-titres).
@@ -16,6 +17,7 @@ export default function FilmPlayer() {
   const videoRef = useRef(null)
   const [tall, setTall] = useState(false)
   const [status, setStatus] = useState('idle') // idle → playing → ended
+  const href = useSectionHref()
 
   // Suit l'orientation tant que le film n'a pas été lancé
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function FilmPlayer() {
         <div className="film-end">
           <span className="film-end-label">ENVIE D'UN SITE AU BON DEGRÉ ?</span>
           <div className="film-end-ctas">
-            <a href="#contact" className="btn btn-primary">
+            <a href={href('contact')} className="btn btn-primary">
               Demander mon devis <span className="arrow">→</span>
             </a>
             <button type="button" className="btn btn-ghost" onClick={play}>

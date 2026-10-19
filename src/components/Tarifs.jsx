@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inkOn, tempColor } from '../hooks/useThermal'
 import { EMAIL, EMAIL_RE, FORMSPREE_URL, makeReference, prefillDevis } from './Contact'
 import { FORMULES, INCLUS, fmtPrice, priceLabel } from '../data/formules'
+import { useSectionHref } from '../lib/route'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -31,6 +32,7 @@ const prefersReducedMotion = () =>
 
 function TarifCard({ f, onChoose }) {
   const lit = Math.max(1, Math.round(pos(f.temp) * SEGMENTS))
+  const href = useSectionHref()
 
   const onPointerMove = (e) => {
     if (e.pointerType !== 'mouse') return
@@ -48,7 +50,7 @@ function TarifCard({ f, onChoose }) {
         <div className="tf-inner">
           <div className="tf-head">
             <span>FORMULE {f.id} · {f.heat}</span>
-            {f.featured && <span className="tf-badge">LE PLUS CHOISI</span>}
+            {f.featured && <span className="tf-badge">RECOMMANDÉ</span>}
           </div>
 
           <div className="tf-title">
@@ -95,7 +97,7 @@ function TarifCard({ f, onChoose }) {
               Choisir {f.name} <span className="arrow">→</span>
             </button>
           ) : (
-            <a href="#contact" className={btnClass} onClick={() => prefillDevis(null, { formule: f.name })}>
+            <a href={href('contact')} className={btnClass} onClick={() => prefillDevis(null, { formule: f.name })}>
               Parlons de mon projet <span className="arrow">→</span>
             </a>
           )}
@@ -331,6 +333,7 @@ function FormuleDialog({ f, origin, onClose }) {
 
 export default function Tarifs() {
   const rootRef = useRef(null)
+  const href = useSectionHref()
   const [chosen, setChosen] = useState(null)
   const triggerRef = useRef(null)
 
@@ -438,7 +441,7 @@ export default function Tarifs() {
           {INCLUS.map(x => <li key={x}><span aria-hidden="true">✓</span>{x}</li>)}
         </ul>
         <p className="tf-help">
-          Vous hésitez ? <a href="#contact">Décrivez votre projet</a>, je vous dis quelle formule vous convient.
+          Vous hésitez ? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.
         </p>
       </div>
 
