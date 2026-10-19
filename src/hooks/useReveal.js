@@ -1,24 +1,20 @@
 import { useEffect } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-gsap.registerPlugin(ScrollTrigger)
-
+// Les blocs .reveal apparaissent quand leur haut passe à 85 % de l'écran, une
+// seule fois. Ceux déjà dépassés (ex. arrivée sur /#faq) s'affichent aussitôt.
 export default function useReveal(active) {
   useEffect(() => {
     if (!active) return
 
-    const triggers = []
-    document.querySelectorAll('.reveal').forEach(el => {
-      const trigger = ScrollTrigger.create({
-        trigger: el,
-        start: 'top 85%',
-        onEnter: () => el.classList.add('visible'),
-        once: true
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting && e.boundingClientRect.top >= 0) return
+        e.target.classList.add('visible')
+        io.unobserve(e.target)
       })
-      triggers.push(trigger)
-    })
+    }, { rootMargin: '0px 0px -15% 0px' })
 
-    return () => triggers.forEach(t => t.kill())
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el))
+    return () => io.disconnect()
   }, [active])
 }

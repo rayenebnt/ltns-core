@@ -1,6 +1,7 @@
 // Formules affichées — prix, contenu et délais modifiables ici.
 // price: null → « sur devis » : le bouton mène au devis détaillé.
 // Sinon le bouton ouvre une demande directe (nom, email, téléphone).
+// Un « 1re » en début de ligne s'affiche en exposant sur la carte (Tarifs.jsx).
 export const FORMULES = [
   {
     id: '01', name: 'Essentiel', temp: 38, heat: 'TIÈDE',
@@ -14,7 +15,7 @@ export const FORMULES = [
       'Design créé pour vous',
       'Formulaire de contact',
       'Les bases pour être trouvé sur Google',
-      '1ʳᵉ année en ligne offerte',
+      '1re année en ligne offerte',
     ],
   },
   {
@@ -29,7 +30,7 @@ export const FORMULES = [
       'Animations créées pour vous',
       'Un espace pour modifier vos textes',
       'Référencement Google plus poussé + suivi des visites',
-      '1ʳᵉ année en ligne offerte',
+      '1re année en ligne offerte',
     ],
   },
   {

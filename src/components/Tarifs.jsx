@@ -1,13 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { inkOn, tempColor } from '../hooks/useThermal'
 import { EMAIL, EMAIL_RE, FORMSPREE_URL, makeReference, prefillDevis } from './Contact'
 import { FORMULES, INCLUS, fmtPrice, priceLabel } from '../data/formules'
 import { useSectionHref } from '../lib/route'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const SEGMENTS = 12
 const pos = temp => (temp - 12) / 87 // 12° → 0, 99° → 1
@@ -29,6 +26,22 @@ const heatVars = temp => {
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// Appelle fn une seule fois, quand le haut de el passe au-dessus de la ligne
+// placée à `margin` du bas de l'écran, ou s'il est déjà dépassé (arrivée sur /#faq)
+const onceInView = (el, margin, fn) => {
+  const io = new IntersectionObserver(entries => {
+    if (!entries.some(e => e.isIntersecting || e.boundingClientRect.top < 0)) return
+    io.disconnect()
+    fn()
+  }, { rootMargin: `0px 0px -${margin} 0px` })
+  io.observe(el)
+  return io
+}
+
+// « 1re » en début de ligne : l'ordinal en exposant, avec les seuls glyphes latins
+const Feature = ({ x }) =>
+  x.startsWith('1re ') ? <span>1<sup className="ord">re</sup>{x.slice(3)}</span> : x
 
 function TarifCard({ f, onChoose }) {
   const lit = Math.max(1, Math.round(pos(f.temp) * SEGMENTS))
@@ -67,7 +80,8 @@ function TarifCard({ f, onChoose }) {
             ))}
           </div>
 
-          <div className="tf-price">
+          {/* Le prix affiché s'anime ; le texte lu et indexé reste le vrai prix */}
+          <div className="tf-price" aria-hidden="true">
             {f.price ? (
               <>
                 <small>à partir de</small>
@@ -82,6 +96,7 @@ function TarifCard({ f, onChoose }) {
               </>
             )}
           </div>
+          <p className="sr-only">{f.price ? priceLabel(f) : 'Prix sur devis gratuit'}</p>
 
           <dl className="tf-meta">
             <div><dt>Idéal pour</dt><dd>{f.pour}</dd></div>
@@ -89,7 +104,7 @@ function TarifCard({ f, onChoose }) {
           </dl>
 
           <ul className="tf-list">
-            {f.features.map(x => <li key={x}>{x}</li>)}
+            {f.features.map(x => <li key={x}><Feature x={x} /></li>)}
           </ul>
 
           {f.price ? (
@@ -351,15 +366,20 @@ export default function Tarifs() {
 
   // Motion design : les cartes montent, la jauge chauffe, les chiffres défilent.
   // On anime l'enveloppe .tf-cell : la carte .tf garde ses effets de survol intacts.
+  // Tout part quand la grille atteint 80 % de l'écran ; d'ici là, les vrais prix
+  // restent dans la page (les compteurs ne repartent de zéro qu'au lancement).
   useLayoutEffect(() => {
     const root = rootRef.current
     if (!root || prefersReducedMotion()) return
 
+    const observers = []
     const ctx = gsap.context(() => {
       const cells = gsap.utils.toArray('.tf-cell')
+      const counters = gsap.utils.toArray('[data-count]')
       const tl = gsap.timeline({
+        paused: true,
         defaults: { ease: 'power3.out' },
-        scrollTrigger: { trigger: '.tf-grid', start: 'top 80%', once: true },
+        onStart: () => counters.forEach(el => { el.textContent = fmtPrice(+el.dataset.from) }),
         onComplete: () => root.classList.add('is-live'),
       })
 
@@ -380,7 +400,6 @@ export default function Tarifs() {
           const end = +el.dataset.count
           const from = +el.dataset.from
           const o = { v: from }
-          el.textContent = fmtPrice(from)
           tl.to(o, {
             v: end, duration: heatTime + 0.3, ease: 'power2.out',
             onUpdate: () => { el.textContent = fmtPrice(o.v) },
@@ -402,15 +421,20 @@ export default function Tarifs() {
           { clipPath: 'inset(0 100% 0 0)' },
           { clipPath: 'inset(0 0% 0 0)', duration: 0.6, ease: 'steps(9)', clearProps: 'clipPath' }, 0.6)
 
-      gsap.fromTo('.tf-inclus li',
+      const inclus = gsap.fromTo('.tf-inclus li',
         { y: 16, opacity: 0 },
-        {
-          y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power3.out', clearProps: 'transform,opacity',
-          scrollTrigger: { trigger: '.tf-inclus', start: 'top 90%', once: true },
-        })
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power3.out', clearProps: 'transform,opacity', paused: true })
+
+      observers.push(
+        onceInView(root.querySelector('.tf-grid'), '20%', () => tl.play()),
+        onceInView(root.querySelector('.tf-inclus'), '10%', () => inclus.play()),
+      )
     }, root)
 
-    return () => ctx.revert()
+    return () => {
+      observers.forEach(io => io.disconnect())
+      ctx.revert()
+    }
   }, [])
 
   return (

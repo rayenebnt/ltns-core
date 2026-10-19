@@ -8,8 +8,12 @@ Le film (43 s) existe en deux versions :
   (`src/components/Film.jsx`) :
   - `ltns-film-16x9.mp4` : paysage 1920×1080, affiché sur ordinateur et tablette
   - `ltns-film-9x16.mp4` : vertical 1080×1920, affiché sur téléphone
-  - `ltns-film-16x9.jpg`, `ltns-film-9x16.jpg` : images d'aperçu
+  - `ltns-film-16x9.jpg`, `ltns-film-9x16.jpg` : images d'aperçu d'origine
   - `ltns-film.vtt` : sous-titres de la voix off (bouton CC du lecteur)
+- `public/media/` : les images d'aperçu réellement affichées par le site, en WebP
+  (qualité 75), tirées des deux JPG ci-dessus : `ltns-film-16x9-1280.webp`,
+  `ltns-film-16x9-1920.webp`, `ltns-film-9x16-720.webp`, `ltns-film-9x16-1080.webp`
+  (le chiffre est la largeur en pixels). Si un JPG change, refaites ces quatre fichiers.
 
 ## Voix off
 
