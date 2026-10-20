@@ -57,7 +57,7 @@ Tant que ces champs valent `[à compléter]`, la page des mentions légales l'af
 | `LEGAL.retention` | Durée de conservation des demandes de devis, par exemple « 3 ans après notre dernier échange » |
 | `LEGAL.transfers` | Garanties pour les données envoyées hors de l'UE (Formspree, Google, Vercel, Umami) |
 | `SITE.sameAs.tiktok` | Le lien de ton compte TikTok |
-| `SITE.sameAs.googleMaps` | Le lien de la fiche Google, une fois validée |
+| `SITE.sameAs.googleMaps` | ✅ Rempli le 20 octobre (fiche validée) |
 | `SITE.analytics.vercel` | `false` si Vercel Web Analytics n'est pas activé |
 
 Si tu fais des visios, le mot peut être rajouté dans la FAQ et sur la page site vitrine. Il a été retiré parce que ce n'était pas confirmé.

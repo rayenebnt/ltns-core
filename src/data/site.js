@@ -39,8 +39,8 @@ export const SITE = {
   sameAs: {
     // Adresse du compte TikTok (https://www.tiktok.com/@…) une fois le compte public
     tiktok: TODO,
-    // Lien de la fiche Google (bouton « Partager » de la fiche) une fois validée
-    googleMaps: TODO,
+    // Lien de la fiche Google (bouton « Partager » de la fiche), validée le 20 oct. 2026
+    googleMaps: 'https://share.google/70zgCfWdsaTeLWmUY',
   },
   // vercel : vrai seulement si Web Analytics est activé dans le projet Vercel (les
   // mentions légales l'annoncent alors comme un fait) ; sinon false
