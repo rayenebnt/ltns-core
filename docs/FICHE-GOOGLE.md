@@ -184,6 +184,13 @@ Un échange de 20 minutes, gratuit et sans engagement, puis un devis détaillé 
 - `docs/fiche-google/logo-mot-720.png` : le texte LTNS° (le plus lisible, conseillé)
 - `docs/fiche-google/logo-cadran-720.png` : le cadran violet seul
 
+**Photos prêtes à téléverser** (dossier `docs/fiche-google/photos/`, préparé le 20 oct.) :
+- `1-site-ltns-ordinateur.jpg`
+- `2-site-ltns-mobile.jpg`
+- `3-tarifs-ltns.jpg`
+- `4-realisation-pmsb-site.jpg`
+- `apres-accord-pmsb-gestion-logiciel.jpg` : à téléverser seulement après le « oui » écrit de PMSB.
+
 **Photos à ajouter après la validation :**
 
 | Photo | Fichier | Condition |
