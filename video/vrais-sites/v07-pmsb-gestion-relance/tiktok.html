@@ -157,7 +157,9 @@
   #title .ul { position: absolute; left: -4px; right: -4px; bottom: -6px; height: 12px; border-radius: 6px; transform-origin: 0 50%; transform: scaleX(0); }
   #title .ul.r { background: var(--red2); }
   #title .ul.b { background: var(--blue); height: 10px; bottom: -4px; }
-  #caption { position: absolute; left: 50px; right: 50px; top: 238px; height: 226px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: 0 .26em; text-align: center; font-weight: 800; font-size: 62px; line-height: 1.07; letter-spacing: -1.2px; text-transform: uppercase; }
+  /* bloc centré verticalement, lignes équilibrées (pas de mot seul sur la dernière ligne) */
+  #caption { position: absolute; left: 50px; right: 50px; top: 238px; height: 226px; z-index: 20; display: block; align-content: center; text-wrap: balance; word-spacing: .04em; text-align: center; font-weight: 800; font-size: 62px; line-height: 1.07; letter-spacing: -1.2px; text-transform: uppercase; }
+  #caption.mid { font-size: 56px; }
   #caption.long { font-size: 50px; }
   #caption .w { color: rgba(29, 31, 36, .26); }
   #caption .w.on { color: var(--g); }
@@ -198,8 +200,7 @@
     <img class="pim" data-k="nt" src="assets/panneau-n3-notee.png" alt="">
     <img class="pim" data-k="ntp" src="assets/panneau-n3-notee-survol-pdf.png" alt="">
     <img class="pim" data-k="ntc" src="assets/panneau-n3-notee-survol-copier.png" alt="">
-    <div id="msgGlow"></div><div id="scan"></div>
-    <div id="lmasks"></div><div id="caret"></div>
+    <div id="lmasks"></div><div id="msgGlow"></div><div id="scan"></div><div id="caret"></div>
     <div class="halo glow" id="haloG"></div><div class="halo ring" id="haloB"></div><div class="halo ring" id="haloR"></div><div id="hopDot"></div>
     <div class="ring2" id="ringBtn"></div><div class="ring2 green" id="ringOk"></div>
     <div id="newLine"></div>
@@ -297,7 +298,7 @@ const CUES = {
   comment: [5, 'comment', -0.03],
 }
 
-let D, PR, T, PERIOD = 25, keysP, IMG = {}, MASKS = [], CHKS = [], WALL = 0
+let D, PR, T, PERIOD = 25, keysP, IMG = {}, MASKS = [], CHKS = [], WALL = 0, BADGE_W = 340
 const osc = (t, approx, ph = 0) => { const n = Math.max(1, Math.round(PERIOD / approx)); return Math.sin(TAU * (t * n / PERIOD + ph)) }
 
 /* ── Géométrie ───────────────────────────────────────────── */
@@ -316,7 +317,8 @@ function monitorAt(t) {
     ms = lerp(1, zoom.ms, z); tx = lerp(0, zoom.tx, z); ty = lerp(ty, zoom.ty, z)
     const drift = ramp(t, 2.82, 1.2) * 6
     tx += drift; ty -= drift * 0.4
-    const c = easeInOut(ramp(t, T.swap, 0.32))
+    // coupe sous l'éclair du clic : on arrive directement sur la colonne du panneau (jamais d'écran vide)
+    const c = easeOut(ramp(t, T.swap - 0.05, 0.1))
     tx = lerp(tx, onP.tx, c); ty = lerp(ty, onP.ty, c)
     const d = easeIn(ramp(t, T.lift, 0.42))
     ty += d * 260; op *= 1 - d; blur = d * 10
@@ -350,10 +352,14 @@ function buildKeys(C) {
   const PIN = with_(P0, { cy: 870 + 760, rx: 38, ry: -4, op: 0 })
   const K = [
     [0, P0], [1.0, P0], [1.6, with_(P0, { S: P0.S * 0.84, cy: 905, op: 0, blur: 14 })],
-    [T.liftEnd, PA, 'screen'], [C.lui - 0.32, with_(PA, { wy1: 600, S: 1.34, cx: 604, cy: 896, rx: 2, ry: 4, rz: -0.4 })], [C.lui + 0.16, PB],
+    // attente de « c'est lui » : la caméra avance sans arrêt vers le champ Message vide (curseur qui clignote)
+    [T.liftEnd, PA, 'screen'],
+    [Math.max(T.liftEnd + 0.35, C.pmsb + 0.05), with_(PA, { wy0: 30, wy1: 610, S: 1.38, cx: 600, cy: 905, rx: 3, ry: 3, rz: -0.3 })],
+    [C.lui - 0.3, { wx0: 10, wy0: 212, wx1: 425, wy1: 640, cx: 556, cy: 884, S: 1.62, rx: 2, ry: 4, rz: -0.5, op: 1, blur: 0, fade: 0 }],
+    [C.lui + 0.16, PB],
     [T.pc0, with_(PB, { cy: 862, rx: 1, ry: -1.5 })], [T.pc0 + 0.42, PC],
-    [T.prop - 0.12, with_(PC, { cx: 548, ry: -2.5 })], [T.prop + 0.32, PD],
-    [T.texte - 0.12, with_(PD, { S: 3.2, cy: 656, rx: -2, ry: 3 })], [T.texte + 0.3, with_(PB, { rx: 1.5, ry: -2 })],
+    [T.prop - 0.12, with_(PC, { wy1: 412, S: 2.13, cx: 544, cy: 786, rx: 4, ry: -5.5 })], [T.prop + 0.32, PD],
+    [T.texte - 0.12, with_(PD, { S: 3.42, cx: 548, cy: 664, rx: -2.5, ry: 3.5 })], [T.texte + 0.3, with_(PB, { rx: 1.5, ry: -2 })],
     [T.v4, with_(PB, { cy: 860, rx: 0.5, ry: -1 })], [T.v4 + 0.42, PF],
     [T.mail + 0.06, with_(PF, { cx: 546 })], [T.mail + 0.45, PF2],
     [T.pdf, with_(PF2, { S: 2.3, cy: 890, ry: 1.5 })], [T.pdf + 0.42, PL],
@@ -382,8 +388,8 @@ function screenPose(t, m) {
   const sec = PR.n3.section, S = SCR * m.ms
   const o = scrToStage(m, sec.x, sec.y)
   const bottom = 650 + m.ty + m.ms * (14 + 470)
-  const wy1 = Math.min(lerp(44, 880, easeOut(ramp(t, T.swap + 0.08, 0.36))), (bottom - o.y) / S)
-  return { wx0: 0, wy0: 0, wx1: 435, wy1, cx: o.x + 435 * S / 2, cy: o.y + wy1 * S / 2, S, rx: 0, ry: 0, rz: 0, op: ramp(t, T.swap + 0.04, 0.06), blur: 0, fade: 0 }
+  const wy1 = Math.min(lerp(120, 880, easeOut(ramp(t, T.swap + 0.04, 0.36))), (bottom - o.y) / S)
+  return { wx0: 0, wy0: 0, wx1: 435, wy1, cx: o.x + 435 * S / 2, cy: o.y + wy1 * S / 2, S, rx: 0, ry: 0, rz: 0, op: ramp(t, T.swap, 0.04), blur: 0, fade: 0 }
 }
 function panelPose(t) {
   if (t >= 1.6 && t < T.swap) return with_(P0, { op: 0 })
@@ -449,8 +455,11 @@ function render(t, k) {
 
   /* Sous-titres (après le titre), cachés pendant la question finale */
   const si = TIMES.findIndex((s, i) => t >= s.start - 0.08 && (i === TIMES.length - 1 || t < TIMES[i + 1].start - 0.08))
-  $('caption').classList.toggle('long', si >= 0 && SENTENCES[si].chunks.map(c => c[0]).join(' ').length > 64)
-  caption($('caption'), t, k, { from: 3.0, hide: tail || t >= T.end - 0.05 })
+  const capLen = si >= 0 ? SENTENCES[si].chunks.map(c => c[0]).join(' ').length : 0
+  $('caption').classList.toggle('mid', capLen > 40 && capLen <= 64)
+  $('caption').classList.toggle('long', capLen > 64)
+  // V6 n'a pas de sous-titre : la question s'écrit en gros sur la carte de fin (sinon elle s'afficherait deux fois)
+  caption($('caption'), t, k, { from: 3.0, hide: tail || si === 5 || t >= T.end - 0.05 })
   $('hud').style.opacity = tail ? 1 - ramp(t, T.loop, 0.25) : ramp(t, 3.0, 0.3)
 
   /* Fond : tableau de bord de démo */
@@ -635,8 +644,9 @@ function render(t, k) {
   nl.opacity = tail ? 0 : (easeOut(ramp(t, T.notee, 0.2)) * (1 - ramp(t, T.ech + 0.2, 0.2))).toFixed(3)
 
   /* Logo PMSB Gestion sur « P.M.S.B. » */
-  const lgIn = tail ? 0 : back(ramp(t, C.cree, 0.38)), lgOut = easeIn(ramp(t, Math.max(C.pmsb + 0.45, C.lui - 0.3), 0.25)), lgB = tail ? 0 : pulse(t, C.pmsb, 0.3)
-  setT($('logoChip'), t >= C.cree && !tail ? clamp(lgIn) * (1 - lgOut) : 0, `translate(${40 - lgOut * 380}px, ${560 + (1 - clamp(lgIn)) * 60 - lgB * 18}px) rotate(${-6 + 3 * (1 - lgIn) + lgB * 4}deg) scale(${(0.7 + 0.3 * lgIn + 0.08 * lgB).toFixed(3)})`)
+  // il sort avant que la caméra n'avance sur le champ Message (pas de chevauchement avec la carte)
+  const lgIn = tail ? 0 : back(ramp(t, C.cree, 0.38)), lgOut = easeIn(ramp(t, Math.max(C.cree + 0.6, Math.min(C.pmsb + 0.42, C.lui - 0.3)), 0.25)), lgB = tail ? 0 : pulse(t, C.pmsb, 0.3)
+  setT($('logoChip'), t >= C.cree && !tail ? clamp(lgIn) * (1 - lgOut) : 0, `translate(${34 - lgOut * 400}px, ${590 + (1 - clamp(lgIn)) * 60 - lgB * 22}px) rotate(${-6 + 3 * (1 - lgIn) + lgB * 5}deg) scale(${(1.12 * (0.7 + 0.3 * lgIn) + 0.1 * lgB).toFixed(3)})`)
 
   /* Escalier 1 · 2 · 3 */
   const stIn = tail ? 0 : ramp(t, T.v3 - 0.02, 0.4)
@@ -713,9 +723,9 @@ function render(t, k) {
   rls.transform = `scaleX(${rlp.toFixed(4)})`
 
   /* Échéancier : les retards, la pastille rouge rebondit */
-  const eIn = tail ? 0 : easeOut(ramp(t, T.ech + 0.1, 0.28)), eOut = easeIn(ramp(t, T.end - 0.1, 0.28))
+  const eIn = tail ? 0 : easeOut(ramp(t, T.ech + 0.1, 0.28)), eOut = easeIn(ramp(t, T.end - 0.18, 0.2)) // sort avant que la question n'arrive (pas de fondu l'un sur l'autre)
   $('ech').style.opacity = (eIn * (1 - eOut)).toFixed(3)
-  $('ech').style.transform = `translateY(${((1 - eIn) * 70 - eOut * 50).toFixed(1)}px) scale(${(1 - 0.04 * eOut).toFixed(4)})`
+  $('ech').style.transform = `translateY(${((1 - eIn) * 70 + eOut * 150).toFixed(1)}px) scale(${(1 - 0.06 * eOut).toFixed(4)})`
   const EL = D.rects.el, es = 700 / EL.sideEch.w
   const b = EL.sideBadge, bx = (b.x - EL.sideEch.x - 2) * es, by = (b.y - EL.sideEch.y - 2) * es, bw = (b.w + 4) * es
   const pc = $('pastCover').style; pc.left = bx + 'px'; pc.top = by + 'px'; pc.width = bw + 'px'; pc.height = bw + 'px'; pc.background = D.fondPastille
@@ -733,7 +743,11 @@ function render(t, k) {
 
   /* Fin : la question, l'escalier qui s'allume, l'offre */
   const endOn = !tail && t >= T.end
-  const eqIn = endOn ? easeOut(ramp(t, T.end, 0.3)) : tail ? 1 - ramp(t, T.loop, 0.28) : 0
+  // la carte de fin avance doucement jusqu'à la boucle (jamais d'image figée)
+  const ePush = endOn ? easeInOut(ramp(t, T.end, Math.max(0.5, T.loop - T.end))) : tail ? 1 : 0
+  $('endc').style.transform = ePush > 0 ? `scale(${(1 + 0.035 * ePush).toFixed(4)})` : 'none'
+  $('endc').style.transformOrigin = '540px 820px'
+  const eqIn = endOn ? easeOut(ramp(t, T.end + 0.02, 0.26)) : tail ? 1 - ramp(t, T.loop, 0.28) : 0
   setT($('q'), eqIn.toFixed(3), `translateY(${((1 - eqIn) * 30).toFixed(1)}px)`)
   const w5 = WORDS[5]
   qa('#q .w').forEach((el, i) => {
@@ -757,7 +771,7 @@ function render(t, k) {
   })
 
   /* Voile haut quand le contenu passe sous le texte */
-  const shade = tail ? 0 : Math.max(easeInOut(ramp(t, 2.3, 0.3)) * (1 - easeInOut(ramp(t, T.lift + 0.1, 0.3))), t >= T.pdf + 0.2 && t < T.v5 + 0.4 ? easeInOut(ramp(t, T.pdf + 0.2, 0.3)) * (1 - ramp(t, T.v5 + 0.1, 0.3)) : 0)
+  const shade = tail ? 0 : Math.max(easeInOut(ramp(t, 2.3, 0.3)) * (1 - easeInOut(ramp(t, T.lift + 0.1, 0.3))), t >= T.pdf + 0.2 && t < T.v5 + 0.62 ? easeInOut(ramp(t, T.pdf + 0.2, 0.3)) * (1 - ramp(t, T.v5 + 0.36, 0.25)) : 0) // la lettre repart sous le texte sans le traverser
   $('shadeTop').style.opacity = shade.toFixed(3)
 
   /* Badge « Données de démonstration » : sur la carte à l'image 0, sur la carte « En retard », puis ancré */
@@ -768,6 +782,12 @@ function render(t, k) {
   else if (t < 1.32) bp = BF
   else if (t < 1.98) bp = mixB(BF, BK, easeInOut(ramp(t, 1.32, 0.4)))
   else bp = mixB(BK, BD, easeInOut(ramp(t, 1.98, 0.36)))
+  // machine à écrire : le badge se colle sur le champ Message, là où s'écrivent les montants (inventés)
+  const bm = tail ? 0 : easeInOut(ramp(t, T.texte + 0.08, 0.36)) * (1 - easeInOut(ramp(t, T.v4 - 0.08, 0.36)))
+  if (bm > 0) {
+    const mr2 = PR.n3.message, tr = pToStage(P, mr2.x + mr2.w, mr2.y)
+    bp = mixB(bp, { x: tr.x - BADGE_W + 16, y: tr.y - 34, r: -3, s: 1 }, bm)
+  }
   const bpush = (t < 1.0 || tail) ? push(t, tail) : 1
   setT($('badge'), 1, `translate(${(540 + (bp.x - 540) * bpush).toFixed(2)}px, ${(880 + (bp.y - 880) * bpush).toFixed(2)}px) rotate(${bp.r.toFixed(3)}deg)`)
 
@@ -837,6 +857,8 @@ LTNS.start({
     // le titre tient sur la largeur
     qa('#title .l').forEach(l => { const w = l.scrollWidth, max = 985; if (w > max) l.style.fontSize = (parseFloat(getComputedStyle(l).fontSize) * max / w).toFixed(1) + 'px' })
     await Promise.all(qa('img').map(i => i.decode().catch(() => {})))
+    await document.fonts.ready
+    BADGE_W = $('badge').offsetWidth
   },
 })
 </script>
