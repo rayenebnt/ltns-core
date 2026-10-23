@@ -1,0 +1,960 @@
+{
+ "lignes-n1": [
+  [
+   335.38,
+   349.03,
+   58.56,
+   196.64
+  ],
+  [
+   379.3,
+   393.28,
+   58.23,
+   347.03
+  ],
+  [
+   400.93,
+   415.24,
+   58.56,
+   365.99
+  ],
+  [
+   421.89,
+   435.87,
+   58.23,
+   325.07
+  ],
+  [
+   444.18,
+   458.16,
+   58.23,
+   351.02
+  ],
+  [
+   465.81,
+   479.78,
+   58.56,
+   349.36
+  ],
+  [
+   509.06,
+   523.04,
+   58.56,
+   364.33
+  ],
+  [
+   530.69,
+   545.0,
+   57.89,
+   367.32
+  ],
+  [
+   552.65,
+   566.96,
+   58.23,
+   335.38
+  ]
+ ],
+ "lignes-n2": [
+  [
+   335.38,
+   349.03,
+   58.56,
+   196.64
+  ],
+  [
+   378.97,
+   393.28,
+   58.56,
+   298.78
+  ],
+  [
+   401.26,
+   414.9,
+   58.23,
+   357.01
+  ],
+  [
+   421.89,
+   436.2,
+   58.23,
+   373.31
+  ],
+  [
+   443.85,
+   458.16,
+   58.56,
+   366.99
+  ],
+  [
+   466.48,
+   479.78,
+   58.23,
+   141.74
+  ],
+  [
+   509.06,
+   520.04,
+   58.56,
+   328.4
+  ],
+  [
+   530.69,
+   545.0,
+   58.56,
+   356.34
+  ],
+  [
+   574.94,
+   588.92,
+   58.56,
+   358.01
+  ]
+ ],
+ "lignes-n3": [
+  [
+   335.38,
+   349.03,
+   58.56,
+   196.64
+  ],
+  [
+   378.97,
+   393.28,
+   58.56,
+   359.34
+  ],
+  [
+   401.26,
+   414.9,
+   57.56,
+   361.34
+  ],
+  [
+   421.89,
+   436.2,
+   58.23,
+   365.33
+  ],
+  [
+   443.85,
+   458.16,
+   58.56,
+   319.08
+  ],
+  [
+   465.81,
+   479.78,
+   58.56,
+   349.36
+  ],
+  [
+   508.73,
+   523.04,
+   58.56,
+   329.73
+  ],
+  [
+   530.69,
+   545.0,
+   58.23,
+   362.33
+  ],
+  [
+   552.65,
+   566.96,
+   58.56,
+   320.41
+  ],
+  [
+   574.61,
+   588.92,
+   58.56,
+   234.57
+  ]
+ ],
+ "historique-notee": [
+  {
+   "t": "Mise en demeure le 23/10/2026 — Alex Démo",
+   "x0": 42.9,
+   "x1": 355.0,
+   "y0": 963.4,
+   "y1": 985.9
+  },
+  {
+   "t": "Relance le 15/10/2026 — Alex Démo",
+   "x0": 42.9,
+   "x1": 287.1,
+   "y0": 985.9,
+   "y1": 1008.4
+  },
+  {
+   "t": "Rappel le 05/10/2026 — Alex Démo",
+   "x0": 42.9,
+   "x1": 283.1,
+   "y0": 1008.4,
+   "y1": 1030.9
+  }
+ ],
+ "lettre": {
+  "w": 1654,
+  "lignes": [
+   [
+    353,
+    120,
+    1298,
+    243,
+    "ENTREPRISE P.M.S.B"
+   ],
+   [
+    422,
+    250,
+    1231,
+    298,
+    "Prestations Multi Services Bâtiment"
+   ],
+   [
+    917,
+    531,
+    1253,
+    558,
+    "Syndic Résidence du Parc"
+   ],
+   [
+    917,
+    575,
+    1440,
+    603,
+    "À l'attention de Mme Garnier, gestionnaire"
+   ],
+   [
+    1127,
+    808,
+    1542,
+    836,
+    "À Ville-Démo, le 23 octobre 2026"
+   ],
+   [
+    111,
+    902,
+    707,
+    930,
+    "Lettre recommandée avec accusé de réception"
+   ],
+   [
+    111,
+    963,
+    922,
+    991,
+    "Objet : Mise en demeure de payer – facture n° FAC-2026-0002"
+   ],
+   [
+    111,
+    1058,
+    357,
+    1085,
+    "Madame, Monsieur,"
+   ],
+   [
+    111,
+    1127,
+    1542,
+    1155,
+    "Malgré nos relances restées sans effet, la facture n° FAC-2026-0002 du 31/08/2026, d'un montant de 16 269,33 €, échue"
+   ],
+   [
+    111,
+    1171,
+    1152,
+    1199,
+    "depuis le 30/09/2026, demeure impayée. Le montant restant dû s'élève à 15 455,86 €."
+   ],
+   [
+    111,
+    1241,
+    1542,
+    1268,
+    "Par la présente, nous vous mettons en demeure de nous régler cette somme dans un délai de huit jours à compter de la"
+   ],
+   [
+    111,
+    1285,
+    406,
+    1312,
+    "réception de ce courrier."
+   ],
+   [
+    111,
+    1354,
+    1488,
+    1382,
+    "Conformément à l'article L441-10 du Code de commerce, cette somme sera majorée des pénalités de retard et de"
+   ],
+   [
+    111,
+    1399,
+    820,
+    1426,
+    "l'indemnité forfaitaire de 40 € pour frais de recouvrement."
+   ],
+   [
+    111,
+    1468,
+    1542,
+    1495,
+    "À défaut de règlement dans ce délai, nous nous verrons contraints d'engager une procédure de recouvrement judiciaire,"
+   ],
+   [
+    111,
+    1512,
+    296,
+    1540,
+    "sans autre avis."
+   ],
+   [
+    111,
+    1581,
+    1499,
+    1609,
+    "Coordonnées bancaires pour le virement : IBAN FR76 0000 0000 0000 0000 0000 000 – BIC DEMOFRPPXXX."
+   ],
+   [
+    111,
+    1651,
+    1085,
+    1678,
+    "Veuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées."
+   ],
+   [
+    111,
+    1720,
+    193,
+    1748,
+    "PMSB"
+   ]
+  ],
+  "h": 2184
+ },
+ "fondPastille": "#e8f2fb",
+ "rects": {
+  "dash": {
+   "kpiRetard": {
+    "x": 572,
+    "y": 144.5,
+    "w": 264,
+    "h": 123.3
+   },
+   "retard": {
+    "x": 292,
+    "y": 471.4,
+    "w": 1104,
+    "h": 245.8
+   },
+   "relancer": {
+    "x": 1269,
+    "y": 576.2,
+    "w": 94,
+    "h": 39
+   },
+   "relancer2": {
+    "x": 1269,
+    "y": 641.7,
+    "w": 94,
+    "h": 39
+   },
+   "ligne": {
+    "x": 315,
+    "y": 563.7,
+    "w": 1058,
+    "h": 65.5
+   },
+   "badge": {
+    "x": 201,
+    "y": 491.5,
+    "w": 20,
+    "h": 20
+   }
+  },
+  "factureOuvert": {
+   "section": {
+    "x": 960.8,
+    "y": -0.1,
+    "w": 435.2,
+    "h": 955.3
+   },
+   "panneau": {
+    "x": 983.8,
+    "y": 56.5,
+    "w": 389.2,
+    "h": 816.8
+   }
+  },
+  "panneau": {
+   "n1": {
+    "section": {
+     "x": 960.8,
+     "y": 2.9,
+     "w": 435.2,
+     "h": 832.8
+    },
+    "titre": {
+     "x": 46,
+     "y": 79.6,
+     "w": 269.8,
+     "h": 18
+    },
+    "carte": {
+     "x": 23,
+     "y": 56.6,
+     "w": 389.2,
+     "h": 719.8
+    },
+    "radios": [
+     {
+      "x": 46,
+      "y": 158.6,
+      "w": 88,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": true
+     },
+     {
+      "x": 138,
+      "y": 158.6,
+      "w": 98,
+      "h": 21,
+      "dot": {
+       "x": 143,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     },
+     {
+      "x": 46,
+      "y": 183.6,
+      "w": 160,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 189.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     }
+    ],
+    "objet": {
+     "x": 46,
+     "y": 243.1,
+     "w": 343.2,
+     "h": 39.8
+    },
+    "message": {
+     "x": 46,
+     "y": 321.4,
+     "w": 343.2,
+     "h": 279
+    },
+    "info": null,
+    "ok": null,
+    "mail": {
+     "x": 46,
+     "y": 614.4,
+     "w": 225,
+     "h": 39
+    },
+    "copier": {
+     "x": 46,
+     "y": 661.4,
+     "w": 135,
+     "h": 39
+    },
+    "pdf": {
+     "x": 189,
+     "y": 661.4,
+     "w": 103,
+     "h": 39
+    },
+    "historique": [],
+    "aucune": {
+     "x": 23,
+     "y": 790.4,
+     "w": 389.2,
+     "h": 19.5
+    },
+    "texte": "Madame, Monsieur,\n\nSauf erreur ou omission de notre part, le règlement de la facture n° FAC-2026-0002 du 31/08/2026, arrivée à échéance le 30/09/2026, ne nous est pas parvenu. Le montant restant dû s'élève à 15 455,86 €.\n\nIl s'agit sans doute d'un simple oubli : nous vous remercions de bien vouloir procéder à ce règlement dans les meilleurs délais.\n\nCoordonnées bancaires pour le virement : IBAN FR76 0000 0000 0000 0000 0000 000 – BIC DEMOFRPPXXX.\n\nSi votre paiement a été effectué entre-temps, merci de ne pas tenir compte de ce message.\n\nNous restons à votre disposition pour tout renseignement.\n\nCordialement,\nPMSB\n01 99 00 12 34 / 06 39 98 00 00\ncontact@exemple.fr",
+    "objetTexte": "Rappel – facture n° FAC-2026-0002 échue le 30/09/2026"
+   },
+   "n2": {
+    "section": {
+     "x": 960.8,
+     "y": -0.1,
+     "w": 435.2,
+     "h": 835.8
+    },
+    "titre": {
+     "x": 46,
+     "y": 79.6,
+     "w": 269.8,
+     "h": 18
+    },
+    "carte": {
+     "x": 23,
+     "y": 56.6,
+     "w": 389.2,
+     "h": 719.8
+    },
+    "radios": [
+     {
+      "x": 46,
+      "y": 158.6,
+      "w": 88,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     },
+     {
+      "x": 138,
+      "y": 158.6,
+      "w": 98,
+      "h": 21,
+      "dot": {
+       "x": 143,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": true
+     },
+     {
+      "x": 46,
+      "y": 183.6,
+      "w": 160,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 189.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     }
+    ],
+    "objet": {
+     "x": 46,
+     "y": 243.1,
+     "w": 343.2,
+     "h": 39.8
+    },
+    "message": {
+     "x": 46,
+     "y": 321.4,
+     "w": 343.2,
+     "h": 279
+    },
+    "info": null,
+    "ok": null,
+    "mail": {
+     "x": 46,
+     "y": 614.4,
+     "w": 225,
+     "h": 39
+    },
+    "copier": {
+     "x": 46,
+     "y": 661.4,
+     "w": 135,
+     "h": 39
+    },
+    "pdf": {
+     "x": 189,
+     "y": 661.4,
+     "w": 103,
+     "h": 39
+    },
+    "historique": [
+     {
+      "x": 41,
+      "y": 790.4,
+      "w": 371.2,
+      "h": 22.5,
+      "t": "Rappel le 05/10/2026 — Alex Démo"
+     }
+    ],
+    "aucune": {
+     "x": 46,
+     "y": 714.4,
+     "w": 343.2,
+     "h": 39
+    },
+    "texte": "Madame, Monsieur,\n\nMalgré notre précédent rappel du 05/10/2026, la facture n° FAC-2026-0002 du 31/08/2026, échue depuis le 30/09/2026, reste impayée à ce jour pour un montant de 15 455,86 €.\n\nNous vous demandons de bien vouloir régulariser cette situation sous huit jours.\n\nNous vous rappelons qu'en application de l'article L441-10 du Code de commerce, tout retard de paiement entraîne de plein droit l'application de pénalités de retard ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement.\n\nCoordonnées bancaires pour le virement : IBAN FR76 0000 0000 0000 0000 0000 000 – BIC DEMOFRPPXXX.\n\nSi votre paiement a été effectué entre-temps, merci de ne pas tenir compte de ce message.\n\nCordialement,\nPMSB\n01 99 00 12 34 / 06 39 98 00 00\ncontact@exemple.fr",
+    "objetTexte": "Relance – facture n° FAC-2026-0002 impayée"
+   },
+   "n3": {
+    "section": {
+     "x": 960.8,
+     "y": -0.1,
+     "w": 435.2,
+     "h": 955.3
+    },
+    "titre": {
+     "x": 46,
+     "y": 79.6,
+     "w": 269.8,
+     "h": 18
+    },
+    "carte": {
+     "x": 23,
+     "y": 56.6,
+     "w": 389.2,
+     "h": 816.8
+    },
+    "radios": [
+     {
+      "x": 46,
+      "y": 158.6,
+      "w": 88,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     },
+     {
+      "x": 138,
+      "y": 158.6,
+      "w": 98,
+      "h": 21,
+      "dot": {
+       "x": 143,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     },
+     {
+      "x": 46,
+      "y": 183.6,
+      "w": 160,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 189.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": true
+     }
+    ],
+    "objet": {
+     "x": 46,
+     "y": 243.1,
+     "w": 343.2,
+     "h": 39.8
+    },
+    "message": {
+     "x": 46,
+     "y": 321.4,
+     "w": 343.2,
+     "h": 279
+    },
+    "info": {
+     "x": 46,
+     "y": 614.4,
+     "w": 343.2,
+     "h": 83
+    },
+    "ok": null,
+    "mail": {
+     "x": 46,
+     "y": 711.4,
+     "w": 225,
+     "h": 39
+    },
+    "copier": {
+     "x": 46,
+     "y": 758.4,
+     "w": 135,
+     "h": 39
+    },
+    "pdf": {
+     "x": 189,
+     "y": 758.4,
+     "w": 103,
+     "h": 39
+    },
+    "historique": [
+     {
+      "x": 41,
+      "y": 887.4,
+      "w": 371.2,
+      "h": 22.5,
+      "t": "Relance le 15/10/2026 — Alex Démo"
+     },
+     {
+      "x": 41,
+      "y": 909.9,
+      "w": 371.2,
+      "h": 22.5,
+      "t": "Rappel le 05/10/2026 — Alex Démo"
+     }
+    ],
+    "aucune": {
+     "x": 46,
+     "y": 811.4,
+     "w": 343.2,
+     "h": 39
+    },
+    "texte": "Madame, Monsieur,\n\nMalgré nos relances restées sans effet, la facture n° FAC-2026-0002 du 31/08/2026, d'un montant de 16 269,33 €, échue depuis le 30/09/2026, demeure impayée. Le montant restant dû s'élève à 15 455,86 €.\n\nPar la présente, nous vous mettons en demeure de nous régler cette somme dans un délai de huit jours à compter de la réception de ce courrier.\n\nConformément à l'article L441-10 du Code de commerce, cette somme sera majorée des pénalités de retard et de l'indemnité forfaitaire de 40 € pour frais de recouvrement.\n\nÀ défaut de règlement dans ce délai, nous nous verrons contraints d'engager une procédure de recouvrement judiciaire, sans autre avis.\n\nCoordonnées bancaires pour le virement : IBAN FR76 0000 0000 0000 0000 0000 000 – BIC DEMOFRPPXXX.\n\nVeuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.\n\nPMSB\n01 99 00 12 34 / 06 39 98 00 00\ncontact@exemple.fr",
+    "objetTexte": "Mise en demeure de payer – facture n° FAC-2026-0002"
+   },
+   "notee": {
+    "section": {
+     "x": 960.8,
+     "y": -0.1,
+     "w": 435.2,
+     "h": 1053.8
+    },
+    "titre": {
+     "x": 46,
+     "y": 79.6,
+     "w": 269.8,
+     "h": 18
+    },
+    "carte": {
+     "x": 23,
+     "y": 56.6,
+     "w": 389.2,
+     "h": 892.8
+    },
+    "radios": [
+     {
+      "x": 46,
+      "y": 158.6,
+      "w": 88,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     },
+     {
+      "x": 138,
+      "y": 158.6,
+      "w": 98,
+      "h": 21,
+      "dot": {
+       "x": 143,
+       "y": 164.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": false
+     },
+     {
+      "x": 46,
+      "y": 183.6,
+      "w": 160,
+      "h": 21,
+      "dot": {
+       "x": 51,
+       "y": 189.1,
+       "w": 13,
+       "h": 13
+      },
+      "checked": true
+     }
+    ],
+    "objet": {
+     "x": 46,
+     "y": 243.1,
+     "w": 343.2,
+     "h": 39.8
+    },
+    "message": {
+     "x": 46,
+     "y": 321.4,
+     "w": 343.2,
+     "h": 279
+    },
+    "info": {
+     "x": 46,
+     "y": 614.4,
+     "w": 343.2,
+     "h": 83
+    },
+    "ok": {
+     "x": 46,
+     "y": 864.4,
+     "w": 343.2,
+     "h": 62
+    },
+    "mail": {
+     "x": 46,
+     "y": 711.4,
+     "w": 225,
+     "h": 39
+    },
+    "copier": {
+     "x": 46,
+     "y": 758.4,
+     "w": 135,
+     "h": 39
+    },
+    "pdf": {
+     "x": 189,
+     "y": 758.4,
+     "w": 103,
+     "h": 39
+    },
+    "historique": [
+     {
+      "x": 41,
+      "y": 963.4,
+      "w": 371.2,
+      "h": 22.5,
+      "t": "Mise en demeure le 23/10/2026 — Alex Démo"
+     },
+     {
+      "x": 41,
+      "y": 985.9,
+      "w": 371.2,
+      "h": 22.5,
+      "t": "Relance le 15/10/2026 — Alex Démo"
+     },
+     {
+      "x": 41,
+      "y": 1008.4,
+      "w": 371.2,
+      "h": 22.5,
+      "t": "Rappel le 05/10/2026 — Alex Démo"
+     }
+    ],
+    "aucune": {
+     "x": 46,
+     "y": 811.4,
+     "w": 343.2,
+     "h": 39
+    },
+    "texte": "Madame, Monsieur,\n\nMalgré nos relances restées sans effet, la facture n° FAC-2026-0002 du 31/08/2026, d'un montant de 16 269,33 €, échue depuis le 30/09/2026, demeure impayée. Le montant restant dû s'élève à 15 455,86 €.\n\nPar la présente, nous vous mettons en demeure de nous régler cette somme dans un délai de huit jours à compter de la réception de ce courrier.\n\nConformément à l'article L441-10 du Code de commerce, cette somme sera majorée des pénalités de retard et de l'indemnité forfaitaire de 40 € pour frais de recouvrement.\n\nÀ défaut de règlement dans ce délai, nous nous verrons contraints d'engager une procédure de recouvrement judiciaire, sans autre avis.\n\nCoordonnées bancaires pour le virement : IBAN FR76 0000 0000 0000 0000 0000 000 – BIC DEMOFRPPXXX.\n\nVeuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.\n\nPMSB\n01 99 00 12 34 / 06 39 98 00 00\ncontact@exemple.fr",
+    "objetTexte": "Mise en demeure de payer – facture n° FAC-2026-0002"
+   }
+  },
+  "el": {
+   "kpi": {
+    "x": 572,
+    "y": 144.5,
+    "w": 264,
+    "h": 123.3
+   },
+   "dashRetard": {
+    "x": 292,
+    "y": 471.4,
+    "w": 1104,
+    "h": 245.8
+   },
+   "dashRelancer": {
+    "x": 977,
+    "y": 104.8,
+    "w": 94,
+    "h": 39
+   },
+   "echRetard": {
+    "x": 292,
+    "y": 255.3,
+    "w": 1104,
+    "h": 303.9
+   },
+   "echLignes": [
+    {
+     "x": 23,
+     "y": 109.6,
+     "w": 1058,
+     "h": 86.5,
+     "t": "FAC-2026-0002 Imperméabilisation de la façade arrière et des balcons Syndic Résidence du Parc 01 99 00 78 30 30/09/2026 23 jours de retard 15 455,86 € Relance le 15/10/2026 Relancer Encaisser"
+    },
+    {
+     "x": 23,
+     "y": 196.1,
+     "w": 1058,
+     "h": 84.8,
+     "t": "FAC-2026-0007 Peinture intérieure d'un appartement 3 pièces Mme Claire Fontaine 06 39 98 22 47 16/10/2026 7 jours de retard 3 518,70 € Aucune Relancer Encaisser"
+    }
+   ],
+   "echJours": [
+    {
+     "x": 508.6,
+     "y": 143.1,
+     "w": 113,
+     "h": 19.5,
+     "t": "23 jours de retard"
+    },
+    {
+     "x": 508.6,
+     "y": 229.6,
+     "w": 113,
+     "h": 19.5,
+     "t": "7 jours de retard"
+    }
+   ],
+   "echNumeros": [
+    {
+     "x": 33,
+     "y": 125.1,
+     "w": 104,
+     "h": 17,
+     "t": "FAC-2026-0002"
+    },
+    {
+     "x": 33,
+     "y": 211.6,
+     "w": 104,
+     "h": 17,
+     "t": "FAC-2026-0007"
+    }
+   ],
+   "sidebar": {
+    "x": 0,
+    "y": 0,
+    "w": 248,
+    "h": 900
+   },
+   "sideEch": {
+    "x": 14,
+    "y": 482.6,
+    "w": 219,
+    "h": 37.8
+   },
+   "sideBadge": {
+    "x": 201,
+    "y": 491.5,
+    "w": 20,
+    "h": 20
+   }
+  }
+ },
+ "relances": [
+  "1 2026-10-05 09:10:00",
+  "2 2026-10-15 09:40:00",
+  "3 2026-10-23 02:26:53.393"
+ ]
+}

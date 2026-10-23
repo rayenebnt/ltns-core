@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — Vrai projet 7 · PMSB Gestion « Facture impayée : qui écrit la relance ? »</title>
+<!--
+  Vidéo 7 de la semaine « vrais projets » (../concepts.json, final.videos[n=7]).
+  Tout ce qui est à l'écran vient du vrai logiciel PMSB Gestion, filmé sur la base de DÉMONSTRATION
+  (clients, montants, dates, « Alex Démo » inventés) : la vraie carte « Relances » de la facture FAC-2026-0002
+  aux niveaux 1, 2 et 3 (ce que l'appli propose après 0, 1 puis 2 relances), le vrai clic sur
+  « Ouvrir dans ma messagerie » (message « Relance notée » et historique), la vraie lettre PDF de mise en demeure,
+  le tableau de bord, la fiche facture et l'échéancier (voir scripts/capture-app.mjs).
+  Le montage ajoute : poses 3D, caméra, reflets, ordinateur vectoriel, curseur, escalier 1-2-3, machine à écrire
+  (révélation des vraies lignes du message), sous-titres et carte de fin. Badge « Données de démonstration » toujours visible.
+  Image 0 = carte Relances niveau 3 en 3D + titre fixe ; la fin revient exactement à l'image 0.
+  Zones TikTok : rien d'important sous y ≈ 1260, ni à droite de x ≈ 940 entre y ≈ 900 et 1500.
+  1080 × 1920, 30 i/s. Après 3 s, tous les temps forts sont accrochés aux mots de la voix (CUES).
+  ?t=12.5 fige l'image · ?render pour render.mjs.
+-->
+<link rel="stylesheet" href="../../commun/fonts.css">
+<style>
+  :root {
+    --paper: #f4f2ee; --paper2: #ece8e0; --ink: #16161b; --g: #1d1f24; --mute: #5f5b54; --line: #d5cfc3;
+    --blue: #0a6fb8; --blue2: #4aa3ec; --sky: #e8f2fb; --red: #b3360c; --red2: #d8432f; --green: #2f6b3a; --green2: #22a05a; --yellow: #ffd84a;
+    --ui: 'Montserrat', sans-serif; --mono: 'JetBrains Mono', monospace; --disp: 'Space Grotesk', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1080px; height: 1920px; overflow: hidden; font-family: var(--ui); color: var(--ink);
+    background: var(--paper); }
+  #vign { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: radial-gradient(ellipse 85% 62% at 50% 46%, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 60%, rgba(22, 22, 27, .07) 100%); }
+  img { display: block; }
+  .ab { position: absolute; left: 0; top: 0; }
+
+  /* Tableau de bord de démo (fond de l'image 0, puis net pour la carte « En retard ») */
+  #dashPlane { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; z-index: 1; }
+  #dashPlane img { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; }
+  #dashVeil { position: absolute; left: -300px; top: -300px; right: -300px; bottom: -300px; background: var(--paper); }
+  #redGlow { position: absolute; left: 0; top: 0; width: 264px; height: 123px; z-index: 1; border-radius: 16px; transform-origin: 0 0;
+    background: rgba(216, 67, 47, .55); filter: blur(26px); }
+  #kpi { position: absolute; left: 0; top: 0; width: 264px; height: 123.3px; transform-origin: 0 0; z-index: 7; border-radius: 12px; overflow: hidden; opacity: 0; background: #fff; }
+  #kpi img { width: 264px; height: 123.3px; }
+
+  /* Ordinateur vectoriel */
+  #monitor { position: absolute; left: 140px; top: 650px; width: 780px; height: 600px; transform-origin: 0 0; z-index: 3; opacity: 0; }
+  #bezel { position: absolute; left: 0; top: 0; width: 780px; height: 498px; border-radius: 24px; background: linear-gradient(160deg, #3a3e47, #121317 60%); box-shadow: 0 60px 110px -40px rgba(22, 22, 27, .75), inset 0 0 0 2px rgba(255, 255, 255, .07); }
+  #neck { position: absolute; left: 350px; top: 498px; width: 80px; height: 66px; background: linear-gradient(90deg, #2a2d33, #4a4e57, #2a2d33); clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%); }
+  #foot { position: absolute; left: 230px; top: 562px; width: 320px; height: 16px; border-radius: 10px; background: linear-gradient(#50545d, #1d1f24); box-shadow: 0 18px 30px -12px rgba(22, 22, 27, .5); }
+  #screen { position: absolute; left: 14px; top: 14px; width: 752px; height: 470px; overflow: hidden; border-radius: 8px; background: var(--paper); }
+  #scrIn { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; transform: scale(0.522222); }
+  #scrIn > img { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; }
+  #scrHover { width: auto !important; height: auto !important; }
+  #rowGlow { position: absolute; border-radius: 10px; box-shadow: 0 0 0 3px rgba(216, 67, 47, .9), 0 0 34px rgba(216, 67, 47, .55); background: rgba(216, 67, 47, .06); opacity: 0; }
+  #scrMask { position: absolute; background: var(--paper); opacity: 0; }
+  .ripple { position: absolute; border-radius: 50%; border: 5px solid var(--blue); opacity: 0; }
+  #scrFlash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+  #glare { position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .12) 42%, rgba(255, 255, 255, 0) 55%); }
+  .cursor { position: absolute; left: 0; top: 0; overflow: visible; opacity: 0; filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .35)); transform-origin: 0 0; }
+
+  /* La carte « Relances » (vraies captures DPR 3) */
+  #pcam { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 540px 880px; z-index: 4; }
+  #pcard { position: absolute; left: 0; top: 0; overflow: hidden; border-radius: 16px; background: #fff; transform-origin: 50% 50%;
+    box-shadow: 0 56px 90px -34px rgba(22, 22, 27, .5), 0 14px 30px -14px rgba(22, 22, 27, .28), 0 0 0 1px rgba(22, 22, 27, .07); }
+  #pworld { position: absolute; left: 0; top: 0; width: 1308px; height: 3165px; transform-origin: 0 0; }
+  .pim { position: absolute; left: 0; top: 0; width: 1308px; opacity: 0; }
+  .lm { position: absolute; background: #fff; }
+  #scan { position: absolute; left: -20px; top: 0; width: 1348px; height: 10px; opacity: 0;
+    background: linear-gradient(90deg, rgba(74, 163, 236, 0), #9fd0ff 15%, #fff 50%, #9fd0ff 85%, rgba(74, 163, 236, 0)); box-shadow: 0 0 40px 14px rgba(74, 163, 236, .55); }
+  #caret { position: absolute; width: 6px; background: var(--ink); border-radius: 2px; opacity: 0; }
+  #msgGlow { position: absolute; border-radius: 18px; background: rgba(10, 111, 184, .10); box-shadow: 0 0 0 6px rgba(10, 111, 184, .55), 0 0 60px rgba(10, 111, 184, .45); opacity: 0; }
+  .halo { position: absolute; width: 39px; height: 39px; margin: -19.5px 0 0 -19.5px; border-radius: 50%; opacity: 0; }
+  .halo.ring { border: 6px solid var(--blue); }
+  .halo.glow { background: radial-gradient(closest-side, rgba(10, 111, 184, .45), rgba(10, 111, 184, 0)); }
+  #hopDot { position: absolute; width: 39px; height: 39px; margin: -19.5px 0 0 -19.5px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 9px rgba(10, 111, 184, .25), 0 0 40px rgba(10, 111, 184, .7); opacity: 0; }
+  .ring2 { position: absolute; border-radius: 18px; box-shadow: 0 0 0 7px var(--blue), 0 0 50px rgba(10, 111, 184, .6); opacity: 0; }
+  .ring2.green { box-shadow: 0 0 0 7px var(--green2), 0 0 50px rgba(34, 160, 90, .55); }
+  .chk { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 0; border-radius: 50%; background: var(--green2); opacity: 0; box-shadow: 0 8px 18px -6px rgba(22, 22, 27, .4); }
+  .chk svg { width: 60px; height: 60px; }
+  #newLine { position: absolute; border-radius: 12px; background: rgba(34, 160, 90, .14); opacity: 0; }
+  #pRipple { width: 120px; height: 120px; margin: -60px 0 0 -60px; border-width: 9px; }
+  #sheen { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  #sheen i { position: absolute; left: 0; top: -40%; width: 240px; height: 180%; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .75) 50%, rgba(255, 255, 255, 0)); opacity: 0; }
+
+  /* Logo PMSB Gestion (vraie capture) */
+  #logoChip { position: absolute; left: 0; top: 0; width: 236px; padding: 16px 18px 10px; border-radius: 22px; background: #fff; z-index: 5; opacity: 0; transform-origin: 50% 50%;
+    box-shadow: 0 36px 60px -26px rgba(22, 22, 27, .5), 0 0 0 1px rgba(22, 22, 27, .06); }
+  #logoChip img { width: 200px; height: 159px; }
+  #logoChip small { display: block; margin-top: 4px; text-align: center; font-family: var(--mono); font-size: 17px; letter-spacing: 2px; color: var(--mute); }
+
+  /* Historique (pour « l'étape d'après ») */
+  #hist { position: absolute; left: 0; top: 0; z-index: 5; opacity: 0; transform-origin: 50% 50%; }
+  #histCard { position: relative; overflow: hidden; border-radius: 18px; background: #fff; box-shadow: 0 34px 60px -26px rgba(22, 22, 27, .5), 0 0 0 1px rgba(22, 22, 27, .07); }
+  #histCard img { position: absolute; left: 0; top: 0; width: 1308px; transform-origin: 0 0; }
+  #histHi { position: absolute; left: 8px; border-radius: 10px; background: rgba(10, 111, 184, .14); box-shadow: inset 0 0 0 3px rgba(10, 111, 184, .55); transform-origin: 0 50%; }
+  #hist small { display: block; margin: 0 0 10px 6px; font-family: var(--mono); font-size: 23px; letter-spacing: 3px; color: var(--mute); }
+  #arrow { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; z-index: 6; overflow: visible; pointer-events: none; }
+  .tag { position: absolute; left: 0; top: 0; z-index: 8; white-space: nowrap; font-weight: 800; color: var(--ink); background: var(--yellow); border-radius: 10px; box-shadow: 0 10px 24px -8px rgba(22, 22, 27, .45); opacity: 0; transform-origin: 0 50%; }
+  #tagNext { font-size: 30px; padding: 8px 16px 9px; }
+
+  /* Escalier 1 · 2 · 3 */
+  #stairs { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; z-index: 6; pointer-events: none; }
+  .step { position: absolute; border-radius: 14px 14px 0 0; border: 4px dashed rgba(22, 22, 27, .2); border-bottom: 0; overflow: hidden; transform-origin: 50% 100%; opacity: 0; }
+  .step i { position: absolute; inset: 0; opacity: 0; }
+  .step b { position: absolute; left: 0; right: 0; top: 10px; text-align: center; font-weight: 800; font-size: 30px; line-height: 1.05; letter-spacing: -.3px; text-transform: uppercase; color: rgba(22, 22, 27, .38); }
+  .step b em { font-style: normal; font-family: var(--mono); font-weight: 500; }
+
+  /* La lettre PDF (vraie, générée par l'appli) */
+  #letter { position: absolute; left: 0; top: 0; width: 1654px; height: 2184px; transform-origin: 0 0; z-index: 6; opacity: 0; background: #fff;
+    box-shadow: 0 90px 160px -50px rgba(22, 22, 27, .55), 0 0 0 2px rgba(22, 22, 27, .06); }
+  #letter img { width: 1654px; height: 2184px; }
+  #marker { position: absolute; background: rgba(255, 216, 74, .62); mix-blend-mode: multiply; border-radius: 6px; transform-origin: 0 50%; }
+  #redLine { position: absolute; height: 7px; background: var(--red2); border-radius: 4px; transform-origin: 0 50%; }
+
+  /* Échéancier (pause longue) */
+  #ech { position: absolute; inset: 0; z-index: 7; opacity: 0; pointer-events: none; }
+  #echLine { position: absolute; left: 175px; top: 540px; width: 700px; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 30px 60px -26px rgba(22, 22, 27, .45); }
+  #echLine img { width: 700px; height: 121.5px; }
+  #pastCover { position: absolute; left: 0; top: 0; border-radius: 50%; }
+  #pastille { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
+  #echSec { position: absolute; left: 58px; top: 715px; width: 964px; height: 432px; overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 40px 80px -30px rgba(22, 22, 27, .5); }
+  #echSec img { position: absolute; left: 0; top: 0; width: 3312px; transform-origin: 0 0; }
+  .redRing { position: absolute; border-radius: 10px; box-shadow: 0 0 0 4px var(--red2), 0 0 26px rgba(216, 67, 47, .55); opacity: 0; }
+
+  /* Carte de fin */
+  #endc { position: absolute; inset: 0; z-index: 9; pointer-events: none; }
+  #q { position: absolute; left: 60px; width: 860px; top: 590px; text-align: center; font-weight: 900; font-size: 80px; line-height: 1.06; letter-spacing: -2.5px; text-transform: uppercase; color: var(--g); opacity: 0; }
+  #q .w { display: inline-block; color: rgba(29, 31, 36, .22); }
+  #q .w.on { color: var(--g); }
+  #q .w.red.on { color: var(--red); }
+  #q .w.box { position: relative; padding: 0 16px; z-index: 0; }
+  #q .w.box.on { color: #fff; }
+  #q .w.box::before { content: ''; position: absolute; inset: 4px 0 0; z-index: -1; border-radius: 16px; background: var(--blue); transform: scaleX(var(--k, 0)); transform-origin: 0 50%; }
+  .eL { position: absolute; left: 60px; width: 860px; text-align: center; opacity: 0; }
+  #e1 { top: 905px; font-weight: 800; font-size: 32px; color: var(--blue); }
+  #e1 span { display: inline-block; padding: 8px 22px 9px; border: 3px solid rgba(10, 111, 184, .45); border-radius: 40px; background: var(--sky); }
+  #e2 { top: 978px; font-weight: 800; font-size: 44px; letter-spacing: -.8px; color: var(--g); }
+  #e2 em { font-style: normal; color: #fff; background: var(--red); padding: 0 10px; border-radius: 8px; }
+  #e3 { top: 1050px; font-weight: 600; font-size: 31px; line-height: 1.3; color: var(--mute); }
+  #e4 { top: 1150px; font-family: var(--disp); font-weight: 700; font-size: 74px; letter-spacing: -2px; line-height: 1; color: var(--g); }
+  #e4 span { color: #0891b2; }
+  #stTop { position: absolute; left: 0; top: 0; width: 1080px; height: 600px; opacity: 0; }
+  .st { position: absolute; border-radius: 12px 12px 0 0; background: rgba(22, 22, 27, .07); overflow: hidden; }
+  .st i { position: absolute; inset: 0; opacity: 0; }
+  .st b { position: absolute; left: 0; right: 0; top: 8px; text-align: center; font-weight: 800; font-size: 23px; letter-spacing: 0; text-transform: uppercase; color: rgba(22, 22, 27, .4); white-space: nowrap; }
+
+  /* Haut : voile papier quand le contenu monte sous le texte */
+  #shadeTop { position: absolute; left: 0; right: 0; top: 0; height: 600px; z-index: 10; pointer-events: none; opacity: 0;
+    background: linear-gradient(#f4f2ee 0, #f4f2ee 430px, rgba(244, 242, 238, .94) 480px, rgba(244, 242, 238, 0) 560px); }
+
+  /* Titre fixe, sous-titres, étiquette, badge démo */
+  #title { position: absolute; left: 30px; right: 30px; top: 236px; height: 236px; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; text-transform: uppercase; font-weight: 900; color: var(--g); transform-origin: 50% 50%; }
+  #title .l { white-space: nowrap; line-height: 1.02; }
+  #title .l1 { font-size: 104px; letter-spacing: -4px; }
+  #title .l2 { font-size: 80px; letter-spacing: -3px; margin-top: 8px; }
+  #title .tw { position: relative; display: inline-block; transform-origin: 50% 80%; }
+  #title .tw.red { color: var(--red); }
+  #title .ul { position: absolute; left: -4px; right: -4px; bottom: -6px; height: 12px; border-radius: 6px; transform-origin: 0 50%; transform: scaleX(0); }
+  #title .ul.r { background: var(--red2); }
+  #title .ul.b { background: var(--blue); height: 10px; bottom: -4px; }
+  #caption { position: absolute; left: 50px; right: 50px; top: 238px; height: 226px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: 0 .26em; text-align: center; font-weight: 800; font-size: 62px; line-height: 1.07; letter-spacing: -1.2px; text-transform: uppercase; }
+  #caption.long { font-size: 50px; }
+  #caption .w { color: rgba(29, 31, 36, .26); }
+  #caption .w.on { color: var(--g); }
+  #caption .w.hl.on { color: var(--blue); }
+  #hud { position: absolute; left: 60px; top: 158px; z-index: 20; display: flex; align-items: center; gap: 16px; font-family: var(--mono); font-size: 24px; letter-spacing: 3px; color: var(--mute); opacity: 0; white-space: nowrap; }
+  #hud b { font-family: var(--disp); font-weight: 700; font-size: 38px; letter-spacing: -1px; color: var(--g); }
+  #hud b span { color: #0891b2; }
+  #hud i { font-style: normal; padding: 5px 14px; border: 2px solid rgba(22, 22, 27, .25); border-radius: 30px; color: var(--g); font-weight: 500; }
+  #badge { position: absolute; left: 0; top: 0; z-index: 21; white-space: nowrap; font-weight: 800; font-size: 29px; color: var(--ink); background: var(--yellow); padding: 7px 16px 8px; border-radius: 9px; box-shadow: 0 12px 26px -10px rgba(22, 22, 27, .55), 0 0 0 2px rgba(22, 22, 27, .08); transform-origin: 0 0; }
+  #flash { position: absolute; inset: 0; z-index: 30; background: #fff; opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="dashPlane"><img id="dashBlur" src="assets/dash-flou.jpg" alt=""><img id="dashSharp" src="assets/dash.jpg" alt=""><div id="dashVeil"></div></div>
+  <div id="redGlow"></div><div id="vign"></div>
+
+  <div id="monitor">
+    <div id="bezel"></div>
+    <div id="screen">
+      <div id="scrIn">
+        <img id="scrDash" src="assets/dash.jpg" alt=""><img id="scrFact" src="assets/facture-ouvert.jpg" alt="">
+        <img id="scrHover" src="assets/relancer-survol.png" alt="">
+        <div id="rowGlow"></div><div id="scrMask"></div>
+        <div id="scrRipple" class="ripple"></div>
+        <svg id="scrCursor" class="cursor" width="34" height="48" viewBox="0 0 24 34"><path d="M2 2 L2 27 L8.5 21 L13 31.5 L17.5 29.5 L13 19.5 L21.5 19.5 Z" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/></svg>
+      </div>
+      <div id="scrFlash"></div><div id="glare"></div>
+    </div>
+    <div id="neck"></div><div id="foot"></div>
+  </div>
+
+  <div id="pcam"><div id="pcard"><div id="pworld">
+    <img class="pim" data-k="n1" src="assets/panneau-n1.png" alt="">
+    <img class="pim" data-k="n2" src="assets/panneau-n2.png" alt="">
+    <img class="pim" data-k="n3" src="assets/panneau-n3.png" alt="">
+    <img class="pim" data-k="n3m" src="assets/panneau-n3-survol-messagerie.png" alt="">
+    <img class="pim" data-k="nt" src="assets/panneau-n3-notee.png" alt="">
+    <img class="pim" data-k="ntp" src="assets/panneau-n3-notee-survol-pdf.png" alt="">
+    <img class="pim" data-k="ntc" src="assets/panneau-n3-notee-survol-copier.png" alt="">
+    <div id="msgGlow"></div><div id="scan"></div>
+    <div id="lmasks"></div><div id="caret"></div>
+    <div class="halo glow" id="haloG"></div><div class="halo ring" id="haloB"></div><div class="halo ring" id="haloR"></div><div id="hopDot"></div>
+    <div class="ring2" id="ringBtn"></div><div class="ring2 green" id="ringOk"></div>
+    <div id="newLine"></div>
+    <div class="chk" data-i="0"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="chk" data-i="1"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="chk" data-i="2"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div id="pRipple" class="ripple"></div>
+    <svg id="pCursor" class="cursor" width="72" height="102" viewBox="0 0 24 34"><path d="M2 2 L2 27 L8.5 21 L13 31.5 L17.5 29.5 L13 19.5 L21.5 19.5 Z" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/></svg>
+  </div><div id="sheen"><i></i></div></div></div>
+
+  <div id="logoChip"><img src="assets/logo-gestion.png" alt=""><small>LOGICIEL SUR MESURE</small></div>
+  <div id="hist"><small>DERNIÈRE RELANCE NOTÉE</small><div id="histCard"><img src="assets/panneau-n3.png" alt=""><div id="histHi"></div></div></div>
+  <svg id="arrow" viewBox="0 0 1080 1920"><path id="arrowPath" fill="none" stroke="#0a6fb8" stroke-width="7" stroke-linecap="round"/><path id="arrowHead" fill="#0a6fb8"/></svg>
+  <div id="tagNext" class="tag">étape suivante proposée</div>
+
+  <div id="kpi"><img src="assets/el-kpi-retard.png" alt=""></div>
+
+  <div id="letter"><img src="assets/lettre-n3.jpg" alt=""><div id="marker"></div><div id="redLine"></div></div>
+
+  <div id="stairs">
+    <div class="step" data-i="0"><i></i><b><em>1</em> · Rappel</b></div>
+    <div class="step" data-i="1"><i></i><b><em>2</em> · Relance</b></div>
+    <div class="step" data-i="2"><i></i><b><em>3</em> · Mise en<br>demeure</b></div>
+  </div>
+
+  <div id="ech">
+    <div id="echLine"><img src="assets/ligne-echeancier.png" alt=""><div id="pastCover"></div><img id="pastille" src="assets/pastille.png" alt=""></div>
+    <div id="echSec"><img src="assets/el-echeancier-retard.png" alt=""><div class="redRing" data-i="0"></div><div class="redRing" data-i="1"></div></div>
+  </div>
+
+  <div id="endc">
+    <div id="stTop">
+      <div class="st" data-i="0"><i></i><b>1 · Rappel</b></div>
+      <div class="st" data-i="1"><i></i><b>2 · Relance</b></div>
+      <div class="st" data-i="2"><i></i><b>3 · Mise en demeure</b></div>
+    </div>
+    <div id="q"></div>
+    <div id="e1" class="eL"><span>Logiciel sur mesure · sur devis</span></div>
+    <div id="e2" class="eL">Devis gratuit sous <em>48 h</em> · lien en bio</div>
+    <div id="e3" class="eL">Partout en France à distance<br>sur place en Île-de-France</div>
+    <div id="e4" class="eL">LTNS<span>°</span></div>
+  </div>
+
+  <div id="shadeTop"></div>
+  <div id="title">
+    <div class="l l1"><span class="tw" data-w="0">Facture</span> <span class="tw red" data-w="1">impayée<i class="ul r"></i></span> <span class="tw" data-w="1b">:</span></div>
+    <div class="l l2"><span class="tw" data-w="2">Qui</span> <span class="tw" data-w="3">écrit</span> <span class="tw" data-w="4">la</span> <span class="tw" data-w="5">relance<i class="ul b"></i></span> <span class="tw" data-w="5b">?</span></div>
+  </div>
+  <div id="caption"></div>
+  <div id="hud"><b>LTNS<span>°</span></b><span>VRAI PROJET</span><i>PMSB GESTION</i></div>
+  <div id="badge">Données de démonstration</div>
+  <div id="flash"></div>
+</div>
+
+<script src="../../commun/engine.js"></script>
+<script src="voice-files.js"></script>
+<script>
+const { clamp, easeInOut, easeOut, easeIn, pop, ramp, pulse, lerp, $, qa, setT, caption } = LTNS
+const FPS = 30
+const TAU = Math.PI * 2
+const back = (p, s = 1.7) => p <= 0 ? 0 : p >= 1 ? 1 : 1 + (s + 1) * Math.pow(p - 1, 3) + s * Math.pow(p - 1, 2)
+
+// Une phrase par segment [pause] / [long pause] du script voix (P.M.S.B. lu lettre par lettre)
+const SENTENCES = [
+  { chunks: [['Facture impayée :', 'impayée'], ['qui écrit la relance ?', 'relance']] },
+  { chunks: [["Dans le logiciel que j'ai créé", 'créé'], ['pour P.M.S.B.,', 'P.M.S.B.,'], ["c'est lui.", 'lui.']] },
+  { chunks: [['Rappel, relance, mise en demeure :', 'demeure'], ["il propose l'étape d'après,", "d'après,"], ['avec le texte déjà écrit.', 'écrit.']] },
+  { chunks: [["Ça s'ouvre dans ta messagerie,", 'messagerie,'], ['ou ça sort en lettre PDF', 'PDF'], ['pour le recommandé.', 'recommandé.']] },
+  { chunks: [['Et chaque relance', 'chaque'], ['est notée.', 'notée.']] },
+  { chunks: [['Tes impayés,', 'impayés,'], ['tu les relances comment ?', 'comment']] },
+]
+const SPOKEN = { 'P.M.S.B.': 'pé emme esse bé', 'PDF': 'pé dé effe' }
+// [phrase, mot ou fraction, décalage (s), son]
+const CUES = {
+  logiciel: [1, 'logiciel', 0],
+  cree: [1, 'créé', -0.05, 'pop'],
+  pmsb: [1, 'P.M.S.B.,', -0.05, 'tick'],
+  lui: [1, 'lui.', -0.05, 'pop'],
+  v3: [2, 0, -0.12, 'whoosh'],
+  rappel: [2, 'Rappel,', -0.04, 'pop'],
+  relance: [2, 'relance,', -0.04, 'pop'],
+  demeure: [2, 'demeure', -0.04, 'ding'],
+  propose: [2, 'propose', -0.05],
+  apres: [2, "d'après,", -0.05],
+  texte: [2, 'texte', 0],
+  v4: [3, 0, -0.15, 'whoosh'],
+  messagerie: [3, 'messagerie,', 0, 'tick'],
+  lettre: [3, 'lettre', 0],
+  pdf: [3, 'PDF', 0.02, 'whoosh'],
+  recommande: [3, 'recommandé.', 0, 'pop'],
+  v5: [4, 0, -0.12, 'whoosh'],
+  chaque: [4, 'chaque', -0.05, 'tick'],
+  rel5: [4, 'relance', -0.05, 'tick'],
+  notee: [4, 'notée.', -0.05, 'pop'],
+  comment: [5, 'comment', -0.03],
+}
+
+let D, PR, T, PERIOD = 25, keysP, IMG = {}, MASKS = [], CHKS = [], WALL = 0
+const osc = (t, approx, ph = 0) => { const n = Math.max(1, Math.round(PERIOD / approx)); return Math.sin(TAU * (t * n / PERIOD + ph)) }
+
+/* ── Géométrie ───────────────────────────────────────────── */
+const SCR = 752 / 1440 // px écran par px CSS de la page
+// Ordinateur : position (tx, ty, ms) dans le temps
+function monitorAt(t) {
+  const btn = D.rects.dash.relancer, bx = btn.x + btn.w / 2, by = btn.y + btn.h / 2
+  const zoom = { ms: 1.75, tx: 600 - 140 - 1.75 * (14 + bx * SCR), ty: 860 - 650 - 1.75 * (14 + by * SCR) }
+  const sec = PR.n3.section
+  const onP = { ms: 1.75, tx: 540 - 140 - 1.75 * (14 + (sec.x + sec.w / 2) * SCR), ty: 486 - 650 - 1.75 * (14 + sec.y * SCR) }
+  let ms = 1, tx = 0, ty = 760, op = 0, blur = 0
+  if (t >= 1.95) {
+    const r = easeOut(ramp(t, 1.95, 0.42))
+    ty = lerp(760, 0, r); op = ramp(t, 1.95, 0.12)
+    const z = easeInOut(ramp(t, 2.32, 0.5))
+    ms = lerp(1, zoom.ms, z); tx = lerp(0, zoom.tx, z); ty = lerp(ty, zoom.ty, z)
+    const drift = ramp(t, 2.82, 1.2) * 6
+    tx += drift; ty -= drift * 0.4
+    const c = easeInOut(ramp(t, T.swap, 0.32))
+    tx = lerp(tx, onP.tx, c); ty = lerp(ty, onP.ty, c)
+    const d = easeIn(ramp(t, T.lift, 0.42))
+    ty += d * 260; op *= 1 - d; blur = d * 10
+  }
+  return { ms, tx, ty, op, blur }
+}
+const scrToStage = (m, x, y) => ({ x: 140 + m.tx + m.ms * (14 + x * SCR), y: 650 + m.ty + m.ms * (14 + y * SCR) })
+
+// Plan du tableau de bord (fond) : X, Y, f
+function dashAt(t) {
+  const kc = { x: 572 + 132, y: 144.5 + 61.6 }
+  const p0 = { f: 1.45, x: 790, y: 1420 }, p1 = { f: 1.4, x: 540, y: 960 }
+  const r = easeInOut(ramp(t, 1.0, 0.6))
+  const f = lerp(p0.f, p1.f, r), cx = lerp(p0.x, p1.x, r), cy = lerp(p0.y, p1.y, r)
+  return { f, X: cx - kc.x * f, Y: cy - kc.y * f }
+}
+
+/* ── Poses de la carte « Relances » (unités : px CSS de la carte) ── */
+const P0 = { wx0: 12, wy0: 48, wx1: 423, wy1: 420, cx: 515, cy: 870, S: 1.995, rx: 8, ry: -12, rz: 0.6, op: 1, blur: 0, fade: 62 }
+const with_ = (a, b) => Object.assign({}, a, b)
+function buildKeys(C) {
+  const PA = { wx0: 0, wy0: 0, wx1: 435, wy1: 620, cx: 612, cy: 878, S: 1.2, rx: 4, ry: -8, rz: 0.4, op: 1, blur: 0, fade: 0 }
+  const PB = { wx0: 36, wy0: 300, wx1: 399, wy1: 606, cx: 540, cy: 872, S: 2.25, rx: 2, ry: -3, rz: 0, op: 1, blur: 0, fade: 0 }
+  const PC = { wx0: 20, wy0: 142, wx1: 415, wy1: 420, cx: 540, cy: 788, S: 2.05, rx: 3, ry: -4, rz: 0, op: 1, blur: 0, fade: 0 }
+  const PD = { wx0: 30, wy0: 148, wx1: 300, wy1: 214, cx: 540, cy: 648, S: 3.0, rx: 0, ry: 0, rz: 0, op: 1, blur: 0, fade: 0 }
+  const PF = { wx0: 30, wy0: 600, wx1: 405, wy1: 812, cx: 540, cy: 800, S: 2.15, rx: 2, ry: -3, rz: 0, op: 1, blur: 0, fade: 0 }
+  const PF2 = with_(PF, { wy1: 935, cy: 880 })
+  const PL = with_(PF2, { S: 2.15 * 0.88, cy: 900, op: 0.0, blur: 6 })
+  const PG = { wx0: 25, wy0: 753, wx1: 420, wy1: 1040, cx: 540, cy: 846, S: 2.1, rx: 2, ry: -3, rz: 0, op: 1, blur: 0, fade: 0 }
+  const PH = with_(PG, { cx: -420, rz: -6, op: 0 })
+  const PIN = with_(P0, { cy: 870 + 760, rx: 38, ry: -4, op: 0 })
+  const K = [
+    [0, P0], [1.0, P0], [1.6, with_(P0, { S: P0.S * 0.84, cy: 905, op: 0, blur: 14 })],
+    [T.liftEnd, PA, 'screen'], [C.lui - 0.32, with_(PA, { wy1: 600, S: 1.34, cx: 604, cy: 896, rx: 2, ry: 4, rz: -0.4 })], [C.lui + 0.16, PB],
+    [T.pc0, with_(PB, { cy: 862, rx: 1, ry: -1.5 })], [T.pc0 + 0.42, PC],
+    [T.prop - 0.12, with_(PC, { cx: 548, ry: -2.5 })], [T.prop + 0.32, PD],
+    [T.texte - 0.12, with_(PD, { S: 3.2, cy: 656, rx: -2, ry: 3 })], [T.texte + 0.3, with_(PB, { rx: 1.5, ry: -2 })],
+    [T.v4, with_(PB, { cy: 860, rx: 0.5, ry: -1 })], [T.v4 + 0.42, PF],
+    [T.mail + 0.06, with_(PF, { cx: 546 })], [T.mail + 0.45, PF2],
+    [T.pdf, with_(PF2, { S: 2.3, cy: 890, ry: 1.5 })], [T.pdf + 0.42, PL],
+    [T.v5 - 0.05, PL], [T.v5 + 0.4, PG],
+    [T.ech, with_(PG, { S: 2.28, cy: 838, ry: 1.5 })], [T.ech + 0.28, PH],
+    [T.loop + 0.1, PIN], [T.loop + 0.85, P0],
+  ]
+  return mono(K)
+}
+function track(t, K) {
+  if (t <= K[0][0]) return { ...K[0][1] }
+  for (let i = 0; i < K.length - 1; i++) {
+    const [ta, A] = K[i], [tb, B] = K[i + 1]
+    if (t < tb) {
+      const p = easeInOut(clamp((t - ta) / (tb - ta)))
+      const o = {}
+      for (const k in B) o[k] = lerp(A[k] ?? B[k], B[k], p)
+      o._seg = i
+      return o
+    }
+  }
+  return { ...K[K.length - 1][1] }
+}
+// Pose « dans l'écran » : la carte suit la fiche facture affichée par l'ordinateur
+function screenPose(t, m) {
+  const sec = PR.n3.section, S = SCR * m.ms
+  const o = scrToStage(m, sec.x, sec.y)
+  const bottom = 650 + m.ty + m.ms * (14 + 470)
+  const wy1 = Math.min(lerp(44, 880, easeOut(ramp(t, T.swap + 0.08, 0.36))), (bottom - o.y) / S)
+  return { wx0: 0, wy0: 0, wx1: 435, wy1, cx: o.x + 435 * S / 2, cy: o.y + wy1 * S / 2, S, rx: 0, ry: 0, rz: 0, op: ramp(t, T.swap + 0.04, 0.06), blur: 0, fade: 0 }
+}
+function panelPose(t) {
+  if (t >= 1.6 && t < T.swap) return with_(P0, { op: 0 })
+  if (t >= T.swap && t < T.lift) return screenPose(t, monitorAt(t))
+  if (t >= T.lift && t < T.liftEnd) {
+    const A = screenPose(T.lift - 0.001, monitorAt(T.lift - 0.001)), B = keysP.find(k => k[2] === 'screen')[1]
+    const p = easeInOut(ramp(t, T.lift, T.liftEnd - T.lift)), o = {}
+    for (const k in B) o[k] = lerp(A[k], B[k], p)
+    return o
+  }
+  return track(t, keysP)
+}
+function applyPanel(P) {
+  const w = (P.wx1 - P.wx0) * P.S, h = (P.wy1 - P.wy0) * P.S
+  const pc = $('pcard'), st = pc.style
+  st.left = (P.cx - w / 2).toFixed(2) + 'px'; st.top = (P.cy - h / 2).toFixed(2) + 'px'
+  st.width = w.toFixed(2) + 'px'; st.height = h.toFixed(2) + 'px'
+  st.opacity = P.op.toFixed(3)
+  st.transform = (Math.abs(P.rx) + Math.abs(P.ry) + Math.abs(P.rz) < 0.02) ? 'none' : `rotateX(${P.rx.toFixed(3)}deg) rotateY(${P.ry.toFixed(3)}deg) rotateZ(${P.rz.toFixed(3)}deg)`
+  st.filter = P.blur > 0.05 ? `blur(${P.blur.toFixed(2)}px)` : 'none'
+  const m = P.fade > 0.5 ? `linear-gradient(#000 calc(100% - ${P.fade.toFixed(1)}px), rgba(0,0,0,0))` : 'none'
+  st.webkitMaskImage = m; st.maskImage = m
+  $('pworld').style.transform = `scale(${(P.S / 3).toFixed(5)}) translate(${(-P.wx0 * 3).toFixed(2)}px, ${(-P.wy0 * 3).toFixed(2)}px)`
+  return { w, h }
+}
+// Point de la carte (px CSS) → scène, pour une pose plane (approximation sans la rotation)
+const pToStage = (P, x, y) => ({ x: P.cx + (x - (P.wx0 + P.wx1) / 2) * P.S, y: P.cy + (y - (P.wy0 + P.wy1) / 2) * P.S })
+
+/* ── Quelle capture de la carte est affichée ─────────────── */
+function imagesAt(t) {
+  const seq = [[-1, 'n3']]
+  if (t < T.loop) {
+    seq.push([T.rap, 'n1'], [T.rel, 'n2'], [T.dem, 'n3'])
+    seq.push([T.mail - 0.22, 'n3m'], [T.mail + 0.04, 'nt'], [T.toPdf + 0.28, 'ntp'], [T.pdf + 0.45, 'nt'])
+    seq.push([T.v5 + 0.38, 'ntc'], [T.v5 + 0.95, 'nt'])
+  }
+  let cur = 'n3', prev = 'n3', t0 = -9
+  for (const [ts, k] of seq) if (t >= ts) { prev = cur; cur = k; t0 = ts }
+  const wipe = [T.rap, T.rel, T.dem].includes(t0) && t < T.v4
+  return { cur, prev, k: ramp(t, t0, wipe ? 0.3 : 0.05), wipe }
+}
+
+function render(t, k) {
+  const { C, TIMES, WORDS } = k
+  const tail = t >= T.loop
+  const L = tail ? easeInOut(ramp(t, T.loop + 0.1, 0.75)) : 0 // retour à l'image 0
+
+  /* Titre fixe (0–3 s) avec les mots de V1 ; il revient pour la boucle */
+  const titleOn = tail ? clamp(back(ramp(t, T.loop + 0.28, 0.4))) : 1 - easeIn(ramp(t, 2.74, 0.22))
+  setT($('title'), clamp(titleOn), `translateY(${(1 - titleOn) * -16}px) scale(${0.96 + 0.04 * titleOn})`)
+  const w0 = WORDS[0]
+  qa('#title .tw').forEach(el => {
+    const key = el.dataset.w, i = parseInt(key, 10), x = w0[Math.min(i, w0.length - 1)]
+    const b = tail ? 0 : pulse(t, x.t0 - 0.02, 0.34)
+    el.style.transform = `translateY(${(-10 * b).toFixed(2)}px) scale(${(1 + 0.025 * b).toFixed(4)})`
+  })
+  const ulR = $('title').querySelector('.ul.r'), ulB = $('title').querySelector('.ul.b')
+  ulR.style.transform = `scaleX(${tail ? 0 : easeOut(ramp(t, w0[1].t0, 0.26)).toFixed(4)})`
+  ulB.style.transform = `scaleX(${tail ? 0 : easeOut(ramp(t, w0[5].t0, 0.26)).toFixed(4)})`
+  // petit à-coup de « IMPAYÉE »
+  const sh = tail ? 0 : pulse(t, w0[1].t0, 0.22)
+  $('title').querySelector('.tw.red').style.transform += ` rotate(${(Math.sin(t * 70) * 2.2 * sh).toFixed(3)}deg)`
+
+  /* Sous-titres (après le titre), cachés pendant la question finale */
+  const si = TIMES.findIndex((s, i) => t >= s.start - 0.08 && (i === TIMES.length - 1 || t < TIMES[i + 1].start - 0.08))
+  $('caption').classList.toggle('long', si >= 0 && SENTENCES[si].chunks.map(c => c[0]).join(' ').length > 64)
+  caption($('caption'), t, k, { from: 3.0, hide: tail || t >= T.end - 0.05 })
+  $('hud').style.opacity = tail ? 1 - ramp(t, T.loop, 0.25) : ramp(t, 3.0, 0.3)
+
+  /* Fond : tableau de bord de démo */
+  const dp = dashAt(tail ? 0 : t)
+  const dashOp = tail ? easeInOut(ramp(t, T.loop + 0.15, 0.7)) : 1 - ramp(t, 1.98, 0.32)
+  const dpl = $('dashPlane').style
+  dpl.transform = `translate(${dp.X.toFixed(2)}px, ${dp.Y.toFixed(2)}px) scale(${dp.f.toFixed(4)})`
+  dpl.opacity = dashOp.toFixed(3)
+  const dmr = tail ? 0 : easeInOut(ramp(t, 1.0, 0.55))
+  const dmk = `radial-gradient(ellipse ${lerp(560, 2300, dmr).toFixed(0)}px ${lerp(330, 1500, dmr).toFixed(0)}px at 704px 206px, #000 ${lerp(30, 60, dmr).toFixed(0)}%, rgba(0,0,0,0) 100%)`
+  dpl.webkitMaskImage = dmk; dpl.maskImage = dmk
+  const sharp = tail ? 0 : easeInOut(ramp(t, 1.02, 0.42))
+  $('dashSharp').style.opacity = sharp.toFixed(3)
+  const dof = tail ? 0 : easeInOut(ramp(t, 1.42, 0.3)) * 3.5
+  $('dashSharp').style.filter = `blur(${((1 - sharp) * 9 + dof).toFixed(2)}px)`
+  $('dashVeil').style.opacity = (tail ? 0.5 : lerp(0.5, 0, sharp) + (dof / 3.5) * 0.28).toFixed(3)
+  // la carte « En retard » floutée : une tache rouge qui respire
+  const kcx = dp.X + (572 + 132) * dp.f, kcy = dp.Y + (144.5 + 61.6) * dp.f
+  const gOp = (tail ? dashOp : 1 - ramp(t, 1.0, 0.3)) * (0.7 + 0.3 * osc(t, 1.25))
+  const gs = dp.f * (1.08 + 0.05 * osc(t, 1.25))
+  setT($('redGlow'), gOp.toFixed(3), `translate(${(kcx - 132 * gs).toFixed(1)}px, ${(kcy - 61.6 * gs).toFixed(1)}px) scale(${gs.toFixed(4)})`)
+
+  /* Ordinateur : bloc « Factures en retard », clic sur « Relancer », la fiche facture s'ouvre */
+  const m = monitorAt(tail ? 0 : t)
+  const mon = $('monitor').style
+  mon.opacity = m.op.toFixed(3)
+  mon.transform = `translate(${m.tx.toFixed(2)}px, ${m.ty.toFixed(2)}px) scale(${m.ms.toFixed(4)})`
+  mon.filter = m.blur > 0.05 ? `blur(${m.blur.toFixed(2)}px)` : 'none'
+  const onFact = t >= T.swap
+  $('scrDash').style.opacity = onFact ? 0 : 1
+  $('scrFact').style.opacity = onFact ? 1 : 0
+  const rl = D.rects.dash.relancer, bcx = rl.x + rl.w / 2, bcy = rl.y + rl.h / 2
+  const hov = !onFact && t >= 2.6 ? ramp(t, 2.6, 0.06) : 0
+  const sv = $('scrHover').style
+  sv.left = (rl.x - 4) + 'px'; sv.top = (rl.y - 4) + 'px'; sv.width = (rl.w + 8) + 'px'; sv.height = (rl.h + 8) + 'px'
+  sv.opacity = hov
+  sv.transform = Math.abs(t - 2.79) < 0.07 ? 'scale(0.95)' : 'none'
+  const lg = D.rects.dash.ligne, rg = $('rowGlow').style
+  rg.left = (lg.x - 8) + 'px'; rg.top = (lg.y - 4) + 'px'; rg.width = (lg.w + 16) + 'px'; rg.height = (lg.h + 8) + 'px'
+  rg.opacity = onFact ? 0 : (easeOut(ramp(t, 2.42, 0.2)) * (0.75 + 0.25 * osc(t, 0.6))).toFixed(3)
+  // curseur
+  let cx = 1520, cy = 900, cop = 0
+  if (!onFact && t >= 2.28) {
+    const p = easeInOut(ramp(t, 2.3, 0.36))
+    cx = lerp(1520, bcx - 6, p); cy = lerp(880, bcy + 2, p); cop = ramp(t, 2.28, 0.08)
+  }
+  const press = Math.abs(t - 2.79) < 0.07 ? 0.82 : 1
+  setT($('scrCursor'), cop, `translate(${cx}px, ${cy}px) scale(${press})`)
+  const rp = ramp(t, 2.79, 0.42)
+  setT($('scrRipple'), !onFact && rp > 0 && rp < 1 ? (1 - rp) : 0, `translate(${bcx - 40}px, ${bcy - 40}px) scale(${0.4 + 1.6 * easeOut(rp)})`)
+  $('scrRipple').style.width = '80px'; $('scrRipple').style.height = '80px'
+  const sec = PR.n3.section, sm = $('scrMask').style
+  sm.left = (sec.x - 2) + 'px'; sm.top = (sec.y - 2) + 'px'; sm.width = (sec.w + 4) + 'px'; sm.height = (sec.h + 4) + 'px'
+  sm.opacity = onFact ? 1 : 0
+  $('scrFlash').style.opacity = (pulse(t, T.swap - 0.06, 0.2) * 0.85).toFixed(3)
+
+  /* KPI « En retard » : sort du tableau de bord vers la caméra, puis rentre dans l'écran */
+  const kslot = { x: dp.X + 572 * dp.f, y: dp.Y + 144.5 * dp.f, s: dp.f }
+  const klift = { s: 2.75, x: 540 - 132 * 2.75, y: 905 - 61.65 * 2.75 }
+  const kscr = (() => { const mm = monitorAt(t), o = scrToStage(mm, 572, 144.5); return { x: o.x, y: o.y, s: mm.ms * SCR } })()
+  let kp = kslot, kop = 0, krx = 0, ksh = 0
+  if (!tail && t >= 1.0 && t < 2.5) {
+    kop = ramp(t, 1.18, 0.12)
+    const a = easeInOut(ramp(t, 1.3, 0.42)), b = easeInOut(ramp(t, 1.98, 0.36))
+    const drift = ramp(t, 1.72, 0.3) * 0.04
+    const lifted = { x: klift.x - drift * 132, y: klift.y - drift * 61, s: klift.s * (1 + drift) }
+    kp = { x: lerp(lerp(kslot.x, lifted.x, a), kscr.x, b), y: lerp(lerp(kslot.y, lifted.y, a), kscr.y, b), s: lerp(lerp(kslot.s, lifted.s, a), kscr.s, b) }
+    krx = Math.sin(Math.PI * a) * -16 + Math.sin(Math.PI * b) * 12
+    ksh = a * (1 - b)
+    if (t > 2.34) kop *= 1 - ramp(t, 2.34, 0.08)
+  }
+  const kst = $('kpi').style
+  kst.opacity = kop
+  kst.transform = `translate(${kp.x.toFixed(2)}px, ${kp.y.toFixed(2)}px) scale(${kp.s.toFixed(4)}) perspective(900px) rotateX(${krx.toFixed(2)}deg)`
+  kst.boxShadow = `0 ${(30 * ksh).toFixed(1)}px ${(50 * ksh).toFixed(1)}px ${(-14 * ksh).toFixed(1)}px rgba(150, 40, 20, ${(0.5 * ksh).toFixed(3)}), 0 0 0 ${(1.2 * ksh).toFixed(2)}px rgba(216, 67, 47, .5)`
+
+  /* La carte « Relances » */
+  const P = panelPose(t)
+  applyPanel(P)
+  const img = tail ? { cur: 'n3', prev: 'n3', k: 1 } : imagesAt(t)
+  const wiping = img.wipe && img.k < 1 && img.cur !== img.prev
+  const yw = lerp(P.wy0, P.wy1, easeInOut(img.k)) * 3
+  const ord = Object.keys(IMG), above = ord.indexOf(img.cur) > ord.indexOf(img.prev)
+  for (const [key, el] of Object.entries(IMG)) {
+    el.style.opacity = key === img.cur ? 1 : key === img.prev ? (wiping ? 1 : (1 - img.k).toFixed(3)) : 0
+    let clip = 'none'
+    if (wiping && key === img.cur && above) clip = `inset(0px 0px ${(el.naturalHeight - yw).toFixed(1)}px 0px)`
+    if (wiping && key === img.prev && !above) clip = `inset(${yw.toFixed(1)}px 0px 0px 0px)`
+    el.style.clipPath = clip
+  }
+  setT($('scan'), wiping ? (0.35 + 0.65 * Math.sin(Math.PI * img.k)).toFixed(3) : 0, `translateY(${(yw - 5).toFixed(1)}px)`)
+  // reflet sur la carte (image 0)
+  const sp = tail ? -1 : ramp(t, 0.16, 0.72)
+  setT($('sheen').firstElementChild, sp > 0 && sp < 1 ? 0.9 : 0, `translateX(${lerp(-300, 1000, easeInOut(sp)).toFixed(1)}px) rotate(18deg)`)
+
+  // lignes du message : vides (avant « c'est lui »), d'un coup, machine à écrire
+  let mode = 'none', prog = 1
+  if (!tail && t >= T.swap && t < C.lui) mode = 'empty'
+  else if (!tail && t >= T.texte - 0.12 && t < T.typeEnd + 0.05) { mode = 'type'; prog = easeInOut(ramp(t, T.texte + 0.26, T.typeEnd - T.texte - 0.26)) }
+  const LN = D['lignes-n3'], tot = LN.reduce((s, l) => s + (l[3] - l[2]), 0)
+  let acc = prog * tot, caretAt = null
+  LN.forEach((l, i) => {
+    const el = MASKS[i], wl = l[3] - l[2]
+    let show = 1 // part visible de la ligne
+    if (mode === 'empty') {
+      show = 0
+    } else if (mode === 'none' && !tail && t >= C.lui && t < C.lui + 0.3) {
+      show = clamp((t - C.lui) / 0.02 - i * 0.9) // cascade éclair, haut → bas
+    } else if (mode === 'type') {
+      show = clamp(acc / wl); acc -= wl
+      if (show > 0 && show < 1) caretAt = { x: l[2] + show * wl, y0: l[0], y1: l[1] }
+      if (show === 0 && caretAt === null && i > 0 && (MASKS[i - 1]._show === 1)) caretAt = { x: l[2], y0: l[0], y1: l[1] }
+    }
+    el._show = show
+    const x0 = l[2] + show * wl
+    if (show >= 1) { el.style.opacity = 0; return }
+    el.style.opacity = 1
+    el.style.left = ((x0 - 1) * 3) + 'px'; el.style.top = ((l[0] - 4) * 3) + 'px'
+    el.style.width = ((l[3] - x0 + 5) * 3) + 'px'; el.style.height = ((l[1] - l[0] + 8) * 3) + 'px'
+  })
+  // curseur texte : clignote à l'image 0, attend dans le champ vide, suit la frappe
+  let car = null, carOp = 0
+  if (tail || t < 1.0) { const l = LN[1]; car = { x: l[3] + 3, y0: l[0], y1: l[1] }; carOp = (osc(t, 0.95, 0.25) > -0.1 ? 1 : 0) * (tail ? ramp(t, T.loop + 0.5, 0.2) : 1 - ramp(t, 0.92, 0.08)) }
+  else if (mode === 'empty') { const l = LN[0]; car = { x: l[2], y0: l[0], y1: l[1] }; carOp = osc(t, 0.8) > -0.1 ? 1 : 0 }
+  else if (mode === 'type') { car = caretAt || { x: LN[LN.length - 1][3] + 3, y0: LN[LN.length - 1][0], y1: LN[LN.length - 1][1] }; carOp = 1 }
+  if (car) { const cs = $('caret').style; cs.left = (car.x * 3 + 2) + 'px'; cs.top = ((car.y0 - 3) * 3) + 'px'; cs.height = ((car.y1 - car.y0 + 6) * 3) + 'px' }
+  $('caret').style.opacity = carOp
+  // éclat du message quand il apparaît d'un coup
+  const mr = PR.n3.message, mg = $('msgGlow').style
+  mg.left = ((mr.x - 4) * 3) + 'px'; mg.top = ((mr.y - 4) * 3) + 'px'; mg.width = ((mr.w + 8) * 3) + 'px'; mg.height = ((mr.h + 8) * 3) + 'px'
+  mg.opacity = tail ? 0 : (pulse(t, C.lui - 0.02, 0.7) + pulse(t, T.typeEnd - 0.1, 0.5) * 0.6).toFixed(3)
+
+  // halo du choix coché (image 0 : « 3. Mise en demeure »)
+  const rad = j => { const d = PR.n3.radios[j].dot; return { x: d.x + d.w / 2, y: d.y + d.h / 2 } }
+  let hj = 2, hOp = 0
+  if (tail || t < 1.6) hOp = tail ? ramp(t, T.loop + 0.4, 0.4) : 1
+  else if (t >= T.rap - 0.05 && t < T.texte) { hj = img.cur === 'n1' ? 0 : img.cur === 'n2' ? 1 : 2; hOp = 1 }
+  const hp = (osc(t, 0.9) + 1) / 2
+  const hc = rad(hj)
+  setT($('haloR'), (hOp * (1 - hp) * 0.95).toFixed(3), `translate(${hc.x * 3}px, ${hc.y * 3}px) scale(${(1 + 1.5 * hp).toFixed(3)})`)
+  setT($('haloG'), (hOp * 0.9).toFixed(3), `translate(${hc.x * 3}px, ${hc.y * 3}px) scale(${(2.1 + 0.3 * hp).toFixed(3)})`)
+  const bp0 = tail ? 1 : ramp(t, 0.08, 0.7)
+  setT($('haloB'), bp0 > 0 && bp0 < 1 ? ((1 - bp0) * 0.9).toFixed(3) : 0, `translate(${rad(2).x * 3}px, ${rad(2).y * 3}px) scale(${(1 + 5 * easeOut(bp0)).toFixed(3)})`)
+  // « l'étape d'après » : la pastille saute de 2 à 3
+  const hopP = ramp(t, T.hop, 0.42)
+  if (!tail && t >= T.hop - 0.12 && t < T.texte) {
+    const a = rad(1), b = rad(2), e = easeInOut(hopP)
+    setT($('hopDot'), (ramp(t, T.hop - 0.12, 0.1) * (1 - ramp(t, T.hop + 0.5, 0.2))).toFixed(3), `translate(${(lerp(a.x, b.x, e) * 3).toFixed(1)}px, ${((lerp(a.y, b.y, e) - Math.sin(Math.PI * e) * 22) * 3).toFixed(1)}px) scale(${(0.7 + 0.3 * Math.sin(Math.PI * e)).toFixed(3)})`)
+  } else $('hopDot').style.opacity = 0
+
+  // curseur et clics dans la carte : messagerie, puis lettre PDF
+  const btnC = r => ({ x: r.x + r.w * 0.55, y: r.y + r.h * 0.6 })
+  const pm = btnC(PR.n3.mail), pp = btnC(PR.notee.pdf)
+  let pcx = 400, pcy = 640, pcop = 0, pps = 1
+  if (!tail && t >= T.v4 + 0.2 && t < T.pdf + 0.3) {
+    const a = easeInOut(ramp(t, T.v4 + 0.25, Math.max(0.3, T.mail - 0.12 - T.v4 - 0.25)))
+    pcx = lerp(400, pm.x, a); pcy = lerp(640, pm.y, a)
+    const b = easeInOut(ramp(t, T.toPdf, 0.3))
+    pcx = lerp(pcx, pp.x, b); pcy = lerp(pcy, pp.y, b)
+    pcop = ramp(t, T.v4 + 0.2, 0.1) * (1 - ramp(t, T.pdf + 0.1, 0.15))
+    if (Math.abs(t - T.mail) < 0.07 || Math.abs(t - T.pdfClick) < 0.07) pps = 0.84
+  }
+  setT($('pCursor'), pcop, `translate(${(pcx * 3).toFixed(1)}px, ${(pcy * 3).toFixed(1)}px) scale(${pps})`)
+  const r1 = ramp(t, T.mail, 0.45), r2 = ramp(t, T.pdfClick, 0.45)
+  const rip = !tail && r1 > 0 && r1 < 1 ? [pm, r1] : !tail && r2 > 0 && r2 < 1 ? [pp, r2] : null
+  setT($('pRipple'), rip ? (1 - rip[1]).toFixed(3) : 0, rip ? `translate(${(rip[0].x * 3).toFixed(1)}px, ${(rip[0].y * 3).toFixed(1)}px) scale(${(0.4 + 1.8 * easeOut(rip[1])).toFixed(3)})` : 'none')
+  // anneaux : bouton « Copier le texte », message « Relance notée »
+  const ring = (el, r, op, pad = 5) => { const s = el.style; s.left = ((r.x - pad) * 3) + 'px'; s.top = ((r.y - pad) * 3) + 'px'; s.width = ((r.w + 2 * pad) * 3) + 'px'; s.height = ((r.h + 2 * pad) * 3) + 'px'; s.opacity = op }
+  ring($('ringBtn'), PR.notee.copier, tail ? 0 : (easeOut(ramp(t, T.v5 + 0.38, 0.15)) * (1 - ramp(t, T.v5 + 0.95, 0.2))).toFixed(3))
+  ring($('ringOk'), PR.notee.ok, tail ? 0 : (easeOut(ramp(t, T.mail + 0.1, 0.18)) * (1 - ramp(t, T.mail + 1.1, 0.3)) * (0.8 + 0.2 * osc(t, 0.5))).toFixed(3))
+  // historique : une coche par relance, la nouvelle s'allume
+  const HN = D['historique-notee']
+  const chkT = [T.notee + 0.02, Math.max(C.rel5, T.chaque + 0.2), T.chaque] // mise en demeure (nouvelle), relance, rappel
+  CHKS.forEach((el, i) => {
+    const h = HN[i], p = tail ? 0 : back(ramp(t, chkT[i], 0.3))
+    el.style.left = ((h.x1 + 12) * 3) + 'px'; el.style.top = (((h.y0 + h.y1) / 2) * 3) + 'px'
+    el.style.opacity = tail || t < chkT[i] || t > T.ech + 0.45 ? 0 : 1
+    el.style.transform = `scale(${clamp(p, 0, 1.3).toFixed(3)})`
+  })
+  const nl = $('newLine').style, h0 = HN[0]
+  nl.left = ((h0.x0 - 22) * 3) + 'px'; nl.top = ((h0.y0 - 2) * 3) + 'px'; nl.width = ((h0.x1 - h0.x0 + 70) * 3) + 'px'; nl.height = ((h0.y1 - h0.y0 + 4) * 3) + 'px'
+  nl.opacity = tail ? 0 : (easeOut(ramp(t, T.notee, 0.2)) * (1 - ramp(t, T.ech + 0.2, 0.2))).toFixed(3)
+
+  /* Logo PMSB Gestion sur « P.M.S.B. » */
+  const lgIn = tail ? 0 : back(ramp(t, C.cree, 0.38)), lgOut = easeIn(ramp(t, Math.max(C.pmsb + 0.45, C.lui - 0.3), 0.25)), lgB = tail ? 0 : pulse(t, C.pmsb, 0.3)
+  setT($('logoChip'), t >= C.cree && !tail ? clamp(lgIn) * (1 - lgOut) : 0, `translate(${40 - lgOut * 380}px, ${560 + (1 - clamp(lgIn)) * 60 - lgB * 18}px) rotate(${-6 + 3 * (1 - lgIn) + lgB * 4}deg) scale(${(0.7 + 0.3 * lgIn + 0.08 * lgB).toFixed(3)})`)
+
+  /* Escalier 1 · 2 · 3 */
+  const stIn = tail ? 0 : ramp(t, T.v3 - 0.02, 0.4)
+  const stOut = easeIn(ramp(t, T.texte - 0.12, 0.3))
+  const stepT = [T.rap, T.rel, T.dem]
+  const fills = ['#5b9bd5', '#0a6fb8', '#b3360c']
+  qa('#stairs .step').forEach((el, i) => {
+    const x = 92 + i * 283, top = 1250 - 58 * (i + 1), h = 58 * (i + 1)
+    el.style.left = x + 'px'; el.style.top = top + 'px'; el.style.width = '277px'; el.style.height = h + 'px'
+    const rise = back(ramp(t, T.v3 + i * 0.07, 0.34))
+    const on = tail ? 0 : easeOut(ramp(t, stepT[i] - 0.02, 0.16))
+    const bump = tail ? 0 : pulse(t, stepT[i] - 0.02, 0.32)
+    el.style.opacity = (stIn > 0 ? 1 : 0) * (1 - stOut)
+    el.style.transform = `translateY(${(stOut * 60).toFixed(1)}px) scaleY(${clamp(rise, 0, 1.2).toFixed(3)}) translateY(${(-bump * 10).toFixed(2)}px)`
+    el.style.borderColor = on > 0.5 ? 'transparent' : 'rgba(22, 22, 27, .2)'
+    const fi = el.firstElementChild
+    fi.style.opacity = on; fi.style.background = `linear-gradient(180deg, ${fills[i]}, ${fills[i]}dd)`
+    el.lastElementChild.style.color = on > 0.5 ? '#fff' : 'rgba(22, 22, 27, .38)'
+  })
+
+  /* Historique + flèche : la dernière relance → l'étape suivante proposée */
+  const hIn = tail ? 0 : easeOut(ramp(t, T.prop + 0.05, 0.3)), hOut = easeIn(ramp(t, T.texte - 0.34, 0.2))
+  const HS = 2.3, hw = 310, hh = 62
+  const hc0 = { x: 20, y: 876 }
+  $('histCard').style.width = (hw * HS) + 'px'; $('histCard').style.height = (hh * HS) + 'px'
+  $('histCard').firstElementChild.style.transform = `scale(${HS / 3}) translate(${-hc0.x * 3}px, ${-hc0.y * 3}px)`
+  const histX = 540 - hw * HS / 2, histY = 884
+  const hh0 = PR.n3.historique[0], hiS = $('histHi').style
+  hiS.top = ((hh0.y - hc0.y - 1) * HS) + 'px'; hiS.height = ((hh0.h + 2) * HS) + 'px'; hiS.width = ((hw - 8) * HS - 16) + 'px'
+  hiS.transform = `scaleX(${(tail ? 0 : easeOut(ramp(t, T.prop + 0.18, 0.3))).toFixed(3)})`
+  setT($('hist'), (hIn * (1 - hOut)).toFixed(3), `translate(${histX}px, ${(histY + (1 - hIn) * 80 + hOut * 60).toFixed(1)}px)`)
+  // flèche de la ligne « Relance le 15/10 » vers « 3. Mise en demeure »
+  const PDp = track(Math.max(T.prop + 0.32, Math.min(t, T.texte - 0.12)), keysP)
+  const r3 = rad(2), tb = pToStage(PDp, r3.x, PDp.wy1), tip = { x: tb.x, y: tb.y + 16 }
+  const from = { x: histX - 12, y: histY + 38 + (887.4 + 11 - hc0.y) * HS }
+  const ap = tail ? 0 : easeInOut(ramp(t, T.prop + 0.32, 0.36)) * (1 - hOut)
+  const c1 = { x: from.x - 95, y: from.y + 10 }, c2 = { x: tip.x - 30, y: tip.y + 80 }
+  $('arrowPath').setAttribute('d', `M${from.x.toFixed(1)} ${from.y.toFixed(1)} C${c1.x.toFixed(1)} ${c1.y.toFixed(1)} ${c2.x.toFixed(1)} ${c2.y.toFixed(1)} ${tip.x.toFixed(1)} ${tip.y.toFixed(1)}`)
+  const len = $('arrowPath').getTotalLength()
+  $('arrowPath').style.strokeDasharray = `${len} ${len}`
+  $('arrowPath').style.strokeDashoffset = (len * (1 - ap)).toFixed(1)
+  $('arrowPath').style.opacity = ap > 0 ? 1 : 0
+  const ang = Math.atan2(tip.y - c2.y, tip.x - c2.x)
+  const hd = (a, r) => `${(tip.x + Math.cos(ang + a) * r).toFixed(1)} ${(tip.y + Math.sin(ang + a) * r).toFixed(1)}`
+  $('arrowHead').setAttribute('d', `M${tip.x.toFixed(1)} ${tip.y.toFixed(1)} L${hd(2.6, 30)} L${hd(-2.6, 30)} Z`)
+  $('arrowHead').style.opacity = ap > 0.95 ? 1 : 0
+  const tg = tail ? 0 : back(ramp(t, T.hop + 0.3, 0.3)) * (1 - hOut)
+  setT($('tagNext'), tg > 0 ? clamp(tg) : 0, `translate(${(tip.x + 64).toFixed(1)}px, ${(tip.y + 18).toFixed(1)}px) rotate(-3deg) scale(${(0.7 + 0.3 * tg).toFixed(3)})`)
+
+  /* La lettre PDF */
+  const LS = 780 / 1654
+  const letterKeys = [
+    [T.pdf - 0.01, { x: 150, y: 1960, s: 1, rz: 7, op: 1 }],
+    [T.pdf + 0.42, { x: 150, y: 478, s: 1, rz: -1.2, op: 1 }],
+    [C.recommande - 0.28, { x: 148, y: 470, s: 1.02, rz: -0.6, op: 1 }],
+    [C.recommande + 0.12, { x: 84 - 111 * LS * 1.75, y: 700 - 902 * LS * 1.75, s: 1.75, rz: 0, op: 1 }],
+    [T.v5 - 0.12, { x: 84 - 111 * LS * 1.75, y: 700 - 1190 * LS * 1.75, s: 1.75, rz: 0, op: 1 }],
+    [T.v5 + 0.42, { x: 30, y: 600, s: 0.6, rz: -9, op: 0.95 }],
+    [T.ech, { x: 30, y: 590, s: 0.6, rz: -9.5, op: 0.95 }],
+    [T.ech + 0.28, { x: -520, y: 620, s: 0.6, rz: -16, op: 0 }],
+  ]
+  if (!tail && t >= T.pdf - 0.01 && t < T.ech + 0.4) {
+    const lp = track(t, mono(letterKeys))
+    setT($('letter'), lp.op.toFixed(3), `translate(${lp.x.toFixed(2)}px, ${lp.y.toFixed(2)}px) rotate(${lp.rz.toFixed(3)}deg) scale(${(lp.s * LS).toFixed(5)})`)
+    $('letter').style.zIndex = t >= T.v5 ? 3 : 6
+  } else $('letter').style.opacity = 0
+  const LL = D.lettre.lignes, lrec = LL.find(l => l[4].startsWith('Lettre recommandée')), lobj = LL.find(l => l[4].startsWith('Objet'))
+  const mk = $('marker').style, mp = tail ? 0 : easeOut(ramp(t, C.recommande - 0.05, 0.35))
+  mk.left = (lrec[0] - 10) + 'px'; mk.top = (lrec[1] - 8) + 'px'; mk.width = (lrec[2] - lrec[0] + 20) + 'px'; mk.height = (lrec[3] - lrec[1] + 16) + 'px'
+  mk.transform = `scaleX(${mp.toFixed(4)})`
+  const rlp = tail ? 0 : easeOut(ramp(t, T.pdf + 0.5, 0.35)), rls = $('redLine').style
+  const objStart = lobj[0] + (lobj[2] - lobj[0]) * 0.135
+  rls.left = objStart + 'px'; rls.top = (lobj[3] + 4) + 'px'; rls.width = ((lobj[0] + (lobj[2] - lobj[0]) * 0.55) - objStart) + 'px'
+  rls.transform = `scaleX(${rlp.toFixed(4)})`
+
+  /* Échéancier : les retards, la pastille rouge rebondit */
+  const eIn = tail ? 0 : easeOut(ramp(t, T.ech + 0.1, 0.28)), eOut = easeIn(ramp(t, T.end - 0.1, 0.28))
+  $('ech').style.opacity = (eIn * (1 - eOut)).toFixed(3)
+  $('ech').style.transform = `translateY(${((1 - eIn) * 70 - eOut * 50).toFixed(1)}px) scale(${(1 - 0.04 * eOut).toFixed(4)})`
+  const EL = D.rects.el, es = 700 / EL.sideEch.w
+  const b = EL.sideBadge, bx = (b.x - EL.sideEch.x - 2) * es, by = (b.y - EL.sideEch.y - 2) * es, bw = (b.w + 4) * es
+  const pc = $('pastCover').style; pc.left = bx + 'px'; pc.top = by + 'px'; pc.width = bw + 'px'; pc.height = bw + 'px'; pc.background = D.fondPastille
+  const bt = Math.max(0, t - (T.ech + 0.3)), bounce = tail ? 0 : Math.abs(Math.sin(bt * 11)) * Math.exp(-bt * 3.2) * 30
+  setT($('pastille'), 1, `translate(${bx}px, ${(by - bounce).toFixed(2)}px) scale(${(1 + bounce / 120).toFixed(3)})`)
+  $('pastille').style.width = bw + 'px'; $('pastille').style.height = bw + 'px'
+  const ES = 964 / 680
+  $('echSec').style.height = (305 * ES) + 'px'
+  $('echSec').firstElementChild.style.transform = `scale(${ES / 3})`
+  qa('#echSec .redRing').forEach((el, i) => {
+    const r = EL.echJours[i], s = el.style
+    s.left = ((r.x - 6) * ES) + 'px'; s.top = ((r.y - 4) * ES) + 'px'; s.width = ((r.w + 12) * ES) + 'px'; s.height = ((r.h + 8) * ES) + 'px'
+    s.opacity = tail ? 0 : easeOut(ramp(t, T.ech + 0.35 + i * 0.16, 0.18)).toFixed(3)
+  })
+
+  /* Fin : la question, l'escalier qui s'allume, l'offre */
+  const endOn = !tail && t >= T.end
+  const eqIn = endOn ? easeOut(ramp(t, T.end, 0.3)) : tail ? 1 - ramp(t, T.loop, 0.28) : 0
+  setT($('q'), eqIn.toFixed(3), `translateY(${((1 - eqIn) * 30).toFixed(1)}px)`)
+  const w5 = WORDS[5]
+  qa('#q .w').forEach((el, i) => {
+    const x = w5[i], said = tail || t >= x.t0 - 0.03
+    el.classList.toggle('on', said)
+    if (el.classList.contains('box')) el.style.setProperty('--k', tail ? 1 : easeOut(ramp(t, x.t0 - 0.03, 0.25)).toFixed(3))
+  })
+  const eLine = (id, d) => { const e = endOn ? back(ramp(t, T.end + d, 0.34)) : tail ? 1 - ramp(t, T.loop, 0.25) : 0; setT($(id), clamp(e).toFixed(3), `translateY(${((1 - clamp(e)) * 24).toFixed(1)}px) scale(${(0.94 + 0.06 * clamp(e, 0, 1.1)).toFixed(4)})`) }
+  const dE = Math.max(0.5, Math.min(1.9, T.loop - 0.55 - T.end)) / 1.9
+  eLine('e1', 0.7 * dE); eLine('e2', 0.72 * dE); eLine('e3', 1.3 * dE); eLine('e4', 1.9 * dE)
+  const stT = endOn ? ramp(t, T.end + 0.05, 0.3) : tail ? 1 - ramp(t, T.loop, 0.25) : 0
+  $('stTop').style.opacity = stT.toFixed(3)
+  qa('#stTop .st').forEach((el, i) => {
+    const x = 230 + i * 210, h = 52 + i * 46
+    el.style.left = x + 'px'; el.style.top = (446 - h) + 'px'; el.style.width = '204px'; el.style.height = h + 'px'
+    const ph = (t - T.end) / 0.42, lit = endOn ? (Math.floor(ph) % 4 >= i ? 1 : 0) * (ph >= i ? 1 : 0) : tail ? 1 : 0
+    el.firstElementChild.style.opacity = lit
+    el.firstElementChild.style.background = fills[i]
+    el.lastElementChild.style.color = lit ? '#fff' : 'rgba(22, 22, 27, .4)'
+    el.lastElementChild.style.fontSize = i === 2 ? '17px' : '21px'
+  })
+
+  /* Voile haut quand le contenu passe sous le texte */
+  const shade = tail ? 0 : Math.max(easeInOut(ramp(t, 2.3, 0.3)) * (1 - easeInOut(ramp(t, T.lift + 0.1, 0.3))), t >= T.pdf + 0.2 && t < T.v5 + 0.4 ? easeInOut(ramp(t, T.pdf + 0.2, 0.3)) * (1 - ramp(t, T.v5 + 0.1, 0.3)) : 0)
+  $('shadeTop').style.opacity = shade.toFixed(3)
+
+  /* Badge « Données de démonstration » : sur la carte à l'image 0, sur la carte « En retard », puis ancré */
+  const BF = { x: 470, y: 640, r: -3, s: 1 }, BD = { x: 62, y: 484, r: -2, s: 1 }
+  const BK = { x: kp.x + 264 * kp.s - 300, y: kp.y - 30, r: 3, s: 1 }
+  let bp
+  if (tail) bp = mixB(BD, BF, easeInOut(ramp(t, T.loop + 0.2, 0.65)))
+  else if (t < 1.32) bp = BF
+  else if (t < 1.98) bp = mixB(BF, BK, easeInOut(ramp(t, 1.32, 0.4)))
+  else bp = mixB(BK, BD, easeInOut(ramp(t, 1.98, 0.36)))
+  const bpush = (t < 1.0 || tail) ? push(t, tail) : 1
+  setT($('badge'), 1, `translate(${(540 + (bp.x - 540) * bpush).toFixed(2)}px, ${(880 + (bp.y - 880) * bpush).toFixed(2)}px) rotate(${bp.r.toFixed(3)}deg)`)
+
+  /* Poussée de caméra de l'image 0 (1,00 → 1,03, avec un à-coup sur « impayée ») */
+  const pz = push(t, tail)
+  $('pcam').style.transform = pz !== 1 ? `scale(${pz.toFixed(5)})` : 'none'
+  $('pcam').style.transformOrigin = '540px 880px'
+
+  $('flash').style.opacity = 0
+}
+const mixB = (a, b, k) => ({ x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), r: lerp(a.r, b.r, k), s: lerp(a.s, b.s, k) })
+function push(t, tail) {
+  if (tail) return 1
+  if (t >= 1.6) return 1
+  return 1 + 0.03 * easeOut(ramp(t, 0, 1.0)) + 0.012 * pulse(t, (WALL || 0.3) - 0.02, 0.3) - 0.03 * easeInOut(ramp(t, 1.0, 0.6))
+}
+
+function computeT(C, TIMES) {
+  T = {}
+  T.swap = Math.max(3.0, C.logiciel - 0.1)
+  T.lift = T.swap + 0.48; T.liftEnd = T.swap + 1.02
+  T.v3 = C.v3; T.rap = C.rappel; T.rel = C.relance; T.dem = C.demeure
+  T.pc0 = Math.max(C.lui + 0.3, Math.min(T.v3 - 0.15, T.rap - 0.42))
+  T.prop = C.propose; T.texte = C.texte - 0.15
+  T.hop = Math.max(C.apres, T.prop + 0.42)
+  T.toPdf = Math.min(C.lettre - 0.05, C.messagerie + 0.75)
+  T.v4 = TIMES[3].start - 0.15
+  T.typeEnd = Math.min(Math.max(T.texte + 1.25, TIMES[2].end + 0.15), T.v4 + 0.25)
+  T.mail = C.messagerie; T.lettre = C.lettre; T.pdfClick = C.lettre + 0.28
+  T.pdf = Math.max(C.pdf, T.pdfClick + 0.15)
+  T.v5 = C.v5; T.chaque = C.chaque; T.notee = C.notee
+  T.ech = T.notee + 0.55
+  T.end = Math.max(TIMES[5].start - 0.12, T.ech + 0.95)
+  T.loop = C.end + 0.55
+  T.dE = Math.max(0.5, Math.min(1.9, T.loop - 0.55 - T.end)) / 1.9
+  return T
+}
+const mono = K => { for (let i = 1; i < K.length; i++) if (K[i][0] <= K[i - 1][0]) K[i][0] = K[i - 1][0] + 0.02; return K }
+
+LTNS.start({
+  sentences: SENTENCES, cues: CUES, spoken: SPOKEN, tail: 1.6, render,
+  settle: () => new Promise(r => requestAnimationFrame(() => r())),
+  extraEvents: (C, TIMES) => {
+    computeT(C, TIMES)
+    const ev = [{ t: 0.1, sfx: 'ding' }, { t: 1.0, sfx: 'whoosh' }, { t: 1.42, sfx: 'pop' }, { t: 1.98, sfx: 'whoosh' }, { t: 2.79, sfx: 'tick' },
+      { t: T.swap, sfx: 'whoosh' }, { t: T.hop, sfx: 'tick' }, { t: T.hop + 0.4, sfx: 'pop' },
+      { t: T.mail + 0.12, sfx: 'pop' }, { t: T.pdfClick, sfx: 'tick' }, 
+      { t: T.ech + 0.12, sfx: 'whoosh' }, { t: T.ech + 0.32, sfx: 'pop' }, { t: T.end, sfx: 'whoosh' },
+      { t: T.end + 0.7 * T.dE, sfx: 'pop' }, { t: T.end + 1.3 * T.dE, sfx: 'pop' }, { t: T.end + 1.9 * T.dE, sfx: 'ding' }, { t: T.loop + 0.1, sfx: 'whoosh' }]
+    for (let x = T.texte + 0.3; x < T.typeEnd - 0.05; x += 0.13) ev.push({ t: x, sfx: 'tick' })
+    return ev
+  },
+  ready: async k => {
+    const { C, TIMES, WORDS } = k
+    D = await (await fetch('assets/rects.json', { cache: 'no-store' })).json()
+    PR = D.rects.panneau
+    computeT(C, TIMES)
+    PERIOD = Math.ceil(k.duration * FPS) / FPS
+    WALL = WORDS[0][1].t0
+    window.T = T
+    keysP = buildKeys(C)
+    qa('.pim').forEach(el => { IMG[el.dataset.k] = el })
+    D['lignes-n3'].forEach(() => { const d = document.createElement('div'); d.className = 'lm'; $('lmasks').appendChild(d); MASKS.push(d) })
+    CHKS = qa('.chk')
+    // la question finale, mot à mot
+    $('q').innerHTML = WORDS[5].map((x, i) => `<span class="w${x.w.startsWith('impayés') ? ' red' : ''}${x.w.startsWith('comment') ? ' box' : ''}">${x.w}</span>`).join(' ')
+    // le titre tient sur la largeur
+    qa('#title .l').forEach(l => { const w = l.scrollWidth, max = 985; if (w > max) l.style.fontSize = (parseFloat(getComputedStyle(l).fontSize) * max / w).toFixed(1) + 'px' })
+    await Promise.all(qa('img').map(i => i.decode().catch(() => {})))
+  },
+})
+</script>
+</body>
+</html>
