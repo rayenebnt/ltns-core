@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok PMSB Gestion</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; width: 1080px; height: 1920px; transform: translate(-50%, -50%); transform-origin: 0 0; overflow: hidden; background: #1a1a1a; }
+  /* tout ce qui est « filmé » bouge ensemble (téléphone tenu à la main) */
+  #cam { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 960px; }
+  #photo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; }
+  .quad { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #strips canvas { filter: brightness(0.97) contrast(0.93) saturate(1.04); }
+  #glow { filter: blur(26px); mix-blend-mode: screen; opacity: 0.30; }
+  #spill { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; mix-blend-mode: screen; pointer-events: none; }
+  #vid { position: absolute; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
+  /* texte fixe en haut, style « classique » de TikTok (fond blanc arrondi, texte noir) */
+  #caption { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="cam">
+    <img id="photo" src="assets/photo.jpg" alt="">
+    <canvas id="spill" width="1080" height="1920"></canvas>
+    <canvas id="glow" class="quad" width="240" height="150"></canvas>
+    <div id="strips"></div>
+  </div>
+  <canvas id="caption" width="1080" height="1920"></canvas>
+  <video id="vid" muted playsinline preload="auto"></video>
+</div>
+<script type="module">
+/* ============================================================
+   TikTok 1080 × 1920 : la pub 3D (assets/pub.webm) jouée sur l'écran de l'ordinateur de la photo.
+   assets/screen.json (scripts/detect-screen.py) donne les 4 coins de l'écran vert de assets/photo.jpg.
+   Muet : le son tendance s'ajoute dans TikTok. Rendu : node video/commun/render.mjs video/pub-pmsb-gestion
+   ============================================================ */
+const W = 1080, H = 1920, FPS = 30
+const CAPTION = ['Nan les gars, regardez ce que', 'j’ai créé pour mes clients \u{1F633}']
+const q = new URLSearchParams(location.search)
+const PI = Math.PI
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const $ = id => document.getElementById(id)
+const vid = $('vid'), photo = $('photo')
+
+/* ── Homographie : rectangle w × h → quadrilatère (coins tl, tr, br, bl) ── */
+function matrix3d(w, h, [p0, p1, p2, p3]) {
+  const [x0, y0] = p0, [x1, y1] = p1, [x2, y2] = p2, [x3, y3] = p3
+  const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3
+  const dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3
+  const den = dx1 * dy2 - dx2 * dy1
+  const g = (dx3 * dy2 - dx2 * dy3) / den, hh = (dx1 * dy3 - dx3 * dy1) / den
+  let a = x1 - x0 + g * x1, b = x3 - x0 + hh * x3, c = x0
+  let d = y1 - y0 + g * y1, e = y3 - y0 + hh * y3, f = y0
+  a /= w; d /= w; const G = g / w
+  b /= h; e /= h; const Hh = hh / h
+  return `matrix3d(${a},${d},0,${G},${b},${e},0,${Hh},0,0,1,0,${c},${f},0,1)`
+}
+
+// Même homographie, en fonction : (u, v) du carré unité → point du quadrilatère
+function homography([p0, p1, p2, p3]) {
+  const [x0, y0] = p0, [x1, y1] = p1, [x2, y2] = p2, [x3, y3] = p3
+  const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3
+  const dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3
+  const den = dx1 * dy2 - dx2 * dy1
+  const g = (dx3 * dy2 - dx2 * dy3) / den, h = (dx1 * dy3 - dx3 * dy1) / den
+  const a = x1 - x0 + g * x1, b = x3 - x0 + h * x3, d = y1 - y0 + g * y1, e = y3 - y0 + h * y3
+  return (u, v) => { const w = g * u + h * v + 1; return [(a * u + b * v + x0) / w, (d * u + e * v + y0) / w] }
+}
+
+/* ── Texte « classique » TikTok : un fond blanc par ligne, coins arrondis, raccords concaves ── */
+function drawCaption() {
+  const cv = $('caption'), x = cv.getContext('2d')
+  x.clearRect(0, 0, W, H)
+  const fs = 44, lh = 60, padX = 18, r = 12, top = 424
+  // emoji en couleur (Noto Color Emoji), comme dans l'appli
+  x.font = `600 ${fs}px "TikTok Sans", "Noto Color Emoji", system-ui, sans-serif`
+  x.textAlign = 'center'; x.textBaseline = 'middle'
+  const ws = CAPTION.map(l => x.measureText(l).width + 2 * padX)
+  const box = (i) => ({ x0: W / 2 - ws[i] / 2, x1: W / 2 + ws[i] / 2, y0: top + i * lh, y1: top + (i + 1) * lh })
+  x.fillStyle = '#ffffff'
+  CAPTION.forEach((_, i) => {
+    const b = box(i)
+    const up = i === 0 || ws[i] > ws[i - 1] + 2, down = i === CAPTION.length - 1 || ws[i] > ws[i + 1] + 2
+    const rt = up ? r : 0, rb = down ? r : 0
+    x.beginPath(); x.roundRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0 + 0.5, [rt, rt, rb, rb]); x.fill()
+    // raccords concaves là où une ligne plus étroite s'appuie sur une plus large
+    if (i > 0 && ws[i] + 2 < ws[i - 1]) { // ligne plus étroite que celle du dessus
+      concave(x, b.x0, b.y0, -1, 1, r); concave(x, b.x1, b.y0, 1, 1, r)
+    }
+    if (i < CAPTION.length - 1 && ws[i] + 2 < ws[i + 1]) {
+      concave(x, b.x0, b.y1, -1, -1, r); concave(x, b.x1, b.y1, 1, -1, r)
+    }
+  })
+  x.fillStyle = '#121212'
+  CAPTION.forEach((l, i) => { const b = box(i); x.fillText(l, W / 2, (b.y0 + b.y1) / 2 + 2) })
+}
+// Raccord concave au coin (cx, cy) d'une ligne étroite : sx = côté (−1 gauche, +1 droite), sy = +1 si la ligne large est au-dessus
+function concave(x, cx, cy, sx, sy, r) {
+  x.beginPath()
+  x.moveTo(cx, cy)
+  x.lineTo(cx + sx * r, cy)
+  // quart de cercle centré à (cx + sx r, cy + sy r) qui revient sur le bord de la ligne étroite
+  const ccx = cx + sx * r, ccy = cy + sy * r
+  const a0 = Math.atan2(cy - ccy, (cx + sx * r) - ccx), a1 = Math.atan2(ccy - ccy, cx - ccx)
+  x.arc(ccx, ccy, r, a0, a1, (sx * sy) > 0)
+  x.closePath(); x.fill()
+}
+
+/* ── Mouvement de caméra tenue à la main (périodique sur la durée : la boucle est invisible) ── */
+let D = 22
+const wave = (t, parts) => parts.reduce((s, [n, a, ph]) => s + a * Math.sin(2 * PI * n * t / D + ph), 0)
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+function camAt(t) {
+  const tx = W * 0.016 * wave(t, [[3, 0.55, 1.3], [7, 0.28, 0.4], [17, 0.12, 2.1], [53, 0.05, 0.9]])
+  const ty = H * 0.012 * wave(t, [[2, 0.5, 0.2], [5, 0.3, 2.6], [13, 0.15, 1.1], [61, 0.05, 2.9]])
+  const rot = 0.4 * wave(t, [[4, 0.6, 0.7], [11, 0.3, 2.2], [37, 0.1, 0.3]])
+  // poussée lente, puis retour doux sur la dernière seconde (dérivée nulle aux deux bouts)
+  const k = t < D - 1.1 ? easeInOut(t / (D - 1.1)) : 1 - easeInOut((t - (D - 1.1)) / 1.1)
+  const s = 1.05 + 0.03 * k
+  return { tx, ty, rot, s }
+}
+
+/* ── Écran ─────────────────────────────────────────────── */
+let QUAD = null
+// où dessiner la pub dans l'écran : si l'écran n'est pas en 16:10, bandes noires comme dans un lecteur vidéo
+let BOX = { x: 0, y: 0, w: 1600, h: 1000 }
+// l'écran est dessiné dans un tampon, puis posé en bandes verticales qui suivent les bords (écran incurvé)
+const screenBuf = document.createElement('canvas'); screenBuf.width = 1600; screenBuf.height = 1000
+const sctx = screenBuf.getContext('2d'), gctx = $('glow').getContext('2d')
+const N_STRIPS = 16, STRIP_W = 1600 / N_STRIPS
+let STRIPS = []
+const spill = $('spill').getContext('2d')
+const probe = document.createElement('canvas'); probe.width = 8; probe.height = 5
+const pctx = probe.getContext('2d', { willReadFrequently: true })
+function place() {
+  const sc = SCREEN
+  // la photo est affichée en « cover » dans 1080 × 1920
+  const [pw, ph] = sc.size
+  const k = Math.max(W / pw, H / ph), ox = (W - pw * k) / 2, oy = (H - ph * k) / 2
+  const c = sc.corners
+  QUAD = ['tl', 'tr', 'br', 'bl'].map(n => [c[n][0] * k + ox, c[n][1] * k + oy])
+  // point de l'écran (u, v) : perspective du quadrilatère + flèche de chaque bord
+  const HQ = homography(QUAD)
+  const bow = sc.bow || {}
+  const cx0 = QUAD.reduce((s, p) => s + p[0], 0) / 4, cy0 = QUAD.reduce((s, p) => s + p[1], 0) / 4
+  const outN = (p, q) => { let nx = q[1] - p[1], ny = -(q[0] - p[0]); const l = Math.hypot(nx, ny); nx /= l; ny /= l; const mx = (p[0] + q[0]) / 2 - cx0, my = (p[1] + q[1]) / 2 - cy0; return nx * mx + ny * my < 0 ? [-nx, -ny] : [nx, ny] }
+  const nT = outN(QUAD[0], QUAD[1]), nR = outN(QUAD[1], QUAD[2]), nB = outN(QUAD[3], QUAD[2]), nL = outN(QUAD[0], QUAD[3])
+  const bT = (bow.top || 0) * k, bR = (bow.right || 0) * k, bB = (bow.bottom || 0) * k, bL = (bow.left || 0) * k
+  const P = (u, v) => {
+    const [x, y] = HQ(u, v), fu = 4 * u * (1 - u), fv = 4 * v * (1 - v)
+    return [x + (1 - v) * nT[0] * bT * fu + v * nB[0] * bB * fu + (1 - u) * nL[0] * bL * fv + u * nR[0] * bR * fv,
+            y + (1 - v) * nT[1] * bT * fu + v * nB[1] * bB * fu + (1 - u) * nL[1] * bL * fv + u * nR[1] * bR * fv]
+  }
+  const host = $('strips'); host.innerHTML = ''; STRIPS = []
+  for (let i = 0; i < N_STRIPS; i++) {
+    const w = i < N_STRIPS - 1 ? STRIP_W + 2 : STRIP_W   // 2 px de recouvrement : aucune couture
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = 1000; cv.className = 'quad'
+    const u0 = i * STRIP_W / 1600, u1 = (i * STRIP_W + w) / 1600
+    cv.style.transform = matrix3d(w, 1000, [P(u0, 0), P(u1, 0), P(u1, 1), P(u0, 1)])
+    host.appendChild(cv); STRIPS.push({ ctx: cv.getContext('2d'), sx: i * STRIP_W, w })
+  }
+  // halo un peu plus grand que l'écran
+  const cx = QUAD.reduce((s, p) => s + p[0], 0) / 4, cy = QUAD.reduce((s, p) => s + p[1], 0) / 4
+  const big = QUAD.map(([x, y]) => [cx + (x - cx) * 1.05, cy + (y - cy) * 1.06])
+  $('glow').style.transform = matrix3d(240, 150, big)
+  // format de l'écran : moyenne des bords en photo (ou « aspect » imposé dans screen.json)
+  const len = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1])
+  const A = sc.aspect || (len(QUAD[0], QUAD[1]) + len(QUAD[3], QUAD[2])) / (len(QUAD[0], QUAD[3]) + len(QUAD[1], QUAD[2]))
+  const r = 1.6 / A
+  BOX = r < 0.98 ? { x: 800 * (1 - r), y: 0, w: 1600 * r, h: 1000 } : r > 1.02 ? { x: 0, y: 500 * (1 - 1 / r), w: 1600, h: 1000 / r } : { x: 0, y: 0, w: 1600, h: 1000 }
+}
+function drawScreen(t, cam) {
+  sctx.fillStyle = '#000'; sctx.fillRect(0, 0, 1600, 1000)
+  sctx.drawImage(vid, BOX.x, BOX.y, BOX.w, BOX.h)
+  // légère chute de lumière sur les bords de la dalle
+  const v = sctx.createRadialGradient(800, 500, 300, 800, 500, 980)
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.22)')
+  sctx.fillStyle = v; sctx.fillRect(0, 0, 1600, 1000)
+  gctx.fillStyle = '#000'; gctx.fillRect(0, 0, 240, 150)
+  gctx.drawImage(vid, BOX.x * 0.15, BOX.y * 0.15, BOX.w * 0.15, BOX.h * 0.15)
+  // reflet de la pièce sur la dalle, qui glisse avec le mouvement de la main
+  const off = -cam.tx * 3 - cam.rot * 40
+  const gr = sctx.createLinearGradient(200 + off, 0, 900 + off, 1000)
+  gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.42, 'rgba(255,255,255,0.055)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.085)'); gr.addColorStop(0.6, 'rgba(255,255,255,0.03)'); gr.addColorStop(1, 'rgba(255,255,255,0)')
+  sctx.globalCompositeOperation = 'screen'; sctx.fillStyle = gr; sctx.fillRect(0, 0, 1600, 1000); sctx.globalCompositeOperation = 'source-over'
+  for (const st of STRIPS) st.ctx.drawImage(screenBuf, st.sx, 0, st.w, 1000, 0, 0, st.w, 1000)
+  // lumière de l'écran sur le clavier et le bas de la photo, à la couleur moyenne de l'image
+  pctx.drawImage(vid, 0, 0, 8, 5)
+  const px = pctx.getImageData(0, 0, 8, 5).data
+  let R = 0, G = 0, B = 0
+  for (let i = 0; i < px.length; i += 4) { R += px[i]; G += px[i + 1]; B += px[i + 2] }
+  const n = px.length / 4; R /= n; G /= n; B /= n
+  spill.clearRect(0, 0, W, H)
+  if (QUAD) {
+    const bx = (QUAD[2][0] + QUAD[3][0]) / 2, by = (QUAD[2][1] + QUAD[3][1]) / 2
+    const sg = spill.createRadialGradient(bx, by, 40, bx, by + 120, 700)
+    sg.addColorStop(0, `rgba(${R | 0},${G | 0},${B | 0},0.26)`); sg.addColorStop(1, 'rgba(0,0,0,0)')
+    spill.fillStyle = sg; spill.fillRect(0, 0, W, H)
+  }
+}
+
+/* ── Image à l'instant t ───────────────────────────────── */
+let pending = Promise.resolve()
+function seek(time) {
+  return new Promise(res => {
+    if (Math.abs(vid.currentTime - time) < 1e-5 && vid.readyState >= 2) return res()
+    const done = () => { vid.removeEventListener('seeked', done); res() }
+    vid.addEventListener('seeked', done)
+    vid.currentTime = time
+  })
+}
+function layout(t) {
+  const cam = camAt(t)
+  $('cam').style.transform = `translate(${cam.tx}px, ${cam.ty}px) rotate(${cam.rot}deg) scale(${cam.s})`
+  return cam
+}
+function renderAt(t) {
+  t = clamp(t, 0, D - 1e-4)
+  const cam = layout(t)
+  const frame = Math.min(Math.round(t * FPS), Math.floor(vid.duration * FPS) - 1)
+  pending = seek((frame + 0.5) / FPS).then(() => drawScreen(t, cam))
+}
+
+/* ── Démarrage ─────────────────────────────────────────── */
+let SCREEN = null
+async function init() {
+  SCREEN = await (await fetch('assets/screen.json', { cache: 'no-store' })).json()
+  // la vidéo est chargée en entier (Blob) : le serveur local ne gère pas les requêtes partielles, sans quoi on ne peut pas se placer à un instant précis
+  vid.src = URL.createObjectURL(await (await fetch('assets/pub.webm', { cache: 'no-store' })).blob())
+  await Promise.all([
+    document.fonts.load('600 44px "TikTok Sans"'),
+    new Promise(res => { if (photo.complete && photo.naturalWidth) res(); else photo.onload = res }),
+    new Promise((res, ko) => { if (vid.readyState >= 2) res(); else { vid.addEventListener('loadeddata', res, { once: true }); vid.addEventListener('error', () => ko(new Error('assets/pub.webm illisible')), { once: true }) } }),
+  ])
+  D = Math.round(vid.duration * FPS) / FPS
+  place()
+  drawCaption()
+}
+await init()
+window.TL = []
+window.DURATION = D
+window.renderAt = renderAt
+window.settle = () => pending
+const stage = $('stage')
+if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true }
+else {
+  const fit = () => { const s = Math.min(innerWidth / W, innerHeight / H); stage.style.transform = `translate(-50%, -50%) scale(${s})`; stage.style.transformOrigin = '50% 50%' }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); await pending; window.READY = true }
+  else {
+    vid.loop = true; vid.play().catch(() => {})
+    const loop = () => { const cam = layout(vid.currentTime); drawScreen(vid.currentTime, cam); requestAnimationFrame(loop) }
+    loop()
+  }
+}
+</script>
+</body>
+</html>

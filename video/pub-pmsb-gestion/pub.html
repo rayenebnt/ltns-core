@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pub PMSB Gestion</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #050403; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1200px; transform: translate(-50%, -50%); transform-origin: 0 0; overflow: hidden; background: #0b0806; }
+  #c { position: absolute; left: 0; top: 0; width: 1920px; height: 1200px; display: block; }
+  /* Mention discrète, lisible même une fois la pub filmée sur l'écran d'un ordinateur */
+  #demo {
+    position: absolute; left: 40px; bottom: 34px; padding: 9px 18px 10px; border-radius: 999px;
+    font: 600 27px/1 'Inter', system-ui, sans-serif; letter-spacing: 0.01em; color: rgba(255, 255, 255, 0.92);
+    background: rgba(12, 10, 8, 0.46); border: 1px solid rgba(255, 255, 255, 0.16);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  #demo::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ffcf4a; margin-right: 11px; vertical-align: 3px; }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }</script>
+</head>
+<body>
+<div id="stage">
+  <canvas id="c" width="1920" height="1200"></canvas>
+  <div id="demo">Données de démonstration</div>
+</div>
+<script type="module">
+import * as THREE from 'three'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js'
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
+RectAreaLightUniformsLib.init()
+
+/* ============================================================
+   PMSB Gestion · pub produit 3D (paysage 1920 × 1200, écran de MacBook)
+   Rendu déterministe : renderAt(t) dessine l'instant t (rien ne dépend de l'horloge).
+   Montage calé sur une grille de 120 BPM (un temps = 0,5 s) : le son tendance s'ajoute dans TikTok.
+   Unités de la scène : centimètres. Le plateau du bureau est le plan y = 0.
+   ============================================================ */
+const W = 1920, H = 1200
+const DURATION = 22
+const BEAT = 0.5
+const q = new URLSearchParams(location.search)
+const PI = Math.PI
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const lerp = (a, b, k) => a + (b - a) * k
+const smooth = (a, b, x) => { const k = clamp((x - a) / (b - a)); return k * k * (3 - 2 * k) }
+const easeInOut = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+const easeOut = p => 1 - Math.pow(1 - p, 3)
+const easeIn = p => p * p * p
+const sineInOut = p => 0.5 - 0.5 * Math.cos(PI * clamp(p))
+const V = (x, y, z) => new THREE.Vector3(x, y, z)
+
+/* ── Rendu ─────────────────────────────────────────────── */
+const canvas = document.getElementById('c')
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' })
+renderer.setPixelRatio(1)
+renderer.setSize(W, H, false)
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.VSMShadowMap
+renderer.toneMapping = THREE.NoToneMapping
+const MAX_ANISO = renderer.capabilities.getMaxAnisotropy()
+
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x000000)
+const camera = new THREE.PerspectiveCamera(30, W / H, 0.5, 900)
+camera.filmGauge = 36
+
+/* ── Chargement ────────────────────────────────────────── */
+const loader = new THREE.TextureLoader()
+const loadTex = (url, srgb = true) => new Promise((ok, ko) => loader.load(url, t => { if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAX_ANISO; ok(t) }, undefined, ko))
+const loadImg = url => new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url })
+const fontsReady = Promise.all([
+  document.fonts.load('700 100px Archivo'), document.fonts.load('600 100px Archivo'),
+  document.fonts.load('600 100px Inter'), document.fonts.load('500 100px Inter'),
+  document.fonts.load('700 100px "Space Grotesk"'),
+])
+const SCREENS = ['m-devis-liste', 'm-devis-q1', 'm-devis-q2', 'm-devis-q26', 'm-devis-q260', 'm-devis-montants', 'm-devis-enregistre', 'm-dashboard', 'm-echeancier', 'm-menu', 'm-relance']
+
+/* ── Téléphone (format iPhone 15 Pro) ───────────────────── */
+const PH = { w: 7.06, h: 14.66, d: 0.83, r: 1.05, bev: 0.13 }
+const SCR = { w: 6.56, h: 14.22, r: 0.92, ptW: 393, ptH: 852, bar: 54 }
+// Point de l'appli (px CSS de la capture, sous la barre d'état) → repère local du téléphone
+const uiLocal = (x, y, lift = 0.05) => V((x / SCR.ptW - 0.5) * SCR.w, (0.5 - (y + SCR.bar) / SCR.ptH) * SCR.h, PH.d / 2 + 0.004 + lift)
+
+function roundRectShape(w, h, r) {
+  const s = new THREE.Shape(), x = -w / 2, y = -h / 2
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.absarc(x + w - r, y + r, r, -PI / 2, 0, false)
+  s.lineTo(x + w, y + h - r); s.absarc(x + w - r, y + h - r, r, 0, PI / 2, false)
+  s.lineTo(x + r, y + h); s.absarc(x + r, y + h - r, r, PI / 2, PI, false)
+  s.lineTo(x, y + r); s.absarc(x + r, y + r, r, PI, 1.5 * PI, false)
+  return s
+}
+// Plaque arrondie épaisse, face avant texturée en 0..1
+function slab(w, h, r, depth, bevel, segs = 24) {
+  const g = new THREE.ExtrudeGeometry(roundRectShape(w - 2 * bevel, h - 2 * bevel, Math.max(0.01, r - bevel)), { depth: depth - 2 * bevel, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 6, curveSegments: segs })
+  g.translate(0, 0, -(depth - 2 * bevel) / 2)
+  const pos = g.attributes.position, uv = g.attributes.uv
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getY(i) / h + 0.5)
+  g.computeVertexNormals()
+  return g
+}
+
+const screenMat = new THREE.ShaderMaterial({
+  uniforms: { map: { value: null }, map2: { value: null }, mixv: { value: 0 }, bright: { value: 1 }, size: { value: new THREE.Vector2(SCR.w, SCR.h) }, radius: { value: SCR.r }, flash: { value: 0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `
+    uniform sampler2D map; uniform sampler2D map2; uniform float mixv; uniform float bright; uniform vec2 size; uniform float radius; uniform float flash;
+    varying vec2 vUv;
+    float sdr(vec2 p, vec2 b, float r){ vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
+    void main(){
+      vec2 p = (vUv - 0.5) * size;
+      float d = sdr(p, size * 0.5, radius);
+      float aa = max(fwidth(d), 1e-4);
+      float m = 1.0 - smoothstep(-aa, aa, d);
+      vec3 c = texture2D(map, vUv).rgb;
+      if (mixv > 0.0) c = mix(c, texture2D(map2, vUv).rgb, mixv);
+      c = c * bright + flash;
+      gl_FragColor = vec4(c * m, 1.0);
+    }`,
+})
+screenMat.extensions = { derivatives: true }
+
+let envTex
+function buildPhone() {
+  const g = new THREE.Group()
+  const glassBlack = new THREE.MeshPhysicalMaterial({ color: 0x050506, roughness: 0.12, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.05 })
+  const titanium = new THREE.MeshPhysicalMaterial({ color: 0x4a4a4f, roughness: 0.32, metalness: 1, clearcoat: 0.3, clearcoatRoughness: 0.2 })
+  const body = new THREE.Mesh(slab(PH.w, PH.h, PH.r, PH.d, PH.bev, 32), [glassBlack, titanium])
+  body.castShadow = true; body.receiveShadow = true
+  g.add(body)
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(SCR.w, SCR.h), screenMat)
+  screen.position.z = PH.d / 2 + 0.002
+  g.add(screen)
+  // Verre : seulement les reflets (mélange additif d'un matériau noir brillant)
+  const glass = new THREE.Mesh(new THREE.ShapeGeometry(roundRectShape(PH.w - 0.1, PH.h - 0.1, PH.r - 0.05), 24), new THREE.MeshPhysicalMaterial({ color: 0x000000, roughness: 0.14, metalness: 0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, envMapIntensity: 1.4 }))
+  glass.position.z = PH.d / 2 + 0.006
+  g.add(glass)
+  // Boutons latéraux
+  const btnMat = titanium
+  const btn = (x, y, len) => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.08, len, 0.32), btnMat); b.position.set(x, y, 0); b.castShadow = true; g.add(b) }
+  btn(-PH.w / 2 - 0.02, 4.2, 0.55); btn(-PH.w / 2 - 0.02, 2.7, 1.1); btn(-PH.w / 2 - 0.02, 1.35, 1.1); btn(PH.w / 2 + 0.02, 2.4, 1.7)
+  // Bloc photo au dos (visible en contre-plongée)
+  const cam = new THREE.Mesh(slab(3.4, 3.5, 0.9, 0.2, 0.06), new THREE.MeshPhysicalMaterial({ color: 0x2a2a2e, roughness: 0.25, metalness: 0.2, clearcoat: 1 }))
+  cam.position.set(-PH.w / 2 + 2.05, PH.h / 2 - 2.1, -PH.d / 2 - 0.08)
+  g.add(cam)
+  g.userData = { screen, body }
+  return g
+}
+
+/* ── Textures dessinées (écran, enseignes, pastilles) ───── */
+function screenCanvas(img) {
+  const k = img.width / SCR.ptW
+  const c = document.createElement('canvas')
+  c.width = img.width; c.height = Math.round(SCR.ptH * k)
+  const x = c.getContext('2d')
+  // Couleur de l'en-tête de l'appli sous la barre d'état
+  const probe = document.createElement('canvas'); probe.width = probe.height = 1
+  const px = probe.getContext('2d'); px.drawImage(img, img.width / 2, 2, 1, 1, 0, 0, 1, 1)
+  const [r, gg, b] = px.getImageData(0, 0, 1, 1).data
+  x.fillStyle = `rgb(${r},${gg},${b})`; x.fillRect(0, 0, c.width, c.height)
+  x.drawImage(img, 0, SCR.bar * k)
+  // Barre d'état
+  x.fillStyle = '#111'
+  x.font = `600 ${17 * k}px Inter`; x.textBaseline = 'middle'; x.textAlign = 'center'
+  x.fillText('9:41', 54 * k, 31 * k)
+  // îlot
+  x.beginPath(); x.roundRect((SCR.ptW / 2 - 63) * k, 11 * k, 126 * k, 37 * k, 18.5 * k); x.fillStyle = '#000'; x.fill()
+  // réseau, wifi, batterie
+  x.fillStyle = '#111'
+  for (let i = 0; i < 4; i++) { const hh = (4 + i * 2.6) * k; x.beginPath(); x.roundRect((300 + i * 4.6) * k, 36 * k - hh, 3 * k, hh, 0.8 * k); x.fill() }
+  x.lineWidth = 2.2 * k; x.strokeStyle = '#111'; x.lineCap = 'round'
+  for (let i = 0; i < 3; i++) { x.beginPath(); x.arc(330 * k, 36 * k, (3 + i * 3.6) * k, -PI * 0.75, -PI * 0.25); x.stroke() }
+  x.lineWidth = 1.1 * k; x.globalAlpha = 0.45; x.beginPath(); x.roundRect(345 * k, 26 * k, 25 * k, 12 * k, 3.5 * k); x.stroke(); x.globalAlpha = 1
+  x.beginPath(); x.roundRect(347 * k, 28 * k, 19 * k, 8 * k, 2 * k); x.fill()
+  x.beginPath(); x.roundRect(371 * k, 30 * k, 1.6 * k, 4 * k, 0.8 * k); x.globalAlpha = 0.45; x.fill(); x.globalAlpha = 1
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAX_ANISO
+  return t
+}
+
+function glowCanvas(w, h, draw, blur) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h
+  const x = c.getContext('2d'); draw(x)
+  const halo = document.createElement('canvas'); halo.width = w; halo.height = h
+  const hx = halo.getContext('2d'); hx.filter = `blur(${blur}px)`; hx.drawImage(c, 0, 0)
+  hx.filter = `blur(${blur * 0.45}px)`; hx.globalAlpha = 0.35; hx.drawImage(c, 0, 0)
+  // le halo s'arrête au bord des lettres : elles restent nettes et blanches
+  hx.filter = 'none'; hx.globalAlpha = 0.85; hx.globalCompositeOperation = 'destination-out'; hx.drawImage(c, 0, 0)
+  hx.globalCompositeOperation = 'source-over'; hx.globalAlpha = 1
+  return { core: c, halo }
+}
+
+const emissiveMat = (tex, color, intensity) => new THREE.ShaderMaterial({
+  uniforms: { map: { value: tex }, color: { value: new THREE.Color(...color) }, intensity: { value: intensity }, opacity: { value: 1 }, flip: { value: 0 }, fade: { value: 0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `uniform sampler2D map; uniform vec3 color; uniform float intensity; uniform float opacity; uniform float fade; varying vec2 vUv;
+    void main(){ vec4 t = texture2D(map, vUv); float f = fade > 0.0 ? pow(1.0 - smoothstep(0.0, fade, vUv.y), 1.6) : 1.0; gl_FragColor = vec4(t.rgb * t.a * color * intensity * opacity * f, 1.0); }`,
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+})
+
+// Enseigne lumineuse : cœur + halo, et son reflet sur le bureau verni
+function buildSign(canvases, widthCm, coreColor, haloColor, coreI, haloI) {
+  const { core, halo } = canvases
+  const aspect = core.height / core.width
+  const tCore = new THREE.CanvasTexture(core), tHalo = new THREE.CanvasTexture(halo)
+  for (const t of [tCore, tHalo]) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAX_ANISO }
+  const g = new THREE.Group()
+  const mCore = emissiveMat(tCore, coreColor, coreI), mHalo = emissiveMat(tHalo, haloColor, haloI)
+  const geo = new THREE.PlaneGeometry(widthCm, widthCm * aspect)
+  const pCore = new THREE.Mesh(geo, mCore); pCore.renderOrder = 3
+  const pHalo = new THREE.Mesh(new THREE.PlaneGeometry(widthCm * 1.0, widthCm * aspect * 1.0), mHalo); pHalo.position.z = -0.05; pHalo.renderOrder = 2
+  g.add(pHalo, pCore)
+  // Reflet : copie retournée, posée sur le plateau, qui s'efface en s'éloignant
+  const rCore = new THREE.Mesh(geo, emissiveMat(tHalo, haloColor, haloI * 0.5))
+  rCore.material.uniforms.fade.value = 0.8
+  rCore.material.depthFunc = THREE.GreaterDepth   // seulement là où le plateau cache la copie : le reflet apparaît « dans » le vernis
+  rCore.scale.y = -1
+  g.add(rCore)
+  g.userData = { mCore, mHalo, mRef: rCore.material, ref: rCore, h: widthCm * aspect, coreI, haloI }
+  return g
+}
+
+function pillTexture(text, opts = {}) {
+  const c = document.createElement('canvas'); c.width = 1600; c.height = 320
+  const x = c.getContext('2d')
+  x.fillStyle = opts.bg || '#f3f0eb'; x.fillRect(0, 0, c.width, c.height)
+  x.font = `600 ${opts.size || 120}px Inter`; x.textAlign = 'center'; x.textBaseline = 'middle'
+  x.fillStyle = opts.fg || '#26231f'
+  if (opts.deg) {
+    // « LTNS° » : le ° est le cadran violet de la marque
+    const parts = text.split('°')
+    const wA = x.measureText(parts[0]).width, wB = x.measureText(parts[1] || '').width, wDeg = 52
+    let x0 = c.width / 2 - (wA + wDeg + wB) / 2
+    x.textAlign = 'left'; x.fillText(parts[0], x0, c.height / 2 + 6)
+    const cx = x0 + wA + wDeg / 2 + 2, cy = c.height / 2 - 38
+    x.strokeStyle = '#a855f7'; x.lineWidth = 9; x.beginPath(); x.arc(cx, cy + 8, 17, 0, 2 * PI); x.stroke()
+    x.fillStyle = '#a855f7'; x.fillRect(cx - 4.5, cy - 24, 9, 13)
+    x.fillStyle = opts.fg || '#26231f'; x.fillText(parts[1] || '', x0 + wA + wDeg + 4, c.height / 2 + 6)
+  } else x.fillText(text, c.width / 2, c.height / 2 + 6)
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAX_ANISO
+  return t
+}
+// Pastille physique à deux faces : on la fait pivoter sur le temps pour passer d'un texte à l'autre
+function buildPill(textA, optsA, textB, optsB) {
+  const w = 16, h = 3.2, half = 0.34
+  const side = new THREE.MeshPhysicalMaterial({ color: 0xe9e5df, roughness: 0.4, clearcoat: 0.5 })
+  const faceMat = (text, opts) => { const t = pillTexture(text, opts); return new THREE.MeshPhysicalMaterial({ map: t, emissiveMap: t, emissive: new THREE.Color(1, 1, 1), emissiveIntensity: 0.32, roughness: 0.42, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.3 }) }
+  const pivot = new THREE.Group(), body = new THREE.Group()
+  const a = new THREE.Mesh(slab(w, h, h / 2, half, 0.15, 32), [faceMat(textA, optsA), side]); a.position.z = half / 2
+  const b = new THREE.Mesh(slab(w, h, h / 2, half, 0.15, 32), [faceMat(textB, optsB), side]); b.rotation.y = PI; b.position.z = -half / 2
+  for (const m of [a, b]) { m.castShadow = true; m.receiveShadow = true }
+  body.add(a, b); body.position.y = h / 2 + 0.02
+  pivot.add(body)
+  return pivot
+}
+
+/* ── Ombres de contact (douces, sous les objets posés) ──── */
+function softShadowTex(w, h, r, blur) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * h / w)
+  const x = c.getContext('2d'); const s = 512 / (w + 4 * blur)
+  x.filter = `blur(${blur * s}px)`; x.fillStyle = '#000'
+  x.beginPath(); x.roundRect((c.width - w * s) / 2, (c.height - h * s) / 2, w * s, h * s, r * s); x.fill()
+  const t = new THREE.CanvasTexture(c); return t
+}
+const shadowMat = (tex, op) => new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: op, depthWrite: false, color: 0x000000, alphaMap: tex, blending: THREE.NormalBlending })
+
+/* ── Traînée lumineuse (néon) ──────────────────────────── */
+const BLUE = new THREE.Color(0.10, 0.42, 1.0)      // bleu du logo de l'appli, poussé en lumière
+const VIOLET = new THREE.Color(0.66, 0.33, 0.97)    // #A855F7, couleur de LTNS°
+const trailVert = `
+  varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+  void main(){ vUv = uv; vec4 wp = modelMatrix * vec4(position, 1.0); vN = normalize(mat3(modelMatrix) * normal); vV = normalize(cameraPosition - wp.xyz); gl_Position = projectionMatrix * viewMatrix * wp; }`
+const trailFrag = `
+  uniform float uHead; uniform float uLen; uniform float uI; uniform float uL; uniform vec3 uA; uniform vec3 uB; uniform vec2 uMix; uniform float uHalo; uniform float uSurf;
+  varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+  void main(){
+    float u = vUv.x;
+    float behind = (uHead - u) * uL;           // cm derrière la tête
+    if (behind < 0.0 || behind > uLen) discard;
+    float k = 1.0 - behind / uLen;
+    float fall = pow(k, 1.2);
+    float ends = smoothstep(0.0, 0.015, u) * smoothstep(1.0, 0.985, u);
+    float facing = abs(dot(normalize(vN), normalize(vV)));
+    vec3 col = mix(uA, uB, smoothstep(uMix.x, uMix.y, u));
+    float head = exp(-behind * behind / 0.5);
+    if (uHalo > 1.5) {
+      // sur l'appli blanche ou le papier : la lumière bleue teinte la surface autour du tube (mélange multiplicatif)
+      float a = clamp(pow(facing, 1.6) * (0.35 + 0.65 * fall + head) * ends * step(0.01, uI) * 0.55, 0.0, 0.6);
+      gl_FragColor = vec4(mix(vec3(1.0), vec3(0.30, 0.56, 1.0), a), 1.0);
+    } else if (uHalo > 0.5) {
+      // gaine lumineuse (additive)
+      gl_FragColor = vec4(col * pow(facing, 2.2) * 0.5 * uI * (fall + head) * ends, 1.0);
+    } else if (uSurf > 0.5) {
+      // sur une surface claire : tube bleu électrique saturé, fil blanc au centre
+      vec3 base = vec3(0.04, 0.32, 1.1) * 1.15;
+      vec3 c = mix(base, vec3(1.7, 1.85, 2.1), pow(facing, 10.0) * 0.65 * (0.4 + 0.6 * k)) * (0.75 + 0.25 * fall + head * 0.5);
+      float a = clamp((0.3 + 0.7 * fall) * ends * (0.45 + 0.55 * pow(facing, 0.5)), 0.0, 1.0);
+      gl_FragColor = vec4(c, a);
+    } else {
+      // tube : cœur blanc, bords bleus saturés (opaque, pour rester lisible sur l'appli blanche)
+      vec3 c = mix(col * 1.0, vec3(1.0), pow(facing, 5.0) * 0.75) * uI * (0.55 + 0.45 * fall + head * 0.8);
+      float a = clamp((0.25 + 0.75 * fall) * ends * (0.4 + 0.6 * pow(facing, 0.5)), 0.0, 1.0);
+      gl_FragColor = vec4(c, a);
+    }
+  }`
+class Trail {
+  constructor(points, { radius = 0.07, closed = false, parent = scene, tension = 0.5, segPerCm = 10 } = {}) {
+    this.curve = new THREE.CatmullRomCurve3(points, closed, 'centripetal', tension)
+    this.L = this.curve.getLength()
+    const segs = Math.max(64, Math.round(this.L * segPerCm))
+    this.uniforms = { uHead: { value: 0 }, uLen: { value: 20 }, uI: { value: 0 }, uL: { value: this.L }, uA: { value: BLUE.clone() }, uB: { value: BLUE.clone() }, uMix: { value: new THREE.Vector2(2, 3) }, uHalo: { value: 0 }, uSurf: { value: parent !== scene ? 1 : 0 } }
+    const onSurface = parent !== scene
+    if (onSurface) radius *= 1.45
+    const mk = (r, halo) => {
+      const u = THREE.UniformsUtils.clone(this.uniforms); u.uHalo.value = halo
+      const mat = new THREE.ShaderMaterial({ uniforms: u, vertexShader: trailVert, fragmentShader: trailFrag, transparent: true, blending: halo === 1 ? THREE.AdditiveBlending : THREE.NormalBlending, depthWrite: false })
+      if (halo === 2) { mat.blending = THREE.CustomBlending; mat.blendEquation = THREE.AddEquation; mat.blendSrc = THREE.DstColorFactor; mat.blendDst = THREE.ZeroFactor }
+      const m = new THREE.Mesh(new THREE.TubeGeometry(this.curve, segs, r, 10, closed), mat)
+      m.frustumCulled = false; m.renderOrder = 5
+      return m
+    }
+    this.core = mk(radius, 0); this.halo = mk(radius * 3.5, 1); this.halo.renderOrder = 4; this.core.renderOrder = 6
+    this.group = new THREE.Group(); this.group.add(this.halo, this.core)
+    this.meshes = [this.core, this.halo]
+    if (onSurface) { this.tint = mk(radius * 7, 2); this.tint.renderOrder = 3; this.group.add(this.tint); this.meshes.push(this.tint) }
+    parent.add(this.group)
+    this.group.visible = false
+  }
+  set({ head, len, intensity, colorB = null, mix = null }) {
+    if (this.surface) intensity *= 0.55   // sur l'appli blanche ou le papier : bleu saturé plutôt que blanc surexposé
+    for (const m of this.meshes) {
+      const u = m.material.uniforms
+      u.uHead.value = head; u.uLen.value = len; u.uI.value = intensity
+      if (colorB) u.uB.value.copy(colorB); else u.uB.value.copy(u.uA.value)
+      if (mix) u.uMix.value.set(mix[0], mix[1])
+    }
+    this.group.visible = intensity > 0
+  }
+  // Position monde d'un point de la traînée (pour les lumières qui la suivent)
+  get surface() { return this.group.parent !== scene }
+  worldAt(u, out) { this.curve.getPointAt(clamp(u), out); return this.group.localToWorld(out) }
+}
+
+/* ── Post-traitement : profondeur de champ, bloom, étalonnage ── */
+const rtScene = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType, samples: 4, depthTexture: new THREE.DepthTexture(W, H, THREE.UnsignedIntType) })
+const rtHalf = new THREE.WebGLRenderTarget(W / 2, H / 2, { type: THREE.HalfFloatType })
+const rtFull = new THREE.WebGLRenderTarget(W, H, { type: THREE.HalfFloatType })
+const rtAcc = new THREE.WebGLRenderTarget(W, H, { type: THREE.FloatType })
+const quadVert = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`
+const depthFns = `
+  uniform sampler2D tDepth; uniform float uNear; uniform float uFar; uniform float uFocus; uniform float uK; uniform float uMax;
+  float linDepth(vec2 uv){ float z = texture2D(tDepth, uv).x * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear)); }
+  float coc(float d){ return min(uMax, uK * abs(1.0 - uFocus / d)); }`
+const N_DOF = 72
+const dofBlur = new FullScreenQuad(new THREE.ShaderMaterial({
+  uniforms: { tColor: { value: null }, tDepth: { value: null }, uNear: { value: 0 }, uFar: { value: 0 }, uFocus: { value: 30 }, uK: { value: 10 }, uMax: { value: 16 }, texel: { value: new THREE.Vector2(2 / W, 2 / H) } },
+  vertexShader: quadVert,
+  fragmentShader: `
+    uniform sampler2D tColor; uniform vec2 texel;
+    ${depthFns}
+    varying vec2 vUv;
+    void main(){
+      float dc = linDepth(vUv); float cc = coc(dc);
+      vec3 acc = min(texture2D(tColor, vUv).rgb, vec3(16.0)); float wsum = 1.0; float fg = 0.0;
+      float rot = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715)))) * 6.2831853;
+      for (int i = 0; i < ${N_DOF}; i++) {
+        float fi = float(i) + 0.5;
+        float r = sqrt(fi / ${N_DOF}.0) * uMax;
+        float a = fi * 2.39996323 + rot;
+        vec2 uv = vUv + vec2(cos(a), sin(a)) * r * texel;
+        float ds = linDepth(uv); float cs = coc(ds);
+        float ce = ds > dc ? min(cs, cc * 2.0) : cs;
+        float w = smoothstep(r - 1.0, r + 0.5, ce);
+        if (ds < dc && cs > r) fg = max(fg, cs);
+        acc += min(texture2D(tColor, uv).rgb, vec3(16.0)) * w; wsum += w;
+      }
+      gl_FragColor = vec4(acc / wsum, fg);
+    }`,
+}))
+const dofMix = new FullScreenQuad(new THREE.ShaderMaterial({
+  uniforms: { tColor: { value: null }, tHalf: { value: null }, tDepth: { value: null }, uNear: { value: 0 }, uFar: { value: 0 }, uFocus: { value: 30 }, uK: { value: 10 }, uMax: { value: 16 } },
+  vertexShader: quadVert,
+  fragmentShader: `
+    uniform sampler2D tColor; uniform sampler2D tHalf;
+    ${depthFns}
+    varying vec2 vUv;
+    void main(){
+      vec3 sharp = min(texture2D(tColor, vUv).rgb, vec3(16.0));
+      vec2 ht = vec2(2.0 / ${W}.0, 2.0 / ${H}.0);
+      vec4 blur = texture2D(tHalf, vUv) * 0.4 + (texture2D(tHalf, vUv + ht * vec2(0.75, 0.75)) + texture2D(tHalf, vUv + ht * vec2(-0.75, 0.75)) + texture2D(tHalf, vUv + ht * vec2(0.75, -0.75)) + texture2D(tHalf, vUv + ht * vec2(-0.75, -0.75))) * 0.15;
+      float c = max(coc(linDepth(vUv)), blur.a);
+      gl_FragColor = vec4(mix(sharp, blur.rgb, smoothstep(0.35, 1.25, c)), 1.0);
+    }`,
+}))
+const accMat = new THREE.ShaderMaterial({ uniforms: { tColor: { value: null }, uW: { value: 1 } }, vertexShader: quadVert, fragmentShader: `uniform sampler2D tColor; uniform float uW; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(tColor, vUv).rgb * uW, 1.0); }`, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false })
+const accQuad = new FullScreenQuad(accMat)
+const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.85, 0.55, 1.15)
+const finalQuad = new FullScreenQuad(new THREE.ShaderMaterial({
+  uniforms: { tColor: { value: null }, uExposure: { value: 0.94 }, uFrame: { value: 0 }, uVig: { value: 0.38 }, uGrain: { value: 0.028 }, uFade: { value: 0 }, uCA: { value: 1.0 }, uFlash: { value: 0 } },
+  vertexShader: quadVert,
+  fragmentShader: `
+    uniform sampler2D tColor; uniform float uExposure; uniform float uFrame; uniform float uVig; uniform float uGrain; uniform float uFade; uniform float uCA; uniform float uFlash;
+    varying vec2 vUv;
+    vec3 neutral(vec3 color){
+      const float sc = 0.76; const float desat = 0.15;
+      float x = min(color.r, min(color.g, color.b));
+      float off = x < 0.08 ? x - 6.25 * x * x : 0.04;
+      color -= off;
+      float peak = max(color.r, max(color.g, color.b));
+      if (peak < sc) return color;
+      const float d = 1.0 - sc;
+      float np = 1.0 - d * d / (peak + d - sc);
+      color *= np / peak;
+      float g = 1.0 - 1.0 / (desat * (peak - np) + 1.0);
+      return mix(color, vec3(np), g);
+    }
+    float hash(vec2 p){ p = fract(p * vec2(443.897, 441.423)); p += dot(p, p.yx + 19.19); return fract((p.x + p.y) * p.x); }
+    vec3 srgb(vec3 c){ c = clamp(c, 0.0, 1.0); return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+    void main(){
+      vec2 d = vUv - 0.5;
+      vec2 ca = d * uCA * 0.0016;
+      vec3 c = vec3(texture2D(tColor, vUv + ca).r, texture2D(tColor, vUv).g, texture2D(tColor, vUv - ca).b);
+      c *= uExposure;
+      c += uFlash;
+      c = neutral(c);
+      // étalonnage : ombres légèrement ambrées, contraste doux
+      float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+      c = mix(c, c * vec3(1.04, 1.0, 0.94), 1.0 - smoothstep(0.0, 0.5, l));
+      c = mix(vec3(l), c, 1.04);
+      vec3 o = srgb(c);
+      o = o * o * (3.0 - 2.0 * o) * 0.22 + o * 0.78;
+      float v = 1.0 - uVig * pow(length(d * vec2(1.0, 0.85)) * 1.35, 2.4);
+      o *= v;
+      o += (hash(gl_FragCoord.xy + uFrame * 17.0) - 0.5) * uGrain;
+      o *= 1.0 - uFade;
+      gl_FragColor = vec4(o, 1.0);
+    }`,
+}))
+
+let DOF = { focus: 30, K: 20, max: 16 }
+function renderPass() {
+  renderer.setRenderTarget(rtScene); renderer.clear(); renderer.render(scene, camera)
+  for (const m of [dofBlur.material, dofMix.material]) {
+    const u = m.uniforms
+    u.tDepth.value = rtScene.depthTexture; u.uNear.value = camera.near; u.uFar.value = camera.far
+    u.uFocus.value = DOF.focus; u.uMax.value = DOF.max
+  }
+  dofBlur.material.uniforms.uK.value = DOF.K / 2       // demi-résolution
+  dofMix.material.uniforms.uK.value = DOF.K / 2
+  dofBlur.material.uniforms.tColor.value = rtScene.texture
+  renderer.setRenderTarget(rtHalf); dofBlur.render(renderer)
+  dofMix.material.uniforms.tColor.value = rtScene.texture; dofMix.material.uniforms.tHalf.value = rtHalf.texture
+  renderer.setRenderTarget(rtFull); dofMix.render(renderer)
+}
+
+/* ── Scène ─────────────────────────────────────────────── */
+const S = {}
+async function build() {
+  const [bois, relief, fond, ...rest] = await Promise.all([
+    loadTex('assets/bois.jpg'), loadTex('assets/bois-relief.jpg', false), loadTex('assets/fond.jpg'),
+    loadTex('assets/devis-0013-p1.jpg'), loadTex('assets/lettre-n3.jpg'), loadTex('assets/carte-montants.jpg'),
+  ])
+  const [devisTex, lettreTex, carteTex] = rest
+  const imgs = await Promise.all(SCREENS.map(n => loadImg(`assets/${n}.jpg`)))
+  const logo = await loadImg('assets/logo-pmsb.png')
+  await fontsReady
+  S.screens = {}
+  SCREENS.forEach((n, i) => { S.screens[n] = screenCanvas(imgs[i]) })
+
+  // Environnement (reflets) : pièce sombre ambrée, grande fenêtre à gauche, plafond doux, bureau en dessous
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  const env = new THREE.Scene()
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(200, 120, 200), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.06, 0.045, 0.035), side: THREE.BackSide })))
+  const panel = (w, h, col, pos, look) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(...col), side: THREE.DoubleSide })); m.position.copy(pos); m.lookAt(look); env.add(m) }
+  panel(90, 60, [5.0, 4.6, 4.1], V(-98, 25, -30), V(0, 0, 0))     // fenêtre
+  panel(60, 40, [1.2, 1.1, 1.0], V(40, 58, 20), V(0, 0, 0))         // plafond
+  panel(160, 160, [0.42, 0.22, 0.10], V(0, -50, 0), V(0, 0, 0))     // bureau
+  panel(40, 30, [0.6, 0.55, 0.5], V(90, 20, 60), V(0, 0, 0))        // rebond à droite
+  envTex = pmrem.fromScene(env, 0.035).texture
+  scene.environment = envTex
+  scene.environmentIntensity = 0.75
+
+  // Bureau
+  bois.wrapS = bois.wrapT = THREE.RepeatWrapping; relief.wrapS = relief.wrapT = THREE.RepeatWrapping
+  const TILE = 62
+  bois.repeat.set(320 / TILE, 220 / TILE); relief.repeat.copy(bois.repeat)
+  const deskMat = new THREE.MeshPhysicalMaterial({ map: bois, roughnessMap: relief, roughness: 0.62, bumpMap: relief, bumpScale: 0.6, clearcoat: 0.55, clearcoatRoughness: 0.22, metalness: 0, envMapIntensity: 0.9 })
+  const desk = new THREE.Mesh(new THREE.PlaneGeometry(320, 220), deskMat)
+  desk.rotation.x = -PI / 2; desk.position.set(0, 0, 20); desk.receiveShadow = true
+  scene.add(desk)
+  // Chant du plateau et fond (mur sombre, flou)
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(320, 4, 2), new THREE.MeshStandardMaterial({ color: 0x3a1f0e, roughness: 0.5 }))
+  edge.position.set(0, -2, -91); scene.add(edge)
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(900, 450), new THREE.MeshBasicMaterial({ map: fond, color: new THREE.Color(1.7, 1.6, 1.5) }))
+  back.position.set(0, 120, -330); scene.add(back)
+
+  // Lumières
+  const key = new THREE.DirectionalLight(new THREE.Color(1.0, 0.88, 0.74), 3.2)
+  key.position.set(-70, 80, -60); key.castShadow = true
+  key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 10; key.shadow.blurSamples = 16; key.shadow.bias = -0.0004
+  const sc = key.shadow.camera; sc.left = -45; sc.right = 45; sc.top = 45; sc.bottom = -45; sc.near = 10; sc.far = 400
+  scene.add(key, key.target)
+  S.key = key
+  scene.add(new THREE.HemisphereLight(new THREE.Color(1.0, 0.93, 0.85), new THREE.Color(0.35, 0.18, 0.08), 0.55))
+  S.tl1 = new THREE.PointLight(BLUE, 0, 0, 2); S.tl2 = new THREE.PointLight(BLUE, 0, 0, 2)
+  // l'enseigne éclaire comme un panneau : lumière rectangulaire (reflet large dans le vernis)
+  S.signLight = new THREE.RectAreaLight(BLUE, 0, 20, 6)
+  scene.add(S.tl1, S.tl2, S.signLight)
+
+  // Téléphone et son ombre de contact
+  S.phone = buildPhone(); scene.add(S.phone)
+  S.cs = new THREE.Mesh(new THREE.PlaneGeometry(PH.w + 3, PH.h + 3), shadowMat(softShadowTex(PH.w, PH.h, PH.r, 0.6), 0.75))
+  S.cs.rotation.x = -PI / 2; S.cs.position.y = 0.02; scene.add(S.cs)
+  S.csStand = new THREE.Mesh(new THREE.PlaneGeometry(PH.w + 3, 3), shadowMat(softShadowTex(PH.w, PH.d + 0.4, 0.4, 0.5), 0.85))
+  S.csStand.rotation.x = -PI / 2; S.csStand.position.y = 0.02; scene.add(S.csStand)
+
+  // Carte « Montants » (capture réelle, découpée)
+  const cw = 9.6, ch = cw * 241.6 / 361
+  S.card = new THREE.Mesh(slab(cw, ch, 0.34, 0.14, 0.05), [new THREE.MeshPhysicalMaterial({ map: carteTex, roughness: 0.5, clearcoat: 0.4, clearcoatRoughness: 0.15, emissive: new THREE.Color(1, 1, 1), emissiveMap: carteTex, emissiveIntensity: 0.55 }), new THREE.MeshStandardMaterial({ color: 0xf2efea, roughness: 0.5 })])
+  S.card.castShadow = true; S.card.userData = { w: cw, h: ch }
+  scene.add(S.card)
+
+  // Feuilles A4 (PDF de l'appli) : recto imprimé, verso blanc, légère courbure
+  const sheet = (tex, aspect) => {
+    const w = 21, h = 21 / aspect
+    const geo = new THREE.PlaneGeometry(w, h, 30, 40)
+    geo.userData.base = geo.attributes.position.array.slice()
+    const g = new THREE.Group()
+    const front = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, color: new THREE.Color(0.86, 0.85, 0.83), roughness: 0.82, side: THREE.FrontSide }))
+    const backM = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.85, side: THREE.BackSide }))
+    front.castShadow = true; front.receiveShadow = true
+    g.add(front, backM); g.userData = { geo, w, h }
+    scene.add(g)
+    return g
+  }
+  S.devis = sheet(devisTex, 2481 / 3200)
+  S.lettre = sheet(lettreTex, 1654 / 2184)
+
+  // Enseignes lumineuses
+  const pmsbSign = glowCanvas(2400, 760, x => {
+    // logo de l'appli + « PMSB Gestion » (Archivo, la police de titres de l'appli), ajusté à la largeur
+    const lh = 470, lw = lh * logo.width / logo.height, gap = 50, pad = 70
+    let fs = 300
+    const widths = () => { x.font = `700 ${fs}px Archivo`; const a = x.measureText('PMSB ').width; x.font = `600 ${fs}px Archivo`; return [a, x.measureText('Gestion').width] }
+    let [wa, wb] = widths()
+    while (lw + gap + wa + wb > 2400 - 2 * pad) { fs -= 6; [wa, wb] = widths() }
+    const x0 = (2400 - (lw + gap + wa + wb)) / 2
+    x.filter = 'brightness(1.9) saturate(1.15)'; x.drawImage(logo, x0, (760 - lh) / 2, lw, lh); x.filter = 'none'
+    x.fillStyle = '#ffffff'; x.textBaseline = 'middle'
+    x.font = `700 ${fs}px Archivo`; x.fillText('PMSB', x0 + lw + gap, 395)
+    x.font = `600 ${fs}px Archivo`; x.globalAlpha = 0.86; x.fillText('Gestion', x0 + lw + gap + wa, 395); x.globalAlpha = 1
+  }, 30)
+  S.signPmsb = buildSign(pmsbSign, 22, [1.0, 1.0, 1.0], [BLUE.r * 1.2, BLUE.g * 1.2, BLUE.b * 1.2], 1.45, 1.25)
+  scene.add(S.signPmsb)
+  const ltnsSign = glowCanvas(2000, 760, x => {
+    x.fillStyle = '#ece9e2'; x.textBaseline = 'alphabetic'
+    x.font = '700 520px "Space Grotesk"'
+    if ('letterSpacing' in x) x.letterSpacing = '-26px'
+    x.fillText('LTNS', 60, 610)
+    const wT = x.measureText('LTNS').width
+    // le cadran (°) violet
+    const s = 2.4, ox = 60 + wT + 30, oy = 120
+    x.fillStyle = '#c084fc'; x.strokeStyle = '#c084fc'
+    x.beginPath(); x.roundRect(ox + 55 * s, oy + 6 * s, 10 * s, 18 * s, 1 * s); x.fill()
+    x.lineWidth = 10 * s; x.beginPath(); x.arc(ox + 60 * s, oy + 72 * s, 38 * s, 0, 2 * PI); x.stroke()
+  }, 40)
+  S.signLtns = buildSign(ltnsSign, 21, [1.0, 1.0, 1.0], [VIOLET.r * 1.2, VIOLET.g * 1.2, VIOLET.b * 1.2], 1.4, 1.15)
+  scene.add(S.signLtns)
+  const url = glowCanvas(1200, 260, x => { x.fillStyle = '#fff'; x.font = '600 170px Inter'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('ltns.fr', 600, 135) }, 16)
+  S.signUrl = buildSign(url, 7.5, [1, 1, 1], [VIOLET.r, VIOLET.g, VIOLET.b], 1.05, 0.6)
+  scene.add(S.signUrl)
+
+  S.pill = buildPill('Créé par LTNS°', { deg: true }, 'Devis gratuit sous 48 h', { size: 112 }); scene.add(S.pill)
+
+  buildTrails()
+  // Pré-chargement des textures dans le contexte WebGL
+  for (const t of Object.values(S.screens)) renderer.initTexture(t)
+  for (const t of [bois, relief, fond, devisTex, lettreTex, carteTex]) renderer.initTexture(t)
+}
+
+/* ── Traînées : chemins sur l'appli (repère du téléphone) et sur le bureau ── */
+const R = {} // rectangles des captures (px CSS), voir assets/m-rects.json
+function rectPath(r, inset = -4, rad = 10, start = 0, turns = 1, step = 6) {
+  // contour arrondi d'un rectangle, sens horaire à partir du milieu du bord haut
+  const x0 = r.x - inset, y0 = r.y - inset, x1 = r.x + r.w + inset, y1 = r.y + r.h + inset
+  const pts = []
+  const seg = (ax, ay, bx, by) => { const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / step)); for (let i = 0; i < n; i++) pts.push([ax + (bx - ax) * i / n, ay + (by - ay) * i / n]) }
+  const arc = (cx, cy, a0) => { for (let i = 0; i < 6; i++) { const a = a0 + (PI / 2) * i / 6; pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]) } }
+  const one = () => {
+    seg((x0 + x1) / 2, y0, x1 - rad, y0); arc(x1 - rad, y0 + rad, -PI / 2)
+    seg(x1, y0 + rad, x1, y1 - rad); arc(x1 - rad, y1 - rad, 0)
+    seg(x1 - rad, y1, x0 + rad, y1); arc(x0 + rad, y1 - rad, PI / 2)
+    seg(x0, y1 - rad, x0, y0 + rad); arc(x0 + rad, y0 + rad, PI)
+    seg(x0 + rad, y0, (x0 + x1) / 2, y0)
+  }
+  for (let k = 0; k < turns; k++) one()
+  pts.push([(x0 + x1) / 2, y0])
+  return pts
+}
+const uiPts = (pts, lift) => pts.map(([x, y]) => uiLocal(x, y, lift))
+function buildTrails() {
+  const T = S.trails = {}
+  const P = S.phone
+  // A · bureau, plan d'ouverture : une boucle qui passe devant le téléphone debout
+  T.deskA = new Trail([V(-40, 0.12, 26), V(-24, 0.12, 19), V(-11, 0.12, 11), V(-3, 0.12, 6.4), V(5, 0.12, 6.8), V(12, 0.12, 3.2), V(14, 0.12, -5), V(9, 0.12, -12), V(-2, 0.12, -12.5), V(-11, 0.12, -5), V(-18, 0.12, 5), V(-34, 0.12, 12)], { radius: 0.11 })
+  // B · liste de la bibliothèque : souligne le champ « pein », descend dans la liste
+  const L = R.liste
+  T.liste = new Trail(uiPts([[20, 506], [33, 566], [180, 566], [356, 566], [372, 590], [372, 700], [372, 800], [352, 836]]), { parent: P, radius: 0.025 })
+  // B2 · la ligne ajoutée : contour de la fiche « Peinture de façade pliolite »
+  T.ligne = new Trail(uiPts(rectPath(R.q1.designation, 5, 9)), { parent: P, radius: 0.022, closed: false })
+  // C · quantité → total de la ligne
+  const qd = R.q1.qte, th = R.q1.totalHT
+  T.qte = new Trail(uiPts([[qd.x - 30, qd.y + qd.h + 4], [qd.x + 10, qd.y + qd.h + 4], [qd.x + qd.w - 8, qd.y + qd.h + 4], [qd.x + qd.w + 6, qd.y + qd.h + 20], [qd.x + qd.w + 6, th.y + 4], [qd.x + qd.w - 6, th.y + th.h + 2], [th.x + 40, th.y + th.h + 2], [th.x + 4, th.y + th.h + 2], [th.x - 30, th.y + th.h + 2]]), { parent: P, radius: 0.022 })
+  // E · en-tête du devis PDF (repère de la feuille : x, y en cm depuis le coin haut gauche)
+  T.entete = new Trail(sheetPts(S.devis, [[-2, 4.6], [3.5, 4.55], [10.5, 4.65], [17.5, 4.55], [23, 4.6]]), { parent: S.devis, radius: 0.04 })
+  T.numero = new Trail(sheetPts(S.devis, [[-1, 13.0], [6.6, 12.98], [14.4, 13.02], [15.4, 13.4], [15.4, 15.4], [14.5, 16.0], [6, 16.05], [1.5, 16.0], [-2, 16.0]]), { parent: S.devis, radius: 0.04 })
+  // F · relance : anneau autour de « 3. Mise en demeure », puis vers le message
+  const r3 = R.relance.radios[2]
+  T.relance = new Trail(uiPts([...rectPath(r3, 3, 12, 0, 1, 5), [r3.x + r3.w + 40, r3.y - 2], [372, r3.y + 20], [372, 300], [360, 316]]), { parent: P, radius: 0.022 })
+  T.lettre = new Trail(sheetPts(S.lettre, [[-2, 12.85], [3, 12.8], [8, 12.84], [12.4, 12.8], [13.2, 12.4], [13.2, 11.6], [12.2, 11.2], [9.6, 11.25], [8, 11.25]]), { parent: S.lettre, radius: 0.04 })
+  // D · sous « Total TTC » de la carte flottante
+  T.carte = new Trail(cardPts([[-0.75, -0.2], [-0.62, -0.31], [-0.45, -0.315], [0, -0.32], [0.44, -0.315], [0.5, -0.31]]), { parent: S.card, radius: 0.035 })
+  // G · coupes rapides : traits qui balaient l'écran
+  T.sweep = new Trail(uiPts([[-40, 140], [80, 150], [200, 130], [320, 160], [430, 150]]), { parent: P, radius: 0.025 })
+  T.sweep2 = new Trail(uiPts([[-40, 420], [120, 400], [260, 440], [430, 420]]), { parent: P, radius: 0.025 })
+  // H · course sur le bureau jusqu'au téléphone debout, puis I · vers LTNS°
+  T.course = new Trail([V(-46, 0.12, 36), V(-34, 0.12, 30), V(-20, 0.12, 20), V(-8, 0.12, 14), V(0, 0.12, 9), V(6, 0.12, 6), V(10, 0.12, 3), V(14, 0.12, 4.5), V(19, 0.12, 5.5), V(24, 0.12, 4.2), V(26.5, 0.12, 1.5)], { radius: 0.11 })
+  T.final = new Trail([V(-30, 0.12, 22), V(-14, 0.12, 14), V(-5, 0.12, 8), V(4, 0.12, 6), V(10, 0.12, 6.4), V(16, 0.12, 5.4), V(22, 0.12, 6), V(28, 0.12, 4.6), V(32, 0.12, 1.5)], { radius: 0.11 })
+}
+// Repère d'une feuille : x, y en cm depuis son coin haut gauche, légèrement au-dessus du papier
+function sheetPts(sheet, pts) { const { w, h } = sheet.userData; return pts.map(([x, y]) => V(x - w / 2, h / 2 - y, 0.12)) }
+function cardPts(pts) { const { w, h } = S.card.userData; return pts.map(([x, y]) => V(x * w, y * h, 0.12)) }
+
+/* ── Poses ─────────────────────────────────────────────── */
+const qTmp = new THREE.Quaternion(), eTmp = new THREE.Euler()
+function phoneFlat(x, z, yawDeg) {
+  const P = S.phone
+  P.position.set(x, PH.d / 2, z)
+  eTmp.set(-PI / 2, 0, 0); P.quaternion.setFromEuler(eTmp)
+  qTmp.setFromAxisAngle(V(0, 1, 0), yawDeg * PI / 180); P.quaternion.premultiply(qTmp)
+  S.cs.visible = true; S.csStand.visible = false
+  S.cs.position.set(x, 0.02, z); S.cs.rotation.set(-PI / 2, 0, yawDeg * PI / 180)
+}
+function phoneStand(x, z, yawDeg, leanDeg = 6) {
+  const P = S.phone, lean = leanDeg * PI / 180
+  eTmp.set(-lean, yawDeg * PI / 180, 0, 'YXZ'); P.quaternion.setFromEuler(eTmp)
+  P.position.set(x, (PH.h / 2) * Math.cos(lean) + (PH.d / 2) * Math.sin(lean), z)
+  // le bas du téléphone repose sur le bureau
+  const bottom = V(0, -PH.h / 2, 0).applyQuaternion(P.quaternion)
+  P.position.x = x - bottom.x; P.position.z = z - bottom.z
+  S.cs.visible = false; S.csStand.visible = true
+  S.csStand.position.set(x, 0.02, z); S.csStand.rotation.set(-PI / 2, 0, yawDeg * PI / 180)
+}
+function setScreen(name, name2 = null, mix = 0, bright = 0.87) {
+  const u = screenMat.uniforms
+  u.map.value = S.screens[name]; u.map2.value = name2 ? S.screens[name2] : S.screens[name]; u.mixv.value = name2 ? mix : 0; u.bright.value = bright
+}
+// Feuille : position, orientation (angles d'Euler) et courbure
+function placeSheet(sheet, pos, rotDeg, curl = 0, lift = 0) {
+  sheet.visible = true
+  sheet.position.copy(pos)
+  sheet.rotation.set(rotDeg[0] * PI / 180, rotDeg[1] * PI / 180, rotDeg[2] * PI / 180, 'YXZ')
+  const { geo, h } = sheet.userData
+  const base = geo.userData.base, p = geo.attributes.position
+  for (let i = 0; i < p.count; i++) {
+    const x = base[i * 3], y = base[i * 3 + 1]
+    const v = (h / 2 - y) / h // 0 en haut, 1 en bas
+    p.setZ(i, curl * (Math.pow(v, 2) * 2.2 + Math.pow(Math.abs(x) / 10.5, 2) * 0.25) + lift * Math.sin(v * PI))
+  }
+  p.needsUpdate = true; geo.computeVertexNormals()
+}
+const signShow = (sign, pos, yawDeg, on) => {
+  sign.visible = on > 0.001
+  sign.position.copy(pos); sign.rotation.set(0, yawDeg * PI / 180, 0)
+  const u = sign.userData
+  // allumage façon néon : quelques battements avant de tenir
+  u.mCore.uniforms.opacity.value = on; u.mHalo.uniforms.opacity.value = on; u.mRef.uniforms.opacity.value = on * 0.5
+  // reflet sur le plateau, sous l'enseigne
+  u.ref.position.set(0, -2 * pos.y + 0.02 + 0, 0)
+  u.ref.position.y = -pos.y * 2 + 0.05
+  return sign
+}
+function neon(t, t0, dur = 0.5) {
+  if (t < t0) return 0
+  const p = (t - t0) / dur
+  if (p >= 1) return 1
+  // allumage : flashs courts puis montée
+  const flick = [[0, 0.08, 0.7], [0.14, 0.2, 0.25], [0.28, 0.36, 0.9], [0.44, 0.5, 0.4]]
+  for (const [a, b, v] of flick) if (p >= a && p < b) return v
+  return p < 0.5 ? 0.05 : smooth(0.5, 1, p)
+}
+
+/* ── Caméra ────────────────────────────────────────────── */
+const tmpT = new THREE.Vector3()
+function shoot(pos, target, mm, focusPoint = target, K = 24, max = 18) {
+  camera.position.copy(pos); camera.up.set(0, 1, 0); camera.lookAt(target)
+  camera.setFocalLength(mm)
+  camera.updateMatrixWorld()
+  DOF.focus = camera.position.distanceTo(focusPoint) * Math.cos(camera.getWorldDirection(tmpT).angleTo(focusPoint.clone().sub(camera.position)))
+  DOF.K = K; DOF.max = max
+}
+const lerpV = (a, b, k) => a.clone().lerp(b, k)
+// Mouvement entre deux réglages de caméra, avec roulis possible
+function move(t, t0, t1, A, B, ease = sineInOut) {
+  const k = ease(clamp((t - t0) / (t1 - t0)))
+  return { pos: lerpV(A.pos, B.pos, k), tgt: lerpV(A.tgt, B.tgt, k), mm: lerp(A.mm, B.mm, k), roll: lerp(A.roll || 0, B.roll || 0, k), k }
+}
+function applyRoll(r) { if (r) camera.rotateZ(r * PI / 180) }
+
+/* ── Montage (grille de 120 BPM : 1 temps = 0,5 s, 1 mesure = 2 s) ── */
+const SHOTS = [
+  { t0: 0, t1: 2, name: 'ouverture' },        // téléphone debout sur le bureau, traînée déjà en mouvement
+  { t0: 2, t1: 3, name: 'bibliotheque' },     // macro : « pein » dans la bibliothèque de prix
+  { t0: 3, t1: 4, name: 'ligne' },            // macro : la ligne ajoutée
+  { t0: 4, t1: 6, name: 'quantite' },         // quantité 1 → 2 → 26 → 260, total de la ligne
+  { t0: 6, t1: 8, name: 'carte' },            // carte Montants qui sort du téléphone : Total TTC
+  { t0: 8, t1: 8.5, name: 'envol' },          // la feuille PDF s'envole
+  { t0: 8.5, t1: 9.5, name: 'entete' },       // en-tête P.M.S.B
+  { t0: 9.5, t1: 10, name: 'numero' },        // Devis N° DEV-2026-0013
+  { t0: 10, t1: 11, name: 'relance' },        // « 3. Mise en demeure »
+  { t0: 11, t1: 12, name: 'lettre' },         // lettre : Mise en demeure de payer
+  { t0: 12, t1: 12.5, name: 'cut-dash' },
+  { t0: 12.5, t1: 13, name: 'cut-ech' },
+  { t0: 13, t1: 13.5, name: 'cut-menu' },
+  { t0: 13.5, t1: 14, name: 'cut-enregistre' },
+  { t0: 14, t1: 15, name: 'course' },         // la traînée file au ras du bureau
+  { t0: 15, t1: 17.5, name: 'pmsb' },         // recul : téléphone + « PMSB Gestion » + « Créé par LTNS° »
+  { t0: 17.5, t1: 22, name: 'ltns' },         // « LTNS° » + « Devis gratuit sous 48 h » + ltns.fr
+]
+const shotAt = t => SHOTS.find(s => t >= s.t0 && t < s.t1) || SHOTS[SHOTS.length - 1]
+const pT = new THREE.Vector3()
+
+function hideAll() {
+  for (const tr of Object.values(S.trails)) tr.set({ head: 0, len: 1, intensity: 0 })
+  S.card.visible = false; S.devis.visible = false; S.lettre.visible = false
+  S.signPmsb.visible = false; S.signLtns.visible = false; S.signUrl.visible = false
+  S.pill.visible = false
+  S.signLight.intensity = 0
+  screenMat.uniforms.flash.value = 0
+}
+// Traînée : progression de la tête (en fraction de la longueur), longueur visible en cm
+function runTrail(tr, t, t0, t1, { len = 12, from = 0, to = 1, intensity = 7, ease = easeInOut, colorB = null, mix = null } = {}) {
+  const p = ease(clamp((t - t0) / (t1 - t0)))
+  const head = lerp(from, to + len / tr.L, p)
+  tr.set({ head, len, intensity: t >= t0 ? intensity : 0, colorB, mix })
+  return head
+}
+function trailLights(tr, head, len, I = 1, color = BLUE) {
+  I *= tr && tr.surface ? 0 : 1
+  if (!tr) { S.tl1.intensity = S.tl2.intensity = 0; return }
+  const u1 = clamp(head), u2 = clamp(head - len / tr.L * 0.5)
+  tr.worldAt(u1, S.tl1.position); tr.worldAt(u2, S.tl2.position)
+  S.tl1.position.y += 2.6; S.tl2.position.y += 2.6
+  const vis = head > 0 && head - len / tr.L < 1 ? 1 : 0
+  S.tl1.color.copy(color); S.tl2.color.copy(color)
+  S.tl1.intensity = 34 * I * vis; S.tl2.intensity = 20 * I * vis
+}
+
+// Carte de fin : téléphone debout à gauche, enseigne au néon, pastille posée devant
+const END = { x: 17, y: 11.0, z: -5, yaw: -10 }
+function endCard(t) {
+  phoneStand(0, 0, -14, 7)
+  setScreen('m-dashboard', null, 0, 0.86)
+  const pm = t < 17.75 ? neon(t, 15.35, 0.55) : 1 - smooth(17.75, 17.95, t)
+  const lt = neon(t, 18.0, 0.6)
+  const pos = V(END.x, END.y, END.z)
+  signShow(S.signPmsb, pos, END.yaw, pm)
+  signShow(S.signLtns, pos.clone().add(V(0.6, 0.2, 0)), END.yaw, lt)
+  S.signLight.position.set(END.x, END.y, END.z + 0.2)
+  S.signLight.lookAt(END.x + 4, 0, END.z + 30)
+  S.signLight.color.copy(BLUE).lerp(VIOLET, smooth(17.9, 18.3, t))
+  S.signLight.intensity = 2.2 * Math.max(pm, lt)
+  // pastille : monte à 16 s, pivote sur le temps de 18 s
+  const up = easeOut(clamp((t - 16.0) / 0.45))
+  const spin = easeInOut(clamp((t - 18.0) / 0.5))
+  S.pill.visible = up > 0
+  S.pill.position.set(END.x + 0.3, lerp(-3.4, 0, up), END.z + 6.2)
+  S.pill.rotation.set(0, END.yaw * PI / 180 + spin * PI, 0)
+  const pu = easeOut(clamp((t - 18.6) / 0.5))
+  signShow(S.signUrl, V(END.x + 0.4, 5.4, END.z + 0.6), END.yaw, pu)
+  S.signUrl.userData.ref.visible = false
+}
+
+function layout(t) {
+  hideAll()
+  const s = shotAt(t)
+  const u = (t - s.t0) / (s.t1 - s.t0)
+  let c, tr = null, head = 0, len = 12, lightI = 1, lightColor = BLUE
+  const T = S.trails
+  S.key.target.position.set(0, 0, 0)
+  switch (s.name) {
+    case 'ouverture': {
+      phoneStand(0, 0, -16, 7)
+      setScreen('m-devis-q260')
+      c = move(t, 0, 2, { pos: V(14, 13, 45), tgt: V(1.5, 6.6, 0), mm: 50, roll: -1.5 }, { pos: V(9, 11.5, 40), tgt: V(1.0, 6.8, 0), mm: 50, roll: 0 })
+      shoot(c.pos, c.tgt, c.mm, S.phone.localToWorld(uiLocal(196, 420, 0)), 30, 18); applyRoll(c.roll)
+      tr = T.deskA; len = 26
+      head = runTrail(tr, t, -1.6, 2.4, { len, from: 0.0, to: 1, intensity: 8, ease: p => p })
+      break
+    }
+    case 'bibliotheque': {
+      phoneFlat(0, 0, 0)
+      setScreen('m-devis-liste')
+      const f = S.phone.localToWorld(uiLocal(150, 560, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(-7.5, 3.0, 9.5)), tgt: f.clone().add(V(0.8, 0, -1.5)), mm: 85, roll: -6 }, { pos: f.clone().add(V(-4.5, 2.4, 9.0)), tgt: f.clone().add(V(1.6, 0, -2.2)), mm: 92, roll: -4 })
+      shoot(c.pos, c.tgt, c.mm, f, 46, 20); applyRoll(c.roll)
+      tr = T.liste; len = 9
+      head = runTrail(tr, t, s.t0 - 0.05, s.t1, { len, intensity: 6, ease: easeInOut })
+      break
+    }
+    case 'ligne': {
+      phoneFlat(0, 0, 0)
+      setScreen('m-devis-q1')
+      const d = R.q1.designation
+      const f = S.phone.localToWorld(uiLocal(d.x + 110, d.y + 20, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(6.8, 3.4, 9.2)), tgt: f.clone().add(V(-1.4, 0, -1.8)), mm: 88, roll: 6 }, { pos: f.clone().add(V(4.4, 3.0, 9.0)), tgt: f.clone().add(V(-0.6, 0, -2.0)), mm: 92, roll: 4 })
+      shoot(c.pos, c.tgt, c.mm, f, 40, 20); applyRoll(c.roll)
+      tr = T.ligne; len = 10
+      head = runTrail(tr, t, s.t0, s.t1 + 0.1, { len, intensity: 6, ease: p => easeInOut(p) })
+      break
+    }
+    case 'quantite': {
+      phoneFlat(0, 0, 0)
+      const steps = ['m-devis-q1', 'm-devis-q2', 'm-devis-q26', 'm-devis-q260']
+      const i = clamp(Math.floor((t - s.t0) / BEAT), 0, 3)
+      setScreen(steps[i])
+      // petit éclat à chaque frappe
+      screenMat.uniforms.flash.value = 0.06 * Math.exp(-((t - s.t0) % BEAT) * 14)
+      const qd = R.q1.qte
+      const f = S.phone.localToWorld(uiLocal(qd.x + 50, qd.y + 40, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(-6.0, 3.6, 7.0)), tgt: f.clone().add(V(0.9, 0, -0.5)), mm: 90, roll: -3 }, { pos: f.clone().add(V(-3.6, 2.8, 5.6)), tgt: f.clone().add(V(1.0, 0, -0.2)), mm: 100, roll: -1 })
+      shoot(c.pos, c.tgt, c.mm, f, 40, 20); applyRoll(c.roll)
+      tr = T.qte; len = 8
+      head = runTrail(tr, t, s.t0 + 0.05, s.t1 - 0.1, { len, intensity: 6, ease: p => p })
+      break
+    }
+    case 'carte': {
+      phoneFlat(0, 0, -8)
+      setScreen('m-devis-q260')
+      // la carte sort de l'écran et se redresse
+      const p = easeOut(clamp((t - s.t0) / 0.7))
+      const base = S.phone.localToWorld(uiLocal(196, 470, 0))
+      S.card.visible = true
+      S.card.position.copy(base).add(V(0, lerp(0.2, 5.6, p), lerp(0, 1.5, p)))
+      S.card.rotation.set(lerp(-PI / 2, -0.32, p), lerp(-8 * PI / 180, -0.12, p), 0, 'YXZ')
+      // à plat, la carte prend la lumière de face : on la tempère tant qu'elle n'est pas redressée
+      const flat = smooth(0.55, 1.0, V(0, 0, 1).applyQuaternion(S.card.quaternion).y)
+      S.card.material[0].emissiveIntensity = 0.55 * (1 - 0.9 * flat)
+      S.card.material[0].color.setScalar(1 - 0.55 * flat)
+      const f = S.card.localToWorld(V(0.15 * S.card.userData.w, -0.31 * S.card.userData.h, 0))
+      const n = V(0, 0, 1).applyQuaternion(S.card.quaternion)
+      const fc = S.card.localToWorld(V(0, 0, 0))
+      c = move(t, s.t0, s.t1, { pos: fc.clone().add(n.clone().multiplyScalar(40)).add(V(-16, 12, 0)), tgt: fc.clone().add(V(0, -1.5, 0)), mm: 60, roll: -3 }, { pos: fc.clone().add(n.clone().multiplyScalar(33)).add(V(-7, 2, 0)), tgt: fc.clone().add(V(0.6, -0.6, 0)), mm: 72, roll: -1 }, easeOut)
+      shoot(c.pos, c.tgt, c.mm, f, 36, 20); applyRoll(c.roll)
+      tr = T.carte; len = 9
+      // la tête s'arrête en bout de ligne : la traînée reste posée sous « Total TTC »
+      len = 12
+      head = runTrail(tr, t, s.t0 + 0.45, s.t0 + 1.35, { len, to: 1 - len / tr.L, intensity: 6.5, ease: easeOut })
+      break
+    }
+    case 'envol': {
+      phoneFlat(0, 0, -8)
+      setScreen('m-devis-enregistre')
+      const p = easeOut(clamp((t - s.t0) / (s.t1 - s.t0)))
+      const from = S.phone.localToWorld(uiLocal(196, 300, 0.2))
+      placeSheet(S.devis, lerpV(from, V(17, 7, -3), p), [lerp(-90, -35, p), lerp(-8, -18, p), lerp(0, 4, p)], lerp(1.5, 0.6, p), 0)
+      S.devis.scale.setScalar(lerp(0.32, 1, p))
+      c = move(t, s.t0, s.t1, { pos: V(-10, 18, 30), tgt: V(4, 2, 0), mm: 45 }, { pos: V(-2, 16, 34), tgt: V(12, 5, -2), mm: 48 }, easeOut)
+      shoot(c.pos, c.tgt, c.mm, V(12, 5, -2), 22, 18)
+      tr = T.deskA; len = 22
+      head = runTrail(tr, t, s.t0 - 0.2, s.t1 + 0.3, { len, intensity: 6, ease: p => p })
+      break
+    }
+    case 'entete': {
+      phoneFlat(0, 0, -8)
+      setScreen('m-devis-enregistre')
+      placeSheet(S.devis, V(17, 7, -3), [-35, -18, 4], 0.6, 0); S.devis.scale.setScalar(1)
+      const f = S.devis.localToWorld(V(-10.5 + 10.5, S.devis.userData.h / 2 - 3.3, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(-11, 4.5, 13)), tgt: f.clone().add(V(-1.8, -0.4, 0)), mm: 85, roll: -3 }, { pos: f.clone().add(V(-6.5, 4.0, 14)), tgt: f.clone().add(V(1.6, -0.3, 0)), mm: 90, roll: -2 })
+      shoot(c.pos, c.tgt, c.mm, f, 44, 20); applyRoll(c.roll)
+      tr = T.entete; len = 14
+      head = runTrail(tr, t, s.t0, s.t1 + 0.05, { len, intensity: 6 })
+      break
+    }
+    case 'numero': {
+      phoneFlat(0, 0, -8)
+      setScreen('m-devis-enregistre')
+      placeSheet(S.devis, V(17, 7, -3), [-35, -18, 4], 0.6, 0); S.devis.scale.setScalar(1)
+      const f = S.devis.localToWorld(V(-10.5 + 9.5, S.devis.userData.h / 2 - 13.2, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(9, 5.5, 13)), tgt: f.clone().add(V(-1.2, -0.6, 0)), mm: 80, roll: 4 }, { pos: f.clone().add(V(5.5, 4.6, 13.5)), tgt: f.clone().add(V(0.4, -0.6, 0)), mm: 86, roll: 2 })
+      shoot(c.pos, c.tgt, c.mm, f, 44, 20); applyRoll(c.roll)
+      tr = T.numero; len = 16
+      head = runTrail(tr, t, s.t0, s.t1 + 0.05, { len, intensity: 6 })
+      break
+    }
+    case 'relance': {
+      phoneFlat(0, 0, 12)
+      setScreen('m-relance')
+      const r3 = R.relance.radios[2]
+      const f = S.phone.localToWorld(uiLocal(r3.x + 70, r3.y + 18, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(-6.5, 3.8, 8.8)), tgt: f.clone().add(V(1.2, 0, -1.8)), mm: 86, roll: -5 }, { pos: f.clone().add(V(-4.2, 3.3, 8.6)), tgt: f.clone().add(V(1.6, 0, -2.0)), mm: 90, roll: -3 })
+      shoot(c.pos, c.tgt, c.mm, f, 38, 20); applyRoll(c.roll)
+      tr = T.relance; len = 10
+      head = runTrail(tr, t, s.t0, s.t1 + 0.05, { len, intensity: 6 })
+      break
+    }
+    case 'lettre': {
+      phoneFlat(-20, 4, 12)
+      setScreen('m-relance')
+      placeSheet(S.lettre, V(0, 0.1, 0), [-90, 10, 0], 0.15, 0)
+      const f = S.lettre.localToWorld(V(-10.5 + 6.5, S.lettre.userData.h / 2 - 12.2, 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(V(-7, 11, 15)), tgt: f.clone().add(V(1.0, 0, -1.0)), mm: 70, roll: -5 }, { pos: f.clone().add(V(-4, 10.2, 15.5)), tgt: f.clone().add(V(2.2, 0, -1.1)), mm: 74, roll: -3 })
+      shoot(c.pos, c.tgt, c.mm, f, 30, 20); applyRoll(c.roll)
+      tr = T.lettre; len = 14
+      head = runTrail(tr, t, s.t0, s.t1, { len, intensity: 6 })
+      break
+    }
+    case 'cut-dash': case 'cut-ech': case 'cut-menu': case 'cut-enregistre': {
+      const cfg = {
+        'cut-dash': { scr: 'm-dashboard', yaw: -20, at: [196, 300], off: V(-6, 7, 9), roll: -6, tr: 'sweep', y: 0 },
+        'cut-ech': { scr: 'm-echeancier', yaw: 18, at: [196, 290], off: V(7, 6, 9.5), roll: 6, tr: 'sweep2', y: 0 },
+        'cut-menu': { scr: 'm-menu', yaw: -10, at: [150, 330], off: V(-5, 8, 10), roll: -4, tr: 'sweep2', y: 0 },
+        'cut-enregistre': { scr: 'm-devis-enregistre', yaw: 14, at: [120, 700], off: V(5, 4.6, 8), roll: 5, tr: 'sweep', y: 0 },
+      }[s.name]
+      phoneFlat(0, 0, cfg.yaw)
+      setScreen(cfg.scr)
+      const f = S.phone.localToWorld(uiLocal(cfg.at[0], cfg.at[1], 0))
+      c = move(t, s.t0, s.t1, { pos: f.clone().add(cfg.off), tgt: f.clone(), mm: 62, roll: cfg.roll }, { pos: f.clone().add(cfg.off.clone().multiplyScalar(0.86)), tgt: f.clone().add(V(cfg.off.x > 0 ? -0.8 : 0.8, 0, 0)), mm: 66, roll: cfg.roll * 0.6 }, p => p)
+      shoot(c.pos, c.tgt, c.mm, f, 40, 18); applyRoll(c.roll)
+      tr = T[cfg.tr]; len = 14
+      head = runTrail(tr, t, s.t0, s.t1, { len, intensity: 6, ease: p => p })
+      break
+    }
+    case 'course': {
+      phoneStand(0, 0, -16, 7)
+      setScreen('m-dashboard')
+      tr = T.course; len = 26
+      head = runTrail(tr, t, s.t0 - 0.1, s.t1 + 0.35, { len, intensity: 8, ease: p => p })
+      const hp = tr.worldAt(clamp(head - 0.08), new THREE.Vector3())
+      c = move(t, s.t0, s.t1, { pos: V(-44, 2.2, 52), tgt: V(-18, 0.6, 18), mm: 40 }, { pos: V(-14, 2.6, 30), tgt: V(0, 4, 0), mm: 44 })
+      shoot(c.pos, c.tgt, c.mm, hp, 30, 18)
+      break
+    }
+    case 'pmsb': case 'ltns': {
+      endCard(t)
+      // caméra : recul jusqu'à la carte de fin, puis poussée lente jusqu'à la boucle
+      const A = { pos: V(10, 8.5, 36), tgt: V(8, 7.0, -1), mm: 46, roll: 1 }
+      const B = { pos: V(15, 11.4, 51), tgt: V(11, 7.2, -1), mm: 46, roll: 0 }
+      const C = { pos: V(14.5, 10.2, 44), tgt: V(12.0, 7.5, -1), mm: 46, roll: 0 }
+      c = t < 17.5 ? move(t, 15, 17.5, A, B, easeOut) : move(t, 17.5, DURATION, B, C, p => p)
+      const fp = V(END.x * 0.55, 7, END.z * 0.6)
+      shoot(c.pos, c.tgt, c.mm, fp, 11, 16); applyRoll(c.roll)
+      if (t < 17.5) { tr = T.course; len = 26; head = runTrail(tr, t, 14 - 0.1, 15.35, { len, intensity: 8, ease: p => p }) }
+      else { tr = T.final; len = 30; head = runTrail(tr, t, 17.35, 18.1, { len, intensity: 8, ease: p => p, colorB: VIOLET, mix: [0.45, 0.85] }); lightColor = VIOLET.clone().lerp(BLUE, 0.35) }
+      break
+    }
+  }
+  trailLights(tr, head, len, lightI, lightColor)
+  // Ombre portée centrée sur ce qu'on regarde
+  const f = c ? c.tgt : V(0, 0, 0)
+  S.key.target.position.set(f.x, 0, f.z); S.key.position.set(f.x - 70, 80, f.z - 60)
+  S.key.target.updateMatrixWorld()
+  return s
+}
+
+/* ── Rendu d'un instant ─────────────────────────────────── */
+const DEMO = document.getElementById('demo')
+const MB = { envol: 3, 'course': 2, 'cut-dash': 2, 'cut-ech': 2, 'cut-menu': 2, 'cut-enregistre': 2 } // flou de bougé (sous-images)
+function renderAt(t) {
+  t = clamp(t, 0, DURATION - 1e-4)
+  const s = shotAt(t)
+  const n = MB[s.name] || 1
+  const shutter = 0.5 / 30
+  renderer.setRenderTarget(rtAcc); renderer.setClearColor(0x000000, 1); renderer.clear()
+  for (let i = 0; i < n; i++) {
+    const ts = n > 1 ? Math.max(s.t0, Math.min(s.t1 - 1e-4, t + shutter * ((i + 0.5) / n - 0.5))) : t
+    layout(ts)
+    renderPass()
+    accMat.uniforms.tColor.value = rtFull.texture; accMat.uniforms.uW.value = 1 / n
+    renderer.setRenderTarget(rtAcc); accQuad.render(renderer)
+  }
+  bloom.render(renderer, null, rtAcc)
+  const fu = finalQuad.material.uniforms
+  fu.tColor.value = rtAcc.texture; fu.uFrame.value = Math.round(t * 30)
+  // flash très court sur les coupes franches (sur le temps)
+  const sinceCut = t - s.t0
+  fu.uFlash.value = s.t0 > 0 ? 0.05 * Math.exp(-sinceCut * 30) : 0
+  renderer.setRenderTarget(null); finalQuad.render(renderer)
+  // Mention « Données de démonstration » tant que l'appli ou ses montants sont à l'écran
+  DEMO.style.opacity = t < 17.9 ? 1 : 1 - smooth(17.9, 18.3, t)
+}
+
+/* ── Démarrage ─────────────────────────────────────────── */
+// READY est donné tout de suite : la construction (textures lourdes) se fait dans le premier settle(),
+// que render.mjs attend sans limite de temps (plusieurs pages se construisent en parallèle).
+window.TL = []
+window.DURATION = DURATION
+window.SHOTS = SHOTS
+let built = false, pendingT = 0, readyP = null
+const ensure = () => readyP || (readyP = (async () => {
+  Object.assign(R, (await (await fetch('assets/m-rects.json')).json()).el)
+  await build()
+  renderer.compile(scene, camera)
+  built = true
+})())
+window.renderAt = t => { pendingT = t; if (built) renderAt(t) }
+window.settle = async () => { if (!built) { await ensure(); renderAt(pendingT) } }
+const stage = document.getElementById('stage')
+if (q.has('render')) { stage.style.cssText += ';left:0;top:0;transform:none'; window.READY = true }
+else {
+  await ensure()
+  const fit = () => { const s = Math.min(innerWidth / W, innerHeight / H); stage.style.transform = `translate(-50%, -50%) scale(${s})`; stage.style.transformOrigin = '50% 50%' }
+  fit(); addEventListener('resize', fit)
+  if (q.has('t')) { renderAt(+q.get('t')); window.READY = true }
+  else {
+    const t0 = performance.now()
+    const loop = () => { renderAt(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop) }
+    loop()
+  }
+}
+</script>
+</body>
+</html>
