@@ -8,12 +8,12 @@ Dépôt du site : `/home/user/rayenebnt/crousty-` (jamais modifié, seulement la
 
 | Moment | À l'écran | Source |
 |---|---|---|
-| Image 0 → « Trois calques » | La fin de l'entrée du site, interface masquée, néon allumé, le S qui passe derrière la casquette. Titre fixe « COMMENT CES LETTRES / PASSENT DERRIÈRE LUI ? ». Le néon vacille (vraies images p 0,920 / p 0,952), poussée vers le S, cercle orange autour du chevauchement. | `assets/entree/` (capture « entrée masquée ») |
+| Image 0 → « Trois calques » | La fin de l'entrée du site, interface masquée, néon allumé, le S qui passe derrière la casquette. Titre fixe « COMMENT CES LETTRES / PASSENT DERRIÈRE LUI ? » pendant V1 (ses mots s'allument avec la voix), puis le sous-titre « Trois calques. » prend sa place. Le néon vacille (vraies images p 0,920 / p 0,952), poussée vers le S, cercle orange autour du chevauchement. | `assets/entree/` (capture « entrée masquée ») |
 | « Trois calques » | Vue éclatée en 3D : le fond, les lettres, la personne. | `assets/hero/fin.webp`, `assets/lettres/`, `assets/hero/fin-personne.webp` |
 | « Au fond… 85 images » | Le calque du fond joue la vraie marche de dos (f054 → f084), puis éclate en grille de 85 cases, compteur 01 → 85. | `assets/hero/f054…f084.webp` |
 | « Au milieu, les lettres… » | Les 7 lettres (vraies captures, une par une, néon éteint / allumé) remontent puis retombent une par une, ralenti ×0,5 sur le S, puis le néon s'allume. | `assets/lettres/L0…L6-on/off.webp` |
 | « Devant, lui, détouré » | Pointillés tracés autour de la silhouette (contour calculé sur le masque alpha). Les calques se recollent, le S repasse derrière la casquette. | `assets/silhouette.json` |
-| « Et sur le site, c'est ton pouce… » | Rembobinage (effet de montage) jusqu'à p 0,45 (de dos), indicateur de pouce sur le bord gauche, marche continue jusqu'au comptoir (calée sur « pouce », « marcher », « comptoir »), puis la vraie chute des lettres en accéléré. | `assets/entree/` |
+| « Et sur le site, c'est ton pouce… » | Rembobinage (effet de montage) jusqu'à p 0,45 (de dos), indicateur de pouce sur le bord gauche (il apparaît sur « pouce »), marche continue jusqu'au comptoir (calée sur « pouce », « marcher », « comptoir »), puis la vraie chute des lettres en accéléré. | `assets/entree/` |
 | « T'as des vidéos de ton commerce ? » | Tout rentre dans un téléphone sans marque : l'état final du site avec ses boutons (paragraphe masqué), pastille « Site en cours de validation », tap sur « Compose ton menu », la section monte sur l'onglet Tacos. | `assets/final.webp`, `assets/compose-tacos.webp` |
 | « Elles peuvent devenir ton site. » | Carte de fin sur la salle floutée, qui vit (le néon vacille, la caméra dérive, reflet sur le bouton) : « Devis gratuit sous 48 h · lien en bio », « Partout en France à distance / sur place en Île-de-France », « LTNS° », « Site du Crousty en cours de validation / pas encore en ligne » (26 px, lisible sur téléphone). | `assets/flou-*.webp` |
 | Boucle (0,9 s) | La carte se dissout, les lettres retombent (vraie capture p 0,70 → 0,952), le titre revient : la dernière image est l'image 0. | `assets/entree/` |
@@ -34,12 +34,23 @@ présenter une image générique comme un plat du Crousty.
 ## Timing et voix
 
 `SENTENCES` = le texte ElevenLabs découpé sur `[pause]` / `[long pause]` (8 phrases). Chaque temps fort est accroché à un mot
-(`CUES`, et les instants dérivés dans `derive()`), sauf l'accroche 0–3 s et la queue de boucle. Sans voix, le moteur estime
-le minutage (brouillon 24,98 s ; au calage du concept, V1 0,1 s … V8 19,3 s, la vidéo fait 21,1 s) ; avec la voix (`vrai-projet-01.mp3` découpé en `voice/01.mp3` … `08.mp3`) :
+(`CUES`, et les instants dérivés dans `derive()`), sauf la poussée de l'accroche et la queue de boucle. Sans voix, le moteur estime
+le minutage (brouillon 24,98 s ; au calage du concept, V1 0,1 s … V8 19,3 s, la vidéo fait 21,1 s) ; avec la voix (`voix-originale.mp3`,
+l'enregistrement ElevenLabs intact, découpé sur ses silences en `voice/01.mp3` … `08.mp3`, une phrase par fichier) :
 
 ```bash
-python3 video/commun/sync-voice.py video/vrais-sites/v01-crousty-lettres   # écrit timing.json, envelope.json, voice.mp3, voice-files.js
+python3 video/commun/sync-voice.py video/vrais-sites/v01-crousty-lettres                 # écrit timing.json, envelope.json, voice.mp3, voice-files.js
+python3 video/vrais-sites/v01-crousty-lettres/scripts/pause-longue.py video/vrais-sites/v01-crousty-lettres   # rétablit la pause longue avant V7
 ```
+
+`sync-voice.py` met 0,25 s entre deux phrases ; `scripts/pause-longue.py` rend 1,0 s au `[long pause]` du script (1,84 s brutes dans
+l'original) pour que la vraie chute des lettres en accéléré (0,95 s) tombe dans le silence et non sur « T'as des vidéos… ».
+
+**Version finale (voix réelle) : 21,55 s.** V1 0,10 → 1,73 · V2 1,98 → 2,67 · V3 2,92 → 6,74 · V4 6,99 → 9,54 · V5 9,79 → 11,67 ·
+V6 11,92 → 14,71 · chute 14,56 → 15,51 · V7 15,73 → 17,02 · V8 17,27 → 18,45. Lettres posées une par une de « tombent » (8,66 s)
+à 9,78 s (une toutes les 0,12 s au moins, le S au ralenti ×0,5), néon 9,90 s, calque de devant sur « Devant » (10,0 s) ; compteur
+sur 85 à la fin de « quatre-vingt-cinq » ; carte de fin dès « Elles » (17,19 s), complète à 19,0 s et tenue jusqu'à 20,65 s
+(`TAIL` = 3,1 s), puis 0,9 s de retour à l'image 0. Mixage : voix seule (`render.mjs` sans `--bruitages`).
 
 ## Régénérer les images
 

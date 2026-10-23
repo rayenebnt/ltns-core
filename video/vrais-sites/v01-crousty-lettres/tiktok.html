@@ -240,6 +240,7 @@ const CUES = {
   s2: [2, 0, -0.05, 'pop'],
   grid: [2, 'découpée', -0.05, 'whoosh'],
   n85: [2, '85', -0.05],
+  n85said: [2, 'images.', -0.1],
   n85end: [2, 1, -0.05, 'ding'],
   s3: [3, 0, -0.08, 'whoosh'],
   lift: [3, 'lettres,', -0.05, 'tick'],
@@ -257,7 +258,7 @@ const CUES = {
   s6: [6, 0, 0],
   s7: [7, 0, 0],
 }
-const TAIL = 1.8
+const TAIL = 3.1   // carte de fin complète tenue ≥ 1,6 s (2,2 s après la voix), puis 0,9 s de retour à l'image 0
 const FPS = 30
 
 // Géométrie de la capture (360 × 640 @3) : l'image de la vidéo couvre 1080 × 1921,5, la scène du site
@@ -287,11 +288,14 @@ function derive(k) {
   const { C, duration } = k
   const d = {}
   // Lettres : elles quittent le plan sur « lettres », puis retombent une par une (C, R, O, U),
-  // le S seulement quand le U est posé (ralenti ×0,5, 0,62 s), puis T et Y ; le Y se pose à la fin de la phrase
-  const a = C.lift + 0.85, b = Math.max(a + 1.5, C.s3end - 0.15)
-  const g = (b - a - 0.70) / 5
-  d.L = [a, a + g, a + 2 * g, a + 3 * g, a + 3 * g + 0.70, a + 4 * g + 0.70, a + 5 * g + 0.70]
-  d.neon = d.L[6] + 0.2
+  // la première sur « tombent » ; le S part quand le U est posé (ralenti ×0,5), puis T et Y.
+  // Le Y se pose avant « Devant » (écart d'au moins 0,12 s entre deux lettres : on les voit une par une)
+  const a = Math.max(C.lift + 0.75, C.tombent + 0.04)
+  const g = clamp((Math.max(C.s3end - 0.15, C.s4 + 0.05) - a - FALL_S) / 5, 0.12, 0.2)
+  d.L = [a, a + g, a + 2 * g, a + 3 * g, a + 3 * g + FALL_S, a + 4 * g + FALL_S, a + 5 * g + FALL_S]
+  d.neon = d.L[6] + 0.12
+  // le calque de devant s'allume une fois le néon rallumé, pendant « Devant »
+  d.pers = Math.max(C.s4, d.neon + 0.1)
   d.mStart = Math.max(C.detoure + 0.1, C.s4end - 0.35)
   d.mEnd = d.mStart + 0.6
   d.rw = Math.max(C.s5 - 0.05, d.mEnd + 0.08)
@@ -305,10 +309,10 @@ function derive(k) {
   d.phoneDone = d.phoneIn + 0.55
   d.tap = d.phoneDone + 0.2
   d.tacos = d.tap + 0.2
-  d.rise = Math.max(C.s7, d.tacos + 0.75)
-  d.cta1 = d.rise + 0.7
-  d.cta2 = d.rise + 1.3
-  d.brand = d.rise + 1.9
+  d.rise = Math.max(C.s7 - 0.08, d.tacos + 0.55)
+  d.cta1 = d.rise + 0.55
+  d.cta2 = d.rise + 1.0
+  d.brand = d.rise + 1.45
   // Queue de boucle (0,9 s) : la carte se dissout, la vraie chute rejoue p 0,70 → 0,952, le titre revient
   d.TD = duration - 0.9
   // Accéléré de la vraie chute (p 0,66 → 0,952) : instants où chaque lettre se pose dans le site
@@ -400,7 +404,7 @@ function render(t, k) {
   const hookS = 1 + 0.03 * easeOut(ramp(t, 0, 1.0)) + 0.10 * easeInOut(ramp(t, 1.0, 1.2)) + 0.02 * ramp(t, 2.2, 1.2)
   let cam = { ...BASE, fx: 694, fy: 772, sx: 694, sy: 772, S: hookS, rx: 0, ry: 0, sp: 0, aim: 0 }
   cam = mixCam(cam, CAM.exploded, kSplit)
-  const kV = easeInOut(ramp(t, C.s2, 0.7)), kL = easeInOut(ramp(t, C.s3 + 0.1, 0.7)), kP = easeInOut(ramp(t, C.s4, 0.65)), kM = easeInOut(ramp(t, D.mStart, 0.6))
+  const kV = easeInOut(ramp(t, C.s2, 0.7)), kL = easeInOut(ramp(t, C.s3 + 0.1, 0.7)), kP = easeInOut(ramp(t, D.pers, 0.65)), kM = easeInOut(ramp(t, D.mStart, 0.6))
   cam = mixCam(cam, CAM.video, kV)
   cam = mixCam(cam, CAM.letters, kL)
   cam = mixCam(cam, CAM.person, kP)
@@ -437,7 +441,7 @@ function render(t, k) {
   $('bg').style.opacity = sceneOn ? 1 : 0
 
   // Calque actif : 100 %, les autres à 40 %
-  const focus = [ramp(t, C.s2, 0.3) * (1 - ramp(t, C.s3, 0.3)), ramp(t, C.s3, 0.3) * (1 - ramp(t, C.s4, 0.3)), ramp(t, C.s4, 0.3) * (1 - kM)]
+  const focus = [ramp(t, C.s2, 0.3) * (1 - ramp(t, C.s3, 0.3)), ramp(t, C.s3, 0.3) * (1 - ramp(t, D.pers, 0.3)), ramp(t, D.pers, 0.3) * (1 - kM)]
   const anyF = Math.max(...focus)
   const gridK = ramp(t, C.grid, 0.3) * (1 - ramp(t, C.s3, 0.35))
   ;['pl1', 'pl2', 'pl3'].forEach((id, i) => {
@@ -535,7 +539,7 @@ function render(t, k) {
   renderGrid(t, k)
 
   // ---------- Le pouce ----------
-  const thOn = clamp(ramp(t, D.rwEnd - 0.1, 0.25) * (1 - ramp(t, D.fall + 0.1, 0.25)))
+  const thOn = clamp(ramp(t, Math.max(D.rwEnd - 0.1, C.pouce), 0.22) * (1 - ramp(t, D.fall + 0.1, 0.25)))
   const wp = clamp((p - P_WALK0) / (P_ARRIVE - P_WALK0))
   $('thumb').style.opacity = tail ? 0 : thOn
   $('thumb').style.transform = `translateX(${(1 - easeOut(thOn)) * -50}px)`
@@ -557,7 +561,7 @@ function render(t, k) {
   renderEnd(t, k)
 
   // ---------- Titre, sous-titres, étiquette ----------
-  const titleOn = tail ? clamp(pop(t, duration - 0.45, 0.25)) : 1 - ramp(t, 2.8, 0.2)
+  const titleOn = tail ? clamp(pop(t, duration - 0.45, 0.25)) : 1 - ramp(t, TIMES[1].start - 0.2, 0.12)
   setT($('title'), titleOn, `scale(${0.96 + 0.04 * titleOn})`)
   const tw = $('title').querySelectorAll('span')
   WORDS[0].forEach((w, i) => {
@@ -568,7 +572,7 @@ function render(t, k) {
     tw[i].style.transform = h > 0 ? `translateY(${-8 * h}px) scale(${1 + 0.07 * h})` : 'none'
   })
   const endText = t >= D.rise - 0.05
-  caption($('caption'), t, k, { from: 3.0, hide: tail || endText || t < TIMES[1].start - 0.08 })
+  caption($('caption'), t, k, { from: TIMES[1].start - 0.08, hide: tail || endText })
   const chipOn = tail || endText ? 0 : ramp(t, Math.max(3.0, C.s2 - 0.05), 0.3)
   setT($('chip'), chipOn, `translateY(${(1 - easeOut(chipOn)) * -20}px)`)
   $('shadeTop').style.opacity = 1
@@ -615,7 +619,8 @@ function renderLetters(t, k, glow) {
     $('slow').style.transform = `translate(${a.x + a.w * 0.56}px, ${a.y - 70}px) rotate(-4deg) scale(${0.9 + 0.1 * so})`
   }
 }
-const fallDur = i => (i === 4 ? 0.62 : 0.3)
+const FALL = 0.26, FALL_S = 2 * FALL   // chute d'une lettre ; le S au ralenti ×0,5
+const fallDur = i => (i === 4 ? FALL_S : FALL)
 
 function renderLabels(t, k, focus, vis) {
   let best = -1
@@ -645,7 +650,7 @@ function renderGrid(t, k) {
   const { C } = k
   const active = t >= C.grid - 0.05 && t < C.s3 + 0.7
   $('grid').style.visibility = active ? 'visible' : 'hidden'
-  const cStart = C.grid + 0.3, cEnd = Math.max(cStart + 0.7, C.n85end - 0.08)
+  const cStart = C.grid + 0.3, cEnd = Math.max(cStart + 0.7, Math.min(C.n85end - 0.08, C.n85said))
   // folioscope : vitesse presque constante (pas de longue traîne avant 85)
   const cu = ramp(t, cStart, cEnd - cStart)
   const count = t < cStart ? 0 : Math.round(1 + 84 * (1 - Math.pow(1 - cu, 1.35)))
@@ -655,7 +660,7 @@ function renderGrid(t, k) {
   const cntOn = clamp(ramp(t, C.grid + 0.2, 0.25) * (1 - ramp(t, C.s3, 0.25)))
   $('counter').style.opacity = cntOn
   $('counter').querySelector('b').textContent = String(Math.max(1, count)).padStart(2, '0')
-  const done = pulse(t, C.n85end - 0.05, 0.35)
+  const done = pulse(t, cEnd - 0.03, 0.35)
   $('counter').style.transform = `translateY(${(1 - easeOut(cntOn)) * 30}px) scale(${1 + 0.08 * done})`
   if (!active) return
   const r = rect($('pl1'))
