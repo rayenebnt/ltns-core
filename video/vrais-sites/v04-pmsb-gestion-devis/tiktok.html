@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — Vrai projet 4 · PMSB Gestion « Ses devis ? À la main. J'ai créé ça. »</title>
+<!--
+  Vidéo 4 de la semaine « vrais projets » (../concepts.json, final.videos[n=4]).
+  Tout ce qui est à l'écran vient du vrai logiciel PMSB Gestion, filmé sur la base de DÉMONSTRATION
+  (clients, prix, montants inventés) : le vrai PDF de devis généré par l'appli, l'éditeur de devis
+  capturé état par état (frappe « pein », clic dans la bibliothèque de prix, quantité, total recalculé,
+  « Enregistrer et voir le PDF »), le tableau de bord, l'échéancier et la version téléphone.
+  Le montage ajoute : poses 3D, caméra, reflets, ordinateur et téléphone vectoriels, curseur,
+  lettres géantes, compteur, sous-titres, carte de fin. Badge « Données de démonstration » toujours visible.
+  Image 0 = feuille DEV-2026-0002 en 3D + titre fixe ; la fin revient exactement à l'image 0.
+  Zones TikTok : rien d'important sous y ≈ 1260, ni à droite de x ≈ 940 entre y ≈ 900 et 1500.
+  Vidéo 1080 × 1920, 30 i/s. Tous les temps forts après 3 s sont accrochés aux mots de la voix (CUES).
+  ?t=12.5 fige l'image · ?render pour render.mjs.
+-->
+<link rel="stylesheet" href="../../commun/fonts.css">
+<style>
+  :root {
+    --g: #15171b; --blue: #0a6fb8; --blue2: #4aa3ec; --red: #d8432f; --yellow: #ffd84a; --ink: #16161a; --green: #22c55e;
+    --mono: 'JetBrains Mono', monospace; --ui: 'Montserrat', sans-serif; --disp: 'Space Grotesk', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1080px; height: 1920px; overflow: hidden; background: var(--g); font-family: var(--ui); color: #fff; }
+  img { display: block; }
+
+  /* Fond : tableau de bord de démo, très flouté loin derrière */
+  #bg { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+  #bg img { position: absolute; left: 50%; top: 50%; width: 1760px; height: 1100px; margin: -550px 0 0 -880px; }
+  #bgVeil { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 50% at 50% 55%, rgba(21, 23, 27, .30), rgba(21, 23, 27, .93) 100%); }
+  #glow { position: absolute; left: 50%; top: 1020px; width: 1400px; height: 1200px; margin: -600px 0 0 -700px; background: radial-gradient(closest-side, rgba(10, 111, 184, .26), rgba(10, 111, 184, 0)); }
+
+  /* Les feuilles du devis (vrai PDF de l'appli) */
+  #sheetCam, #deskCam { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; }
+  #sheetCam { z-index: 3; }
+  #sheetPersp { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 520px 1036px; }
+  .sheet { position: absolute; background: #fff; overflow: hidden; transform-origin: 50% 50%; box-shadow: 0 60px 120px -30px rgba(0, 0, 0, .9), 0 0 0 1px rgba(0, 0, 0, .1); }
+  #sheet { left: 120px; top: 520px; width: 800px; height: 1032px; }
+  #sheet2 { left: 200px; top: 540px; width: 760px; height: 980px; opacity: 0; }
+  .sheet > img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .sheet .shade { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(20, 30, 50, .17), rgba(20, 30, 50, 0) 45%, rgba(20, 30, 50, .07)); }
+  .sheet .dim { position: absolute; inset: 0; background: #0d0f13; opacity: 0; }
+  #sheen { position: absolute; inset: 0; overflow: hidden; }
+  #sheen i { position: absolute; left: 0; top: -40%; width: 260px; height: 180%; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .8) 50%, rgba(255, 255, 255, 0)); }
+  .head { position: absolute; left: -20px; right: -20px; height: 8px; margin-top: -4px; opacity: 0;
+    background: linear-gradient(90deg, rgba(90, 170, 255, 0), #9fd0ff 18%, #fff 50%, #9fd0ff 82%, rgba(90, 170, 255, 0)); box-shadow: 0 0 28px 10px rgba(80, 160, 255, .55); }
+  .glint { position: absolute; height: 6px; width: 110px; margin-top: -1px; border-radius: 3px; opacity: 0;
+    background: linear-gradient(90deg, rgba(255, 80, 60, 0), rgba(255, 236, 220, 1), rgba(255, 80, 60, 0)); box-shadow: 0 0 12px 3px rgba(255, 110, 80, .7); }
+  .mk { position: absolute; }
+  #ring { position: absolute; left: 0; top: 0; overflow: visible; }
+
+  /* L'ordinateur (vectoriel) et l'écran de l'appli */
+  #deskCam { z-index: 4; opacity: 0; }
+  #deskPersp { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 530px 890px; }
+  #monitor { position: absolute; left: 140px; top: 630px; width: 780px; height: 600px; transform-origin: 390px 260px; }
+  #bezel { position: absolute; left: 0; top: 0; width: 780px; height: 520px; border-radius: 26px; background: linear-gradient(160deg, #30343d, #0d0e11 62%); box-shadow: 0 70px 130px -40px rgba(0, 0, 0, .95), inset 0 0 0 2px rgba(255, 255, 255, .08); }
+  #bezel::after { content: ''; position: absolute; left: 50%; bottom: 13px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #3b3f48; }
+  #neck { position: absolute; left: 350px; top: 520px; width: 80px; height: 64px; background: linear-gradient(90deg, #1d2025, #3c4049, #1d2025); clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%); }
+  #foot { position: absolute; left: 240px; top: 582px; width: 300px; height: 16px; border-radius: 10px; background: linear-gradient(#41454e, #17191d); }
+  #screen { position: absolute; left: 14px; top: 14px; width: 752px; height: 470px; overflow: hidden; border-radius: 6px; background: #f4f2ee; }
+  #scrIn { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; }
+  #scrIn img.st { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; display: none; }
+  #scrCover { position: absolute; left: 0; right: 0; bottom: 0; background: #0d0e11; }
+  #scrScan { position: absolute; left: -10px; right: -10px; height: 6px; margin-top: -3px; background: linear-gradient(90deg, rgba(120, 190, 255, 0), #cfe8ff 30%, #fff 50%, #cfe8ff 70%, rgba(120, 190, 255, 0)); box-shadow: 0 0 20px 6px rgba(80, 160, 255, .6); opacity: 0; }
+  #glare { position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .10) 42%, rgba(255, 255, 255, 0) 55%); pointer-events: none; }
+  .crop { position: absolute; overflow: hidden; transform-origin: 0 0; }
+  .crop img { position: absolute; width: 1440px; height: 900px; display: none; }
+  .nh { position: absolute; border-radius: 9px; background: rgba(10, 111, 184, .16); box-shadow: 0 0 0 2.5px var(--blue), 0 0 26px rgba(10, 111, 184, .7); opacity: 0; }
+  #listLayer { box-shadow: 0 34px 70px -10px rgba(0, 0, 0, .45), 0 0 0 1px rgba(0, 0, 0, .08); border-radius: 10px; opacity: 0; }
+  #slotMask { position: absolute; background: #fff; opacity: 0; }
+  #rowLayer { opacity: 0; border-radius: 8px; }
+  #rowSweep { position: absolute; top: 0; bottom: 0; width: 220px; background: linear-gradient(90deg, rgba(34, 197, 94, 0), rgba(34, 197, 94, .28), rgba(34, 197, 94, 0)); opacity: 0; }
+  .ol { position: absolute; border-radius: 10px; box-shadow: 0 0 0 3px var(--green), 0 0 30px rgba(34, 197, 94, .6); opacity: 0; }
+  .ol.b { box-shadow: 0 0 0 3px var(--blue), 0 0 30px rgba(10, 111, 184, .65); }
+  .tag { position: absolute; white-space: nowrap; font-family: var(--ui); font-weight: 800; color: var(--ink); background: var(--yellow); border-radius: 7px; box-shadow: 0 8px 20px -6px rgba(0, 0, 0, .45); opacity: 0; transform-origin: 0 100%; }
+  #tagPrix { left: 948px; top: 300px; font-size: 13.5px; padding: 3px 8px; }
+  #cursor { position: absolute; left: 0; top: 0; width: 24px; height: 34px; opacity: 0; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .45)); }
+  #ripple { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 4px solid var(--blue); opacity: 0; }
+
+  /* Calques au-dessus de la scène */
+  #strips { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+  .strip { box-shadow: 0 18px 40px -10px rgba(0, 0, 0, .55); opacity: 0; }
+  #letters { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+  #letters span { position: absolute; left: 0; top: 0; font-family: var(--disp); font-weight: 700; font-size: 220px; line-height: 1; color: #fff; text-shadow: 0 0 40px rgba(74, 163, 236, .9), 0 14px 40px rgba(0, 0, 0, .6); opacity: 0; transform-origin: 50% 50%; }
+  #counter { position: absolute; left: 50px; top: 560px; z-index: 12; opacity: 0; transform-origin: 0 50%; padding: 16px 64px 18px 26px; border-radius: 22px; background: rgba(17, 19, 23, .94); box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .8), inset 0 0 0 2px rgba(74, 163, 236, .35); }
+  #counter small { display: block; font-family: var(--mono); font-size: 26px; letter-spacing: 4px; color: #aebfd3; }
+  #counter b { display: inline-block; font-family: var(--disp); font-weight: 700; font-size: 96px; line-height: 1.02; letter-spacing: -3px; font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 0 40px rgba(74, 163, 236, .55); transform-origin: 0 60%; }
+  #counter .tag { position: absolute; right: 22px; top: 14px; font-size: 22px; padding: 5px 11px; opacity: 1; }
+  #flash { position: absolute; inset: 0; z-index: 14; background: #fff; opacity: 0; pointer-events: none; }
+
+  /* 4 semaines */
+  #semVeil { position: absolute; inset: 0; z-index: 7; background: rgba(15, 17, 20, .62); opacity: 0; }
+  #sem { position: absolute; left: 60px; right: 60px; top: 560px; z-index: 8; text-align: center; opacity: 0; }
+  #sem .l1 { font-weight: 800; font-size: 64px; letter-spacing: -1px; color: #cfd8e3; text-transform: uppercase; }
+  #sem .l2 { font-weight: 900; font-size: 126px; line-height: 1; letter-spacing: -4px; margin-top: 6px; white-space: nowrap; }
+  #sem .l2 em { font-style: normal; color: var(--blue2); }
+  #boxes { position: absolute; left: 36px; top: 250px; width: 840px; display: flex; gap: 24px; }
+  .bx { position: relative; flex: 1; height: 132px; border-radius: 18px; border: 4px solid rgba(255, 255, 255, .28); overflow: hidden; }
+  .bx i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(135deg, #1b86d6, var(--blue)); }
+  .bx b { position: relative; display: flex; height: 100%; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 500; font-size: 42px; letter-spacing: 2px; }
+
+  /* Coupes (pause longue) */
+  #cuts { position: absolute; inset: 0; z-index: 9; background: var(--g); opacity: 0; overflow: hidden; }
+  #cuts > div { position: absolute; opacity: 0; }
+  .phone { left: 250px; top: 488px; width: 580px; height: 1260px; border-radius: 74px; padding: 16px; background: linear-gradient(150deg, #2d3139, #0e0f12); box-shadow: 0 60px 120px -40px rgba(0, 0, 0, .9), inset 0 0 0 2px rgba(255, 255, 255, .08); }
+  .phone .scr { position: relative; width: 548px; height: 1228px; border-radius: 58px; overflow: hidden; background: #f4f2ee; }
+  .phone .scr img { width: 548px; height: 1186px; margin-top: 42px; }
+  .phone .scr::before { content: ''; position: absolute; left: 50%; top: 12px; width: 120px; height: 30px; margin-left: -60px; border-radius: 16px; background: #0e0f12; z-index: 2; }
+  #cut2 { left: 60px; top: 520px; width: 960px; height: 700px; border-radius: 24px; overflow: hidden; background: #f4f2ee; box-shadow: 0 60px 120px -40px rgba(0, 0, 0, .9); }
+  #cut2 img { position: absolute; left: -373px; top: -27px; width: 1920px; height: 1200px; }
+  #mBadge { position: absolute; width: 28px; height: 28px; border-radius: 50%; background: #b8321f; color: #fff; font: 800 17px/28px var(--ui); text-align: center; box-shadow: 0 0 0 4px rgba(184, 50, 31, .25); transform-origin: 50% 50%; }
+
+  /* Fin */
+  #endTxt { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+  #q { position: absolute; left: 50px; right: 50px; top: 600px; text-align: center; font-weight: 900; font-size: 88px; line-height: 1.04; letter-spacing: -2.5px; text-transform: uppercase; }
+  #q .w { color: rgba(255, 255, 255, .28); }
+  #q .w.on { color: #fff; }
+  #q .w.box { position: relative; color: #fff; padding: 0 14px; }
+  #q .w.box::before { content: ''; position: absolute; inset: 6px 0 2px; z-index: -1; border-radius: 14px; background: var(--blue); transform: scaleX(var(--k, 0)); transform-origin: 0 50%; }
+  .eL { position: absolute; left: 60px; width: 870px; text-align: center; opacity: 0; }
+  #e1 { top: 925px; font-weight: 700; font-size: 34px; color: #e3f0ff; }
+  #e1 span { display: inline-block; padding: 8px 20px; background: rgba(10, 111, 184, .55); border: 2px solid rgba(160, 205, 245, .6); border-radius: 40px; }
+  #e2 { top: 1000px; font-weight: 800; font-size: 46px; letter-spacing: -.5px; }
+  #e2 em { font-style: normal; color: var(--yellow); }
+  #e3 { top: 1072px; font-weight: 700; font-size: 32px; line-height: 1.3; color: #dfe6ef; }
+  #e4 { top: 1158px; font-family: var(--disp); font-weight: 700; font-size: 74px; letter-spacing: -2px; line-height: 1; }
+  #e4 span { color: #22d3ee; }
+
+  /* Bandeaux sombres haut et bas (lisibilité, interface TikTok) */
+  #shadeTop { position: absolute; left: 0; right: 0; top: 0; height: 600px; z-index: 11; pointer-events: none; background: linear-gradient(rgba(21, 23, 27, .97) 0, rgba(21, 23, 27, .93) 420px, rgba(21, 23, 27, .55) 500px, rgba(21, 23, 27, 0) 580px); }
+  #shadeBot { position: absolute; left: 0; right: 0; top: 1250px; bottom: 0; z-index: 11; pointer-events: none; background: linear-gradient(rgba(21, 23, 27, 0), rgba(21, 23, 27, .86) 200px, rgba(21, 23, 27, .97) 420px); }
+
+  /* Titre fixe, sous-titres, étiquette, badge démo */
+  #title { position: absolute; left: 40px; right: 40px; top: 236px; height: 240px; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; text-transform: uppercase; font-weight: 900; transform-origin: 50% 50%; }
+  #title .l1 { position: relative; font-size: 74px; line-height: 1.05; letter-spacing: -2px; color: #e8edf3; white-space: nowrap; }
+  #title .l2 { font-size: 124px; line-height: 1; letter-spacing: -5px; margin-top: 8px; white-space: nowrap; }
+  #title .tw { display: inline-block; transform-origin: 50% 70%; }
+  #tCa { display: inline-block; color: var(--blue); text-shadow: 0 0 36px rgba(10, 111, 184, .75); transform-origin: 50% 60%; }
+  #ul { position: absolute; left: 0; top: 0; overflow: visible; }
+  #caption { position: absolute; left: 50px; right: 50px; top: 252px; height: 226px; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: 0 .27em; text-align: center; font-weight: 800; font-size: 60px; line-height: 1.08; letter-spacing: -1px; text-transform: uppercase; }
+  #caption .w { color: rgba(255, 255, 255, .3); }
+  #caption .w.on { color: #fff; }
+  #caption .w.hl.on { color: var(--blue2); }
+  #hud { position: absolute; left: 60px; top: 160px; z-index: 20; display: flex; align-items: center; gap: 18px; font-family: var(--mono); font-size: 25px; letter-spacing: 3px; color: #aebfd3; opacity: 0; white-space: nowrap; }
+  #hud b { font-family: var(--disp); font-weight: 700; font-size: 38px; letter-spacing: -1px; color: #fff; }
+  #hud b span { color: #22d3ee; }
+  #hud i { font-style: normal; padding: 6px 14px; border: 2px solid rgba(174, 191, 211, .45); border-radius: 30px; color: #fff; }
+  #badge { position: absolute; left: 0; top: 0; z-index: 21; white-space: nowrap; font-weight: 800; font-size: 30px; color: var(--ink); background: var(--yellow); padding: 7px 16px 8px; border-radius: 8px; box-shadow: 0 10px 26px -8px rgba(0, 0, 0, .6); transform-origin: 0 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><img id="bgBlur" src="assets/tableau-de-bord-flou.jpg" alt=""><img id="bgSharp" src="assets/tableau-de-bord.jpg" alt=""><div id="bgVeil"></div><div id="glow"></div></div>
+
+  <div id="sheetCam"><div id="sheetPersp">
+    <div id="sheet" class="sheet">
+      <img id="pg13" src="assets/devis-0013-p1.jpg" alt=""><img id="pg02" src="assets/devis-0002-p1.jpg" alt="">
+      <div class="shade"></div><div id="glints"></div><div id="sheen"><i></i></div><div class="dim" id="dim1"></div><div class="head" id="head1"></div>
+      <div id="marks1"></div>
+    </div>
+    <div id="sheet2" class="sheet">
+      <img src="assets/devis-0013-p2.jpg" alt=""><div class="shade"></div><div id="marks2"></div>
+      <svg id="ring" width="760" height="980"><path id="ringPath" fill="none" stroke="#d8432f" stroke-width="7" stroke-linecap="round"/></svg>
+    </div>
+  </div></div>
+
+  <div id="deskCam"><div id="deskPersp"><div id="monitor">
+    <div id="bezel"></div>
+    <div id="screen">
+      <div id="scrIn">
+        <div id="states"></div>
+        <div id="navHi"></div>
+        <div id="slotMask"></div>
+        <div id="rowLayer" class="crop"><div id="rowSweep"></div></div>
+        <div id="olRow" class="ol"></div>
+        <div id="olQ" class="ol b"></div><div id="olU" class="ol b"></div><div id="olPU" class="ol b"></div><div id="olTVA" class="ol b"></div>
+        <div id="olLigneHT" class="ol b"></div><div id="olMontants" class="ol b"></div><div id="olBarre" class="ol b"></div>
+        <div id="listLayer" class="crop"></div>
+        <div id="tagPrix" class="tag">prix de démo</div>
+        <div id="ripple"></div>
+        <svg id="cursor" viewBox="0 0 24 34"><path d="M2 2 L2 27 L8.5 21 L13 31.5 L17.5 29.5 L13 19.5 L21.5 19.5 Z" fill="#fff" stroke="#111" stroke-width="2" stroke-linejoin="round"/></svg>
+        <div id="marksScr"></div>
+      </div>
+      <div id="scrCover"></div><div id="scrScan"></div><div id="glare"></div>
+    </div>
+    <div id="neck"></div><div id="foot"></div>
+  </div></div></div>
+
+  <div id="strips"></div>
+  <div id="semVeil"></div>
+  <div id="sem"><div class="l1">Livré en</div><div class="l2"><em>4</em> SEMAINES</div>
+    <div id="boxes"><div class="bx"><i></i><b>S1</b></div><div class="bx"><i></i><b>S2</b></div><div class="bx"><i></i><b>S3</b></div><div class="bx"><i></i><b>S4</b></div></div></div>
+
+  <div id="cuts">
+    <div id="cut1" class="phone"><div class="scr"><img src="assets/m01.jpg" alt=""></div></div>
+    <div id="cut2"><img src="assets/echeancier.jpg" alt=""></div>
+    <div id="cut3" class="phone"><div class="scr"><img src="assets/m02.jpg" alt=""><div id="mBadge">2</div></div></div>
+  </div>
+
+  <div id="endTxt">
+    <div id="q"></div>
+    <div id="e1" class="eL"><span>Logiciel sur mesure · sur devis</span></div>
+    <div id="e2" class="eL"><em>Devis gratuit sous 48 h</em> · lien en bio</div>
+    <div id="e3" class="eL">Partout en France à distance<br>sur place en Île-de-France</div>
+    <div id="e4" class="eL">LTNS<span>°</span></div>
+  </div>
+
+  <div id="letters"><span>p</span><span>e</span><span>i</span><span>n</span></div>
+  <div id="counter"><small>TOTAL TTC · RECALCULÉ</small><b id="cval">18 766,40 €</b><span class="tag">montants de démonstration</span></div>
+  <div id="shadeTop"></div><div id="shadeBot"></div>
+  <div id="flash"></div>
+
+  <div id="hud"><b>LTNS<span>°</span></b><i>VRAI PROJET · PMSB GESTION</i></div>
+  <div id="title"><div class="l1"><span class="tw">Ses</span> <span class="tw">devis&nbsp;?</span> <span id="tMain"><span class="tw">À</span> <span class="tw">la</span> <span class="tw">main.</span></span><svg id="ul"><path id="ulPath" fill="none" stroke="#e5483a" stroke-width="9" stroke-linecap="round"/></svg></div><div class="l2"><span class="tw">J'ai</span> <span class="tw">créé</span> <span id="tCa" class="tw">ça</span>.</div></div>
+  <div id="caption"></div>
+  <div id="badge">Données de démonstration</div>
+</div>
+
+<script src="../../commun/engine.js"></script>
+<script src="voice-files.js"></script>
+<script>
+const { clamp, easeInOut, easeOut, easeIn, pop, ramp, pulse, lerp, $, qa, setT, setHTML, caption } = LTNS
+
+/* ── Voix : une phrase par segment [pause] du script validé ── */
+const SENTENCES = [
+  { chunks: [['Ses devis ?', 'devis'], ['À la main.', 'main.']] },
+  { chunks: [["Alors j'ai créé ça.", 'ça.']] },
+  { chunks: [['Son logiciel :', 'logiciel'], ['il tape quatre lettres,', 'lettres,'], ['il clique,', 'clique,'], ['et la ligne de travaux arrive avec son prix.', 'prix.']] },
+  { chunks: [['Le total se recalcule tout seul.', 'seul.']] },
+  { chunks: [['Un clic,', 'clic,'], ['et le devis sort en PDF,', 'PDF,'], ['à son en-tête.', 'en-tête.']] },
+  { chunks: [['Livré en quatre semaines.', 'semaines.']] },
+  { chunks: [['Et toi, tes devis,', 'devis,'], ['tu les fais comment ?', 'comment']] },
+]
+// [phrase, mot | fraction, décalage (s), son]
+const CUES = {
+  main: [0, 'main.', -0.05, 'tick'],
+  ca: [1, 'ça.', -0.05, 'pop'],
+  unprint: [2, 0, -0.35, 'whoosh'],
+  pick: [2, 'tape', -0.4, 'tick'],
+  k1: [2, 'tape', 0, 'tick'], k2: [2, 'tape', 0.2, 'tick'], k3: [2, 'tape', 0.4, 'tick'], k4: [2, 'tape', 0.6, 'tick'],
+  clique: [2, 'clique', 0.05, 'tick'],
+  ligne: [2, 'ligne', -0.1],
+  travaux: [2, 'travaux', 0],
+  arrive: [2, 'arrive', -0.05],
+  prix: [2, 'avec', 0.05, 'pop'],
+  qsel: [3, 0, -0.2, 'tick'],
+  q2: [3, 'total', 0, 'tick'], q26: [3, 'total', 0.18, 'tick'], q260: [3, 'total', 0.36, 'tick'],
+  recalc: [3, 'recalcule', -0.1],
+  seul: [3, 'seul.', -0.1, 'pop'],
+  un: [4, 'Un', 0],
+  clic: [4, 'clic', 0.05, 'tick'],
+  sort: [4, 'sort', -0.25, 'whoosh'],
+  pdf: [4, 'PDF', 0.1, 'ding'],
+  entete: [4, 'à', -0.1, 'whoosh'],
+  p2: [4, 'en-tête', -0.1, 'whoosh'],
+  quatre: [5, 'quatre', -0.25, 'pop'],
+  sem: [5, 'semaines', 0],
+}
+// La fin (V7) démarre après les trois coupes de la pause longue : voir cutA / cutB dans render()
+const TAIL = 1.9            // fin tenue 0,9 s après la dernière phrase, puis 1 s de retour à l'image 0
+const FPS = 30
+
+/* ── Géométrie ── */
+const SHEET = { x: 120, y: 520, w: 800, h: 1032 }, SHEET2 = { x: 200, y: 540, w: 760, h: 980 }
+const PX = 2481                         // largeur des pages en px (300 dpi)
+const K1 = SHEET.w / PX, K2 = SHEET2.w / PX
+const SX = 154, SY = 644, BASE = 752 / 1440   // écran : coin haut gauche (scène) et échelle px CSS → scène
+const POSE = { rx: 8, ry: -12 }
+let R, M = {}, M2 = {}, PERIOD = 20, VAL = {}, FS = []
+
+const fmt = cents => {
+  const e = Math.floor(cents / 100), c = String(cents % 100).padStart(2, '0')
+  return String(e).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + c + ' €'
+}
+const parseEur = s => Math.round(+s.replace(/[^\d,]/g, '').replace(',', '.') * 100)
+const osc = (t, n = 1, ph = 0) => Math.sin(2 * Math.PI * n * t / PERIOD + ph) - Math.sin(ph)
+const stageRect = el => { const s = $('stage').getBoundingClientRect(), z = s.width / 1080, r = el.getBoundingClientRect(); return { x: (r.left - s.left) / z, y: (r.top - s.top) / z, w: r.width / z, h: r.height / z } }
+const center = r => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 })
+
+// Caméra : une suite de plans { t, d, cx, cy, lw (log de la largeur vue), px, py } ; Z = 960 / largeur
+const SH = (t, d, cx, cy, ww, px = cx, py = cy) => ({ t, d, cx, cy, lw: Math.log(ww), px, py })
+function cam(t, shots) {
+  let s = shots[0]
+  for (let i = 1; i < shots.length; i++) {
+    const sh = shots[i]
+    if (t <= sh.t) break
+    const k = easeInOut(ramp(t, sh.t, sh.d))
+    s = { cx: lerp(s.cx, sh.cx, k), cy: lerp(s.cy, sh.cy, k), lw: lerp(s.lw, sh.lw, k), px: lerp(s.px, sh.px, k), py: lerp(s.py, sh.py, k) }
+  }
+  const Z = 960 / Math.exp(s.lw)
+  return { Z, css: `translate(${(s.px - Z * s.cx).toFixed(2)}px, ${(s.py - Z * s.cy).toFixed(2)}px) scale(${Z.toFixed(4)})` }
+}
+const scr = (x, y, w, h) => ({ cx: SX + (x + w / 2) * BASE, cy: SY + (y + h / 2) * BASE, ww: w * BASE })
+const DS = (t, d, r, px, py) => SH(t, d, r.cx, r.cy, r.ww, px, py)
+
+/* ── Construction (marqueurs, calques recadrés) ── */
+const STATES = ['e00', 'e01', 'e02', 'e03', 'e04', 'e05', 'e06', 'e07', 'e08', 'e09', 'e10', 'e11', 'e12', 'e13']
+const LIST_STATES = ['e01', 'e02', 'e03', 'e04', 'e05', 'e06']
+const NAV = ['Clients', 'Devis', 'Factures', 'Achats de matériel', 'Échéancier', 'Bibliothèque de prix']
+const STRIP_ROWS = [4, 5, 6, 7, 8], STRIP_MARKS = ['lot2', 'l4', 'l5', 'l6', 'l7']
+const MONTANTS = { x: 868, y: 688, w: 512, h: 38 }   // « Total TTC » de la carte Montants (e07 → e13)
+function mkImg(src, parent, cls) { const i = document.createElement('img'); i.src = src; if (cls) i.className = cls; i.alt = ''; parent.appendChild(i); return i }
+function mark(parent, id, x, y, w, h) { const d = document.createElement('i'); d.className = 'mk'; d.id = id; Object.assign(d.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' }); parent.appendChild(d); return d }
+function cropBox(el, r) { Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' }); qa('img', el).forEach(i => { i.style.left = -r.x + 'px'; i.style.top = -r.y + 'px' }) }
+
+async function ready(k) {
+  R = await (await fetch('assets/rects.json', { cache: 'no-store' })).json()
+  PERIOD = Math.ceil(k.duration * FPS) / FPS
+  VAL = { q1: parseEur(R.totals.q1), q2: parseEur(R.totals.q2), q26: parseEur(R.totals.q26), q260: parseEur(R.totals.q260) }
+  $('scrIn').style.transform = `scale(${BASE})`
+  STATES.forEach(s => mkImg(`assets/${s}.jpg`, $('states'), 'st').dataset.k = s)
+  LIST_STATES.forEach(s => { mkImg(`assets/${s}.jpg`, $('listLayer')).dataset.k = s })
+  mkImg('assets/e07.jpg', $('rowLayer')).style.display = 'block'
+  $('rowLayer').appendChild($('rowSweep'))
+  NAV.forEach(n => { const d = document.createElement('div'); d.className = 'nh'; const r = R.nav[n]; Object.assign(d.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' }); $('navHi').appendChild(d) })
+  const row = R.ligne.row
+  cropBox($('rowLayer'), row); Object.assign($('slotMask').style, { left: row.x + 'px', top: row.y + 'px', width: row.w + 'px', height: row.h + 'px' })
+  const box = (id, r, pad = 3) => Object.assign($(id).style, { left: r.x - pad + 'px', top: r.y - pad + 'px', width: r.w + 2 * pad + 'px', height: r.h + 2 * pad + 'px' })
+  box('olRow', row, 2); box('olQ', R.ligne.qte); box('olU', R.ligne.unite); box('olPU', R.ligne.pu); box('olTVA', R.ligne.tva)
+  box('olLigneHT', { x: R.ligne.totalHT.x, y: R.ligne.qte.y, w: R.ligne.totalHT.w, h: R.ligne.qte.h }, 2)
+  box('olMontants', MONTANTS, 4); box('olBarre', R.total260, 6)
+  mark($('marksScr'), 'mkField', 327, 352, 10, 20)
+  STRIP_ROWS.forEach((i, j) => { const r = R.rowsAfter[i]; mark($('marksScr'), 'mkRow' + j, r.x, r.y, r.w, r.h) })
+  // Bandes qui s'envolent de l'écran vers la feuille
+  STRIP_ROWS.forEach((i, j) => {
+    const r = R.rowsAfter[i], d = document.createElement('div')
+    d.className = 'crop strip'; d.id = 'strip' + j
+    mkImg('assets/e13.jpg', d).style.display = 'block'; cropBox(d, { x: r.x, y: r.y, w: r.w, h: r.h }); d.style.left = '0px'; d.style.top = '0px'
+    $('strips').appendChild(d)
+  })
+  // Marqueurs des pages (positions du texte dans le PDF)
+  const P1 = R.pdf['devis-0002-p1'], P2 = R.pdf['devis-0013-p2']
+  for (const [key, [x0, y0, x1, y1]] of Object.entries(P1)) mark($('marks1'), 'm1-' + key, x0 * K1, y0 * K1, (x1 - x0) * K1, (y1 - y0) * K1)
+  STRIP_MARKS.forEach(key => { const [x0, y0, , y1] = P1[key]; mark($('marks1'), 'ml-' + key, x0 * K1 - 6, y0 * K1 - 4, (2285 - x0) * K1 + 12, key === 'lot2' ? (y1 - y0) * K1 + 8 : 120 * K1) })
+  mark($('marks1'), 'mkBadge', 18, -22, 10, 10)
+  for (const [key, [x0, y0, x1, y1]] of Object.entries(P2)) mark($('marks2'), 'm2-' + key, x0 * K2, y0 * K2, (x1 - x0) * K2, (y1 - y0) * K2)
+  // Reflets le long des soulignés rouges (lignes 1 à 7)
+  ;['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7'].forEach(key => { const [x0, , x1, y1] = P1[key]; const g = document.createElement('i'); g.className = 'glint'; g.dataset.k = key; g.dataset.x0 = x0 * K1; g.dataset.x1 = x1 * K1; g.style.top = (y1 * K1 + 1) + 'px'; $('glints').appendChild(g) })
+  // Cercle « Bon pour accord » (tracé à la main)
+  // la case fait toute la moitié droite de la page : de 40 px avant le titre jusqu'au bord du tableau (2306 px), sur 470 px de haut
+  const [ax0, ay0] = P2.accord, acx = (ax0 - 40 + 2306) / 2 * K2, acy = (ay0 - 47 + 470 / 2) * K2, rx = (2306 - ax0 + 40) / 2 * K2 + 26, ry = 470 / 2 * K2 + 24
+  let d = ''
+  for (let i = 0; i <= 64; i++) { const a = -2.2 + i / 64 * Math.PI * 2.25, rr = 1 + 0.04 * Math.sin(i * 0.7) + i / 64 * 0.06; d += `${i ? 'L' : 'M'}${(acx + Math.cos(a) * rx * rr).toFixed(1)} ${(acy + Math.sin(a) * ry * rr).toFixed(1)} ` }
+  $('ringPath').setAttribute('d', d)
+  const rl = $('ringPath').getTotalLength(); $('ringPath').style.strokeDasharray = rl; $('ringPath').dataset.l = rl
+  // Badge rouge du menu téléphone (m02)
+  const ph = 548 / 390
+  Object.assign($('mBadge').style, { left: (R.mBadgeNav.x * ph - 4) + 'px', top: (42 + R.mBadgeNav.y * ph - 4) + 'px' })
+  // Question de fin, mot à mot
+  const W6 = k.WORDS[6]
+  $('q').innerHTML = W6.map((x, i) => `<span class="w${/^comment/i.test(x.w) ? ' box' : ''}" data-i="${i}">${x.w}</span>${/devis,|fais/.test(x.w) ? '<br>' : ' '}`).join('')
+
+  await Promise.all(qa('img').map(i => i.decode().catch(() => {})))
+  await document.fonts.ready
+  // Souligné « à la main » sous le titre
+  const tm = $('tMain'), l1 = tm.parentElement
+  const ux = tm.offsetLeft - 4, uw = tm.offsetWidth + 8, uy = tm.offsetTop + tm.offsetHeight - 2
+  $('ulPath').setAttribute('d', `M${ux} ${uy + 6} C ${ux + uw * 0.3} ${uy - 4}, ${ux + uw * 0.62} ${uy + 12}, ${ux + uw} ${uy}`)
+  const ulL = $('ulPath').getTotalLength(); $('ulPath').style.strokeDasharray = ulL; $('ulPath').dataset.l = ulL
+  $('ul').setAttribute('width', l1.offsetWidth); $('ul').setAttribute('height', l1.offsetHeight + 30)
+  // Taille des sous-titres : chaque phrase tient dans la bande
+  const cap = $('caption')
+  SENTENCES.forEach((s, i) => {
+    cap.innerHTML = k.WORDS[i].map(x => `<span class="w on">${x.w}</span>`).join(' ')
+    let f = 62
+    for (; f > 36; f -= 2) { cap.style.fontSize = f + 'px'; if (cap.scrollHeight <= 226 && cap.scrollWidth <= 980) break }
+    FS[i] = f
+  })
+  cap.innerHTML = ''
+  // Repères de caméra mesurés à la pose de l'image 0
+  $('sheetCam').style.transform = 'none'
+  $('sheet').style.transform = `rotateX(${POSE.rx}deg) rotateY(${POSE.ry}deg)`
+  qa('#marks1 .mk').forEach(m => { if (m.id.startsWith('m1-')) M[m.id.slice(3)] = stageRect(m) })
+  $('sheet2').style.transform = `rotateX(5deg) rotateY(-8deg)`
+  qa('#marks2 .mk').forEach(m => { M2[m.id.slice(3)] = stageRect(m) })
+}
+
+/* ── Rendu ── */
+let SHEET_SHOTS = null, DESK_SHOTS = null, T = null
+function shots(k) {
+  const { C } = k
+  const unprint = Math.max(C.unprint, 2.95), pick = Math.max(C.pick, unprint + 0.7)
+  const l46 = { x: SHEET.x + 330 }, num = center(M.numero), ent = center(M.entreprise), acc = center(M2.accord)
+  const tot = { x: (M2['total-ht-avant'].x + M2['montant-ttc'].x + M2['montant-ttc'].w) / 2, y: center(M2['total-ht-avant']).y }
+  const cutA = k.TIMES[5].end + 0.05
+  SHEET_SHOTS = [
+    SH(-1, 0, 520, 1036, 960),
+    SH(0, 1.0, 520, 1060, 960 / 1.04),                        // poussée 1,00 → 1,04
+    SH(1.0, 0.7, l46.x, M.l4.y + 30, 960 / 1.85, 520, 880),     // la caméra descend le long des lignes soulignées
+    SH(1.55, 0.6, l46.x + 10, M.l6.y + 20, 960 / 1.95, 520, 900),
+    SH(2.1, 0.65, num.x, num.y + 30, 960 / 2.15, 520, 860),     // macro « Devis N°DEV-2026-0002 » et filigrane
+    SH(unprint - 0.2, 0.45, 520, 1036, 960),
+    SH(C.entete, 0.35, ent.x - 170, ent.y + 45, 960 / 1.9, 540, 780),   // travelling sur l'en-tête
+    SH(C.entete + 0.3, 0.6, ent.x + 150, ent.y + 45, 960 / 2.0, 540, 780),
+    SH(C.p2 + 0.05, 0.45, tot.x, tot.y + 70, 960 / 1.38, 520, 780),  // page 2 : les totaux
+    SH(C.p2 + 0.42, 0.4, acc.x + 40, acc.y + 62, 960 / 1.9, 520, 860),     // la case « bon pour accord »
+    SH(C.quatre - 0.25, 0.5, 520, 1036, 960 / 0.9),
+    SH(cutA, 0.01, 520, 1036, 960),
+  ]
+  DESK_SHOTS = [
+    SH(-1, 0, 530, 890, 960),
+    DS(pick - 0.42, 0.45, scr(290, 330, 580, 380), 510, 900),          // champ + bibliothèque
+    DS(C.clique + 0.1, 0.5, scr(300, 255, 660, 190), 520, 880),        // la ligne arrive
+    DS(C.travaux, 0.9, scr(420, 255, 660, 190), 520, 880),             // travelling vers le prix
+    DS(C.prix, 0.4, scr(760, 300, 420, 130), 520, 900),                // macro quantité / unité / PU / TVA
+    DS(C.qsel - 0.2, 0.4, scr(700, 305, 600, 130), 520, 980),          // quantité + total de la ligne
+    DS(C.recalc, 0.45, scr(840, 600, 560, 290), 500, 1015),             // totaux : carte Montants + barre
+    DS(C.un - 0.2, 0.4, scr(860, 790, 540, 110), 500, 980),            // bouton « Enregistrer et voir le PDF »
+    SH(C.clic + 0.22, 0.4, 530, 890, 960),
+  ]
+  return { unprint, pick, cutA }
+}
+
+function render(t, k) {
+  const { C, TIMES } = k
+  if (!T) T = shots(k)
+  const { unprint, pick, cutA } = T
+  const cutB = Math.max(TIMES[6].start - 0.05, cutA + 0.9), endStart = cutB
+  const tLoop = C.end + 0.9
+  const tail = t >= tLoop
+  const vis = []   // images visibles (décodées avant la capture)
+
+  /* Fond : tableau de bord flouté ; il devient net 2–3 s */
+  const sharp = easeInOut(ramp(t, 2.0, 0.8)) * (1 - easeInOut(ramp(t, unprint, 0.45)))
+  const bgT = `rotate(${-7 + 1.2 * osc(t)}deg) scale(${1.16 + 0.02 * osc(t, 1, 0.5)})`
+  setT($('bgBlur'), 0.5 * (1 - sharp), bgT); setT($('bgSharp'), 0.55 * sharp, bgT)
+  if (sharp > 0) vis.push($('bgSharp'))
+
+  /* ── Feuille 1 (vrai PDF) ── */
+  const sc = cam(t, SHEET_SHOTS)
+  $('sheetCam').style.transform = sc.css
+  const printP = easeInOut(ramp(t, C.sort + 0.1, 0.6))          // la feuille sort de l'imprimante (DEV-2026-0013)
+  const unP = easeIn(ramp(t, unprint, 0.42))                    // la feuille se « dé-imprime » (bas → haut)
+  const reP = easeInOut(ramp(t, tLoop + 0.12, 0.55))            // retour : DEV-2026-0002 se réimprime
+  const shown = t < unprint + 0.45 || t >= C.sort + 0.1
+  const p2K = t < cutA ? easeInOut(ramp(t, C.p2, 0.5)) : 0
+  const endRot = t >= endStart ? 7 * easeInOut(ramp(t, endStart, 2.4)) * (1 - easeInOut(ramp(t, tLoop, 0.7))) : 0
+  const into = t < C.sort ? easeIn(ramp(t, unprint + 0.05, 0.4)) : 0   // la feuille rentre dans l'écran
+  const hookTurn = t < 2.8 ? Math.sin(Math.PI * t / 2.8) : 0   // la feuille tourne doucement pendant l'accroche, puis revient à la pose
+  const rx = POSE.rx + 0.6 * osc(t, 2) - 1.5 * hookTurn, ry = POSE.ry + 1.0 * osc(t) - 5 * p2K + endRot + 3 * hookTurn
+  $('sheet').style.transform = `translate(${-250 * p2K + into * 10}px, ${into * -150}px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${(1 - 0.07 * p2K) * (1 - 0.42 * into)})`
+  $('sheet').style.opacity = shown ? 1 - ramp(t, unprint + 0.3, 0.15) * (t < C.sort ? 1 : 0) : 0
+  $('sheetCam').style.zIndex = t >= unprint && t < unprint + 0.5 ? 5 : 3
+  const on02 = t < C.sort + 0.1 || tail
+  $('pg02').style.display = on02 ? 'block' : 'none'
+  $('pg13').style.display = t >= C.sort + 0.1 ? 'block' : 'none'
+  if (on02) vis.push($('pg02')); if (t >= C.sort + 0.1) vis.push($('pg13'))
+  if (tail) $('pg02').style.clipPath = `inset(0 0 ${((1 - reP) * 100).toFixed(2)}% 0)`
+  else if (t < C.sort) $('pg02').style.clipPath = unP > 0 ? `inset(0 0 ${(unP * 100).toFixed(2)}% 0)` : 'none'
+  $('pg13').style.clipPath = t < C.sort + 0.75 ? `inset(0 0 ${((1 - printP) * 100).toFixed(2)}% 0)` : 'none'
+  // Tête d'impression : dé-impression, impression, réimpression
+  let head = -1
+  if (unP > 0 && unP < 1 && t < C.sort) head = 1 - unP
+  if (printP > 0 && printP < 1) head = printP
+  if (reP > 0 && reP < 1) head = reP
+  $('head1').style.opacity = head >= 0 ? 1 : 0
+  $('head1').style.top = (Math.max(0, head) * SHEET.h) + 'px'
+  // Reflet qui balaie la feuille (dès 0,1 s, à la sortie du PDF, à la fin, au retour)
+  const sweep = (t0, d) => ramp(t, t0, d)
+  let sw = 0
+  for (const [t0, d] of [[0.1, 0.85], [C.pdf - 0.05, 0.7], [endStart + 0.9, 1.1], [tLoop + 0.5, 0.45]]) if (t >= t0 && t < t0 + d) sw = sweep(t0, d)
+  $('sheen').firstElementChild.style.transform = `translateX(${lerp(-420, 1060, easeInOut(sw))}px) rotate(18deg)`
+  $('sheen').style.opacity = sw > 0 ? 1 : 0
+  // Reflets rouges le long des soulignés
+  qa('.glint').forEach((g, i) => {
+    const t0 = i < 3 ? 0.25 + i * 0.22 : 1.05 + (i - 3) * 0.2
+    const p = ramp(t, t0, 0.5)
+    const x0 = +g.dataset.x0, x1 = +g.dataset.x1
+    g.style.opacity = p > 0 && p < 1 && t < 3 ? Math.sin(Math.PI * p) : 0
+    g.style.left = lerp(x0 - 40, x1 - 60, p) + 'px'
+  })
+  // Voile : pages 2 (recul), fin floutée
+  const endBlur = t >= endStart ? 1 - easeInOut(ramp(t, tLoop + 0.1, 0.5)) : 0
+  $('dim1').style.opacity = 0.45 * p2K + 0.62 * endBlur * ramp(t, endStart, 0.3)
+  const semK = t < cutA ? easeInOut(ramp(t, C.quatre - 0.25, 0.35)) : 0
+  const blur = 11 * semK + 9 * endBlur * ramp(t, endStart, 0.3)
+  $('sheetPersp').style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none'
+
+  /* ── Feuille 2 : totaux et « bon pour accord » ── */
+  const s2in = easeOut(ramp(t, C.p2, 0.55))
+  const s2on = t >= C.p2 && t < cutA
+  $('sheet2').style.opacity = s2on ? 1 : 0
+  $('sheet2').style.transform = `translateX(${(1 - s2in) * 900}px) rotateX(5deg) rotateY(${-8 - 14 * (1 - s2in)}deg)`
+  const ringP = easeInOut(ramp(t, C.p2 + 0.58, 0.32))
+  $('ringPath').style.strokeDashoffset = (+$('ringPath').dataset.l * (1 - ringP)).toFixed(1)
+  $('ringPath').style.opacity = ringP > 0.01 ? 1 : 0
+  if (s2on) vis.push($('sheet2').firstElementChild)
+
+  /* ── L'ordinateur ── */
+  const dc = cam(t, DESK_SHOTS)
+  $('deskCam').style.transform = dc.css
+  const deskIn = easeOut(ramp(t, unprint + 0.02, 0.35)), deskOut = easeIn(ramp(t, C.sort, 0.42))
+  const deskOn = t >= unprint && deskOut < 1
+  $('deskCam').style.opacity = deskOn ? deskIn * (1 - ramp(t, C.sort + 0.08, 0.3)) : 0
+  // Inclinaison 3D seulement en plan large : de près, transformation 2D (Chromium rastérise net)
+  const wide = clamp((1.7 - dc.Z) / 0.7)
+  const mono2D = `translateY(${(1 - deskIn) * 60 + deskOut * 420}px) scale(${(0.9 + 0.1 * deskIn) * (1 - 0.25 * deskOut)})`
+  $('monitor').style.transform = wide > 0.002 ? `${mono2D} rotateX(${(3 * wide).toFixed(3)}deg) rotateY(${(wide * (-7 + 0.8 * osc(t))).toFixed(3)}deg)` : mono2D
+  $('deskPersp').style.perspective = wide > 0.002 ? '2400px' : 'none'
+  // L'écran s'allume de haut en bas
+  const rv = easeInOut(ramp(t, unprint + 0.12, 0.42))
+  $('scrCover').style.height = ((1 - rv) * 100) + '%'
+  $('scrScan').style.top = (rv * 470) + 'px'; $('scrScan').style.opacity = rv > 0 && rv < 1 ? 1 : 0
+  // État de l'écran (captures réelles, une par geste)
+  const stateAt = [['e00', -1], ['e01', pick], ['e02', C.k1], ['e03', C.k2], ['e04', C.k3], ['e05', C.k4], ['e06', C.clique - 0.15], ['e07', C.clique],
+    ['e08', C.qsel], ['e09', C.q2], ['e10', C.q26], ['e11', C.q260], ['e12', C.clic - 0.2], ['e13', C.clic + 0.06]]
+  let st = 'e00'
+  for (const [s, t0] of stateAt) if (t >= t0) st = s
+  qa('#states img').forEach(i => { const on = i.dataset.k === st; i.style.display = on ? 'block' : 'none'; if (on && deskOn) vis.push(i) })
+  // Modules de la barre latérale qui s'allument un par un
+  qa('.nh').forEach((d, i) => {
+    const t0 = unprint + 0.38 + i * 0.075
+    d.style.opacity = t >= t0 && t < pick ? clamp(pop(t, t0, 0.2)) * (1 - ramp(t, pick - 0.3, 0.25)) : 0
+  })
+  // Liste de la bibliothèque : jaillit vers la caméra
+  const listOn = t >= pick && t < C.clique + 0.12
+  const lst = LIST_STATES.includes(st) ? st : 'e06'
+  const lr = R['liste-' + ({ e02: 'p', e03: 'pe', e04: 'pei', e05: 'pein', e06: 'pein' }[lst] || '')] || R.liste
+  cropBox($('listLayer'), lr)
+  qa('#listLayer img').forEach(i => { const on = i.dataset.k === lst; i.style.display = on ? 'block' : 'none'; if (on && listOn && deskOn) vis.push(i) })
+  const lp = pop(t, pick + 0.02, 0.35), lc = easeIn(ramp(t, C.clique + 0.02, 0.1))
+  $('listLayer').style.opacity = listOn ? clamp(lp * 3) * (1 - lc) : 0
+  $('listLayer').style.transform = `translate(${-8 * clamp(lp)}px, ${-10 * clamp(lp)}px) scale(${(0.86 + 0.18 * lp) * (1 - 0.06 * lc)})`
+  // La ligne tombe dans le tableau, avec un rebond et un contour vert
+  const drop = ramp(t, C.clique + 0.08, 0.45)
+  const rowOn = t >= C.clique && t < C.qsel
+  $('slotMask').style.opacity = t >= C.clique && drop < 1 ? 1 : 0
+  $('rowLayer').style.opacity = rowOn && drop > 0 ? clamp(drop * 5) : 0
+  $('rowLayer').style.transform = `translateY(${(-95 * (1 - (drop > 0 ? LTNS.pop(t, C.clique + 0.08, 0.45) : 0))).toFixed(1)}px) scale(${1 + 0.05 * (1 - clamp(drop * 1.4))})`
+  if (rowOn) vis.push($('rowLayer').querySelector('img'))
+  const sweepP = ramp(t, C.arrive, 0.7)
+  $('rowSweep').style.opacity = sweepP > 0 && sweepP < 1 ? 1 : 0
+  $('rowSweep').style.left = lerp(-240, 1060, sweepP) + 'px'
+  const land = C.clique + 0.53
+  $('olRow').style.opacity = t >= land && t < C.qsel ? Math.max(1 - 0.65 * ramp(t, land, 0.6), pulse(t, C.ligne, 0.6)) * (1 - ramp(t, C.prix - 0.1, 0.3)) : 0
+  // Macro : quantité, unité, prix unitaire HT, TVA ; « prix de démo »
+  ;['olQ', 'olU', 'olPU', 'olTVA'].forEach((id, i) => { const t0 = C.prix + 0.08 + i * 0.1; $(id).style.opacity = t >= t0 && t < C.qsel - 0.1 ? clamp(pop(t, t0, 0.25)) * (1 - 0.5 * ramp(t, t0 + 0.5, 0.4)) : 0 })
+  const tg = t >= C.prix && t < C.qsel - 0.1 ? pop(t, C.prix + 0.25, 0.35) : 0
+  setT($('tagPrix'), clamp(tg * 2), `scale(${tg}) rotate(-3deg)`)
+  // Quantité tapée : 1 → 2 → 26 → 260, le total de la ligne et les totaux suivent
+  $('olLigneHT').style.opacity = t >= C.q2 && t < C.recalc + 0.2 ? Math.max(pulse(t, C.q2, 0.3), pulse(t, C.q26, 0.3), pulse(t, C.q260, 0.6)) : 0
+  const tot = t >= C.recalc && t < C.un - 0.1
+  $('olMontants').style.opacity = tot ? clamp(pop(t, C.recalc + 0.25, 0.3)) * (0.55 + 0.45 * pulse(t, C.seul, 0.5)) : 0
+  $('olBarre').style.opacity = tot ? clamp(pop(t, C.seul - 0.05, 0.3)) : 0
+  // Curseur : champ de recherche, option « pliolite », quantité, bouton PDF
+  const legs = [
+    [pick - 0.45, pick - 0.04, { x: 560, y: 250 }, { x: 430, y: 357 }, pick],
+    [C.clique - 0.5, C.clique - 0.08, { x: 470, y: 372 }, { x: 590, y: 646 }, C.clique],
+    [C.qsel - 0.5, C.qsel - 0.06, { x: 1010, y: 352 }, { x: 822, y: 352 }, C.qsel],
+    [C.un - 0.15, C.clic - 0.08, { x: 900, y: 700 }, { x: 1150, y: 857 }, C.clic],
+  ]
+  let cu = null, rip = null
+  for (const [a, b, p0, p1, click] of legs) {
+    if (t >= a - 0.05 && t < click + 0.35) {
+      const p = easeInOut(ramp(t, a, b - a))
+      cu = { x: lerp(p0.x, p1.x, p), y: lerp(p0.y, p1.y, p) - 30 * Math.sin(Math.PI * p), o: ramp(t, a - 0.05, 0.12) * (1 - ramp(t, click + 0.2, 0.15)), press: Math.abs(t - click) < 0.07 }
+    }
+    if (t >= click && t < click + 0.4) rip = { x: p1.x, y: p1.y, p: ramp(t, click, 0.4) }
+  }
+  setT($('cursor'), cu ? cu.o : 0, cu ? `translate(${cu.x}px, ${cu.y}px) scale(${cu.press ? 0.85 : 1})` : 'none')
+  setT($('ripple'), rip ? 1 - rip.p : 0, rip ? `translate(${rip.x}px, ${rip.y}px) scale(${0.3 + 1.6 * rip.p})` : 'none')
+
+  /* ── Lettres géantes « p-e-i-n » qui rentrent dans le champ ── */
+  const fieldR = deskOn ? stageRect($('mkField')) : null
+  qa('#letters span').forEach((sp, i) => {
+    const tk = [C.k1, C.k2, C.k3, C.k4][i]
+    const inP = pop(t, tk, 0.2), fly = easeIn(ramp(t, tk + 0.2, 0.26))
+    if (!fieldR || t < tk || fly >= 1) { sp.style.opacity = 0; return }
+    const cx = 250 + i * 170, cy = 860
+    const per = fieldR.w / 10                      // px de scène par px CSS
+    const tx = fieldR.x + ([0, 8.6, 17, 20.6][i] + 4) * per, ty = fieldR.y + fieldR.h / 2
+    const x = lerp(cx, tx, fly), y = lerp(cy, ty, fly) - 60 * Math.sin(Math.PI * fly)
+    sp.style.opacity = clamp(inP * 2) * (1 - ramp(fly, 0.7, 0.3))
+    sp.style.transform = `translate(${x - 60}px, ${y - 110}px) scale(${(0.55 + 0.45 * inP) * lerp(1, 0.09, fly)})`
+  })
+
+  /* ── Compteur du total TTC (valeurs réelles de l'appli à chaque frappe) ── */
+  const roll = (a, b, t0, d) => lerp(a, b, easeOut(ramp(t, t0, d)))
+  let v = VAL.q1
+  if (t >= C.q2) v = roll(VAL.q1, VAL.q2, C.q2, 0.12)
+  if (t >= C.q26) v = roll(VAL.q2, VAL.q26, C.q26, 0.14)
+  if (t >= C.q260) v = roll(VAL.q26, VAL.q260, C.q260, 0.3)
+  setHTML($('cval'), fmt(Math.round(v)))
+  const ctOn = t >= C.qsel - 0.1 && t < C.un - 0.05
+  const cIn = pop(t, C.qsel - 0.1, 0.35), cOut = ramp(t, C.un - 0.25, 0.2)
+  setT($('counter'), ctOn ? clamp(cIn * 2) * (1 - cOut) : 0, `translateY(${(1 - clamp(cIn)) * 30}px) scale(${0.9 + 0.1 * cIn})`)
+  $('cval').style.transform = `scale(${1 + 0.1 * pulse(t, C.q260 + 0.28, 0.3) + 0.06 * pulse(t, C.seul, 0.35)})`
+
+  /* ── Clic sur « Enregistrer et voir le PDF » : flash, les lignes s'envolent vers la feuille ── */
+  $('flash').style.opacity = 0.5 * pulse(t, C.clic + 0.04, 0.2)
+  qa('.strip').forEach((s, j) => {
+    const p = easeInOut(ramp(t, C.sort + 0.03 * j, 0.62))
+    if (p <= 0 || p >= 1) { s.style.opacity = 0; return }
+    const a = stageRect($('mkRow' + j)), b = stageRect($('ml-' + STRIP_MARKS[j]))
+    const r0 = R.rowsAfter[STRIP_ROWS[j]]
+    const x = lerp(a.x, b.x, p), y = lerp(a.y, b.y, p) - 140 * Math.sin(Math.PI * p), w = lerp(a.w, b.w, p), h = lerp(a.h, b.h, p)
+    s.style.opacity = clamp(p * 6) * (1 - ramp(p, 0.8, 0.2))
+    s.style.transform = `translate(${x}px, ${y}px) rotate(${(5 * Math.sin(Math.PI * p) * (j % 2 ? 1 : -1)).toFixed(2)}deg) scale(${w / r0.w}, ${h / r0.h})`
+    vis.push(s.querySelector('img'))
+  })
+
+  /* ── 4 semaines ── */
+  $('semVeil').style.opacity = semK
+  const semIn = t < cutA ? pop(t, C.quatre - 0.2, 0.4) : 0
+  setT($('sem'), clamp(semIn * 2), `translateY(${(1 - clamp(semIn)) * 40}px) scale(${0.92 + 0.08 * semIn})`)
+  qa('.bx').forEach((b, i) => {
+    const t0 = lerp(C.quatre, Math.max(C.sem + 0.15, C.quatre + 0.45), i / 3)
+    b.firstElementChild.style.width = (easeOut(ramp(t, t0, 0.22)) * 100) + '%'
+    b.style.borderColor = t >= t0 ? 'rgba(74, 163, 236, .95)' : 'rgba(255, 255, 255, .28)'
+    b.style.transform = `scale(${1 + 0.08 * pulse(t, t0, 0.25)})`
+  })
+
+  /* ── Trois coupes pendant la pause longue ── */
+  const cutsOn = t >= cutA && t < cutB
+  $('cuts').style.opacity = cutsOn ? 1 : 0
+  const cd = (cutB - cutA) / 3, ci = Math.min(2, Math.floor((t - cutA) / cd + 1e-6))
+  ;['cut1', 'cut2', 'cut3'].forEach((id, i) => {
+    const t0 = cutA + i * cd, on = cutsOn && ci === i
+    const p = ramp(t, t0, cd)
+    setT($(id), on ? 1 : 0, `scale(${1.07 - 0.07 * easeOut(clamp(p * 2))}) rotate(${(i - 1) * 1.5 * (1 - p)}deg)`)
+    if (on) vis.push($(id).querySelector('img'))
+  })
+  $('mBadge').style.transform = `scale(${1 + 0.7 * pulse(t, cutA + 2 * cd + 0.04, 0.26)}) translateY(${-10 * pulse(t, cutA + 2 * cd + 0.04, 0.26)}px)`
+
+  /* ── Fin : la question, puis l'offre ── */
+  const endOn = t >= endStart
+  const endOut = 1 - ramp(t, tLoop, 0.25)
+  const W6 = k.WORDS[6]
+  qa('#q .w').forEach((s, i) => {
+    const said = t >= W6[i].t0 - 0.03
+    s.classList.toggle('on', said)
+    if (s.classList.contains('box')) s.style.setProperty('--k', easeOut(ramp(t, W6[i].t0 - 0.05, 0.25)).toFixed(3))
+  })
+  const qIn = endOn ? pop(t, endStart, 0.4) : 0
+  setT($('q'), endOn ? clamp(qIn * 2) * endOut : 0, `translateY(${(1 - clamp(qIn)) * 40}px) scale(${0.94 + 0.06 * qIn})`)
+  ;[['e1', 0.7], ['e2', 0.7], ['e3', 1.3], ['e4', 1.9]].forEach(([id, d], i) => {
+    const p = endOn ? pop(t, endStart + d + (i === 1 ? 0.08 : 0), 0.35) : 0
+    setT($(id), clamp(p * 2) * endOut, `translateY(${(1 - clamp(p)) * 30}px) scale(${0.94 + 0.06 * p})`)
+  })
+
+  /* ── Titre fixe (0–3 s), sous-titres, étiquette ── */
+  const titleOn = tail ? clamp(pop(t, tLoop + 0.42, 0.32)) : 1 - ramp(t, Math.max(2.9, C.ca + 0.25), 0.22)
+  setT($('title'), titleOn, `scale(${0.96 + 0.04 * titleOn})`)
+  const ul = t < 3.4 ? easeOut(ramp(t, C.main, 0.32)) : 0
+  $('ulPath').style.strokeDashoffset = (+$('ulPath').dataset.l * (1 - ul)).toFixed(1)
+  $('ulPath').style.opacity = ul > 0.01 ? 1 : 0
+  // Les mots du titre s'allument au rythme de la voix (V1 puis V2), sans jamais disparaître
+  const TW = [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 1], [1, 2], [1, 3]]
+  qa('#title .tw').forEach((el, i) => {
+    const [si, wi] = TW[i], w = k.WORDS[si][wi], p = t < 3.4 ? pulse(t, w.t0 - 0.03, 0.34) : 0
+    el.style.transform = `translateY(${(-6 * p).toFixed(2)}px) scale(${(1 + (el.id === 'tCa' ? 0.18 : 0.1) * p).toFixed(4)})`
+    if (el.id !== 'tCa') el.style.textShadow = p > 0.01 ? `0 0 ${(30 * p).toFixed(1)}px rgba(255, 255, 255, ${(0.55 * p).toFixed(3)})` : 'none'
+  })
+  $('tCa').style.textShadow = `0 0 ${36 + 50 * pulse(t, C.ca, 0.5)}px rgba(10, 111, 184, ${0.75 + 0.25 * pulse(t, C.ca, 0.5)})`
+  let si = -1
+  for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.08) si = i
+  if (si >= 0) $('caption').style.fontSize = FS[si] + 'px'
+  caption($('caption'), t, k, { from: Math.max(3.0, TIMES[2].start - 0.08), hide: tail || t >= endStart - 0.05 })
+  const hud = t < tLoop ? clamp(pop(t, 3.0, 0.3)) : 1 - ramp(t, tLoop, 0.25)
+  setT($('hud'), clamp(hud), `translateY(${(1 - clamp(hud)) * -20}px)`)
+
+  /* ── Badge « Données de démonstration » : collé sur la feuille à l'image 0, puis ancré en haut à gauche ── */
+  const dock = t < 3 ? easeInOut(ramp(t, 0.85, 0.5)) : tail ? 1 - easeInOut(ramp(t, tLoop + 0.3, 0.4)) : 1
+  const att = stageRect($('mkBadge'))
+  const ax = att.x - 6, ay = att.y - 4
+  const bx = lerp(ax, 60, dock), by = lerp(ay, 500, dock)
+  $('badge').style.transform = `translate(${bx.toFixed(2)}px, ${Math.max(by, 0).toFixed(2)}px) rotate(${lerp(-3, 0, dock).toFixed(3)}deg)`
+
+  window.__vis = vis
+}
+
+LTNS.start({
+  sentences: SENTENCES, cues: CUES, tail: TAIL, render, ready,
+  settle: () => Promise.all((window.__vis || []).map(i => i.decode().catch(() => {}))),
+  extraEvents: (C, TIMES) => {
+    const unprint = Math.max(C.unprint, 2.95), pick = Math.max(C.pick, unprint + 0.7)
+    const cutA = TIMES[5].end + 0.05, cutB = Math.max(TIMES[6].start - 0.05, cutA + 0.9), cd = (cutB - cutA) / 3
+    const ev = [{ t: 0.02, sfx: 'whoosh' }, { t: pick + 0.06, sfx: 'pop' }, { t: C.clique + 0.53, sfx: 'pop' }, { t: C.q260 + 0.28, sfx: 'pop' }, { t: C.p2 + 0.6, sfx: 'tick' }]
+    for (let i = 0; i < 6; i++) ev.push({ t: unprint + 0.38 + i * 0.075, sfx: 'tick' })
+    for (let i = 0; i < 4; i++) ev.push({ t: C.prix + 0.08 + i * 0.1, sfx: 'tick' })
+    for (let i = 0; i < 4; i++) ev.push({ t: lerp(C.quatre, Math.max(C.sem + 0.15, C.quatre + 0.45), i / 3), sfx: 'tick' })
+    for (let i = 0; i < 3; i++) ev.push({ t: cutA + i * cd, sfx: i === 2 ? 'pop' : 'tick' })
+    ev.push({ t: cutB, sfx: 'whoosh' }, { t: cutB + 0.7, sfx: 'pop' }, { t: cutB + 1.3, sfx: 'pop' }, { t: cutB + 1.9, sfx: 'pop' })
+    ev.push({ t: TIMES[6].end + 0.9 + 0.12, sfx: 'whoosh' })
+    return ev
+  },
+})
+</script>
+</body>
+</html>
