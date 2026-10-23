@@ -15,6 +15,8 @@ CAM="0 150 0 0 600 9000 55"
 for k in 0 1 2 3 4 5 6 7; do
   "$R" $k 7 1080 1920 $CAM "$WORK/out/preset$k-1080x1920.ppm"
 done
+# Le préréglage 0 en 2160 × 3840 (même cadrage) : la poussée macro de 1,5 à 2 s reste nette (≈ 35 s)
+"$R" 0 7 2160 3840 $CAM "$WORK/out/preset0-2160x3840.ppm"
 # Le préréglage 0 en basse définition (vrais rendus, pas des réductions)
 for s in "540 960" "270 480" "135 240" "68 120"; do
   set -- $s

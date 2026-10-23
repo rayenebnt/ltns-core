@@ -143,7 +143,8 @@ const SEQS = {
       return Object.keys(map)
     })
     for (const name of names) {
-      const id = await styleToggle(page, ONLY_UI + `[data-lay]:not([data-lay="${name}"]) { visibility: hidden !important; }`)
+      // sans le dégradé de l'en-tête (.hdr::before, capturé seul plus bas) : sinon il serait compté deux fois derrière le logo et les boutons
+      const id = await styleToggle(page, ONLY_UI + `.hdr::before { display: none !important; } [data-lay]:not([data-lay="${name}"]) { visibility: hidden !important; }`)
       await page.screenshot({ path: `${d}/${name}.png`, omitBackground: true })
       await styleOff(page, id)
     }

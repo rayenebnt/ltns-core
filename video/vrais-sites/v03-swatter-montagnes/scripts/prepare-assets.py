@@ -104,6 +104,7 @@ if RENDER.exists():
     out = fresh("render")
     for k in range(8):
         Image.open(RENDER / f"preset{k}-1080x1920.ppm").save(out / f"p{k}.webp", quality=88, method=6)
+    Image.open(RENDER / "preset0-2160x3840.ppm").save(out / "p0-2x.webp", quality=86, method=6)
     for s in ["540x960", "270x480", "135x240", "68x120"]:
         Image.open(RENDER / f"preset0-{s}.ppm").save(out / f"p0-{s}.webp", lossless=True, method=6)
     (out / "dolly").mkdir()

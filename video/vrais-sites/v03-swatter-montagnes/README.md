@@ -11,17 +11,17 @@ maquette servie en lecture seule, `render.c` compilé depuis une copie).
 | Moment | À l'écran | Source |
 |---|---|---|
 | Image 0 → 0,5 s | Le vrai héros mobile de la maquette (390 × 844 @3, ramené à 1080 de large, barre d'onglets hors cadre) : zoom lent et neige réels, logo, badges, « Mont-Blanc, le toit de l'Europe ». Titre fixe « CES MONTAGNES / N'EXISTENT PAS. » (« n'existent pas. » en dégradé or de la charte), les mots s'allument au rythme de la voix. | `assets/hero/full/` (vraie capture) |
-| 0,5 → 1 s | L'interface se détache en 3D et s'envole (13 calques capturés un par un) ; le dégradé du héros se lève, il reste la montagne. | `assets/hero/plate/`, `assets/hero/ui-*.webp`, `hero-crepuscule.webp` |
-| 1 → 2 s | Poussée macro sur l'arête (la vraie image `hero-crepuscule.webp`, même cadrage et même zoom lent que la maquette). | `assets/hero/hero-crepuscule.webp` |
-| 2 → 3 s | Le paysage se « dé-calcule » : vrais rendus de `render.c` en 540 × 960, 270 × 480, 135 × 240, 68 × 120 (affichés sans lissage). | `assets/render/p0-*.webp` |
+| 0,5 → 1 s | L'interface se détache en 3D et s'envole (13 calques capturés un par un, sans le dégradé de l'en-tête qui a son propre calque) ; le dégradé du héros se lève, il reste la montagne. | `assets/hero/plate/`, `assets/hero/ui-*.webp`, `hero-crepuscule.webp` |
+| 0,95 → 2 s | Poussée sur l'arête de `hero-crepuscule.webp` (× 1,5 au plus : l'image fait 2400 × 1350), puis fondu enchaîné à 1,45 s vers un paysage calculé par `render.c` en 2160 × 3840 (même caméra que tous les autres rendus) : la poussée continue, nette, jusqu'au sommet (× 1,75). | `assets/hero/hero-crepuscule.webp`, `assets/render/p0-2x.webp` |
+| 2 → 3 s | Ce même cadrage se « dé-calcule » pendant que la caméra recule : vrais rendus de `render.c` en 540 × 960, 270 × 480, 135 × 240, 68 × 120 (affichés sans lissage). | `assets/render/p0-*.webp` |
 | « Elles sortent de 316 lignes de code » | Le vrai fichier `render.c` défile (316 lignes, ligne 1 « Rendu de paysages alpins par raymarching… »), compteur 000 → 316. Puis le code devient image : la montagne apparaît dans les lettres, puis 68 × 120 → 1080 × 1920. Tampon « Calculé, pas photographié ». | `assets/render.c.txt`, `assets/render/` |
 | « Même sommet, 8 lumières » | Les 8 préréglages de `render.c` (même caméra, même graine), 0,12 s chacun, repère « même sommet », puis la grille 2 × 4 « 1 montagne · 8 lumières ». | `assets/render/p0…p7.webp` |
-| « C'est la maquette du nouveau site… » | La case 0 devient un téléphone vectoriel sans marque : l'interface de la maquette y revient, reflet sur « nouveau site », le logo s'entoure d'or sur « télé locale », zoom sur le badge HAUTE-SAVOIE qui pulse. Pastille « Maquette · rendus 3D provisoires ». | maquette reconstruite avec ses propres fichiers + calques capturés |
-| « …en attendant les images de la chaîne » | Plein cadre : travelling avant calculé par `render.c` (48 images 1080 × 1920). | `assets/render/dolly/` |
+| « C'est la maquette du nouveau site… » | La case 0 devient un téléphone vectoriel sans marque : l'interface de la maquette y revient. Sur « nouveau site », la caméra s'approche (le téléphone se redresse, reflet) ; sur « télé locale », elle va au logo de la chaîne, qui s'entoure d'or ; sur « Haute-Savoie », panoramique jusqu'au badge HAUTE-SAVOIE qui pulse. Pastille « Maquette · rendus 3D provisoires ». | maquette reconstruite avec ses propres fichiers + calques capturés |
+| « …en attendant les images de la chaîne » | Plein cadre : travelling avant calculé par `render.c` (48 images 1080 × 1920) avec une poussée ; sur « images », un viseur doré marque l'« Emplacement · images de la chaîne ». | `assets/render/dolly/` |
 | « Autour, le direct » | Retour au téléphone : la vraie capture du carrousel (la barre finit de se remplir, anneau rouge sur EN DIRECT), puis il passe tout seul à « La nuit du loup ». | `assets/phone/carousel/` |
 | « le programme » | Programme TV : la grille glisse jusqu'à la ligne dorée « maintenant » qui traverse la carte EN COURS. | `assets/phone/prog/` |
 | « le top 10 » | Top 10 : le rail glisse, grands chiffres dorés 1, 2, 3, 4. | `assets/phone/top/` |
-| « comme sur une appli de streaming » | Ordinateur vectoriel : la version 1280 × 720 de la maquette, le carrousel passe de « Mont-Blanc » à « La nuit du loup ». | `assets/desk/` |
+| « comme sur une appli de streaming » | Ordinateur vectoriel : la version 1280 × 720 de la maquette ; une fois l'ordinateur posé, le carrousel passe de « Mont-Blanc » à « La nuit du loup » (texte révélé ligne par ligne). Sur « streaming », la caméra entre dans l'écran. Le téléphone (Top 10) reste devant, en bas à gauche, hors de la colonne d'icônes TikTok. | `assets/desk/` |
 | Fin | Nuit étoilée (préréglage 1) avec la neige : « TU LES AURAIS PRISES POUR DES VRAIES ? » (« vraies » en or), puis « Devis gratuit sous 48 h · lien en bio », « Partout en France **à distance** / sur place en Île-de-France », « LTNS° » et « Maquette · rendus 3D provisoires ». | `assets/render/p1.webp` |
 | Boucle (dernière seconde) | La nuit redevient crépuscule sur le même sommet, plongée dans le héros, l'interface retombe à sa place, le titre revient : la dernière image est l'image 0 (même plaque, la capture continue). | `assets/render/p0.webp`, `assets/hero/` |
 
@@ -51,14 +51,16 @@ python3 video/commun/sync-voice.py video/vrais-sites/v03-swatter-montagnes   # �
 python3 -m http.server 8733 --bind 127.0.0.1 --directory /home/user/rayenebnt/swatter-tv/maquette
 # 2. captures en temps virtuel (≈ 7 min) : héros @3 (plaque, images complètes), calques isolés, carrousel, Programme TV, Top 10, ordinateur
 node video/vrais-sites/v03-swatter-montagnes/scripts/capture-maquette.mjs /tmp/v03-raw
-# 3. paysages calculés par render.c (copie compilée hors du dépôt, ≈ 6 min sur 4 cœurs)
+# 3. paysages calculés par render.c (copie compilée hors du dépôt, ≈ 7 min sur 4 cœurs ; dont le préréglage 0 en 2160 × 3840)
 bash video/vrais-sites/v03-swatter-montagnes/scripts/render-landscapes.sh /tmp/v03-render
 # 4. conversion en WebP dans assets/ (+ hero-crepuscule.webp, render.c, police Outfit OFL de la maquette)
 python3 -I video/vrais-sites/v03-swatter-montagnes/scripts/prepare-assets.py /tmp/v03-raw /tmp/v03-render/out
 ```
 
 `capture-maquette.mjs` : horloge Playwright + animations CSS calées image par image, hasard figé (la neige tombe pareil d'une
-passe à l'autre, donc la plaque, l'image complète et les calques se superposent exactement). Assets ≈ 19 Mo, tout est versionné.
+passe à l'autre, donc la plaque, l'image complète et les calques se superposent exactement). Les calques du logo et des boutons
+sont capturés sans `.hdr::before` (le dégradé de l'en-tête a son propre calque, sinon il apparaît deux fois en carré sombre).
+(passe `layers` du script ; `prepare-assets.py` les découpe avec les boîtes de la passe `hero`). Assets ≈ 19 Mo, tout est versionné.
 
 ## Rendu
 
