@@ -36,16 +36,26 @@ cartes de la méthode (dont « loyer fixe garanti ») sont floutées dans l'ordi
 ## Timing et voix
 
 `SENTENCES` = le texte ElevenLabs (`vrai-projet-06.mp3`) découpé sur `[pause]` / `[long pause]` : **9 phrases**. Chaque
-temps fort est accroché à un mot (`CUES`, `plan()`), sauf l'accroche 0–3 s et la dernière seconde. Sans voix, le moteur
-estime le minutage (brouillon ≈ 26,8 s) ; avec un calage proche de la voix (concept), la vidéo fait ≈ 20,3 s.
+temps fort est accroché à un mot (`CUES`, `plan()`), sauf l'accroche 0–3 s et la dernière seconde.
 La maison commence à devenir la clé 0,6 s après « maison… » (ou 0,42 s avant « clé… » si c'est plus tôt) : même
 quand une phrase traîne, la maison ne reste jamais figée.
-`sync-voice.py` remet 0,25 s entre les fichiers : la pause longue disparaît, donc le champ de cubes garde au moins 0,8 s
-et la carte de fin attend la fin du champ (la question s'affiche d'abord en sous-titre).
+
+**Vraie voix** : `voix-originale.mp3` (prise ElevenLabs intacte, 23,9 s) coupée au milieu de ses silences en
+`voice/01.mp3` … `09.mp3` (une phrase par fichier, durées vérifiées sur le spectrogramme). Calage final :
+V1 0,10–1,61 · V2 1,86–2,69 · V3 2,94–3,61 · V4 3,86–4,38 · V5 4,63–5,08 · V6 5,33–9,48 · V7 9,73–13,47 ·
+V8 13,72–16,74 · pause longue · V9 17,76–19,57. **Vidéo finale : 21,8 s**, voix seule (≈ −15,7 LUFS, crête −1,5 dBTP).
+
+- `scripts/pause-longue.py` rétablit 1,0 s de `[long pause]` avant V9 (`sync-voice.py` n'en laisse que 0,25 s ; la prise
+  en avait 2,35 s) : le champ de cubes tient seul ≈ 0,85 s, puis la question s'affiche en grand sur « Ton ».
+- Compteur 0 → 4 200 : il part dès la plongée dans le canvas (`P.CNT`) et compte en 0,35–0,6 s, pour que « 4 200 » reste
+  lisible ≈ 0,4 s avant le recul (la vraie voix ne laisse que ≈ 0,8 s entre la plongée et « dessine »).
+- Fin : `TAIL` 2,2 s, offre / zone / marque à +0,55 / +1,0 / +1,45 s (la vraie V9 ne dure que 1,8 s) : la carte complète
+  tient ≈ 1,25 s avant le retour à l'image 0. Le sous-titre de V9 n'apparaît jamais (la question est déjà en grand).
 
 ```bash
 # déposer voice/01.mp3 … voice/09.mp3 (une phrase par fichier), puis :
 python3 video/commun/sync-voice.py video/vrais-sites/v06-rbti-particules   # timing.json, envelope.json, voice.mp3, voice-files.js
+python3 video/vrais-sites/v06-rbti-particules/scripts/pause-longue.py video/vrais-sites/v06-rbti-particules   # pause longue avant V9
 ```
 
 ## Régénérer les images
@@ -73,7 +83,7 @@ node video/commun/render.mjs video/vrais-sites/v06-rbti-particules        # → 
 node video/vrais-sites/v06-rbti-particules/scripts/frames.mjs /tmp/v06-frames --step=0.5   # images fixes pour vérifier
 ```
 
-Sons (synthétisés par `sfx.py`) : souffle à l'explosion, clochette quand la maison se reforme et quand l'euro se forme,
+Sons : la vidéo publiée est en voix seule (`render.mjs` par défaut). Avec `--bruitages`, sons synthétisés par `sfx.py` : souffle à l'explosion, clochette quand la maison se reforme et quand l'euro se forme,
 tic à la clé, souffles sur les coups de fouet, tics du compteur, bulles à chaque forme, à chaque porte (02 → 05),
 clochette à 06/06, bulles des lignes de fin. `sfx.py` n'a pas de « clic de serrure », « tin » ni « dong » : remplacés par
 tic, clochette et bulle.
