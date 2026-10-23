@@ -37,12 +37,24 @@ de la chaîne faite pour la maquette : la vidéo ne dit jamais que LTNS° l'a cr
 
 `SENTENCES` = le texte ElevenLabs découpé sur `[pause]` / `[long pause]` (6 phrases), sous-titres mot à mot affichés par
 segment de phrase. Chaque temps fort est accroché à un mot (`CUES` et `derive()`), sauf l'accroche 0–3 s et la dernière
-seconde (retour à l'image 0). Sans voix, le moteur estime le minutage (brouillon ≈ 23,8 s ; avec la voix ≈ 19 s, comme le
-concept). Avec la voix (`vrai-projet-03.mp3` découpé sur les silences en `voice/01.mp3` … `06.mp3`) :
+seconde (retour à l'image 0). Sans voix, le moteur estime le minutage (brouillon ≈ 23,8 s).
+
+Voix réelle : `voix-originale.mp3` (fichier ElevenLabs intact) découpé sur ses silences en `voice/01.mp3` … `06.mp3`
+(une phrase par fichier, coupes vérifiées dans les silences de l'original). `sync-voice.py` met 0,25 s entre toutes les
+phrases ; `scripts/pause-longue.py` rétablit ensuite la `[long pause]` avant V6 (0,9 s, comme le storyboard) : la nuit
+étoilée tient seule ≈ 0,8 s avant « Tu les aurais prises pour des vraies ? ». Toujours lancer les deux, dans cet ordre :
 
 ```bash
 python3 video/commun/sync-voice.py video/vrais-sites/v03-swatter-montagnes   # écrit timing.json, envelope.json, voice.mp3, voice-files.js
+python3 video/vrais-sites/v03-swatter-montagnes/scripts/pause-longue.py video/vrais-sites/v03-swatter-montagnes
 ```
+
+Calage obtenu : V1 0,10–1,67 · V2 1,92–4,12 · V3 4,37–6,05 · V4 6,30–10,72 · V5 10,97–15,40 · pause longue · V6 16,32–17,54.
+Vidéo finale **20,07 s** (602 images). La vraie V6 ne dure que 1,2 s : `TAIL = 2.5` garde la carte de fin ≈ 2,85 s
+(« Devis… » +0,65 s, « Partout en France… » +1,2 s, « LTNS° » +1,75 s, puis ≥ 1 s de lecture avant le retour à l'image 0 ;
+`derive()` prévient dans la console si « LTNS° » tient moins d'1 s). Le code de `render.c` reste à l'écran pendant tout
+« 316 lignes de code » (le compteur s'arrête sur 316 ≈ 0,3 s) ; le Programme TV atteint la ligne dorée « maintenant »
+avant que le Top 10 n'arrive sur « top ».
 
 ## Régénérer les images
 
@@ -67,7 +79,7 @@ sont capturés sans `.hdr::before` (le dégradé de l'en-tête a son propre calq
 ```bash
 # serveur du dépôt sur le port 8765 (s'il ne répond pas déjà)
 setsid nohup python3 -m http.server 8765 --directory /home/user/ltns-core >/dev/null 2>&1 &
-node video/commun/render.mjs video/vrais-sites/v03-swatter-montagnes     # → ltns-v03-swatter-montagnes.mp4 (ignoré par git)
+node video/commun/render.mjs video/vrais-sites/v03-swatter-montagnes     # → ltns-v03-swatter-montagnes.mp4 (ignoré par git), voix seule
 node video/vrais-sites/v03-swatter-montagnes/scripts/frames.mjs /tmp/v03-frames --step=0.5   # images fixes pour vérifier
 ```
 
