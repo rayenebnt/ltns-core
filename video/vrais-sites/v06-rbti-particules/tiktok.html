@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — Vrai projet 06 · RBTI « 4 200 particules. Pas un seul mot. »</title>
+<!--
+  Vrai projet 06 : RBTI Location (sous-location encadrée à Paris), site one-page créé par LTNS°.
+  Tout ce qu'on voit vient du vrai site (dépôt /home/user/rayenebnt/rbti), capturé image par image
+  dans Chromium (scripts/) : la scène « morph » (4 200 particules : maison → clé → € → marque),
+  la carte de contact mobile (téléphone et e-mail floutés), le héros (ville 3D de nuit, titre réel),
+  le logo extrudé en 3D, le couloir de portes et le champ de 416 cubes (version ordinateur).
+  Le montage (zooms, téléphone et ordinateur vectoriels, soulignés, compteur, sous-titres) est fait ici.
+  Image 0 : la maison de lumière + titre fixe ; la fin revient exactement à l'image 0 (boucle).
+  Zones TikTok : rien d'important sous y ≈ 1260, ni à x > 940 entre y ≈ 900 et 1500.
+  Vidéo 1080 × 1920, 30 i/s. ?t=12.5 fige l'image · ?audio joue avec voice.mp3 · ?render pour render.mjs.
+-->
+<link rel="stylesheet" href="../../commun/fonts.css">
+<style>
+  :root { --night: #05060a; --flame: #ff6100; --ember: #ff914d; --halo: #6c5cff; --mute: #a7adbf; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1080px; height: 1920px; overflow: hidden;
+    background: var(--night); font-family: 'Space Grotesk', sans-serif; color: #fff; }
+  .abs { position: absolute; left: 0; top: 0; }
+  video, canvas, img { display: block; }
+  #bg { position: absolute; inset: 0;
+    background: radial-gradient(640px 640px at 540px 860px, rgba(108, 92, 255, .20), rgba(108, 92, 255, 0) 70%),
+      radial-gradient(900px 500px at 540px 1500px, rgba(255, 97, 0, .06), rgba(255, 97, 0, 0) 70%), var(--night); }
+  #vignette { position: absolute; inset: 0; pointer-events: none; z-index: 40;
+    background: radial-gradient(130% 90% at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .55) 100%); }
+
+  /* Particules plein cadre (la vraie scène « morph », posée sur noir : fusion additive) */
+  #mf { width: 1152px; height: 1152px; transform-origin: 0 0; mix-blend-mode: plus-lighter; z-index: 10; will-change: transform, opacity; }
+  #mf video { position: absolute; }
+  #vMorph { left: 0; top: 0; width: 1152px; height: 1152px;
+    -webkit-box-reflect: below -392px linear-gradient(to bottom, rgba(0, 0, 0, 0) 45%, rgba(0, 0, 0, .26) 84%, rgba(0, 0, 0, .26)); }
+  #vMacro { left: 384px; top: 135.1px; width: 384px; height: 384px; opacity: 0; }
+
+  /* Téléphone vectoriel + vraie carte de contact mobile */
+  #pw { transform-origin: 0 0; z-index: 12; will-change: transform, opacity, filter; }
+  #phone { position: absolute; border-radius: 66px; background: linear-gradient(145deg, #2b2c36, #0c0d12); padding: 14px;
+    box-shadow: 0 80px 140px -40px rgba(0, 0, 0, .85), 0 0 0 2px rgba(255, 255, 255, .06) inset, 0 0 120px -20px rgba(108, 92, 255, .35); }
+  #scr { position: relative; width: 100%; height: 100%; border-radius: 52px; overflow: hidden; background: #0b0d16; }
+  #card { position: absolute; left: 0; top: 0; }
+  #sbar { position: absolute; left: 0; right: 0; top: 0; height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; color: #fff; z-index: 3; background: linear-gradient(#0b0d16, rgba(11, 13, 22, 0)); }
+  #sbar i { position: absolute; left: 50%; top: 9px; width: 104px; height: 28px; margin-left: -52px; border-radius: 16px; background: #000; }
+  #cm { position: absolute; overflow: hidden; mix-blend-mode: plus-lighter; }
+  #vMorphCard { position: absolute; }
+  #glare { position: absolute; inset: 0; border-radius: 52px; pointer-events: none;
+    background: linear-gradient(115deg, rgba(255, 255, 255, .08) 0%, rgba(255, 255, 255, 0) 35%); z-index: 4; }
+
+  /* Héros : la ville 3D seule + le vrai titre H1 (transparent), souligné au montage */
+  #hero { position: absolute; inset: 0; z-index: 11; overflow: hidden; will-change: transform, opacity, filter; }
+  #vCity { position: absolute; left: 0; width: 1080px; height: 1920px; filter: brightness(1.45) contrast(1.08) saturate(1.1); }
+  #heroFade { position: absolute; left: 0; right: 0; height: 200px; background: linear-gradient(rgba(5, 6, 10, 0), var(--night) 80%); }
+  #h1c { position: absolute; left: 0; width: 1080px; height: 378px; }
+  .ul { position: absolute; height: 8px; border-radius: 4px; background: var(--flame); transform-origin: 0 50%; box-shadow: 0 0 22px rgba(255, 97, 0, .8); }
+
+  /* Logo extrudé en 3D, couloir de portes */
+  #logo { width: 1080px; height: 1080px; transform-origin: 540px 540px; mix-blend-mode: lighten; z-index: 13; will-change: transform, opacity; }
+  #vMark { width: 1080px; height: 1080px; }
+  #vGates { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; z-index: 9; transform-origin: 540px 860px; will-change: transform, opacity, filter; }
+
+  /* Ordinateur vectoriel (les scènes « portes » et « cubes » sont coupées sur mobile) */
+  #comp { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; z-index: 14; transform-origin: 540px 850px; will-change: transform, opacity, filter; }
+  #mon { position: absolute; left: 150px; top: 602px; width: 780px; height: 498px; border-radius: 26px; padding: 14px; background: linear-gradient(160deg, #262833, #101117);
+    box-shadow: 0 60px 120px -40px rgba(0, 0, 0, .9), 0 0 0 2px rgba(255, 255, 255, .06) inset, 0 0 140px -30px rgba(255, 97, 0, .35); }
+  #mscr { position: relative; width: 752px; height: 470px; border-radius: 12px; overflow: hidden; background: #05060a; }
+  #mscr video { position: absolute; left: 0; top: 0; width: 752px; height: 470px; filter: brightness(1.18) contrast(1.05); transform-origin: 50% 62%; }
+  #vField { filter: brightness(1.45) contrast(1.1) saturate(1.15) !important; }
+  #descBlur { position: absolute; left: 0; right: 0; top: 0; height: 0; backdrop-filter: blur(3.5px); -webkit-backdrop-filter: blur(3.5px); }
+  #neck { position: absolute; left: 500px; top: 1100px; width: 80px; height: 54px; background: linear-gradient(#1b1c24, #0e0f14); }
+  #foot { position: absolute; left: 400px; top: 1150px; width: 280px; height: 14px; border-radius: 8px; background: linear-gradient(#2a2b35, #121318); }
+  #ctag { position: absolute; left: 0; right: 0; top: 1188px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 24px; letter-spacing: 3px; color: var(--mute); }
+  #ctag b { color: var(--ember); font-weight: 500; }
+
+  /* Titre fixe de l'image 0, sous-titres, étiquettes */
+  #title { position: absolute; left: 30px; right: 30px; top: 246px; height: 230px; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 100px; line-height: .98; letter-spacing: -3.5px; text-transform: uppercase; text-align: center; white-space: nowrap;
+    text-shadow: 0 4px 18px rgba(0, 0, 0, .7); will-change: transform, opacity; }
+  #title .tw { display: inline-block; }
+  #title .o { color: var(--flame); }
+  #caption { position: absolute; left: 60px; right: 60px; top: 250px; height: 220px; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center;
+    gap: 0 18px; text-align: center; font-weight: 700; font-size: 64px; line-height: 1.04; letter-spacing: -1.5px; text-transform: uppercase;
+    text-shadow: 0 6px 30px rgba(0, 0, 0, .85), 0 0 2px rgba(0, 0, 0, .6); will-change: transform; }
+  #caption .w { color: rgba(255, 255, 255, .38); }
+  #caption .w.on { color: #fff; }
+  #caption .w.hl.on { color: var(--flame); }
+  #hud { position: absolute; left: 0; right: 0; top: 168px; z-index: 31; display: flex; justify-content: center; }
+  #hud span { display: inline-flex; align-items: center; gap: 14px; padding: 10px 22px; border-radius: 40px; background: rgba(5, 6, 10, .6); border: 2px solid rgba(255, 255, 255, .12);
+    font-family: 'JetBrains Mono', monospace; font-size: 26px; letter-spacing: 3px; color: #e8e9f0; }
+  #hud span i { width: 14px; height: 14px; border-radius: 50%; background: var(--flame); box-shadow: 0 0 14px var(--flame); }
+  #hud b { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: 1px; color: var(--ember); }
+  #accel { position: absolute; left: 70px; top: 1184px; z-index: 31; padding: 8px 18px; border-radius: 30px; background: rgba(5, 6, 10, .65); border: 2px solid rgba(255, 145, 77, .5);
+    font-family: 'JetBrains Mono', monospace; font-size: 24px; letter-spacing: 3px; color: var(--ember); }
+  #counter { position: absolute; left: 230px; width: 620px; top: 990px; z-index: 31; text-align: center; padding: 26px 0 30px; border-radius: 40px; will-change: transform, opacity;
+    background: rgba(5, 6, 10, .62); border: 2px solid rgba(255, 145, 77, .35); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .9); }
+  #counter b { display: block; font-weight: 700; font-size: 176px; line-height: 1; letter-spacing: -6px; color: var(--flame); font-variant-numeric: tabular-nums; text-shadow: 0 0 40px rgba(255, 97, 0, .55); }
+  #counter small { display: block; margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 30px; letter-spacing: 8px; color: #fff; text-shadow: 0 4px 20px #000; }
+
+  /* Fin */
+  #end { position: absolute; inset: 0; z-index: 32; }
+  #endQ { position: absolute; left: 70px; right: 70px; top: 600px; height: 280px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center;
+    gap: 0 24px; text-align: center; font-weight: 700; font-size: 94px; line-height: 1; letter-spacing: -3px; text-transform: uppercase; text-shadow: 0 8px 40px rgba(0, 0, 0, .9); }
+  #endQ .w { color: rgba(255, 255, 255, .3); }
+  #endQ .w.on { color: #fff; }
+  #endQ .w.hl.on { color: var(--flame); }
+  #endCta { position: absolute; left: 0; right: 0; top: 930px; display: flex; justify-content: center; }
+  #endCta span { padding: 18px 34px; border-radius: 50px; background: var(--flame); color: #fff; font-weight: 700; font-size: 40px; letter-spacing: -.5px; box-shadow: 0 20px 50px -14px rgba(255, 97, 0, .8); }
+  #endZone { position: absolute; left: 0; right: 0; top: 1040px; text-align: center; font-size: 34px; line-height: 1.3; color: #d9dbe5; }
+  #endZone b { color: #fff; }
+  #endBrand { position: absolute; left: 0; right: 0; top: 1136px; text-align: center; font-weight: 700; font-size: 76px; letter-spacing: -2px; }
+  #endBrand span { color: var(--flame); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"></div>
+
+  <video id="vGates" muted playsinline preload="auto"></video>
+
+  <div id="hero">
+    <video id="vCity" muted playsinline preload="auto"></video>
+    <div id="heroFade"></div>
+    <canvas id="h1c" width="1080" height="378"></canvas>
+    <div class="ul" id="ul1"></div><div class="ul" id="ul2"></div>
+  </div>
+
+  <div id="pw" class="abs">
+    <div id="phone"><div id="scr">
+      <img id="card" alt="">
+      <div id="cm"><video id="vMorphCard" muted playsinline preload="auto"></video></div>
+      <div id="sbar"><span>9:41</span><i></i><span>5G</span></div>
+      <div id="glare"></div>
+    </div></div>
+  </div>
+
+  <div id="mf" class="abs">
+    <video id="vMorph" muted playsinline preload="auto"></video>
+    <video id="vMacro" muted playsinline preload="auto"></video>
+  </div>
+
+  <div id="logo" class="abs"><video id="vMark" muted playsinline preload="auto"></video></div>
+
+  <div id="comp">
+    <div id="mon"><div id="mscr">
+      <video id="vRail" muted playsinline preload="auto"></video>
+      <video id="vField" muted playsinline preload="auto"></video>
+      <div id="descBlur"></div>
+    </div></div>
+    <div id="neck"></div><div id="foot"></div>
+    <div id="ctag">SCÈNE 3D · <b>VERSION ORDINATEUR</b></div>
+  </div>
+
+  <div id="counter"><b>0</b><small>PARTICULES</small></div>
+  <div id="accel">▸▸ ACCÉLÉRÉ</div>
+
+  <div id="end">
+    <div id="endQ"></div>
+    <div id="endCta"><span>Devis gratuit sous 48 h · lien en bio</span></div>
+    <div id="endZone">Partout en France <b>à distance</b><br>sur place en <b>Île-de-France</b></div>
+    <div id="endBrand">LTNS<span>°</span></div>
+  </div>
+
+  <div id="title">
+    <div><span class="tw o" id="tw1">4 200</span> <span class="tw" id="tw2">particules.</span></div>
+    <div><span class="tw o" id="tw3">Pas un seul mot</span><span class="tw" id="tw4">.</span></div>
+  </div>
+  <div id="caption"></div>
+  <div id="hud"><span><i></i>VRAI PROJET · <b>RBTI</b></span></div>
+  <div id="vignette"></div>
+</div>
+
+<script src="../../commun/engine.js"></script>
+<script src="voice-files.js"></script>
+<script>
+const { clamp, easeInOut, easeOut, easeIn, pop, ramp, pulse, lerp, $, setT, setHTML, caption } = LTNS
+const FPS = 30
+const A = 'assets/'
+
+// ---------- Voix : une phrase par segment [pause] / [long pause] du script ElevenLabs ----------
+const SENTENCES = [
+  { chunks: [['Quatre mille deux cents particules.', 'particules.']] },
+  { chunks: [['Pas un seul mot.', 'mot.']] },
+  { chunks: [['Une maison…', 'maison…']] },
+  { chunks: [['une clé…', 'clé…']] },
+  { chunks: [['un euro.', 'euro.']] },
+  { chunks: [['RBTI devient le locataire', 'locataire'], ['du propriétaire,', 'propriétaire,'], ['et lui verse un loyer fixe.', 'fixe.']] },
+  { chunks: [['Sur son site, ce métier', 'site,'], ['se dessine en lumière,', 'lumière,'], ['juste avant le contact.', 'contact.']] },
+  { chunks: [['Et la méthode ?', 'méthode'], ['Six étapes,', 'étapes,'], ["six portes qui s'allument.", 'portes']] },
+  { chunks: [['Ton métier,', 'métier,'], ['tu le dessinerais comment ?', 'dessinerais']] },
+]
+const SPOKEN = { RBTI: 'erbétéi' }   // la voix épelle R.B.T.I.
+// [phrase, mot | fraction, décalage (s), son] : chaque temps fort est accroché à un mot
+const CUES = {
+  w4200: [0, 'Quatre', 0], wPart: [0, 'particules.', 0],
+  wPas: [1, 'Pas', 0], flash: [1, 'mot.', -0.05, 'pop'],
+  v3: [2, 0, -0.05, 'tick'], maison: [2, 'maison…', 0],
+  cle: [3, 'clé…', 0], euro: [4, 'euro.', 0],
+  v6: [5, 0, -0.12, 'whoosh'], le: [5, 'le', 0], locataire: [5, 'locataire', 0], verse: [5, 'verse', 0],
+  v7: [6, 0, -0.12], site: [6, 'site,', 0], metier: [6, 'métier', 0], dessine: [6, 'dessine', 0], lumiere: [6, 'lumière,', 0], contact: [6, 'contact.', 0],
+  v8: [7, 0, -0.1, 'whoosh'], methode: [7, 'méthode', 0], six: [7, 'Six', 0], portes: [7, 'portes', 0], allument: [7, "s'allument.", 0],
+  v9: [8, 0, 0], dessinerais: [8, 'dessinerais', 0],
+}
+const TAIL = 2.0   // fin tenue 1 s après la dernière phrase, puis 1 s de retour à l'image 0
+
+// ---------- Vidéos : une image précise par instant (recherche + attente du « seeked ») ----------
+const V = {}, pending = []
+function vframe(id, f) {
+  const v = V[id]
+  const i = Math.max(0, Math.min(v.n - 1, Math.round(f)))
+  if (i === v.cur) return
+  v.cur = i
+  const el = v.el
+  const seeked = new Promise(res => { const done = () => { el.removeEventListener('seeked', done); res() }; el.addEventListener('seeked', done) })
+  const shown = new Promise(res => { if (el.requestVideoFrameCallback) el.requestVideoFrameCallback(() => res()); else res(); setTimeout(res, 1500) })
+  pending.push(Promise.all([seeked, shown]))
+  el.currentTime = (i + 0.5) / FPS
+}
+const BUFS = {}
+async function loadVideo(id, src) {
+  const el = $(id)
+  el.muted = true
+  // Le fichier entier est téléchargé une fois, puis confié à MediaSource : aucune requête ne reste ouverte
+  // (render.mjs attend le réseau au repos) et la recherche image par image est exacte.
+  if (!BUFS[src]) BUFS[src] = fetch(A + src).then(r => r.arrayBuffer())
+  const buf = await BUFS[src]
+  const ms = new MediaSource()
+  el.src = URL.createObjectURL(ms)
+  await new Promise(res => ms.addEventListener('sourceopen', res, { once: true }))
+  const sb = ms.addSourceBuffer('video/webm; codecs="vp9"')
+  const loaded = new Promise((res, rej) => { el.addEventListener('loadeddata', res, { once: true }); el.addEventListener('error', () => rej(new Error('vidéo ' + src)), { once: true }) })
+  sb.appendBuffer(buf.slice(0))
+  await new Promise(res => sb.addEventListener('updateend', res, { once: true }))
+  ms.endOfStream()
+  await loaded
+  el.pause()
+  V[id] = { el, n: Math.round(el.duration * FPS), cur: -1 }
+}
+const show = (el, o) => { el.style.opacity = o; el.style.visibility = o > 0.001 ? 'visible' : 'hidden' }
+
+// ---------- Interpolation monotone (Fritsch-Carlson) : [[t, valeur, pente?], …] ----------
+function mono(keys) {
+  const n = keys.length, X = keys.map(k => k[0]), Y = keys.map(k => k[1])
+  const d = [], m = []
+  for (let i = 0; i < n - 1; i++) d.push((Y[i + 1] - Y[i]) / Math.max(1e-6, X[i + 1] - X[i]))
+  for (let i = 0; i < n; i++) m[i] = i === 0 ? d[0] : i === n - 1 ? d[n - 2] : (d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2)
+  for (let i = 0; i < n - 1; i++) {
+    if (Math.abs(d[i]) < 1e-9) { m[i] = 0; m[i + 1] = 0; continue }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b
+    if (s > 9) { const k = 3 / Math.sqrt(s); m[i] = k * a * d[i]; m[i + 1] = k * b * d[i] }
+  }
+  keys.forEach((k, i) => { if (k[2] != null) m[i] = k[2] })
+  return t => {
+    if (t <= X[0]) return Y[0] + m[0] * (t - X[0])
+    if (t >= X[n - 1]) return Y[n - 1] + m[n - 1] * (t - X[n - 1])
+    let i = 0
+    while (t > X[i + 1]) i++
+    const h = X[i + 1] - X[i], s = (t - X[i]) / h, s2 = s * s, s3 = s2 * s
+    return (2 * s3 - 3 * s2 + 1) * Y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * Y[i + 1] + (s3 - s2) * h * m[i + 1]
+  }
+}
+const xfade = (t, a, b, d = 0.2) => clamp((t - a) / d) * (1 - clamp((t - b) / d))   // 0 → 1 à partir de a, 1 → 0 à partir de b
+
+// ---------- Données des captures ----------
+let J = {}, H1 = [], H1F = null
+const PH = 3.7 / 0.92   // secondes de scène par forme (scenes.js : période 3,7 / 0,92)
+const SPEED = 1 / PH    // formes par seconde en vitesse réelle
+
+// ---------- Plan : tous les instants dérivés des mots (tout se recale quand la vraie voix arrive) ----------
+let P = null
+function plan(C, TIMES, duration) {
+  const P = {}
+  P.PERIOD = Math.ceil(duration * FPS) / FPS
+  P.LOOP0 = P.PERIOD - 1.0
+  P.TITLE_OUT = clamp(TIMES[1].end - 0.05, 2.8, 4.2)
+  // Accroche : la maison éclate (lecture à l'envers) puis se reforme
+  P.CLE0 = Math.max(C.cle - 0.42, 2.3); P.CLE1 = C.cle + 0.05
+  P.EU0 = Math.max(C.euro - 0.42, P.CLE1 + 0.15); P.EU1 = C.euro + 0.05
+  // V6 : dézoom dans la carte de contact (téléphone), coup de fouet vers le héros, soulignement, descente
+  P.DEZ = C.v6; P.DEZ1 = P.DEZ + 0.75
+  P.WUP = Math.max(C.le - 0.1, P.DEZ1 + 0.2)
+  P.H1 = P.WUP + 0.14
+  P.UL = Math.max(C.locataire + 0.25, P.H1 + 0.85)
+  P.DIVE = Math.max(C.verse - 0.25, P.UL + 0.55)
+  // V7 : retour à la carte, plongée macro dans les points, compteur, cycle accéléré, logo 3D, porte
+  P.WDN = C.v7
+  P.PUSH0 = P.WDN + 0.3; P.PUSH1 = P.PUSH0 + 0.35
+  P.MACRO = Math.max(C.metier, P.PUSH1 + 0.3)
+  P.PULL = Math.max(C.dessine - 0.3, P.MACRO + 0.35)
+  P.MARK = Math.max(C.lumiere - 0.05, P.PULL + 0.75)
+  P.LOGO = P.MARK + 0.1
+  P.DOOR = Math.max(C.contact - 0.15, P.LOGO + 0.75)
+  // V8 : on traverse un portique, puis l'ordinateur et le rail de la méthode 01 → 06
+  P.GATE = C.v8; P.COMP = P.GATE + 0.62
+  P.SIX = Math.max(C.six - 0.05, P.COMP + 0.35)
+  P.PORTES = Math.max(C.portes - 0.15, P.SIX + 0.35)
+  P.ALLUME = Math.max(C.allument + 0.05, P.PORTES + 0.45)
+  P.FIELD = P.ALLUME + 0.45
+  // Fin
+  P.END = Math.max(TIMES[8].start - 0.05, P.FIELD + 0.8)
+  P.CTA = [P.END + 0.7, P.END + 1.3, P.END + 1.9]
+  // Rail : image de la capture en fonction du temps (01 → 06 calé sur « Six » et « portes »)
+  P.rail = mono([[P.COMP - 0.2, 26], [P.SIX, 50], [P.PORTES, 68], [P.ALLUME, 97], [P.FIELD + 0.1, 128], [P.FIELD + 0.6, 149]])
+  // Phase des particules (0 maison, 1 clé, 2 €, 3 marque ; −0,8 marque du cycle précédent)
+  P.phA = mono([[0, -0.20, -0.15], [0.30, -0.33], [0.68, -0.50, 0], [1.05, -0.485], [1.9, -0.33],
+    [P.CLE0, 0.32], [P.CLE1, 0.69], [P.EU0, 1.31], [P.EU1, 1.69], [P.EU1 + 6, 1.69 + 6 * SPEED]])
+  P.phB = mono([[P.WDN, -0.50], [P.MACRO, -0.33], [P.PULL, -0.07], [P.MARK, 3.0], [P.MARK + 2, 3.0 + 2 * SPEED]])
+  P.phC = mono([[P.END + 0.2, -0.80], [P.LOOP0, -0.50], [P.PERIOD, -0.20, 0.15]])
+  return P
+}
+function phaseAt(t) {
+  if (t < P.WUP + 0.3) return P.phA(t)
+  if (t < P.END + 0.2) return P.phB(t)
+  return P.phC(t)
+}
+// Instant où une fonction croissante franchit un seuil (pour les sons)
+function cross(f, a, b, v) { let lo = a, hi = b; if (f(a) >= v || f(b) < v) return null; for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (f(m) < v) lo = m; else hi = m } return hi }
+
+// ---------- Géométrie ----------
+const FULL = 1152                      // côté du calque particules (scène 1440 px ramenée à 1152)
+const BASE = { z: 1, fu: 0.5, fv: 0.5, ax: 540, ay: 850 }
+const MAC = { fu: 0.5, fv: (380 + 540) / 3240, ax: 540, ay: 880 }   // centre du plan macro (faîte du toit)
+const PS = 1.16, SX = 540 - 195 * PS, SY = 522   // téléphone : px de scène par px CSS, coin de l'écran
+let CC = null, CH = 0                  // centre et hauteur du canvas de la carte (scène)
+const OY = 1240 - (1348.3 + 228.1)     // héros : bas du H1 posé à y = 1240
+
+function camCss(c) { return `translate(${(c.ax - c.z * FULL * c.fu).toFixed(2)}px, ${(c.ay - c.z * FULL * c.fv).toFixed(2)}px) scale(${c.z.toFixed(4)})` }
+function mixCam(a, b, k) { return { z: Math.exp(lerp(Math.log(a.z), Math.log(b.z), k)), fu: lerp(a.fu, b.fu, k), fv: lerp(a.fv, b.fv, k), ax: lerp(a.ax, b.ax, k), ay: lerp(a.ay, b.ay, k) } }
+// Monde du téléphone : zw = zoom, (ax, ay) = où tombe le centre du canvas de la carte
+function worldCss(zw, ax, ay, extra = '') { return `translate(${(ax - zw * CC.x).toFixed(2)}px, ${(ay - zw * CC.y).toFixed(2)}px) scale(${zw.toFixed(4)}) ${extra}` }
+
+function build() {
+  const r = J.cta.canvas[0]
+  $('phone').style.cssText += `;left:${SX - 14}px;top:${SY - 14}px;width:${390 * PS + 28}px;height:${844 * PS + 28}px`
+  $('card').style.width = 390 * PS + 'px'; $('card').style.height = 844 * PS + 'px'
+  const cm = $('cm'), x = r[0] * PS, y = r[1] * PS, w = r[2] * PS, h = r[3] * PS
+  cm.style.cssText += `;left:${x}px;top:${y}px;width:${w}px;height:${h}px`
+  const vc = $('vMorphCard'); vc.style.cssText += `;left:${(w - h) / 2}px;top:0;width:${h}px;height:${h}px`
+  CC = { x: SX + x + w / 2, y: SY + y + h / 2 }; CH = h
+  $('vCity').style.top = OY + 'px'
+  $('heroFade').style.top = (1920 + OY - 190) + 'px'
+  $('h1c').style.top = (J.hero.clip.y + OY) + 'px'
+  const wd = J.hero.geo.words
+  const u = (el, w, trim) => { el.style.left = w.r[0] + 'px'; el.style.top = (w.r[1] + OY + 78) + 'px'; el.style.width = (w.r[2] - trim) + 'px' }
+  u($('ul1'), wd.find(x => x.w === 'votre'), 4)
+  u($('ul2'), wd.find(x => x.w.startsWith('locataire')), 22)
+  // flou des descriptions des cartes du rail (texte trop petit pour être lu, et « loyer fixe garanti » n'est jamais montré)
+  $('descBlur').style.top = (662 * 752 / 1440) + 'px'; $('descBlur').style.height = (130 * 752 / 1440) + 'px'
+  // fin : la question, mot à mot
+}
+
+function endQuestion(t, k) {
+  const words = k.WORDS[8]
+  setHTML($('endQ'), words.map(x => `<span class="w${x.hl ? ' hl' : ''}${t >= x.t0 - 0.03 ? ' on' : ''}">${x.w}</span>`).join(' '))
+}
+
+// ---------- Rendu : fonction pure du temps ----------
+function render(t, k) {
+  const { C, TIMES, WORDS } = k
+  if (!P) P = plan(C, TIMES, k.duration)
+  const loop = t >= P.LOOP0
+  const ph = phaseAt(t)
+  const mIdx = (ph - J.morph.from) * PH * FPS
+  const macIdx = (ph - J.macro.from) * PH * FPS
+
+  // ── Titre fixe (image 0) : mots qui s'allument avec la voix, sortie après « Pas un seul mot. », retour en boucle
+  const tIn = loop ? easeInOut(ramp(t, P.LOOP0 + 0.35, 0.4)) : 1 - easeIn(ramp(t, P.TITLE_OUT, 0.25))
+  setT($('title'), tIn, `translateY(${(1 - tIn) * -16}px) scale(${0.97 + 0.03 * tIn})`)
+  const glow = (id, t0, t1) => {
+    const g = loop ? 0 : pulse(t, t0 - 0.05, Math.max(0.35, t1 - t0 + 0.3))
+    const el = $(id)
+    el.style.transform = `scale(${1 + 0.05 * g})`
+    el.style.textShadow = g > 0.01 ? `0 0 ${30 * g}px rgba(255, 145, 77, ${0.9 * g}), 0 8px 40px rgba(0,0,0,.75)` : ''
+  }
+  const w0 = WORDS[0], w1 = WORDS[1]
+  glow('tw1', w0[0].t0, w0[w0.length - 2].t1); glow('tw2', w0[w0.length - 1].t0, w0[w0.length - 1].t1)
+  glow('tw3', w1[0].t0, w1[w1.length - 1].t1)
+
+  // ── Sous-titres (après le titre ; la fin affiche la question en grand)
+  caption($('caption'), t, k, { from: P.TITLE_OUT + 0.24, hide: loop || t >= P.END })
+  const hud = !loop && t >= Math.max(C.v3, P.TITLE_OUT + 0.1) && t < P.END
+  setT($('hud'), hud ? clamp(pop(t, Math.max(C.v3, P.TITLE_OUT + 0.1), 0.3)) : 0, `translateY(${hud ? (1 - clamp(pop(t, Math.max(C.v3, P.TITLE_OUT + 0.1), 0.3))) * -20 : 0}px)`)
+
+  // ── Particules plein cadre
+  let mfOn = 0, cam = { ...BASE }, flash = 0, macroOn = 0
+  if (t < P.DEZ + 0.15) {
+    mfOn = 1 - ramp(t, P.DEZ, 0.15)
+    cam.z = 1 + 0.06 * easeInOut(ramp(t, 1.0, 1.0)) + 0.03 * easeInOut(ramp(t, 2.0, Math.max(0.5, P.DEZ - 2.0)))
+    cam.z *= 1 + 0.035 * pulse(t, 0.24, 0.55) + 0.025 * pulse(t, C.maison - 0.05, 0.5) + 0.02 * pulse(t, P.CLE1 - 0.1, 0.45) + 0.02 * pulse(t, P.EU1 - 0.1, 0.45)
+    flash = t >= C.flash - 0.04 ? Math.exp(-(t - C.flash + 0.04) * 4.2) * clamp((t - C.flash + 0.04) / 0.06) : 0
+  } else if (t >= P.PUSH1 - 0.06 && t < P.LOGO + 0.35) {
+    mfOn = clamp((t - P.PUSH1 + 0.06) / 0.08) * (1 - ramp(t, P.LOGO, 0.3))
+    const kIn = easeInOut(ramp(t, P.PUSH1, Math.max(0.2, P.MACRO - P.PUSH1)))
+    const mac = { z: 3 + 0.18 * ramp(t, P.MACRO, P.PULL - P.MACRO), ...MAC }
+    const kOut = easeInOut(ramp(t, P.PULL, 0.5))
+    const pulled = { ...BASE, z: 1.0 + 0.05 * ramp(t, P.PULL + 0.5, 1.2) }
+    cam = mixCam(mixCam(BASE, mac, kIn), pulled, kOut)
+    macroOn = clamp((cam.z - 1.7) / 0.5)
+  } else if (t >= P.END + 0.15) {
+    // fin : nuage tamisé derrière la question, puis retour exact à l'image 0
+    const kl = easeInOut(ramp(t, P.LOOP0, P.PERIOD - P.LOOP0 - 0.25))
+    mfOn = lerp(0.5 * ramp(t, P.END + 0.15, 0.5), 1, kl)
+    cam = mixCam({ ...BASE, z: 0.92, ay: 900 }, BASE, kl)
+  }
+  show($('mf'), mfOn)
+  if (mfOn > 0) {
+    $('mf').style.transform = camCss(cam)
+    const f = flash
+    const burst = t < 1.2 ? 0.35 * pulse(t, 0.24, 0.7) : 0
+    $('vMorph').style.filter = `brightness(${1.3 + burst + 1.6 * f}) contrast(1.08) saturate(${1.15 + 1.5 * f}) sepia(${0.7 * f}) hue-rotate(${-18 * f}deg)`
+    show($('vMacro'), macroOn)
+    if (macroOn < 1) vframe('vMorph', mIdx)
+    if (macroOn > 0) vframe('vMacro', macIdx)
+  }
+
+  // ── Téléphone : la vraie carte de contact mobile, les particules dans son canvas
+  let pwOn = 0, pwCss = '', pwBlur = 0
+  const ZW = FULL / CH   // zoom du monde où le canvas de la carte couvre le calque plein cadre (z = 1)
+  if (t >= P.DEZ && t < P.WUP + 0.2) {
+    const kd = easeInOut(ramp(t, P.DEZ, P.DEZ1 - P.DEZ))
+    const z0 = ZW * (1.09)
+    const zw = Math.exp(lerp(Math.log(z0), 0, kd))
+    const ax = lerp(540, CC.x, kd), ay = lerp(850, CC.y, kd)
+    const w = easeIn(ramp(t, P.WUP, 0.17))
+    pwOn = clamp((t - P.DEZ) / 0.12)
+    pwCss = worldCss(zw, ax, ay + w * 1500, `rotate(${(-1.5 * kd + Math.sin(t * 1.3) * 0.3).toFixed(3)}deg)`)
+    pwBlur = 22 * w
+  } else if (t >= P.WDN + 0.1 && t < P.PUSH1 + 0.05) {
+    const w = 1 - easeOut(ramp(t, P.WDN + 0.12, 0.2))
+    const kp = easeInOut(ramp(t, P.PUSH0, P.PUSH1 - P.PUSH0))
+    const zw = Math.exp(lerp(0, Math.log(ZW), kp))
+    pwOn = 1
+    pwCss = worldCss(zw, lerp(CC.x, 540, kp), lerp(CC.y, 850, kp) + w * 1500, `rotate(${(-1.5 * (1 - kp)).toFixed(3)}deg)`)
+    pwBlur = 22 * w
+  }
+  show($('pw'), pwOn)
+  if (pwOn > 0) {
+    $('pw').style.transform = pwCss
+    $('pw').style.filter = pwBlur > 0.3 ? `blur(${pwBlur.toFixed(1)}px)` : 'none'
+    vframe('vMorphCard', mIdx)
+    $('vMorphCard').style.filter = 'brightness(1.75) contrast(1.1) saturate(1.2)'
+  }
+
+  // ── Héros : coup de fouet vers le haut, le vrai titre apparaît, « votre locataire » souligné, descente de l'avenue
+  let heroOn = 0
+  if (t >= P.WUP + 0.08 && t < P.WDN + 0.2) {
+    heroOn = 1
+    const wIn = 1 - easeOut(ramp(t, P.WUP + 0.12, 0.22)), wOut = easeIn(ramp(t, P.WDN, 0.17))
+    const dive = easeInOut(ramp(t, P.DIVE, Math.max(0.6, P.WDN - P.DIVE)))
+    $('hero').style.transform = `translateY(${(-wIn * 1500 - wOut * 1500).toFixed(1)}px) scale(${1 + 0.04 * dive})`
+    const b = 22 * Math.max(wIn, wOut)
+    $('hero').style.filter = b > 0.3 ? `blur(${b.toFixed(1)}px)` : 'none'
+    // ville : tenue (images 0 → 104) puis descente (105 → 179)
+    const hold = J.hero.hold
+    const fi = t < P.DIVE ? Math.min(hold - 1, (t - P.WUP) * FPS) : hold + (J.hero.dive - 1) * dive
+    vframe('vCity', fi)
+    // titre H1 : vraie apparition du site (46 états), puis il remonte pendant la descente
+    const hi = Math.round(clamp((t - P.H1) / 0.95) * (H1.length - 1))
+    drawH1(t < P.H1 + 0.95 ? H1[hi] : H1F)
+    $('h1c').style.transform = `translateY(${(-dive * 520).toFixed(1)}px)`
+    $('h1c').style.opacity = 1 - ramp(t, P.DIVE + 0.15, 0.5)
+    const u1 = easeOut(ramp(t, P.UL, 0.22)), u2 = easeOut(ramp(t, P.UL + 0.18, 0.3))
+    const uo = 1 - ramp(t, P.DIVE + 0.15, 0.4)
+    $('ul1').style.transform = `translateY(${(-dive * 520).toFixed(1)}px) scaleX(${u1})`; $('ul1').style.opacity = u1 > 0 ? uo : 0
+    $('ul2').style.transform = `translateY(${(-dive * 520).toFixed(1)}px) scaleX(${u2})`; $('ul2').style.opacity = u2 > 0 ? uo : 0
+  }
+  show($('hero'), heroOn)
+
+  // ── Compteur 0 → 4 200 pendant la plongée macro
+  const c0 = P.MACRO - 0.25
+  const cOn = xfade(t, c0, P.PULL - 0.02, 0.15)
+  if (cOn > 0) {
+    const v = Math.round(4200 * easeOut(ramp(t, c0 + 0.05, Math.max(0.35, P.PULL - c0 - 0.2))))
+    $('counter').firstChild.textContent = String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  }
+  setT($('counter'), cOn, `translateY(${(1 - cOn) * 30}px) scale(${0.92 + 0.08 * cOn})`)
+
+  // ── « Accéléré » quand le vrai morph est accéléré
+  const acc = Math.max(xfade(t, P.CLE0 - 0.1, P.EU1 + 0.35, 0.12), xfade(t, P.PULL, P.MARK + 0.15, 0.12))
+  setT($('accel'), loop ? 0 : acc, `translateX(${(1 - acc) * -20}px)`)
+
+  // ── Logo RBTI extrudé en 3D (la marque en particules devient le vrai logo 3D), puis il recule
+  const lOn = xfade(t, P.LOGO, P.DOOR + 0.45, 0.25)
+  show($('logo'), lOn)
+  if (lOn > 0) {
+    const kc = easeInOut(ramp(t, P.LOGO, 0.6)), kr = easeIn(ramp(t, P.DOOR, 0.6))
+    // image 1 de face : centre (540, 540) ; la marque en particules est centrée vers (545, 738), 680 px de large
+    const s = lerp(1.11, 1.18, kc) * lerp(1, 0.18, kr)
+    const cx = lerp(541, 540, kc), cy = lerp(lerp(741, 820, kc), 760, kr)
+    $('logo').style.transform = `translate(${(cx - 540).toFixed(1)}px, ${(cy - 540).toFixed(1)}px) scale(${s.toFixed(4)})`
+    vframe('vMark', (t - P.LOGO) * FPS)
+  }
+
+  // ── Couloir de portes : une porte orange s'allume au fond, puis on la traverse
+  const gOn = xfade(t, P.DOOR + 0.05, P.COMP + 0.05, 0.4)
+  show($('vGates'), gOn)
+  if (gOn > 0) {
+    const fly = easeInOut(ramp(t, P.GATE, P.COMP - P.GATE))
+    vframe('vGates', fly * 74)
+    const lit = easeOut(ramp(t, P.DOOR + 0.1, 0.5))
+    const zoomOut = easeIn(ramp(t, P.COMP - 0.12, 0.2))
+    $('vGates').style.filter = `brightness(${(0.35 + 0.95 * lit).toFixed(3)}) saturate(1.1)${zoomOut > 0 ? ` blur(${(14 * zoomOut).toFixed(1)}px)` : ''}`
+    $('vGates').style.transform = `scale(${(1 + 0.06 * ramp(t, P.DOOR, P.GATE - P.DOOR + 0.01) * (1 - fly)).toFixed(4)})`
+  }
+
+  // ── Ordinateur : le rail de la méthode (01 → 06), puis le champ de cubes sous le curseur
+  const cpOn = xfade(t, P.COMP - 0.08, P.END + 0.16, 0.1)
+  show($('comp'), cpOn)
+  if (cpOn > 0) {
+    const kin = easeOut(ramp(t, P.COMP - 0.08, 0.45)), kout = easeInOut(ramp(t, P.END - 0.12, 0.28))
+    const s = lerp(1.25, 1, kin) * lerp(1, 0.8, kout) * (1 + 0.08 * easeInOut(ramp(t, P.COMP + 0.3, P.FIELD + 0.8 - P.COMP)))
+    const b = 16 * (1 - kin)
+    $('comp').style.transform = `translateY(${(lerp(0, 120, kout)).toFixed(1)}px) scale(${s.toFixed(4)})`
+    $('comp').style.filter = b > 0.3 ? `blur(${b.toFixed(1)}px)` : 'none'
+    $('comp').style.opacity = cpOn * (1 - kout)
+    const sl = easeInOut(ramp(t, P.FIELD, 0.32))   // passage au champ de cubes : la page défile
+    if (sl < 1) { vframe('vRail', P.rail(t)) }
+    $('vRail').style.transform = `translateY(${(-sl * 470).toFixed(1)}px)`
+    $('descBlur').style.transform = `translateY(${(-sl * 470).toFixed(1)}px)`
+    show($('vField'), sl > 0 ? 1 : 0)
+    if (sl > 0) {
+      $('vField').style.transform = `translateY(${((1 - sl) * 470).toFixed(1)}px) scale(${(1 + 0.16 * easeInOut(ramp(t, P.FIELD + 0.2, 0.8))).toFixed(4)})`
+      vframe('vField', 8 + (t - P.FIELD) / Math.max(0.8, P.END + 0.5 - P.FIELD) * 80)
+    }
+  }
+
+  // ── Fin : la question en grand, puis l'offre, la zone, la marque ; retour à l'image 0
+  const eOn = loop ? 1 - easeIn(ramp(t, P.LOOP0, 0.35)) : clamp(pop(t, P.END + 0.1, 0.35))
+  const endOn = t >= P.END + 0.1 && eOn > 0.001
+  $('end').style.visibility = endOn ? 'visible' : 'hidden'
+  if (endOn) {
+    endQuestion(t, k)
+    setT($('endQ'), clamp(eOn), `translateY(${(1 - clamp(eOn)) * 30}px) scale(${0.94 + 0.06 * eOn})`)
+    const items = [$('endCta'), $('endZone'), $('endBrand')]
+    items.forEach((el, i) => { const p = loop ? clamp(eOn) : clamp(pop(t, P.CTA[i], 0.35)); setT(el, p, `translateY(${(1 - p) * 26}px) scale(${0.9 + 0.1 * p})`) })
+  }
+}
+
+function drawH1(img) {
+  const c = $('h1c')
+  if (c.__img === img) return
+  c.__img = img
+  const x = c.getContext('2d')
+  x.clearRect(0, 0, c.width, c.height)
+  if (img) x.drawImage(img, 0, 0)
+}
+
+async function loadImg(src) { const im = new Image(); im.src = A + src; await im.decode(); return im }
+
+;(async () => {
+  for (const n of ['morph', 'macro', 'cta', 'hero', 'rail']) J[n] = await (await fetch(A + n + '.json')).json()
+  LTNS.start({
+    sentences: SENTENCES, cues: CUES, spoken: SPOKEN, tail: TAIL, render,
+    settle: async () => { const p = pending.splice(0); await Promise.all(p) },
+    ready: async () => {
+      build()
+      $('card').src = A + 'cta-card.webp'
+      await $('card').decode()
+      H1 = await Promise.all(Array.from({ length: J.hero.h1Frames }, (_, i) => loadImg(`h1-${String(i).padStart(2, '0')}.webp`)))
+      H1F = await loadImg('h1-final.webp')
+      await Promise.all([
+        loadVideo('vMorph', 'morph.webm'), loadVideo('vMorphCard', 'morph.webm'), loadVideo('vMacro', 'macro.webm'),
+        loadVideo('vMark', 'mark.webm'), loadVideo('vGates', 'gates.webm'), loadVideo('vCity', 'city.webm'),
+        loadVideo('vRail', 'rail.webm'), loadVideo('vField', 'field.webm'),
+      ])
+    },
+    extraEvents: (C, TIMES) => {
+      const dur = TIMES[TIMES.length - 1].end + TAIL
+      const Q = plan(C, TIMES, dur)
+      const ev = [{ t: 0.3, sfx: 'whoosh' }, { t: 1.72, sfx: 'ding' }, { t: Q.CLE1, sfx: 'tick' }, { t: Q.EU1, sfx: 'ding' }]
+      ev.push({ t: Q.WUP, sfx: 'whoosh' }, { t: Q.UL, sfx: 'tick' }, { t: Q.DIVE, sfx: 'whoosh' }, { t: Q.WDN + 0.05, sfx: 'whoosh' })
+      for (let i = 0; i < 6; i++) ev.push({ t: lerp(Q.MACRO - 0.15, Q.PULL - 0.12, i / 5), sfx: 'tick' })
+      const pb = Q.phB
+      for (const v of [0.68, 1.68, 2.68]) { const x = cross(pb, Q.PULL, Q.MARK + 0.5, v); if (x) ev.push({ t: x, sfx: 'pop' }) }
+      ev.push({ t: Q.LOGO + 0.05, sfx: 'pop' }, { t: Q.DOOR + 0.1, sfx: 'whoosh' })
+      for (const f of [53, 66, 75, 84]) { const x = cross(Q.rail, Q.COMP - 0.2, Q.FIELD + 0.6, f); if (x) ev.push({ t: x, sfx: 'pop' }) }
+      const x6 = cross(Q.rail, Q.COMP - 0.2, Q.FIELD + 0.6, 96); if (x6) ev.push({ t: x6, sfx: 'ding' })
+      ev.push({ t: Q.FIELD, sfx: 'whoosh' }, { t: Q.END, sfx: 'whoosh' })
+      Q.CTA.forEach(x => ev.push({ t: x, sfx: 'pop' }))
+      ev.push({ t: Q.LOOP0 + 0.05, sfx: 'whoosh' })
+      return ev
+    },
+  })
+})()
+</script>
+</body>
+</html>
