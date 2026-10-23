@@ -5,11 +5,12 @@ python3 -I video/vrais-sites/v01-crousty-lettres/scripts/prepare-assets.py <doss
 Sorties dans ../assets :
   entree/pNNNNN.webp + entree.json   l'entrée masquée (1080 × 1920)
   lettres/L0-on.webp …  + lettres.json   chaque lettre recadrée, avec sa position à l'écran
-  final.webp, compose-burgers.webp, compose-tacos.webp
+  final.webp, compose-tacos.webp
   hero/fin.webp, hero/fin-personne.webp, hero/f054.webp … f084.webp   (images du dépôt, vues de dos uniquement)
   silhouette.json   contour de la personne détourée (coordonnées de fin-personne.webp, 480 × 854)
   fonts/anton-*.woff2   police du site (OFL)
 Aucune image avant f054 : le visage de la personne y est visible.
+Enfin, flouter-marque.py floute l'inscription de marque imprimée dans le dos de la veste.
 """
 import json
 import os
@@ -53,7 +54,8 @@ json.dump(letters, open(os.path.join(ASSETS, 'lettres.json'), 'w'))
 
 # 3) État final et « Compose ton menu »
 save_webp(Image.open(os.path.join(RAW, 'final.png')).convert('RGB'), os.path.join(ASSETS, 'final.webp'), q=82)
-for t in ('burgers', 'tacos'):
+# (onglet Tacos seulement : sa photo est fournie par le restaurant ; celle de l'onglet Burgers n'a pas d'origine documentée)
+for t in ('tacos',):
     im = Image.open(os.path.join(RAW, f'compose-{t}.png')).convert('RGB').resize((720, 1280), Image.LANCZOS)
     save_webp(im, os.path.join(ASSETS, f'compose-{t}.webp'), q=84)
 
@@ -128,3 +130,7 @@ for f in ('anton-latin-400-normal.woff2', 'anton-latin-ext-400-normal.woff2'):
     shutil.copyfile(os.path.join(REPO, 'node_modules', '@fontsource', 'anton', 'files', f), os.path.join(ASSETS, 'fonts', f))
 
 print('OK', len(man), 'images d\'entrée,', len(simple), 'points de contour, bbox', bbox)
+
+# 8) Inscription de marque dans le dos de la veste : floutée sur toutes les vraies images (une seule fois, ici)
+import subprocess  # noqa: E402
+subprocess.run([sys.executable, '-I', os.path.join(HERE, 'flouter-marque.py')], check=True)

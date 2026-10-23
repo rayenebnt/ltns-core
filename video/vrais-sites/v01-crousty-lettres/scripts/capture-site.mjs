@@ -9,6 +9,7 @@
 //   lettres/L0-on.png …  chaque lettre seule, posée, fond transparent, néon allumé (on) et éteint (off)
 //   final.png            l'état final de l'accueil avec les boutons, paragraphe « … à la mozzarella » masqué
 //   compose-burgers.png, compose-tacos.png   « Compose ton menu », onglets Burgers puis Tacos
+//                        (seul Tacos est utilisé : la photo de l'onglet Burgers n'a pas d'origine documentée)
 // Jamais avant p 0,44 : le visage de la personne est visible au début de la marche.
 import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs'
 import fs from 'node:fs'

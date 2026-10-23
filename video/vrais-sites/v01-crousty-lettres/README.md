@@ -13,10 +13,10 @@ Dépôt du site : `/home/user/rayenebnt/crousty-` (jamais modifié, seulement la
 | « Au fond… 85 images » | Le calque du fond joue la vraie marche de dos (f054 → f084), puis éclate en grille de 85 cases, compteur 01 → 85. | `assets/hero/f054…f084.webp` |
 | « Au milieu, les lettres… » | Les 7 lettres (vraies captures, une par une, néon éteint / allumé) remontent puis retombent une par une, ralenti ×0,5 sur le S, puis le néon s'allume. | `assets/lettres/L0…L6-on/off.webp` |
 | « Devant, lui, détouré » | Pointillés tracés autour de la silhouette (contour calculé sur le masque alpha). Les calques se recollent, le S repasse derrière la casquette. | `assets/silhouette.json` |
-| « Et sur le site, c'est ton pouce… » | Rembobinage (effet de montage) jusqu'à p 0,45 (de dos), indicateur de pouce sur le bord gauche, marche jusqu'au comptoir, puis la vraie chute des lettres en accéléré. | `assets/entree/` |
-| « T'as des vidéos de ton commerce ? » | Tout rentre dans un téléphone sans marque : l'état final du site avec ses boutons (paragraphe masqué), pastille « Site en cours de validation », tap sur « Compose ton menu », onglets Burgers puis Tacos. | `assets/final.webp`, `assets/compose-*.webp` |
-| « Elles peuvent devenir ton site. » | Carte de fin sur la salle floutée : « Devis gratuit sous 48 h · lien en bio », « Partout en France à distance / sur place en Île-de-France », « LTNS° », « Site du Crousty en cours de validation · pas encore en ligne ». | `assets/flou-*.webp` |
-| Boucle | La carte se dissout, les lettres retombent (vraie capture p 0,70 → 0,952), le titre revient : la dernière image est l'image 0. | `assets/entree/` |
+| « Et sur le site, c'est ton pouce… » | Rembobinage (effet de montage) jusqu'à p 0,45 (de dos), indicateur de pouce sur le bord gauche, marche continue jusqu'au comptoir (calée sur « pouce », « marcher », « comptoir »), puis la vraie chute des lettres en accéléré. | `assets/entree/` |
+| « T'as des vidéos de ton commerce ? » | Tout rentre dans un téléphone sans marque : l'état final du site avec ses boutons (paragraphe masqué), pastille « Site en cours de validation », tap sur « Compose ton menu », la section monte sur l'onglet Tacos. | `assets/final.webp`, `assets/compose-tacos.webp` |
+| « Elles peuvent devenir ton site. » | Carte de fin sur la salle floutée, qui vit (le néon vacille, la caméra dérive, reflet sur le bouton) : « Devis gratuit sous 48 h · lien en bio », « Partout en France à distance / sur place en Île-de-France », « LTNS° », « Site du Crousty en cours de validation / pas encore en ligne » (26 px, lisible sur téléphone). | `assets/flou-*.webp` |
+| Boucle (0,9 s) | La carte se dissout, les lettres retombent (vraie capture p 0,70 → 0,952), le titre revient : la dernière image est l'image 0. | `assets/entree/` |
 
 Effets de montage, jamais présentés comme le comportement du site : vue éclatée, grille, ralenti, rembobinage, indicateur de pouce.
 
@@ -24,11 +24,18 @@ Effets de montage, jamais présentés comme le comportement du site : vue éclat
 jusqu'à f053). Dans la grille, les cases 01 à 54 sont donc des aplats orange numérotés. Pas d'horaires, pas de prix,
 aucune mention « mozzarella » (paragraphe de l'accueil masqué, onglet Gratinés jamais montré).
 
+**Marque.** L'inscription imprimée dans le dos de sa veste était lisible en grand pendant la marche (gros plan sur une marque) :
+elle est floutée sur toutes les vraies images (`scripts/flouter-marque.py`, bandes relevées image par image).
+
+**Photos.** Seul l'onglet Tacos est montré : sa photo est fournie par le restaurant (`docs/etape-4-site.md` du dépôt). La photo de
+l'onglet Burgers (rendu studio, sans origine documentée, très différente du vrai burger de la galerie) n'est pas montrée, pour ne pas
+présenter une image générique comme un plat du Crousty.
+
 ## Timing et voix
 
 `SENTENCES` = le texte ElevenLabs découpé sur `[pause]` / `[long pause]` (8 phrases). Chaque temps fort est accroché à un mot
 (`CUES`, et les instants dérivés dans `derive()`), sauf l'accroche 0–3 s et la queue de boucle. Sans voix, le moteur estime
-le minutage (brouillon ≈ 25 s) ; avec la voix (`vrai-projet-01.mp3` découpé en `voice/01.mp3` … `08.mp3`) :
+le minutage (brouillon 24,98 s ; au calage du concept, V1 0,1 s … V8 19,3 s, la vidéo fait 21,1 s) ; avec la voix (`vrai-projet-01.mp3` découpé en `voice/01.mp3` … `08.mp3`) :
 
 ```bash
 python3 video/commun/sync-voice.py video/vrais-sites/v01-crousty-lettres   # écrit timing.json, envelope.json, voice.mp3, voice-files.js
@@ -39,14 +46,17 @@ python3 video/commun/sync-voice.py video/vrais-sites/v01-crousty-lettres   # éc
 ```bash
 # 1. le vrai site en local (dans un autre terminal ; tuer ce serveur par son PID ensuite)
 cd /home/user/rayenebnt/crousty- && npx vite --port 5181 --strictPort --host 127.0.0.1
-# 2. captures brutes (≈ 4 min) puis conversion
+# 2. captures brutes (≈ 4 min) puis conversion (prepare-assets.py lance aussi flouter-marque.py)
 node video/vrais-sites/v01-crousty-lettres/scripts/capture-site.mjs /tmp/v01-crousty-raw
 python3 -I video/vrais-sites/v01-crousty-lettres/scripts/prepare-assets.py /tmp/v01-crousty-raw
+# vérifier le suivi du flou (bandes tracées en rouge, sans rien modifier)
+python3 -I video/vrais-sites/v01-crousty-lettres/scripts/flouter-marque.py --apercu /tmp/v01-marque
 ```
 
 `capture-site.mjs` : 360 × 640 @3, CSS injecté pour masquer l'interface (en-tête, textes, boutons, indice) ; lettres seules sur fond
 transparent (une capture par lettre, néon allumé et éteint) ; état final (paragraphe masqué) ; « Compose ton menu », onglets Burgers et Tacos.
-`prepare-assets.py` : WebP, recadrage des lettres, contour de la silhouette, salle floutée, police Anton (OFL).
+`prepare-assets.py` : WebP, recadrage des lettres, contour de la silhouette, salle floutée, police Anton (OFL), puis flou de l'inscription de marque.
+`compose-burgers.png` est capturé mais pas utilisé (voir « Photos »).
 
 ## Rendu
 

@@ -33,7 +33,8 @@
   /* La salle floutée (fond du téléphone et de la carte de fin) */
   #blur { inset: 0; opacity: 0; }
   #blur img { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 50% 40%; }
-  #blur i { position: absolute; inset: 0; background: linear-gradient(rgba(6, 7, 11, .35), rgba(6, 7, 11, .62) 45%, rgba(6, 7, 11, .8)); }
+  #blur i { position: absolute; inset: 0; background: linear-gradient(rgba(6, 7, 11, .3), rgba(6, 7, 11, .56) 45%, rgba(6, 7, 11, .78)); }
+  #blur b { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background: radial-gradient(ellipse 52% 11% at 50% 38%, rgba(255, 120, 30, .75), rgba(255, 106, 19, .22) 55%, transparent 80%); mix-blend-mode: screen; opacity: 0; }
 
   /* La vraie capture plein cadre (entrée masquée) */
   #full { left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; overflow: hidden; }
@@ -71,7 +72,7 @@
   .lab b { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 12px; background: var(--flamme); color: var(--noir); font-weight: 400; font-size: 40px; }
 
   /* Les 85 images de la vidéo */
-  #grid { inset: 0; pointer-events: none; }
+  #grid { inset: 0; pointer-events: none; transform-origin: 540px 770px; }
   .cell { position: absolute; left: 0; top: 0; width: 46px; height: 82px; border-radius: 6px; overflow: hidden; transform-origin: 50% 50%; opacity: 0; }
   .cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .cell.o { background: var(--flamme); display: grid; place-items: center; font-family: var(--anton); font-size: 24px; color: rgba(6, 7, 11, .78); }
@@ -104,7 +105,7 @@
   #scr .sb { position: absolute; left: 0; right: 0; top: 0; height: 28px; background: #06070B; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: 4px 40px 0; font-family: var(--ui); font-weight: 600; font-size: 15px; color: #fff; }
   #scr .sb i { position: absolute; left: 50%; top: 7px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #000; box-shadow: inset 0 0 0 3px #1c1c22; }
   #scr .site { position: absolute; left: 0; top: 28px; width: 460px; height: 818px; overflow: hidden; }
-  #scr .site img { position: absolute; left: 0; top: 0; width: 460px; height: 818px; }
+  #scr .site img { position: absolute; left: 0; top: 0; width: 460px; height: 818px; transform-origin: 50% 70%; }
   #ripple { left: 0; top: 0; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 6px solid #fff; position: absolute; opacity: 0; z-index: 6; }
   #finger { left: 0; top: 0; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; background: rgba(255, 255, 255, .55); border: 4px solid #fff; position: absolute; opacity: 0; z-index: 6; box-shadow: 0 10px 20px -6px rgba(0, 0, 0, .6); }
   #phone .btn { position: absolute; width: 6px; border-radius: 3px; background: #2a2a30; }
@@ -112,17 +113,18 @@
   #badge i { width: 16px; height: 16px; border-radius: 50%; background: var(--rouge); flex: none; }
 
   /* Carte de fin */
-  #endc { left: 80px; width: 820px; top: 600px; height: 590px; }
+  #endc { left: 80px; width: 820px; top: 600px; height: 590px; transform-origin: 410px 300px; }
   #endBig { position: absolute; left: 0; right: 0; top: 18px; text-align: center; font-family: var(--anton); font-size: 118px; line-height: 1.0; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 8px 30px rgba(0, 0, 0, .7); }
   #endBig span { display: inline-block; opacity: .22; }
   #endBig span.or { color: var(--flamme); }
-  #cta1 { position: absolute; left: 0; right: 0; top: 290px; text-align: center; opacity: 0; }
-  #cta1 b { display: inline-block; font-family: var(--ui); font-weight: 800; font-size: 40px; letter-spacing: -.5px; background: var(--flamme); color: #fff; padding: 16px 30px; border-radius: 999px; box-shadow: 0 18px 36px -14px rgba(255, 106, 19, .8); }
-  #cta2 { position: absolute; left: 0; right: 0; top: 384px; text-align: center; font-family: var(--display); font-weight: 500; font-size: 32px; line-height: 1.25; color: rgba(255, 255, 255, .92); opacity: 0; text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
-  #brand { position: absolute; left: 0; right: 0; top: 492px; text-align: center; opacity: 0; }
-  #brand b { display: block; font-family: var(--display); font-weight: 700; font-size: 60px; letter-spacing: -1.5px; line-height: 1; }
+  #cta1 { position: absolute; left: 0; right: 0; top: 280px; text-align: center; opacity: 0; }
+  #cta1 b { position: relative; overflow: hidden; display: inline-block; font-family: var(--ui); font-weight: 800; font-size: 40px; letter-spacing: -.5px; background: var(--flamme); color: #fff; padding: 16px 30px; border-radius: 999px; box-shadow: 0 18px 36px -14px rgba(255, 106, 19, .8); }
+  #cta1 b i { position: absolute; top: -10px; bottom: -10px; left: 0; width: 110px; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent); opacity: 0; }
+  #cta2 { position: absolute; left: 0; right: 0; top: 372px; text-align: center; font-family: var(--display); font-weight: 500; font-size: 32px; line-height: 1.25; color: rgba(255, 255, 255, .92); opacity: 0; text-shadow: 0 2px 12px rgba(0, 0, 0, .8); }
+  #brand { position: absolute; left: 0; right: 0; top: 470px; text-align: center; opacity: 0; }
+  #brand b { display: block; font-family: var(--display); font-weight: 700; font-size: 56px; letter-spacing: -1.5px; line-height: 1; }
   #brand b span { color: var(--flamme); }
-  #brand small { display: block; margin-top: 10px; font-family: var(--mono); font-size: 19px; letter-spacing: .5px; color: rgba(255, 255, 255, .72); }
+  #brand small { display: block; margin-top: 8px; font-family: var(--display); font-weight: 500; font-size: 26px; line-height: 1.2; letter-spacing: 0; color: rgba(255, 255, 255, .8); text-shadow: 0 2px 10px rgba(0, 0, 0, .8); }
 
   /* Titre fixe, sous-titres, étiquette */
   #shadeTop { left: 0; top: 0; width: 1080px; height: 700px; background: linear-gradient(rgba(6, 7, 11, .82), rgba(6, 7, 11, .55) 45%, transparent); pointer-events: none; }
@@ -143,7 +145,7 @@
 <body>
 <div id="stage">
   <div id="bg"></div>
-  <div id="blur"><img id="blurOn" src="assets/flou-on.webp" decoding="sync" alt=""><img id="blurDim" src="assets/flou-dim.webp" decoding="sync" alt=""><i></i></div>
+  <div id="blur"><img id="blurOn" src="assets/flou-on.webp" decoding="sync" alt=""><img id="blurDim" src="assets/flou-dim.webp" decoding="sync" alt=""><i></i><b id="blurGlow"></b></div>
 
   <div id="full">
     <canvas id="cap" width="1080" height="1920"></canvas>
@@ -190,7 +192,6 @@
       <div class="sb"><span>18:30</span><i></i><span>5G</span></div>
       <div class="site">
         <img id="sFinal" src="assets/final.webp" decoding="sync" alt="">
-        <img id="sBurgers" src="assets/compose-burgers.webp" decoding="sync" alt="">
         <img id="sTacos" src="assets/compose-tacos.webp" decoding="sync" alt="">
         <div id="ripple"></div><div id="finger"></div>
       </div>
@@ -201,9 +202,9 @@
 
   <div id="endc">
     <div id="endBig"><span>Elles</span> <span>peuvent</span><br><span>devenir</span> <span class="or">ton</span> <span class="or">site.</span></div>
-    <div id="cta1"><b>Devis gratuit sous 48 h · lien en bio</b></div>
+    <div id="cta1"><b>Devis gratuit sous 48 h · lien en bio<i id="sheen"></i></b></div>
     <div id="cta2">Partout en France à distance<br>sur place en Île-de-France</div>
-    <div id="brand"><b>LTNS<span>°</span></b><small>Site du Crousty en cours de validation · pas encore en ligne</small></div>
+    <div id="brand"><b>LTNS<span>°</span></b><small>Site du Crousty en cours de validation<br>pas encore en ligne</small></div>
   </div>
 
   <div id="shadeTop"></div>
@@ -285,35 +286,35 @@ let capKey = -1, c1Key = ''
 function derive(k) {
   const { C, duration } = k
   const d = {}
-  const a = C.tombent + 0.28, b = Math.max(a + 1.2, C.s3end - 0.1)
-  const gaps = [1, 1, 1, 1.9, 1.2, 1], tot = gaps.reduce((x, y) => x + y)
-  let acc = 0
-  d.L = [a]
-  gaps.forEach(g => { acc += g; d.L.push(a + (b - a) * acc / tot) })
+  // Lettres : elles quittent le plan sur « lettres », puis retombent une par une (C, R, O, U),
+  // le S seulement quand le U est posé (ralenti ×0,5, 0,62 s), puis T et Y ; le Y se pose à la fin de la phrase
+  const a = C.lift + 0.85, b = Math.max(a + 1.5, C.s3end - 0.15)
+  const g = (b - a - 0.70) / 5
+  d.L = [a, a + g, a + 2 * g, a + 3 * g, a + 3 * g + 0.70, a + 4 * g + 0.70, a + 5 * g + 0.70]
   d.neon = d.L[6] + 0.2
   d.mStart = Math.max(C.detoure + 0.1, C.s4end - 0.35)
   d.mEnd = d.mStart + 0.6
   d.rw = Math.max(C.s5 - 0.05, d.mEnd + 0.08)
   d.rwEnd = d.rw + 0.55
-  d.w1 = Math.max(C.pouce - 0.05, d.rwEnd + 0.05)
-  d.w1End = d.w1 + 0.9
-  d.w2 = Math.max(C.marcher - 0.05, d.w1End)
-  d.w2End = Math.max(d.w2 + 0.6, C.comptoir + 0.15)
-  d.fall = Math.max(C.comptoir + 0.3, d.w2End + 0.05)
+  // La marche au pouce : avance sans arrêt, calée sur « pouce », « marcher » et « comptoir »
+  const k1 = Math.max(C.pouce, d.rwEnd + 0.35), k2 = Math.max(C.marcher, k1 + 0.35), k3 = Math.max(C.comptoir + 0.1, k2 + 0.35)
+  d.walk = [[d.rwEnd + 0.02, P_WALK0], [k1, 0.49], [k2, 0.575], [k3, P_ARRIVE]]
+  d.fall = Math.max(C.comptoir + 0.15, k3 + 0.03)
   d.fallEnd = d.fall + 0.95
   d.phoneIn = Math.max(C.s6 - 0.05, d.fallEnd - 0.1)
   d.phoneDone = d.phoneIn + 0.55
   d.tap = d.phoneDone + 0.2
-  d.burgers = d.tap + 0.2
-  d.tacos = d.burgers + 0.6
-  d.rise = Math.max(C.s7, d.tacos + 0.45)
+  d.tacos = d.tap + 0.2
+  d.rise = Math.max(C.s7, d.tacos + 0.75)
   d.cta1 = d.rise + 0.7
   d.cta2 = d.rise + 1.3
   d.brand = d.rise + 1.9
-  d.TD = duration - 1.1
+  // Queue de boucle (0,9 s) : la carte se dissout, la vraie chute rejoue p 0,70 → 0,952, le titre revient
+  d.TD = duration - 0.9
   // Accéléré de la vraie chute (p 0,66 → 0,952) : instants où chaque lettre se pose dans le site
   d.fallP = t => lerp(P_ARRIVE, P_ON, ramp(t, d.fall, 0.95))
-  d.tailP = t => lerp(0.7, P_ON, easeIn(ramp(t, d.TD + 0.05, duration - 0.35 - d.TD - 0.05)) * 0.35 + ramp(t, d.TD + 0.05, duration - 0.35 - d.TD - 0.05) * 0.65)
+  const tf = duration - 0.25 - d.TD - 0.05
+  d.tailP = t => lerp(0.7, P_ON, easeIn(ramp(t, d.TD + 0.05, tf)) * 0.35 + ramp(t, d.TD + 0.05, tf) * 0.65)
   return d
 }
 // p du site où la lettre i se pose (Hero.tsx : départ 0,12 + 0,055 i, durée 0,28 en « hold »)
@@ -333,16 +334,29 @@ function capP(t, k) {
   const { C, duration } = k
   if (t >= D.TD) return D.tailP(t)
   if (t < D.rw) return hookDim(t) ? P_DIM : P_ON
-  if (t < D.w1) return lerp(P_ON, P_WALK0, easeInOut(ramp(t, D.rw, 0.55)))
-  if (t < D.fall) {
-    let p = lerp(P_WALK0, 0.475, ramp(t, D.rwEnd, D.w1 - D.rwEnd + 0.2))
-    p = lerp(p, 0.55, easeInOut(ramp(t, D.w1, D.w1End - D.w1)))
-    return lerp(p, P_ARRIVE, easeInOut(ramp(t, D.w2, D.w2End - D.w2)))
-  }
+  if (t < D.walk[0][0]) return lerp(P_ON, P_WALK0, easeInOut(ramp(t, D.rw, 0.55)))
+  if (t < D.fall) return walkP(t)
   if (t < D.phoneIn + 0.6) return D.fallP(t)
   // dans le téléphone puis derrière la carte : le néon vacille parfois
-  const fl = [[D.rise + 0.45, 0.06], [D.rise + 0.58, 0.05], [D.rise + 1.62, 0.07]]
+  const fl = [[D.rise + 0.45, 0.06], [D.rise + 0.58, 0.05], [D.rise + 1.62, 0.07], [D.rise + 2.12, 0.06], [D.rise + 2.5, 0.06], [D.rise + 2.62, 0.08], [D.rise + 3.5, 0.07]]
   return fl.some(([a, d]) => t >= a && t < a + d) ? P_DIM : P_ON
+}
+
+// Marche : linéaire par morceaux entre les mots (pas d'arrêt), départ en douceur, arrivée amortie
+function walkP(t) {
+  const W = D.walk, n = W.length - 1
+  if (t <= W[0][0]) return W[0][1]
+  if (t >= W[n][0]) return W[n][1]
+  for (let i = 0; i < n; i++) {
+    const [t0, p0] = W[i], [t1, p1] = W[i + 1]
+    if (t < t1) {
+      let u = (t - t0) / (t1 - t0)
+      if (i === 0) u = u * u * (1.6 - 0.6 * u)        // démarrage (vitesse nulle au départ, pleine à l'arrivée)
+      if (i === n - 1) u = 1 - Math.pow(1 - u, 1.8)    // arrivée au comptoir
+      return lerp(p0, p1, u)
+    }
+  }
+  return W[n][1]
 }
 
 function drawCap(p) {
@@ -382,7 +396,8 @@ function render(t, k) {
 
   // ---------- Caméra des calques ----------
   const kSplit = easeInOut(ramp(t, C.split, 0.75))
-  const hookS = 1 + 0.03 * easeOut(ramp(t, 0, 1.0)) + 0.12 * easeInOut(ramp(t, 1.0, 1.2)) + 0.04 * ramp(t, 2.2, 1.2)
+  // poussée de l'accroche : 1 → 1,03 → 1,15 au plus (sources 480 × 854 : pas plus)
+  const hookS = 1 + 0.03 * easeOut(ramp(t, 0, 1.0)) + 0.10 * easeInOut(ramp(t, 1.0, 1.2)) + 0.02 * ramp(t, 2.2, 1.2)
   let cam = { ...BASE, fx: 694, fy: 772, sx: 694, sy: 772, S: hookS, rx: 0, ry: 0, sp: 0, aim: 0 }
   cam = mixCam(cam, CAM.exploded, kSplit)
   const kV = easeInOut(ramp(t, C.s2, 0.7)), kL = easeInOut(ramp(t, C.s3 + 0.1, 0.7)), kP = easeInOut(ramp(t, C.s4, 0.65)), kM = easeInOut(ramp(t, D.mStart, 0.6))
@@ -390,17 +405,20 @@ function render(t, k) {
   cam = mixCam(cam, CAM.letters, kL)
   cam = mixCam(cam, CAM.person, kP)
   cam = mixCam(cam, CAM.merged, kM)
-  // lente orbite pendant la vue éclatée
+  // orbite pendant la vue éclatée (la caméra ne s'arrête jamais)
   const orbit = kSplit * (1 - kM)
-  cam.ry += orbit * 4 * Math.sin((t - C.split) * 1.1)
-  cam.rx += orbit * 2 * Math.sin((t - C.split) * 0.8 + 1)
+  cam.ry += orbit * 7 * Math.sin((t - C.split) * 0.9)
+  cam.rx += orbit * 3 * Math.sin((t - C.split) * 0.7 + 1)
   // secousse de 4 px à chaque lettre posée
   let shake = 0
   D.L.forEach(L => { if (t > L && t < L + 0.25) shake += 4 * Math.exp(-(t - L) * 18) * Math.sin((t - L) * 95) })
   const sp = cam.sp
-  $('pl1').style.transform = `translateZ(${-sp * Z - 0.6}px)`
-  $('pl2').style.transform = `translateZ(0px)`
-  $('pl3').style.transform = `translateZ(${sp * Z + 0.6}px)`
+  // « Trois calques » : un « clac » par plan. Le fond recule au 1er, les lettres sautent au 2e, la personne avance au 3e
+  const clacK = c => 0.3 + 0.7 * pop(t, C[c] - 0.04, 0.32)
+  const breathe = 1 + 0.06 * orbit * Math.sin((t - C.split) * 1.3)
+  $('pl1').style.transform = `translateZ(${-sp * Z * clacK('clac1') * breathe - 0.6}px)`
+  $('pl2').style.transform = `translateZ(${sp * 90 * pulse(t, C.clac2 - 0.04, 0.3)}px)`
+  $('pl3').style.transform = `translateZ(${sp * Z * clacK('clac3') * breathe + 0.6}px)`
   const camT = (c, dx, dy) => `translate(${c.sx + dx}px, ${c.sy + dy + shake}px) scale3d(${c.S}, ${c.S}, ${c.S}) rotateX(${c.rx}deg) rotateY(${c.ry}deg) translate(${-c.fx}px, ${-c.fy}px)`
   let dx = 0, dy = 0
   $('rig').style.transform = camT(cam, 0, 0)
@@ -485,7 +503,7 @@ function render(t, k) {
     fr = lerp(0, PHONE.r, kk); fs = lerp(1, PHONE.scale, kk); radius = 110 * kk
     fullOp = 1 - ramp(t, D.phoneIn + 0.48, 0.12)
   }
-  if (tail) fullOp = ramp(t, D.TD, 0.3)
+  if (tail) fullOp = ramp(t, D.TD, 0.25)
   $('full').style.transform = `translate(${ax}px, ${ay}px) rotate(${fr}deg) scale(${fs}) translate(${-fx}px, ${-fy}px)`
   $('full').style.opacity = fullOp
   $('full').style.borderRadius = radius + 'px'
@@ -528,16 +546,18 @@ function render(t, k) {
   renderPhone(t, k)
 
   // ---------- Fond flou, carte de fin ----------
-  const blurOp = tail ? 1 - ramp(t, D.TD, 0.35) : ramp(t, D.phoneIn, 0.4)
+  const blurOp = tail ? 1 - ramp(t, D.TD, 0.3) : ramp(t, D.phoneIn, 0.4)
   $('blur').style.opacity = blurOp
   const dimBlur = capP(t, k) === P_DIM
   $('blurDim').style.opacity = dimBlur ? 1 : 0
-  const drift = ramp(t, D.phoneIn, duration - D.phoneIn)
-  ;['blurOn', 'blurDim'].forEach(id => ($(id).style.transform = `scale(${1.1 + 0.06 * drift}) translate(${-14 * drift}px, ${10 * drift}px)`))
+  // la salle floutée vit : le néon vacille (halo qui s'éteint), la caméra dérive
+  $('blurGlow').style.opacity = t < D.rise ? 0 : (dimBlur ? 0.08 : 0.55 + 0.1 * Math.sin((t - D.rise) * 5))
+  const drift = easeInOut(ramp(t, D.phoneIn, duration - D.phoneIn))
+  ;['blurOn', 'blurDim'].forEach(id => ($(id).style.transform = `scale(${1.08 + 0.16 * drift}) translate(${-34 * drift}px, ${22 * drift}px)`))
   renderEnd(t, k)
 
   // ---------- Titre, sous-titres, étiquette ----------
-  const titleOn = tail ? clamp(pop(t, duration - 0.5, 0.3)) : 1 - ramp(t, 2.8, 0.2)
+  const titleOn = tail ? clamp(pop(t, duration - 0.45, 0.25)) : 1 - ramp(t, 2.8, 0.2)
   setT($('title'), titleOn, `scale(${0.96 + 0.04 * titleOn})`)
   const tw = $('title').querySelectorAll('span')
   WORDS[0].forEach((w, i) => {
@@ -626,7 +646,12 @@ function renderGrid(t, k) {
   const active = t >= C.grid - 0.05 && t < C.s3 + 0.7
   $('grid').style.visibility = active ? 'visible' : 'hidden'
   const cStart = C.grid + 0.3, cEnd = Math.max(cStart + 0.7, C.n85end - 0.08)
-  const count = t < cStart ? 0 : Math.round(1 + 84 * easeOut(ramp(t, cStart, cEnd - cStart)))
+  // folioscope : vitesse presque constante (pas de longue traîne avant 85)
+  const cu = ramp(t, cStart, cEnd - cStart)
+  const count = t < cStart ? 0 : Math.round(1 + 84 * (1 - Math.pow(1 - cu, 1.35)))
+  // puis la tête de lecture rejoue les vraies images (cases 55 à 85) à 15 i/s, la cadence du site
+  const play = t >= cEnd + 0.05 && t < C.s3 ? FIRST_BACK + Math.floor((t - cEnd - 0.05) * 15) % (85 - FIRST_BACK) : -1
+  $('grid').style.transform = `scale(${1 + 0.035 * easeInOut(ramp(t, C.grid + 0.3, 2.4)) * (1 - ramp(t, C.s3, 0.3))})`
   const cntOn = clamp(ramp(t, C.grid + 0.2, 0.25) * (1 - ramp(t, C.s3, 0.25)))
   $('counter').style.opacity = cntOn
   $('counter').querySelector('b').textContent = String(Math.max(1, count)).padStart(2, '0')
@@ -644,9 +669,9 @@ function renderGrid(t, k) {
     const e = out * (1 - back)
     const x = lerp(sx0, tx, e), y = lerp(sy0, ty, e) - Math.sin(Math.PI * e) * 60 * c.j
     const lit = count >= i + 1
-    const cur = count === i + 1 && t < cEnd + 0.05
+    const cur = (count === i + 1 && t < cEnd + 0.05) || i === play
     c.el.style.opacity = t < C.grid ? 0 : clamp(out * 3) * (1 - clamp((back - 0.85) / 0.15))
-    c.el.style.transform = `translate(${x}px, ${y}px) rotate(${(1 - e) * c.rot}deg) scale(${lerp(s0, 1, e) * (cur ? 1.35 : 1)})`
+    c.el.style.transform = `translate(${x}px, ${y}px) rotate(${(1 - e) * c.rot}deg) scale(${lerp(s0, 1, e) * (i === play ? 1.75 : cur ? 1.35 : 1)})`
     c.el.style.filter = lit ? 'none' : 'brightness(.5) saturate(.6)'
     c.el.style.zIndex = cur ? 5 : 1
     c.ring.style.opacity = cur ? 1 : 0
@@ -661,17 +686,17 @@ function renderPhone(t, k) {
   const inK = ramp(t, D.phoneIn + 0.36, 0.22)
   const riseK = easeInOut(ramp(t, D.rise, 0.6))
   const cx = PHONE.cx, cy = lerp(PHONE.cy, 400, riseK), r = lerp(PHONE.r, 5, riseK)
-  const s = lerp(lerp(1.05, 1, easeOut(inK)), 0.44, riseK) * (tail ? 1 - 0.2 * ramp(t, D.TD, 0.3) : 1)
-  const bob = Math.sin((t - D.phoneIn) * 1.6) * 5 * (1 - riseK)
-  $('phone').style.transform = `translate(${cx - 540}px, ${cy - 905 + bob}px) rotate(${r}deg) scale(${s})`
-  $('phone').style.opacity = t < D.phoneIn ? 0 : (tail ? 1 - ramp(t, D.TD, 0.3) : inK)
-  // contenu : état final → « Compose ton menu » (Burgers) → Tacos
-  const bK = easeInOut(ramp(t, D.burgers, 0.4)), tK = easeInOut(ramp(t, D.tacos, 0.35))
-  $('sFinal').style.transform = `translateY(${-240 * bK}px)`
-  $('sFinal').style.opacity = 1 - bK * 0.6
-  $('sBurgers').style.transform = `translate(${-140 * tK}px, ${818 * (1 - bK)}px)`
-  $('sBurgers').style.opacity = t < D.burgers ? 0 : 1 - 0.7 * tK
-  $('sTacos').style.transform = `translateX(${460 * (1 - tK)}px)`
+  const s = lerp(lerp(1.05, 1, easeOut(inK)), 0.44, riseK) * (tail ? 1 - 0.2 * ramp(t, D.TD, 0.25) : 1)
+  const bob = Math.sin((t - D.phoneIn) * 1.6) * 5 * (1 - riseK) + Math.sin((t - D.rise) * 2.4) * 7 * riseK
+  const sway = Math.sin((t - D.rise) * 1.7) * 2.2 * riseK
+  $('phone').style.transform = `translate(${cx - 540}px, ${cy - 905 + bob}px) rotate(${r + sway}deg) scale(${s})`
+  $('phone').style.opacity = t < D.phoneIn ? 0 : (tail ? 1 - ramp(t, D.TD, 0.25) : inK)
+  // contenu : état final → « Compose ton menu », onglet Tacos (photo fournie par le restaurant), qui monte puis vit
+  const tK = easeInOut(ramp(t, D.tacos, 0.45))
+  $('sFinal').style.transform = `translateY(${-240 * tK}px)`
+  $('sFinal').style.opacity = 1 - tK * 0.6
+  const kb = easeInOut(ramp(t, D.tacos + 0.4, 1.8))
+  $('sTacos').style.transform = `translateY(${818 * (1 - tK)}px) scale(${1 + 0.1 * kb})`
   $('sTacos').style.opacity = t < D.tacos ? 0 : 1
   // tap sur « Compose ton menu » (centre du bouton dans la capture : 333, 1548)
   const bx = 333 * PHONE.scale, by = 1548 * PHONE.scale
@@ -691,7 +716,7 @@ function renderPhone(t, k) {
 function renderEnd(t, k) {
   const { WORDS, duration } = k
   const tail = t >= D.TD
-  const out = tail ? ramp(t, D.TD, 0.3) : 0
+  const out = tail ? ramp(t, D.TD, 0.25) : 0
   const big = pop(t, D.rise + 0.05, 0.4)
   $('endBig').style.opacity = t < D.rise ? 0 : clamp(big) * (1 - out)
   $('endBig').style.transform = `translateY(${(1 - clamp(big)) * 40 - out * 30}px) scale(${0.92 + 0.08 * big})`
@@ -704,6 +729,12 @@ function renderEnd(t, k) {
     $(id).style.transform = `translateY(${(1 - clamp(v)) * 30}px) scale(${0.9 + 0.1 * v})`
     $(id).style.filter = out > 0 ? `blur(${out * 12}px)` : 'none'
   })
+  // la carte avance doucement, un reflet passe sur le bouton toutes les 1,25 s
+  $('endc').style.transform = `scale(${1 + 0.035 * easeInOut(ramp(t, D.rise, Math.max(1, D.TD - D.rise)))})`
+  const su = t - D.cta1 - 0.45
+  const sh = su > 0 ? (su / 1.25) % 1 : -1
+  $('sheen').style.opacity = sh >= 0 && sh < 0.62 ? 1 : 0
+  $('sheen').style.transform = `translateX(${-160 + 1100 * clamp(sh / 0.62)}px) skewX(-18deg)`
 }
 
 let CELLS = []
@@ -720,7 +751,7 @@ LTNS.start({
     // la vraie chute en accéléré : un tic par lettre posée, puis le néon
     for (let i = 0; i < 7; i++) { let tt = D.fall; while (D.fallP(tt) < landP(i) && tt < D.fallEnd) tt += 1 / 120; ev.push({ t: tt, sfx: 'tick' }) }
     ev.push({ t: D.fallEnd - 0.1, sfx: 'buzz' })
-    ev.push({ t: D.phoneIn, sfx: 'whoosh' }, { t: D.tap, sfx: 'tick' }, { t: D.burgers, sfx: 'pop' }, { t: D.tacos, sfx: 'pop' })
+    ev.push({ t: D.phoneIn, sfx: 'whoosh' }, { t: D.tap, sfx: 'tick' }, { t: D.tacos, sfx: 'pop' })
     ev.push({ t: D.rise, sfx: 'whoosh' }, { t: D.cta1, sfx: 'pop' }, { t: D.cta2, sfx: 'pop' }, { t: D.brand, sfx: 'ding' })
     ev.push({ t: D.TD, sfx: 'whoosh' })
     return ev
