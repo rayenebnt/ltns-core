@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — Vrais projets · PMSB « Ta souris nettoie la façade »</title>
+<!--
+  Semaine « vrais projets », vidéo 2 : PMSB, site vitrine (build de production local de /home/user/rayenebnt/pmsb-ravalement).
+  Image 0 : le vrai héros WebGL StoneWall filmé en temps virtuel avec une souris scriptée (fenêtre 1440 x 1600,
+  tranche 9:16) : pierre encrassée à droite, pierre ravalée autour de l'anneau du curseur du site, bord des
+  lettres PMSB en bas, titre fixe. Puis : rembobinage, vrai préchargeur, façade qui se monte rang par rang
+  (ralenti 120 i/s), deux lignes réelles de StoneWall.tsx, téléphone (la lumière se promène seule, en accéléré),
+  écran partagé téléphone / ordinateur, défilement, comparateur avant / après, rail des réalisations, crédit
+  « Site réalisé par LTNS », carte de fin, retour à l'image 0 (la façade se remonte sous le curseur).
+  Tout est calé sur les mots de la voix (cues) : la vidéo se recale seule quand voice/ et timing.json arrivent.
+  Zones TikTok : rien d'important sous y ≈ 1260, ni à x > 940 entre y ≈ 900 et 1500. 1080 x 1920, 30 i/s.
+  ?t=12.5 fige l'image · ?render pour render.mjs.
+-->
+<link rel="stylesheet" href="../../commun/fonts.css">
+<style>
+  @font-face { font-family: 'Archivo'; font-weight: 100 900; font-display: block; src: url(assets/fonts/Archivo-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Archivo'; font-weight: 100 900; font-display: block; src: url(assets/fonts/Archivo-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C4, U+2C60-2C7F, U+A720-A7FF; }
+  :root { --ink: #0d0d10; --paper: #efebe3; --blue: #129bfa; --mute: #8f8a7e; --cyan: #22D3EE; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1080px; height: 1920px; overflow: hidden; background: #060608; font-family: 'Archivo', sans-serif; color: var(--paper); }
+  .layer { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; }
+  video { display: block; }
+  .full { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+
+  /* Vraies captures plein cadre */
+  #vMacro { position: absolute; left: 405px; top: 0; width: 675px; height: 1200px; opacity: 0; }
+  #focus { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; opacity: 0; }
+  #focus path { fill: none; stroke: var(--blue); stroke-width: 3.5; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(18, 155, 250, .9)); }
+  #stoneTag { left: 0; top: 0; font-size: 28px; padding: 8px 16px; letter-spacing: 3px; }
+  #stoneTag.clean { background: var(--blue); color: #fff; border-color: transparent; }
+  #halo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+  #rows { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  #rows line { stroke: var(--blue); stroke-width: 4; stroke-linecap: round; filter: drop-shadow(0 0 8px rgba(18, 155, 250, .9)); }
+  #preWrap { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; opacity: 0; }
+  #vPre { position: absolute; left: 0; top: 690px; width: 1080px; height: 554px; }
+  #vhs { position: absolute; inset: 0; opacity: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .07) 0 2px, transparent 2px 7px); mix-blend-mode: screen; }
+  #vhs i { position: absolute; left: 0; right: 0; height: 26px; background: rgba(255, 255, 255, .16); filter: blur(3px); }
+  #topShade { position: absolute; z-index: 30; left: 0; right: 0; top: 0; height: 640px; background: linear-gradient(rgba(8, 8, 10, .74), rgba(8, 8, 10, .42) 55%, rgba(8, 8, 10, 0)); pointer-events: none; }
+  #grainV { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 45%, transparent 55%, rgba(0, 0, 0, .45)); pointer-events: none; }
+
+  /* Titre fixe (image 0) et sous-titres */
+  #title { position: absolute; left: 50px; right: 50px; top: 236px; height: 240px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; text-transform: uppercase; z-index: 40; text-shadow: 0 6px 30px rgba(0, 0, 0, .55); }
+  #title .l1 { font-weight: 800; font-size: 72px; line-height: 1; letter-spacing: -1.5px; white-space: nowrap; }
+  #title .l2 { font-weight: 900; font-size: 100px; line-height: .98; letter-spacing: -3px; margin-top: 12px; white-space: nowrap; }
+  #title span { display: inline-block; transition: none; }
+  #title .blue { color: var(--blue); }
+  #capWrap { position: absolute; left: 50px; right: 50px; top: 250px; height: 210px; z-index: 40; transform-origin: 50% 0; }
+  #caption { width: 100%; height: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: 0 18px; text-align: center; font-weight: 800; font-size: 64px; line-height: 1.04; letter-spacing: -1.5px; text-transform: uppercase; text-shadow: 0 3px 4px rgba(0, 0, 0, .55), 0 5px 26px rgba(0, 0, 0, .75); }
+  #caption .w { color: rgba(239, 235, 227, .32); }
+  #caption .w.on { color: var(--paper); }
+  #caption .w.hl.on { color: var(--blue); }
+
+  /* Étiquettes */
+  .tag { position: absolute; z-index: 41; font-family: 'JetBrains Mono', monospace; font-size: 26px; letter-spacing: 3px; color: var(--paper); background: rgba(13, 13, 16, .82); border: 2px solid rgba(239, 235, 227, .18); padding: 10px 18px; border-radius: 999px; white-space: nowrap; opacity: 0; }
+  .tag b { color: var(--blue); font-weight: 500; }
+  .tag i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); margin-right: 12px; vertical-align: 1px; box-shadow: 0 0 12px var(--blue); }
+  #label { left: 540px; top: 520px; font-size: 32px; padding: 14px 26px; }
+  #rw { position: absolute; left: 80px; top: 640px; z-index: 41; font-family: 'JetBrains Mono', monospace; font-size: 40px; letter-spacing: 4px; color: #fff; opacity: 0; text-shadow: 0 0 18px rgba(255, 255, 255, .6); }
+
+  /* Carte de code (deux vraies lignes de StoneWall.tsx) */
+  #code { position: absolute; left: 110px; top: 640px; width: 860px; z-index: 30; opacity: 0; background: rgba(13, 13, 16, .93); border: 2px solid rgba(239, 235, 227, .14); border-radius: 30px; box-shadow: 0 60px 120px -40px rgba(0, 0, 0, .9); overflow: hidden; }
+  #code .bar { display: flex; align-items: center; gap: 12px; padding: 20px 28px; border-bottom: 2px solid rgba(239, 235, 227, .1); font-family: 'JetBrains Mono', monospace; font-size: 24px; color: var(--mute); }
+  #code .bar i { width: 14px; height: 14px; border-radius: 50%; background: #3a3a44; }
+  #code .bar span { margin-left: 10px; }
+  #code .bar b { color: var(--paper); font-weight: 500; }
+  #code pre { padding: 26px 30px 30px; font-family: 'JetBrains Mono', monospace; font-size: 30px; line-height: 1.5; color: #6f6b62; white-space: pre-wrap; }
+  #code .n { color: #4a4740; display: inline-block; width: 56px; }
+  #code .k { color: var(--paper); }
+  #code .gap { color: #4a4740; }
+  #code .rav { color: var(--paper); position: relative; }
+  #code .rav.on { color: var(--blue); text-shadow: 0 0 18px rgba(18, 155, 250, .7); }
+  #code .rav u { position: absolute; left: 0; bottom: -4px; height: 4px; width: 100%; background: var(--blue); transform-origin: 0 50%; transform: scaleX(0); text-decoration: none; }
+  #stamp { left: 540px; top: 1110px; font-size: 28px; background: var(--blue); color: #fff; border-color: transparent; letter-spacing: 3px; padding: 14px 26px; box-shadow: 0 20px 40px -14px rgba(18, 155, 250, .8); }
+
+  /* Téléphone et ordinateur (vectoriels, sans marque) */
+  #scene3d { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 540px 900px; z-index: 20; }
+  #phone { position: absolute; left: 244px; top: 470px; width: 592px; height: 1244px; transform-origin: 296px 622px; opacity: 0; }
+  #phone .body { position: absolute; inset: 0; border-radius: 78px; padding: 16px; background: linear-gradient(150deg, #34343c, #101014 45%, #1c1c22); box-shadow: 0 90px 140px -60px rgba(0, 0, 0, .95), inset 0 0 0 3px rgba(255, 255, 255, .1), inset 0 0 0 8px #050506; }
+  #phone .scr { position: relative; width: 560px; height: 1212px; border-radius: 62px; overflow: hidden; background: var(--ink); }
+  #phone .scr > * { position: absolute; left: 0; top: 0; }
+  #phone video { width: 560px; height: 1212px; opacity: 0; }
+  #vMur { filter: brightness(1.3); }
+  #phone .notch { left: 50%; top: 18px; width: 150px; height: 40px; margin-left: -75px; border-radius: 22px; background: #050506; z-index: 9; }
+  #glare { width: 560px; height: 1212px; z-index: 8; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .16) 46%, rgba(255, 255, 255, .03) 52%, transparent 60%); background-size: 300% 100%; pointer-events: none; }
+  #trail { width: 560px; height: 1212px; z-index: 5; overflow: visible; }
+  #trail circle.d { fill: rgba(239, 235, 227, .9); }
+  #trail circle.head { fill: none; stroke: var(--blue); stroke-width: 5; filter: drop-shadow(0 0 10px var(--blue)); }
+  #rail { width: 560px; height: 1212px; background: var(--paper); opacity: 0; overflow: hidden; }
+  #railStrip { position: absolute; left: 0; top: 110px; display: flex; gap: 22px; padding-left: 40px; }
+  #railStrip img { width: 420px; height: 677px; display: block; }
+  #foot { width: 560px; height: 1212px; background: var(--ink); opacity: 0; overflow: hidden; }
+  #footIn { position: absolute; left: 0; top: 0; width: 560px; transform-origin: 0 0; }
+  #footIn img { width: 560px; display: block; }
+  #credLine { position: absolute; height: 5px; background: var(--blue); border-radius: 3px; transform-origin: 0 50%; box-shadow: 0 0 14px var(--blue); }
+  #laptop { position: absolute; left: 450px; top: 690px; width: 460px; opacity: 0; transform-origin: 250px 200px; }
+  #laptop .lid { width: 460px; height: 304px; border-radius: 22px 22px 6px 6px; background: linear-gradient(160deg, #34343c, #121216); padding: 14px 14px 22px; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .1); }
+  #laptop .lid .scr { width: 432px; height: 270px; border-radius: 6px; overflow: hidden; background: var(--ink); }
+  #laptop video { width: 432px; height: 270px; }
+  #laptop .base { width: 510px; margin-left: -25px; height: 22px; border-radius: 3px 3px 18px 18px; background: linear-gradient(#3a3a42, #1a1a1f); box-shadow: 0 40px 60px -20px rgba(0, 0, 0, .9); }
+  #laptop .base i { display: block; width: 110px; height: 8px; margin: 0 auto; border-radius: 0 0 8px 8px; background: #0e0e12; }
+  .dev { position: absolute; z-index: 25; top: 1172px; font-family: 'JetBrains Mono', monospace; font-size: 23px; letter-spacing: 2px; color: var(--paper); text-align: center; opacity: 0; line-height: 1.35; }
+  .dev b { display: block; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 30px; letter-spacing: 1px; }
+  .dev b em { font-style: normal; color: var(--blue); }
+  #devL { left: 92px; width: 360px; }
+  #devR { left: 450px; width: 460px; }
+  #marker { left: 540px; top: 520px; font-size: 24px; }
+
+  /* Carte de fin */
+  #end { position: absolute; left: 80px; width: 820px; top: 600px; z-index: 35; }
+  #endQ { font-weight: 900; font-size: 92px; line-height: 1; letter-spacing: -3px; text-transform: uppercase; text-shadow: 0 8px 40px rgba(0, 0, 0, .7); }
+  #endQ span { display: inline-block; opacity: .28; }
+  #endQ span.on { opacity: 1; }
+  #endQ span.g.on { color: var(--blue); }
+  #cta { display: inline-block; margin-top: 34px; font-weight: 800; font-size: 40px; letter-spacing: -.5px; color: var(--ink); background: var(--paper); padding: 16px 26px; border-radius: 16px; opacity: 0; }
+  #zones { margin-top: 22px; font-family: 'JetBrains Mono', monospace; font-size: 29px; line-height: 1.35; white-space: nowrap; letter-spacing: 1px; color: #d8d3c8; opacity: 0; }
+  #brand { margin-top: 24px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 96px; letter-spacing: -2px; color: #fff; opacity: 0; line-height: 1; }
+  #brand span { color: var(--cyan); }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 60; pointer-events: none; }
+  #dark { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 19; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Vraies captures plein cadre -->
+  <div class="layer" id="heroWrap">
+    <video id="vHero" class="full" muted playsinline preload="auto"></video>
+    <video id="vMacro" muted playsinline preload="auto"></video>
+    <svg id="focus" viewBox="0 0 1080 1920"><path d="M815 478 v-24 h24 M914 454 h24 v24 M938 542 v24 h-24 M839 566 h-24 v-24"/></svg>
+    <svg id="halo" viewBox="0 0 1080 1920"><g id="haloG"><circle r="62" fill="none" stroke="rgba(18,155,250,.28)" stroke-width="14"/><circle r="40" fill="none" stroke="#129bfa" stroke-width="4"/></g></svg>
+  </div>
+  <div class="layer" id="introWrap" style="opacity:0">
+    <video id="vIntro" class="full" muted playsinline preload="auto"></video>
+    <svg id="rows" viewBox="0 0 1080 1920"></svg>
+  </div>
+  <div id="preWrap"><video id="vPre" muted playsinline preload="auto"></video></div>
+  <div id="vhs"><i></i><i></i></div>
+  <div id="grainV"></div>
+  <div id="dark"></div>
+
+  <!-- Téléphone, ordinateur -->
+  <div id="scene3d">
+    <div id="phone"><div class="body"><div class="scr">
+      <video id="vPhone" muted playsinline preload="auto"></video>
+      <video id="vMur" muted playsinline preload="auto"></video>
+      <svg id="trail" viewBox="0 0 560 1212"></svg>
+      <video id="vScroll" muted playsinline preload="auto"></video>
+      <video id="vCompare" muted playsinline preload="auto"></video>
+      <div id="rail"><div id="railStrip">
+        <img src="assets/rail-pignon.jpg" alt=""><img src="assets/rail-cheminee.jpg" alt=""><img src="assets/rail-poncage-marbre.jpg" alt=""><img src="assets/rail-ravalement-brique.jpg" alt="">
+      </div></div>
+      <div id="foot"><div id="footIn"><img id="footImg" src="assets/pied-de-page.jpg" alt=""><i id="credLine"></i></div></div>
+      <div id="glare"></div>
+      <i class="notch"></i>
+    </div></div></div>
+    <div id="laptop"><div class="lid"><div class="scr"><video id="vDesk" muted playsinline preload="auto"></video></div></div><div class="base"><i></i></div></div>
+  </div>
+  <div class="dev" id="devL"><b>TÉLÉPHONE</b>la lumière dérive seule</div>
+  <div class="dev" id="devR"><b>ORDINATEUR</b>ta souris <em style="color:#129bfa;font-style:normal">nettoie</em></div>
+
+  <!-- Code réel -->
+  <div id="code">
+    <div class="bar"><i></i><i></i><i></i><span>components/webgl/<b>StoneWall.tsx</b></span></div>
+    <pre><span class="n">13</span><span class="k">l'appareil se monte assise par assise</span> à l'arrivée, respire en
+<span class="gap">  ⋯</span>
+<span class="n">17</span><span class="k">Le curseur, lui, <span class="rav" id="rav">ravale<u></u></span></span> : la pierre encrassée redevient claire</pre>
+  </div>
+  <div class="tag" id="stamp">AUCUN MODÈLE 3D IMPORTÉ</div>
+
+  <div id="topShade"></div>
+  <div class="tag" id="stoneTag">SALE</div>
+  <div class="tag" id="label"><i></i>VRAI PROJET · <b>PMSB</b></div>
+  <div class="tag" id="marker"></div>
+  <div id="rw">◀◀ REMBOBINAGE</div>
+
+  <!-- Fin -->
+  <div id="end">
+    <h2 id="endQ"></h2>
+    <div id="cta">Devis gratuit sous 48 h · lien en bio</div>
+    <div id="zones">Partout en France à distance ·<br>sur place en Île-de-France</div>
+    <div id="brand">LTNS<span>°</span></div>
+  </div>
+
+  <div id="title"><div class="l1"><span>Sur</span> <span>ce</span> <span>site,</span> <span>ta</span> <span>souris</span></div><div class="l2"><span class="blue">nettoie</span> <span>la</span> <span>façade.</span></div></div>
+  <div id="capWrap"><div id="caption"></div></div>
+  <div id="flash"></div>
+</div>
+
+<script src="../../commun/engine.js"></script>
+<script src="voice-files.js"></script>
+<script>
+const { clamp, easeInOut, easeOut, easeIn, pop, ramp, pulse, lerp, $, setT, caption } = LTNS
+
+// ---------- Voix : une phrase par segment [pause] / [long pause] du script ----------
+const SENTENCES = [
+  { chunks: [['Sur ce site,', 'site,'], ['ta souris', 'souris'], ['nettoie la façade.', 'nettoie']] },
+  { chunks: [['P.M.S.B.', 'P.M.S.B.'], ['fait du ravalement…', 'ravalement…']] },
+  { chunks: [['alors son mur est en trois D,', 'trois'], ['sans modèle importé,', 'modèle'], ['et il se monte rang par rang.', 'rang.']] },
+  { chunks: [['Sur téléphone,', 'téléphone,'], ['la lumière se promène', 'lumière'], ['toute seule.', 'seule.']] },
+  { chunks: [['Et plus bas,', 'bas,'], ['ses réalisations,', 'réalisations,'], ['en avant,', 'avant,'], ['après.', 'après.']] },
+  { chunks: [['Ton métier,', 'métier,'], ['ce serait quel geste ?', 'geste']] },
+]
+const SPOKEN = { 'P.M.S.B.': 'pé emme esse bé', 'D,': 'dé' }
+// [phrase, mot | fraction, décalage (s), son]
+const CUES = {
+  v2: [1, 0, -0.05],
+  pre: [2, 0, -0.12, 'tick'],
+  sans: [2, 'sans', -0.25, 'whoosh'],
+  et: [2, 'et', -0.05],
+  code: [2, 'rang.', -0.45, 'pop'],
+  v4: [3, 0, -0.12, 'whoosh'],
+  lum: [3, 'lumière', -0.1, 'whoosh'],
+  split: [3, 'seule.', -0.15, 'pop'],
+  bas: [4, 'bas,', -0.12, 'whoosh'],
+  real: [4, 'réalisations,', -0.1, 'pop'],
+  avant: [4, 'avant,', -0.12, 'whoosh'],
+  apres: [4, 'après.', -0.1, 'tick'],
+  rail: [4, 'après.', 0.42, 'whoosh'],
+  foot: [4, 1.0, 0.02, 'tick'],
+  endc: [5, 0, -0.05, 'pop'],
+}
+const FPS = 30
+const TAIL = 2.6           // fin de carte (1,6 s) + retour à l'image 0 (1,0 s)
+const I0 = 78              // image du héros = image 0 (T0 = 4,2 s après le chargement)
+const AMB0 = 180           // héros flouté en fond : le curseur continue son S
+let RING = [], ROWS = [], LIGHT = [], MAC = null
+const V = {}
+const pending = []
+
+// ---------- Vidéos : une image précise par instant (recherche + attente du « seeked ») ----------
+function vframe(id, f) {
+  const v = V[id]
+  const i = Math.max(0, Math.min(v.n - 1, Math.floor(f + 1e-6)))
+  if (i === v.cur) return
+  v.cur = i
+  const el = v.el
+  // « seeked » puis l'image réellement présentée (requestVideoFrameCallback), sinon délai de secours
+  const seeked = new Promise(res => { const done = () => { el.removeEventListener('seeked', done); res() }; el.addEventListener('seeked', done) })
+  const shown = new Promise(res => { if (el.requestVideoFrameCallback) el.requestVideoFrameCallback(() => res()); else res(); setTimeout(res, 1500) })
+  pending.push(Promise.all([seeked, shown]))
+  el.currentTime = (i + 0.5) / v.fps
+}
+async function loadVideo(id, src, fps) {
+  const el = $(id)
+  el.muted = true
+  // blob : recherche exacte même si le serveur local ne gère pas les requêtes partielles (Range)
+  el.src = URL.createObjectURL(await (await fetch(src)).blob())
+  await new Promise((res, rej) => { el.addEventListener('loadeddata', res, { once: true }); el.addEventListener('error', () => rej(new Error('vidéo ' + src)), { once: true }) })
+  el.pause()
+  V[id] = { el, fps, n: Math.round(el.duration * fps), cur: -1 }
+}
+
+// ---------- Outils de temps ----------
+function seg(keys, t) {   // interpolation linéaire par morceaux [[t, valeur], …]
+  if (t <= keys[0][0]) return keys[0][1]
+  for (let i = 1; i < keys.length; i++) if (t <= keys[i][0]) { const [a, va] = keys[i - 1], [b, vb] = keys[i]; return b > a ? va + (vb - va) * (t - a) / (b - a) : vb }
+  return keys[keys.length - 1][1]
+}
+function keyed(keys, t) { // interpolation adoucie de vecteurs [[t, [..]], …]
+  if (t <= keys[0][0]) return keys[0][1]
+  for (let i = 1; i < keys.length; i++) if (t <= keys[i][0]) { const [a, va] = keys[i - 1], [b, vb] = keys[i]; const k = easeInOut(clamp((t - a) / (b - a))); return va.map((x, j) => x + (vb[j] - x) * k) }
+  return keys[keys.length - 1][1]
+}
+
+// Instants dérivés des cues (tout se recale quand la vraie voix arrive)
+let T = null
+function plan(C, TIMES, duration) {
+  const P = {}
+  P.PERIOD = Math.ceil(duration * FPS) / FPS
+  P.LOOP0 = P.PERIOD - 1.0
+  P.REW = Math.max(3.0, C.v2)                                     // relance : le titre tient jusqu'à 3,0 s
+  P.RW_END = Math.max(P.REW + 0.6, Math.min(C.pre - 0.2, P.REW + 1.9))
+  P.PRE = Math.max(C.pre, P.RW_END + 0.05)
+  P.SANS = Math.max(C.sans, P.PRE + 0.6)                          // fin du préchargeur, lettres qui montent
+  P.SLOW = P.SANS + 0.45                                          // ralenti : les premières pierres
+  P.ET = Math.max(C.et - 0.05, P.SLOW + 0.4)                      // les assises se posent
+  P.CODE = Math.max(C.code, P.ET + 0.45)
+  P.V4 = Math.max(C.v4, P.CODE + 0.7)
+  P.LUM = Math.max(C.lum, P.V4 + 0.55)
+  P.SPLIT = Math.max(C.split, P.LUM + 0.8)
+  P.BAS = Math.max(C.bas, P.SPLIT + 0.9)
+  P.REAL = Math.max(C.real, P.BAS + 0.45)
+  P.AVANT = Math.max(C.avant, P.REAL + 0.3)
+  P.APRES = Math.max(C.apres, P.AVANT + 0.45)
+  P.RAIL = Math.max(C.rail, P.APRES + 0.5)
+  P.FOOT = Math.max(C.foot, P.RAIL + 0.55)
+  P.ENDC = Math.max(C.endc, P.FOOT + 0.75)
+  P.endWords = TIMES[5]
+  // Ouverture ordinateur à 120 i/s : temps source (s depuis le chargement) en fonction du temps vidéo
+  P.intro = [[P.SANS - 0.25, 2.25], [P.SLOW, 2.66], [P.ET, 2.98], [P.CODE, 3.32], [P.V4 + 0.4, 3.69]]
+  // Rembobinage du héros
+  P.iA = hookIdx(P.REW)
+  return P
+}
+// 0 → 2,2 s : le héros joue à 0,75× pour que la pierre du gros plan bascule pendant le gros plan
+const hookIdx = t => t <= 2.2 ? I0 + 22.5 * t : I0 + 49.5 + FPS * (t - 2.2)
+function heroIdx(t) {
+  const P = T
+  if (t < P.REW) return hookIdx(t)
+  if (t < P.RW_END) {
+    const p = (t - P.REW) / (P.RW_END - P.REW)
+    return p < 0.4 ? lerp(P.iA, I0, p / 0.4) : lerp(I0, 9, easeInOut((p - 0.4) / 0.6))
+  }
+  if (t < P.ENDC) return AMB0 + (t - P.V4 + 0.4) * FPS * 0.28
+  if (t < P.LOOP0) return Math.min(V.vHero.n - 1, AMB0 + (P.ENDC - P.V4 + 0.4) * FPS * 0.28 + (t - P.ENDC) * FPS * 0.8)
+  const p = clamp((t - P.LOOP0) / (P.PERIOD - P.LOOP0))
+  return 22 + (I0 - 22) * (p + 0.6 * p * (1 - p))                // l'assemblage rejoué en accéléré, puis la vitesse de l'image 0
+}
+// Oscillateurs bouclés sur la durée exacte (pas de saut au raccord)
+const osc = (t, approx, ph = 0) => { const n = Math.max(1, Math.round(T.PERIOD / approx)); return Math.sin(2 * Math.PI * n * t / T.PERIOD + ph) }
+
+// Mise en place d'une couche vidéo dans le téléphone (cover 780 x 1688 -> 560 x 1212)
+function show(id, on) { $(id).style.opacity = on }
+
+function render(t, k) {
+  const { C, TIMES, WORDS } = k
+  if (!T) T = plan(C, TIMES, k.duration)
+  const P = T
+  pending.length = 0
+  const inLoop = t >= P.LOOP0
+
+  // ===== Héros (image 0, gros plan, rembobinage, fond flouté, fin, boucle) =====
+  const hIdx = heroIdx(t)
+  vframe('vHero', hIdx)
+  let heroOp = 1, blur = 0, bright = 1
+  let tr = [1, 553, 902, 553, 902]   // zoom, point visé (x, y), position à l'écran (x, y)
+  if (t < P.REW + 0.01) {
+    tr = keyed([[0, [1, 553, 902, 553, 902]], [1.0, [1.03, 553, 902, 553, 902]], [1.3, [1.6, 742, 600, 540, 960]], [1.95, [1.64, 742, 600, 540, 960]], [2.5, [1, 540, 960, 540, 960]]], t)
+  } else if (t < P.RW_END + 0.4) {
+    const p = clamp((t - P.REW) / (P.RW_END - P.REW))
+    tr = [1 + 0.04 * Math.sin(p * Math.PI), 540, 960, 540 + 6 * Math.sin(t * 90), 960]
+    bright = 1 - 0.85 * ramp(t, P.RW_END - 0.15, 0.25)
+    heroOp = 1 - ramp(t, P.RW_END, 0.2)
+  } else if (t < P.V4 - 0.3) {
+    heroOp = 0
+  } else if (t < P.ENDC) {
+    heroOp = ramp(t, P.V4 - 0.3, 0.45); blur = 26; bright = 0.42
+    tr = [1.08, 540, 960, 540, 960]
+  } else if (!inLoop) {
+    const p = easeInOut(ramp(t, P.ENDC - 0.1, 0.5))
+    blur = lerp(26, 6, p); bright = lerp(0.42, 0.5, p) * (1 - 0.8 * ramp(t, P.LOOP0 - 0.28, 0.28))
+    tr = [lerp(1.08, 1.03, p), 540, 960, 540, 960]
+  } else {
+    const p = clamp((t - P.LOOP0) / (P.PERIOD - P.LOOP0))
+    blur = 6 * (1 - easeOut(clamp(p / 0.55))); bright = lerp(0.1, 1, easeOut(clamp(p / 0.6)))
+  }
+  const [z, fx, fy, ax, ay] = tr
+  $('heroWrap').style.transform = `translate(${ax - fx * z}px, ${ay - fy * z}px) scale(${z})`
+  $('heroWrap').style.opacity = heroOp
+  $('heroWrap').style.filter = blur || bright !== 1 ? `blur(${blur.toFixed(2)}px) brightness(${bright.toFixed(3)})` : 'none'
+  // Gros plan net : mêmes images, région 405,40 675x1200 rendue depuis la source 1440 x 2560
+  const mi = hIdx - MAC.from
+  const macOn = t > 0.95 && t < 2.45 && mi >= 0 && mi < MAC.n
+  $('vMacro').style.opacity = macOn ? 1 : 0
+  if (macOn) vframe('vMacro', mi)
+  // Gros plan : crochets autour d'une pierre qui passe de la suie à la pierre claire (mesurée image par image)
+  const fo = t < P.REW ? ramp(t, 1.12, 0.15) * (1 - ramp(t, 1.95, 0.2)) : 0
+  $('focus').style.opacity = fo
+  const flipped = hIdx >= 113
+  const st = $('stoneTag')
+  st.textContent = flipped ? 'PROPRE' : 'SALE'
+  st.classList.toggle('clean', flipped)
+  const sx = ax - fx * z + 877 * z, sy = ay - fy * z + 454 * z
+  setT(st, fo, `translate(${(sx).toFixed(1)}px, ${(sy - 52).toFixed(1)}px) translateX(-50%) scale(${flipped ? 1 + 0.12 * pulse(t, (113 - I0) / 22.5, 0.3) : 1})`)
+  // Halo sur l'anneau du curseur du site (position lue dans la page à chaque image)
+  const r = RING[Math.max(0, Math.min(RING.length - 1, Math.floor(hIdx + 1e-6)))] || [553, 902, 1]
+  const haloOn = t < P.REW ? 1 - ramp(t, 2.3, 0.4) : inLoop ? ramp(t, P.LOOP0 + 0.45, 0.4) : 0
+  const hs = 1 + 0.12 * osc(t, 0.9)
+  $('haloG').setAttribute('transform', `translate(${r[0]} ${r[1]}) scale(${hs.toFixed(4)})`)
+  $('halo').style.opacity = haloOn * r[2]
+
+  // ===== Titre fixe 0–3 s, les mots s'allument au rythme de V1 ; il revient pour la boucle =====
+  const titleOn = inLoop ? easeOut(ramp(t, P.PERIOD - 0.5, 0.4)) : 1 - ramp(t, Math.min(2.8, P.REW - 0.2), 0.2)
+  setT($('title'), titleOn, `translateY(${(1 - titleOn) * -14}px) scale(${0.97 + 0.03 * titleOn})`)
+  const tw = [...$('title').querySelectorAll('span')]
+  WORDS[0].forEach((w, i) => { if (tw[i]) { const lit = !inLoop && t >= w.t0 - 0.03 && t < w.t1 + 0.12; tw[i].style.color = lit || tw[i].classList.contains('blue') ? '#129bfa' : ''; tw[i].style.transform = lit ? 'translateY(-4px)' : 'none' } })
+
+  // ===== Sous-titres =====
+  const endOn = t >= P.ENDC - 0.12 && !inLoop
+  const early = t < P.REW
+  caption($('caption'), t, k, { from: 0, hide: endOn || inLoop || t < TIMES[1].start - 0.08 })
+  const capLen = $('caption').textContent.length
+  $('caption').style.fontSize = capLen > 62 ? '54px' : capLen > 40 ? '60px' : '64px'
+  $('capWrap').style.transform = early ? 'translateY(262px) scale(.62)' : 'none'
+
+  // ===== Relance : rembobinage =====
+  const rwOn = t >= P.REW && t < P.RW_END + 0.05
+  $('vhs').style.opacity = rwOn ? 0.9 : 0
+  if (rwOn) [...$('vhs').children].forEach((el, i) => { el.style.top = ((t * (900 + i * 430) + i * 700) % 1920) + 'px' })
+  $('rw').style.opacity = rwOn ? 0.55 + 0.45 * (Math.sin(t * 30) > 0 ? 1 : 0) : 0
+  const lb = t < P.REW ? 0 : pop(t, P.REW + 0.05, 0.35) * (1 - ramp(t, P.SANS - 0.2, 0.25))
+  setT($('label'), clamp(lb), `translate(-50%, 0) scale(${0.85 + 0.15 * lb})`)
+
+  // ===== Vrai préchargeur (mobile) : PMSB, compteur 000 → 100 =====
+  const preOn = t >= P.PRE - 0.05 && t < P.SANS + 0.05
+  $('preWrap').style.opacity = preOn ? ramp(t, P.PRE - 0.05, 0.15) : 0
+  if (preOn) {
+    vframe('vPre', seg([[P.PRE, 6], [P.SANS - 0.25, 45], [P.SANS, 49]], t))
+    $('preWrap').style.transform = `translateY(${-40 * ramp(t, P.PRE, P.SANS - P.PRE)}px) scale(${1 + 0.05 * ramp(t, P.PRE, P.SANS - P.PRE)})`
+  }
+
+  // ===== Ouverture ordinateur (120 i/s) : lettres, pierres au ralenti, assises + traits bleus =====
+  const inOn = t >= P.SANS - 0.25 && t < P.V4 + 0.5
+  $('introWrap').style.opacity = inOn ? Math.min(ramp(t, P.SANS - 0.25, 0.12), 1 - ramp(t, P.V4, 0.45)) : 0
+  if (inOn) {
+    const src = seg(P.intro, t)
+    vframe('vIntro', (src - 1.5) * 120)
+    const dim = easeInOut(ramp(t, P.CODE, 0.35))
+    $('introWrap').style.filter = dim > 0 ? `blur(${(5 * dim).toFixed(2)}px) brightness(${(1 - 0.5 * dim).toFixed(3)})` : 'none'
+    $('introWrap').style.transform = `scale(${1 + 0.035 * ramp(t, P.SANS, P.V4 - P.SANS)})`
+    $('introWrap').style.transformOrigin = '540px 700px'
+    ROWS.forEach((ln, i) => {
+      const d = clamp((src - ln.lockSrc) / 0.05)
+      ln.el.style.opacity = d > 0 ? 1 - ramp(t, P.CODE + 0.1, 0.3) : 0
+      ln.el.style.strokeDashoffset = (1 - easeOut(d)) * ln.len
+    })
+  }
+
+  // ===== Carte de code : deux vraies lignes de StoneWall.tsx =====
+  const cIn = easeOut(ramp(t, P.CODE, 0.35)), cOut = easeIn(ramp(t, P.V4 - 0.05, 0.3))
+  setT($('code'), t >= P.CODE && cOut < 1 ? cIn * (1 - cOut) : 0, `translateY(${(1 - cIn) * 90 - cOut * 120}px) rotateX(${(1 - cIn) * 18}deg)`)
+  const rv = ramp(t, P.CODE + 0.5, 0.25)
+  $('rav').classList.toggle('on', rv > 0)
+  $('rav').querySelector('u').style.transform = `scaleX(${easeOut(rv)})`
+  const sp = t >= P.CODE + 0.25 && cOut < 1 ? clamp(pop(t, P.CODE + 0.25, 0.32)) * (1 - cOut) : 0
+  setT($('stamp'), sp, `translate(-50%, 0) rotate(-2deg) scale(${0.7 + 0.3 * sp})`)
+
+  // ===== Téléphone =====
+  // états : [x, y, échelle, rotY, rotX, rotZ] du centre du téléphone
+  const S_IN = [540, 1092, 1, -10, 5, -3], S_ZOOM = [638, 1046, 1.4, 0, 0, 0], S_SPLIT = [272, 860, 0.5, 9, 0, 0]
+  const S_SCROLL = [540, 1000, 0.86, -4, 2, 0], S_CMP = [540, 1092, 1.0, 0, 0, 0], S_RAIL = [540, 1092, 1.0, 0, 0, 0], S_FOOT = [540, 1092, 1.0, 0, 0, 0], S_OUT = [540, 760, 0.6, 0, 0, 0]
+  const ph = keyed([
+    [P.V4 - 0.1, [540, 2500, 1, -24, 18, -8]], [P.V4 + 0.45, S_IN], [P.LUM, S_IN], [P.LUM + 0.5, S_ZOOM], [P.SPLIT - 0.05, S_ZOOM], [P.SPLIT + 0.45, S_SPLIT],
+    [P.BAS - 0.05, S_SPLIT], [P.BAS + 0.4, S_SCROLL], [P.REAL - 0.05, S_SCROLL], [P.REAL + 0.35, S_CMP], [P.RAIL - 0.1, S_CMP], [P.RAIL + 0.25, S_RAIL],
+    [P.FOOT - 0.05, S_RAIL], [P.FOOT + 0.4, S_FOOT], [P.ENDC - 0.1, S_FOOT], [P.ENDC + 0.3, S_OUT]], t)
+  const phOn = t >= P.V4 - 0.1 && t < P.ENDC + 0.45
+  const phFloat = 6 * osc(t, 2.6)
+  $('phone').style.opacity = phOn ? 1 - ramp(t, P.ENDC - 0.05, 0.3) : 0
+  $('phone').style.transform = `translate(${ph[0] - 540}px, ${ph[1] - 1092 + phFloat}px) scale(${ph[2]}) rotateY(${ph[3]}deg) rotateX(${ph[4]}deg) rotateZ(${ph[5]}deg)`
+  // reflet qui glisse sur la vitre
+  $('glare').style.backgroundPosition = `${lerp(110, -10, easeInOut(ramp(t, P.V4 + 0.2, 1.1)))}% 0`
+  // écrans successifs
+  const scr = phOn ? (t < P.LUM ? 'hero' : t < P.BAS ? 'mur' : t < P.REAL ? 'scroll' : t < P.RAIL ? 'cmp' : t < P.FOOT ? 'rail' : 'foot') : null
+  const xf = (a, d = 0.22) => ramp(t, a, d)
+  show('vPhone', scr === 'hero' || (scr === 'mur' && t < P.LUM + 0.3) ? 1 : 0)
+  show('vMur', scr === 'mur' ? xf(P.LUM) : 0)
+  show('vScroll', scr === 'scroll' || (scr === 'cmp' && t < P.REAL + 0.25) ? 1 : 0)
+  show('vCompare', scr === 'cmp' ? xf(P.REAL, 0.25) : scr === 'rail' && t < P.RAIL + 0.2 ? 1 : 0)
+  $('rail').style.opacity = scr === 'rail' ? xf(P.RAIL, 0.2) : scr === 'foot' && t < P.FOOT + 0.2 ? 1 : 0
+  $('foot').style.opacity = scr === 'foot' ? xf(P.FOOT, 0.2) : 0
+  if (scr === 'hero' || (scr === 'mur' && t < P.LUM + 0.3)) vframe('vPhone', (t - P.V4 + 0.1) * FPS)
+  // la lumière qui se promène seule, en accéléré (images 176 → 239 de la capture à 10 i/s : elle remonte vers le haut, éclairée)
+  let mIdx = 176
+  if (scr === 'mur') {
+    mIdx = seg([[P.LUM, 176], [P.SPLIT + 0.2, 236], [P.BAS, 239]], t)
+    vframe('vMur', mIdx)
+  }
+  const trailOn = scr === 'mur' ? ramp(t, P.LUM + 0.15, 0.2) * (1 - ramp(t, P.BAS - 0.2, 0.2)) : 0
+  $('trail').style.opacity = trailOn
+  if (trailOn > 0) {
+    const last = Math.floor(mIdx), dots = []
+    for (let i = 176; i <= last; i += 2) { const [x, y] = LIGHT[i]; dots.push(`<circle class="d" cx="${(x * 560).toFixed(1)}" cy="${(y * 1212).toFixed(1)}" r="5"/>`) }
+    const [hx, hy] = LIGHT[Math.min(LIGHT.length - 1, last)]
+    dots.push(`<circle class="head" cx="${(hx * 560).toFixed(1)}" cy="${(hy * 1212).toFixed(1)}" r="${(30 + 4 * osc(t, 0.5)).toFixed(2)}"/>`)
+    LTNS.setHTML($('trail'), dots.join(''))
+  }
+  if (scr === 'scroll' || (scr === 'cmp' && t < P.REAL + 0.25)) vframe('vScroll', seg([[P.BAS, 0], [P.REAL, 46]], t))
+  if (scr === 'cmp' || (scr === 'rail' && t < P.RAIL + 0.2)) {
+    // poignée : APRÈS (valeur 0, 3,0 s) → AVANT (valeur 100, 0,6 s) → 50 % (1,8 s)
+    const s = seg([[P.REAL, 3.0], [P.AVANT, 3.0], [P.AVANT + 0.5, 0.6], [P.APRES, 0.6], [P.APRES + 0.55, 1.8]], t)
+    vframe('vCompare', s * FPS)
+  }
+  if (scr === 'rail' || scr === 'foot') {
+    const step = 442, n = 4
+    const p = ramp(t, P.RAIL + 0.08, Math.max(0.35, P.FOOT - P.RAIL - 0.12))
+    const x = -step * (n - 1) * easeInOut(p) + 30 * (1 - ramp(t, P.RAIL, 0.25))
+    $('railStrip').style.transform = `translateX(${x.toFixed(1)}px)`
+  }
+  if (scr === 'foot') {
+    // pied de page : coordonnées floutées, puis zoom sur « Site réalisé par LTNS »
+    const p = easeInOut(ramp(t, P.FOOT, Math.max(0.3, P.ENDC - P.FOOT - 0.05)))
+    const imgH = $('footImg').offsetHeight
+    const cy = 1817 * 560 / 780, cx = 233 * 560 / 780
+    const zf = lerp(1, 2.0, p)
+    const ty = lerp(-(imgH - 1212) * 0.15, 606 - cy * zf, p), tx = lerp(0, 280 - cx * zf, p)
+    $('footIn').style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${zf.toFixed(4)})`
+    const cl = $('credLine')
+    cl.style.left = (338 * 560 / 780) + 'px'; cl.style.top = (cy + 24) + 'px'; cl.style.width = (70 * 560 / 780) + 'px'
+    cl.style.transform = `scaleX(${easeOut(ramp(t, P.FOOT + 0.25, 0.35)).toFixed(3)})`
+  }
+  // marqueurs
+  let mk = '', mkOn = 0
+  if (scr === 'mur' && t < P.SPLIT) { mk = '<i></i>TEMPS ACCÉLÉRÉ'; mkOn = ramp(t, P.LUM + 0.2, 0.2) }
+  else if (scr === 'cmp' || (scr === 'rail' && t < P.RAIL + 0.15)) { mk = '<i></i>PAGE RÉALISATIONS DU SITE'; mkOn = ramp(t, P.REAL + 0.1, 0.2) }
+  else if (scr === 'rail') { mk = '<i></i>NOS RÉALISATIONS · ACCUEIL'; mkOn = 1 }
+  else if (scr === 'foot') { mk = '<i></i>PIED DE PAGE'; mkOn = 1 - ramp(t, P.ENDC - 0.15, 0.15) }
+  LTNS.setHTML($('marker'), mk)
+  setT($('marker'), mkOn, 'translate(-50%, 0)')
+
+  // ===== Ordinateur (écran partagé) =====
+  const lpIn = easeOut(ramp(t, P.SPLIT, 0.45)), lpOut = easeIn(ramp(t, P.BAS - 0.05, 0.4))
+  $('laptop').style.opacity = t >= P.SPLIT && lpOut < 1 ? 1 : 0
+  $('laptop').style.transform = `translateX(${(1 - lpIn) * 640 + lpOut * 700}px) rotateY(${-14 + 6 * lpIn}deg) rotateX(4deg)`
+  if (t >= P.SPLIT && lpOut < 1) vframe('vDesk', Math.min(134, (t - P.SPLIT) * FPS * 1.3))
+  const dv = t >= P.SPLIT + 0.25 && t < P.BAS ? ramp(t, P.SPLIT + 0.25, 0.25) * (1 - ramp(t, P.BAS - 0.15, 0.15)) : 0
+  setT($('devL'), dv, `translateY(${(1 - dv) * 20}px)`); setT($('devR'), dv, `translateY(${(1 - dv) * 20}px)`)
+
+  // ===== Carte de fin : V6 en gros, puis devis, zones, marque =====
+  const e0 = P.ENDC
+  const eOut = ramp(t, P.LOOP0 - 0.3, 0.3)
+  const ew = WORDS[5]
+  LTNS.setHTML($('endQ'), ew.map((w, i) => `<span class="${/geste/i.test(w.w) ? 'g ' : ''}${t >= w.t0 - 0.03 ? 'on' : ''}">${w.w}</span>`).join(' '))
+  const eq = endOn ? clamp(pop(t, e0 + 0.08, 0.4)) * (1 - eOut) : 0
+  setT($('endQ'), eq, `translateY(${(1 - eq) * 50}px)`)
+  const c1 = endOn ? clamp(pop(t, e0 + 0.7, 0.35)) * (1 - eOut) : 0
+  setT($('cta'), c1, `translateY(${(1 - c1) * 30}px) scale(${0.9 + 0.1 * c1})`)
+  const c2 = endOn ? ramp(t, e0 + 1.3, 0.3) * (1 - eOut) : 0
+  setT($('zones'), c2, `translateY(${(1 - c2) * 20}px)`)
+  const c3 = endOn ? clamp(pop(t, e0 + 1.9, 0.4)) * (1 - eOut) : 0
+  setT($('brand'), c3, `translateY(${(1 - c3) * 30}px) scale(${0.85 + 0.15 * c3})`)
+
+  // voile noir (raccords)
+  $('dark').style.opacity = 0
+}
+
+LTNS.start({
+  sentences: SENTENCES, cues: CUES, spoken: SPOKEN, tail: TAIL, render,
+  settle: async () => {
+    const p = pending.splice(0)
+    if (p.length) await Promise.race([Promise.all(p), new Promise(r => setTimeout(r, 5000))])
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+  },
+  extraEvents: (C, TIMES) => {
+    const dur = TIMES[TIMES.length - 1].end + TAIL
+    const P = plan(C, TIMES, dur)
+    const ev = [
+      { t: 0.02, sfx: 'whoosh' }, { t: 1.0, sfx: 'tick' }, { t: 1.32, sfx: 'tick' }, { t: 2.0, sfx: 'whoosh' },
+      { t: P.REW, sfx: 'whoosh' }, { t: P.REW + 0.12, sfx: 'tick' }, { t: P.REW + 0.24, sfx: 'tick' }, { t: P.REW + 0.36, sfx: 'tick' },
+      { t: P.SLOW, sfx: 'pop' },
+      { t: P.CODE + 0.25, sfx: 'pop' }, { t: P.CODE + 0.5, sfx: 'tick' },
+      { t: P.ENDC + 0.7, sfx: 'pop' }, { t: P.ENDC + 1.3, sfx: 'tick' }, { t: P.ENDC + 1.9, sfx: 'ding' },
+      { t: P.LOOP0, sfx: 'whoosh' },
+    ]
+    for (let i = 1; i <= 4; i++) ev.push({ t: P.PRE + (P.SANS - 0.3 - P.PRE) * i / 4, sfx: 'tick' })
+    for (let i = 0; i < 4; i++) ev.push({ t: P.ET + (P.CODE - P.ET) * (0.15 + 0.22 * i), sfx: 'tick' })
+    return ev
+  },
+  ready: async () => {
+    const j = async u => (await fetch(u)).json()
+    RING = (await j('assets/ring.json')).ring
+    MAC = await j('assets/hero-macro.json')
+    LIGHT = (await j('assets/light-long.json')).pts
+    // traits bleus sous les assises, du bas vers le haut, à l'instant où le rang se pose (mesuré sur la capture)
+    const rows = (await j('assets/rows.json')).lines.sort((a, b) => b.y0 - a.y0)
+    const svg = $('rows')
+    ROWS = rows.map((ln, i) => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+      el.setAttribute('x1', 0); el.setAttribute('y1', ln.y0); el.setAttribute('x2', 1080); el.setAttribute('y2', ln.y1)
+      const len = Math.hypot(1080, ln.y1 - ln.y0)
+      el.style.strokeDasharray = len; el.style.strokeDashoffset = len; el.style.opacity = 0
+      svg.appendChild(el)
+      return { el, len, lockSrc: ln.lock }
+    })
+    for (let i = 1; i < ROWS.length; i++) ROWS[i].lockSrc = Math.max(ROWS[i].lockSrc, ROWS[i - 1].lockSrc + 0.008)
+    await Promise.all([
+      loadVideo('vHero', 'assets/hero.webm', 30), loadVideo('vMacro', 'assets/hero-macro.webm', 30),
+      loadVideo('vIntro', 'assets/intro120.webm', 120), loadVideo('vPre', 'assets/preloader.webm', 30),
+      loadVideo('vPhone', 'assets/phone-hero.webm', 30), loadVideo('vMur', 'assets/mur-long.webm', 10),
+      loadVideo('vScroll', 'assets/scroll.webm', 30), loadVideo('vCompare', 'assets/compare.webm', 30),
+      loadVideo('vDesk', 'assets/desk.webm', 30),
+    ])
+    await Promise.all([...document.images].map(im => im.decode().catch(() => {})))
+    await document.fonts.ready
+    // titre : chaque ligne tient dans 980 px
+    for (const el of document.querySelectorAll('#title > div')) {
+      const fs = parseFloat(getComputedStyle(el).fontSize), w = el.scrollWidth
+      if (w > 980) el.style.fontSize = (fs * 980 / w).toFixed(1) + 'px'
+    }
+  },
+})
+</script>
+</body>
+</html>
