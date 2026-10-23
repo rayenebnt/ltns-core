@@ -1,0 +1,77 @@
+{
+ "pluie": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 438,
+  "files": [
+   "pluie-00.webm",
+   "pluie-01.webm",
+   "pluie-02.webm",
+   "pluie-03.webm",
+   "pluie-04.webm"
+  ]
+ },
+ "pluie-macro": {
+  "fps": 60,
+  "chunk": 60,
+  "frames": 108,
+  "files": [
+   "pluie-macro-00.webm",
+   "pluie-macro-01.webm"
+  ]
+ },
+ "page": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 120,
+  "files": [
+   "page-00.webm",
+   "page-01.webm"
+  ]
+ },
+ "iso": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 330,
+  "files": [
+   "iso-00.webm",
+   "iso-01.webm",
+   "iso-02.webm",
+   "iso-03.webm"
+  ]
+ },
+ "brique": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 240,
+  "files": [
+   "brique-00.webm",
+   "brique-01.webm",
+   "brique-02.webm"
+  ]
+ },
+ "pierre": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 90,
+  "files": [
+   "pierre-00.webm"
+  ]
+ },
+ "platre": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 90,
+  "files": [
+   "platre-00.webm"
+  ]
+ },
+ "impermeabilisation": {
+  "fps": 30,
+  "chunk": 90,
+  "frames": 90,
+  "files": [
+   "impermeabilisation-00.webm"
+  ]
+ }
+}

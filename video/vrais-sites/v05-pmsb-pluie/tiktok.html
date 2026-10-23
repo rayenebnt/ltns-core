@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>LTNS° — Vrais projets · PMSB « Son site fait pleuvoir »</title>
+<!--
+  Semaine « vrais projets », vidéo 5 : PMSB, site vitrine (build de production local de /home/user/rayenebnt/pmsb-ravalement).
+  Trois pages, trois scènes WebGL écrites à la main, filmées en temps virtuel, sans aucune interaction :
+    · Étanchéité : WaterSurface, membrane satinée sous la pluie automatique (graine de Math.random fixée), 1080 x 1920
+      à la vraie résolution du canvas ; le vrai titre « ÉTANCHÉITÉ » de la page posé dessus (capture séparée, même mise en page) ;
+    · Isolation : la démonstration « coupe de mur » (ThermalWall) : mur nu, clic sur le vrai bouton, l'isolant se pose ;
+    · Ravalement : les blocs de matière en lancer de rayons (brique, pierre de taille, plâtre, imperméabilisation).
+  Le montage ajoute : titre, sous-titres, anneaux d'onde (calés sur les vraies gouttes, journalisées à la capture),
+  téléphone vectoriel, loupe sur la vraie bascule, volets, triptyque, carte de fin, retour à l'image 0.
+  Tout ce qui suit l'accroche est accroché à des mots de la voix (cues) : la vidéo se recale seule quand voice/ et timing.json arrivent.
+  Zones TikTok : rien d'important sous y ≈ 1260, ni à x > 940 entre y ≈ 900 et 1500. 1080 x 1920, 30 i/s.
+  ?t=12.5 fige l'image · ?render pour render.mjs.
+-->
+<link rel="stylesheet" href="../../commun/fonts.css">
+<style>
+  @font-face { font-family: 'Archivo'; font-weight: 100 900; font-display: block; src: url(assets/fonts/Archivo-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: 'Archivo'; font-weight: 100 900; font-display: block; src: url(assets/fonts/Archivo-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C4, U+2C60-2C7F, U+A720-A7FF; }
+  :root { --ink: #0d0d10; --paper: #efebe3; --blue: #129bfa; --mute: #8f8a7e; --cyan: #22D3EE; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; overflow: hidden; }
+  #stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 1080px; height: 1920px; overflow: hidden; background: #08090c; font-family: 'Archivo', sans-serif; color: var(--paper); }
+  video, img { display: block; }
+  .vseq { position: relative; }
+  .vseq video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+
+  /* Fenêtres (le découpage : plein cadre, cercle, volet, bandes du triptyque) et scènes (la caméra) */
+  .win { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; transform-origin: 540px 870px; }
+  .layer { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #heroWrap { width: 1080px; height: 1920px; }
+  #vPluie { width: 1080px; height: 1920px; }
+  #mot { position: absolute; left: 0; top: 0; }
+  .rings { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  .rings circle { fill: none; }
+  .rings .a { stroke: #129bfa; stroke-width: 4; filter: drop-shadow(0 0 10px rgba(18, 155, 250, .95)); }
+  .rings .b { stroke: rgba(239, 235, 227, .8); stroke-width: 2; }
+  .rings .c { fill: #fff; filter: drop-shadow(0 0 12px rgba(18, 155, 250, 1)); }
+  #vMacro { width: 1080px; height: 1920px; }
+  #isoWrap { width: 972px; height: 1720px; }
+  #vIso { width: 972px; height: 1720px; }
+  #isoBg { position: absolute; inset: 0; background: #0d0d10; }
+  #ravBg { position: absolute; inset: 0; background: radial-gradient(80% 55% at 50% 45%, #1b1c22, #0a0b0e 75%); }
+  #ravWrap { width: 1080px; height: 1920px; perspective: 2200px; perspective-origin: 540px 860px; }
+  #card { position: absolute; left: 120px; top: 440px; width: 840px; height: 840px; transform-origin: 420px 420px; box-shadow: 0 80px 120px -50px rgba(0, 0, 0, .95), 0 0 0 2px rgba(239, 235, 227, .06); }
+  #card .vseq { position: absolute; left: 0; top: 0; width: 840px; height: 840px; opacity: 0; }
+  #wipeRing { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; pointer-events: none; z-index: 12; }
+  #wipeRing circle { fill: none; stroke: #129bfa; stroke-width: 6; filter: drop-shadow(0 0 18px rgba(18, 155, 250, .95)); }
+  #wipeLine { position: absolute; top: 0; width: 6px; height: 1920px; margin-left: -3px; background: #129bfa; box-shadow: 0 0 24px rgba(18, 155, 250, .9); z-index: 12; opacity: 0; }
+
+  /* Téléphone vectoriel, sans marque */
+  #phone3d { position: absolute; inset: 0; perspective: 2400px; perspective-origin: 540px 1110px; z-index: 8; pointer-events: none; }
+  #phone { position: absolute; left: 246px; top: 490px; width: 588px; height: 1240px; transform-origin: 294px 620px; opacity: 0; }
+  #phone .body { position: absolute; inset: 0; border-radius: 82px; background: linear-gradient(150deg, #3a3a43, #111115 45%, #1d1d23); box-shadow: 0 90px 140px -60px rgba(0, 0, 0, .95), inset 0 0 0 3px rgba(255, 255, 255, .12), inset 0 0 0 9px #050506; }
+  #phone .scr { position: absolute; left: 14px; top: 14px; width: 560px; height: 1212px; border-radius: 68px; overflow: hidden; }
+  #phone .scr > * { position: absolute; left: 0; top: 0; }
+  #vPage { width: 560px; height: 1212px; }
+  #glare { width: 560px; height: 1212px; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .16) 46%, rgba(255, 255, 255, .03) 52%, transparent 60%); background-size: 300% 100%; }
+  #phone .notch { left: 50%; top: 16px; width: 140px; height: 38px; margin-left: -70px; border-radius: 22px; background: #050506; }
+
+  /* Loupe sur la vraie bascule de la page Isolation */
+  #loupe { position: absolute; left: 129px; top: 506px; width: 822px; height: 155px; border-radius: 34px; overflow: hidden; z-index: 14; opacity: 0; background: #0d0d10; box-shadow: 0 40px 70px -30px rgba(0, 0, 0, .95), 0 0 0 2px rgba(18, 155, 250, .55), 0 0 40px rgba(18, 155, 250, .25); transform-origin: 411px 77px; }
+  #vIsoL { position: absolute; left: 0; top: 0; width: 972px; height: 1720px; transform-origin: 0 0; }
+  #loupe .ring { position: absolute; border-radius: 999px; border: 4px solid #129bfa; box-shadow: 0 0 18px rgba(18, 155, 250, .9); opacity: 0; }
+  #tap { position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: rgba(255, 255, 255, .5); border: 5px solid #129bfa; box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .6); opacity: 0; z-index: 15; }
+  .glow { position: absolute; border-radius: 12px; background: rgba(18, 155, 250, .22); box-shadow: 0 0 26px rgba(18, 155, 250, .55); opacity: 0; z-index: 9; }
+
+  /* Vignette, voile du haut (lisibilité du titre et des sous-titres) */
+  #vignette { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 45%, transparent 58%, rgba(0, 0, 0, .42)); pointer-events: none; z-index: 20; }
+  #topShade { position: absolute; z-index: 21; left: 0; right: 0; top: 0; height: 620px; background: linear-gradient(rgba(6, 7, 10, .62), rgba(6, 7, 10, .34) 58%, rgba(6, 7, 10, 0)); pointer-events: none; }
+
+  /* Titre fixe (image 0) et sous-titres */
+  #title { position: absolute; left: 40px; right: 40px; top: 238px; height: 236px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; text-transform: uppercase; z-index: 40; text-shadow: 0 4px 6px rgba(0, 0, 0, .45), 0 8px 34px rgba(0, 0, 0, .6); }
+  #title > div { font-weight: 800; font-size: 86px; line-height: 1; letter-spacing: -0.035em; white-space: nowrap; }
+  #title > div + div { margin-top: 14px; }
+  #title span { display: inline-block; }
+  #title .blue { color: var(--blue); }
+  #capWrap { position: absolute; left: 50px; right: 50px; top: 250px; height: 210px; z-index: 40; }
+  #caption { width: 100%; height: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: 0 18px; text-align: center; font-weight: 800; font-size: 64px; line-height: 1.04; letter-spacing: -1.5px; text-transform: uppercase; text-shadow: 0 3px 4px rgba(0, 0, 0, .55), 0 5px 26px rgba(0, 0, 0, .75); }
+  #caption .w { color: rgba(239, 235, 227, .34); }
+  #caption .w.on { color: var(--paper); }
+  #caption .w.hl.on { color: var(--blue); }
+
+  /* Étiquettes */
+  .tag { position: absolute; z-index: 41; font-family: 'JetBrains Mono', monospace; font-size: 26px; letter-spacing: 3px; color: var(--paper); background: rgba(13, 13, 16, .84); border: 2px solid rgba(239, 235, 227, .18); padding: 10px 18px; border-radius: 999px; white-space: nowrap; opacity: 0; text-transform: uppercase; }
+  .tag b { color: var(--blue); font-weight: 500; }
+  .tag i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); margin-right: 12px; vertical-align: 1px; box-shadow: 0 0 12px var(--blue); }
+  #label { left: 540px; top: 470px; font-size: 30px; padding: 12px 24px; }
+  #marker { left: 540px; top: 1150px; font-size: 25px; }
+  #mat { position: absolute; left: 120px; top: 478px; z-index: 41; display: flex; align-items: center; gap: 18px; opacity: 0; }
+  #mat b { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 26px; color: var(--ink); background: var(--blue); padding: 6px 12px; border-radius: 5px; letter-spacing: 1px; }
+  #mat span { font-weight: 800; font-size: 50px; letter-spacing: -0.035em; text-transform: uppercase; color: var(--paper); text-shadow: 0 4px 24px rgba(0, 0, 0, .7); }
+
+  /* Triptyque : le nom de chaque page */
+  .bl { position: absolute; top: 1150px; width: 250px; z-index: 30; text-align: center; font-weight: 800; font-size: 33px; letter-spacing: -0.02em; text-transform: uppercase; color: #fff; text-shadow: 0 3px 16px rgba(0, 0, 0, .85); opacity: 0; }
+  .bl small { display: block; font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 18px; letter-spacing: 3px; color: var(--blue); margin-bottom: 6px; }
+  .bshade { position: absolute; top: 1000px; width: 250px; height: 240px; z-index: 29; background: linear-gradient(rgba(5, 6, 8, 0), rgba(5, 6, 8, .78)); opacity: 0; border-radius: 0 0 22px 22px; }
+
+  /* Carte de fin */
+  #end { position: absolute; left: 80px; width: 840px; top: 600px; z-index: 35; }
+  #endQ { font-weight: 900; font-size: 88px; line-height: .98; letter-spacing: -0.035em; text-transform: uppercase; text-shadow: 0 8px 40px rgba(0, 0, 0, .7); }
+  #endQ span { display: inline-block; opacity: .28; }
+  #endQ span.on { opacity: 1; }
+  #endQ span.g.on { color: var(--blue); }
+  #cta { display: inline-block; margin-top: 34px; font-weight: 800; font-size: 40px; letter-spacing: -.5px; color: var(--ink); background: var(--paper); padding: 16px 26px; border-radius: 16px; opacity: 0; }
+  #zones { margin-top: 22px; font-family: 'JetBrains Mono', monospace; font-size: 28px; line-height: 1.4; letter-spacing: 1px; color: #d8d3c8; opacity: 0; }
+  #credit { margin-top: 26px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 46px; letter-spacing: -1px; color: #fff; opacity: 0; line-height: 1.05; }
+  #credit em { font-style: normal; color: var(--blue); }
+  #credit span { color: var(--cyan); }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 60; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- Étanchéité : la vraie pluie, plein cadre (image 0, fond du téléphone, bande 1, boucle) -->
+  <div class="win" id="winHero">
+    <div class="layer" id="heroWrap">
+      <div id="vPluie" class="vseq"></div>
+      <img id="mot" src="assets/mot.png" alt="">
+      <svg class="rings" id="ringsH" width="1080" height="1920" viewBox="0 0 1080 1920"></svg>
+    </div>
+  </div>
+  <!-- Étanchéité : gros plan au ralenti (60 i/s) -->
+  <div class="win" id="winMacro" style="opacity:0">
+    <div class="layer" id="macroWrap"><div id="vMacro" class="vseq"></div>
+      <svg class="rings" id="ringsM" width="1080" height="1920" viewBox="0 0 1080 1920"></svg></div>
+  </div>
+  <!-- Isolation : la vraie démonstration -->
+  <div class="win" id="winIso" style="opacity:0">
+    <div id="isoBg"></div>
+    <div class="layer" id="isoWrap"><div id="vIso" class="vseq"></div></div>
+  </div>
+  <!-- Ravalement : les vrais blocs de matière -->
+  <div class="win" id="winRav" style="opacity:0">
+    <div id="ravBg"></div>
+    <div class="layer" id="ravWrap"><div id="card">
+      <div id="vBrique" class="vseq"></div>
+      <div id="vPierre" class="vseq"></div>
+      <div id="vPlatre" class="vseq"></div>
+      <div id="vImper" class="vseq"></div>
+    </div></div>
+  </div>
+  <svg id="wipeRing" viewBox="0 0 1080 1920"><circle id="wipeC" r="0" cx="540" cy="960"/></svg>
+  <i id="wipeLine"></i>
+
+  <!-- Téléphone : la vraie page Étanchéité, tout son texte -->
+  <div id="phone3d"><div id="phone"><div class="body"></div><div class="scr">
+    <div id="vPage" class="vseq"></div>
+    <svg class="rings" id="ringsP" width="560" height="1212" viewBox="0 0 780 1688"></svg>
+    <div id="glare"></div>
+    <i class="notch"></i>
+  </div></div></div>
+
+  <div id="loupe"><div id="vIsoL" class="vseq"></div><i class="ring" id="ringNu"></i><i class="ring" id="ringIso"></i></div>
+  <i id="tap"></i>
+  <i class="glow" id="glow1"></i><i class="glow" id="glow2"></i><i class="glow" id="glow3"></i>
+
+  <i class="bshade" id="bs1"></i><i class="bshade" id="bs2"></i><i class="bshade" id="bs3"></i>
+  <div class="bl" id="bl1"><small>PAGE 1</small>Étanchéité</div>
+  <div class="bl" id="bl2"><small>PAGE 2</small>Isolation</div>
+  <div class="bl" id="bl3"><small>PAGE 3</small>Ravalement</div>
+
+  <div id="vignette"></div>
+  <div id="topShade"></div>
+  <div class="tag" id="label"><i></i>VRAI PROJET · <b>PMSB</b></div>
+  <div class="tag" id="marker"></div>
+  <div id="mat"><b></b><span></span></div>
+
+  <div id="end">
+    <h2 id="endQ"></h2>
+    <div id="cta">Devis gratuit sous 48 h · lien en bio</div>
+    <div id="zones">Partout en France à distance ·<br>sur place en Île-de-France</div>
+    <div id="credit">PMSB · <em>site réalisé par</em> LTNS<span>°</span></div>
+  </div>
+
+  <div id="title"><div><span>Il</span> <span>fait</span> <span>de</span> <span>l'étanchéité.</span></div><div><span>Son</span> <span>site</span> <span>fait</span> <span class="blue">pleuvoir.</span></div></div>
+  <div id="capWrap"><div id="caption"></div></div>
+  <div id="flash"></div>
+</div>
+
+<script src="../../commun/engine.js"></script>
+<script src="voice-files.js"></script>
+<script>
+const { clamp, easeInOut, easeOut, easeIn, pop, ramp, pulse, lerp, $, setT, caption, setHTML } = LTNS
+
+// ---------- Voix : une phrase par segment [pause] / [long pause] du script ----------
+const SENTENCES = [
+  { chunks: [['Il fait', 'fait'], ["de l'étanchéité.", "l'étanchéité."]] },
+  { chunks: [['Son site', 'site'], ['fait pleuvoir.', 'pleuvoir.']] },
+  { chunks: [['Chaque goutte', 'goutte'], ['dessine une onde,', 'onde,'], ['calculée en direct.', 'direct.']] },
+  { chunks: [['Page isolation :', 'isolation'], ['sur le mur nu,', 'nu,'], ["l'énergie s'échappe.", "s'échappe."]] },
+  { chunks: [["L'isolant se pose,", "L'isolant"], ['et les pertes', 'pertes'], ['sont freinées.', 'freinées.']] },
+  { chunks: [['Page ravalement :', 'ravalement'], ['la brique', 'brique'], ['et la pierre', 'pierre'], ['sont calculées,', 'calculées,'], ['pas photographiées.', 'photographiées.']] },
+  { chunks: [['Trois métiers,', 'métiers,'], ['trois pages,', 'pages,'], ['trois scènes.', 'scènes.']] },
+  { chunks: [['Et le tien,', 'tien,'], ['ce serait laquelle ?', 'laquelle']] },
+]
+// [phrase, mot | fraction, décalage (s), son]
+const CUES = {
+  rel: [2, 0, -0.15, 'whoosh'],
+  goutte: [2, 'goutte', -0.05, 'pop'],
+  onde: [2, 'onde,', -0.05],
+  calc: [2, 'calculée', -0.12, 'whoosh'],
+  wipe: [3, 0, -0.32, 'whoosh'],
+  nu: [3, 'nu,', -0.12, 'tick'],
+  ech: [3, "l'énergie", -0.08],
+  pulse: [3, 1.0, 0.08],
+  iso: [4, "L'isolant", -0.1, 'pop'],
+  pertes: [4, 'pertes', -0.1],
+  frein: [4, 'freinées.', -0.12],
+  rav: [5, 0, -0.3, 'whoosh'],
+  brique: [5, 'brique', -0.08],
+  pierre: [5, 'pierre', -0.08, 'pop'],
+  calc2: [5, 'calculées,', -0.08, 'pop'],
+  photo: [5, 'photographiées.', -0.08, 'pop'],
+  trip: [6, 0, -0.12],
+  m1: [6, 'métiers,', -0.05],
+  p2: [6, 'pages,', -0.05],
+  s3: [6, 'scènes.', -0.05],
+  endc: [7, 0, -0.08, 'whoosh'],
+}
+const FPS = 30
+const TAIL = 2.0            // fin de carte + retour à l'image 0 (1,0 s)
+let PL = null, PG = null, ISO = null, MAC = null, MOT = null   // données des captures (assets/*.json)
+const V = {}
+const pending = []
+
+// ---------- Vidéos : une image précise par instant (recherche + attente du « seeked ») ----------
+// Chaque capture est découpée en morceaux de quelques secondes (assets/videos.json) : une seule grosse vidéo en blob
+// garde une requête ouverte et empêche l'attente « networkidle » de render.mjs.
+let VIDS = null
+function vframe(id, f) {
+  const s = V[id]
+  const i = Math.max(0, Math.min(s.frames - 1, Math.floor(f + 1e-6)))
+  const c = Math.min(s.els.length - 1, Math.floor(i / s.chunk)), j = i - c * s.chunk
+  if (s.vis !== c) { s.els.forEach((e, q) => { e.el.style.visibility = q === c ? 'visible' : 'hidden' }); s.vis = c }
+  const v = s.els[c]
+  if (j === v.cur) return
+  v.cur = j
+  const el = v.el
+  const seeked = new Promise(res => { const done = () => { el.removeEventListener('seeked', done); res() }; el.addEventListener('seeked', done) })
+  const shown = new Promise(res => { if (el.requestVideoFrameCallback) el.requestVideoFrameCallback(() => res()); else res(); setTimeout(res, 1500) })
+  pending.push(Promise.all([seeked, shown]))
+  el.currentTime = (j + 0.5) / s.fps
+}
+const vtime = (id, sec) => vframe(id, sec * V[id].fps)
+async function loadVideo(id, name) {
+  const m = VIDS[name], host = $(id)
+  const els = []
+  for (const file of m.files) {
+    const el = document.createElement('video')
+    el.muted = true; el.playsInline = true; el.preload = 'auto'
+    host.appendChild(el)
+    el.src = URL.createObjectURL(await (await fetch('assets/' + file)).blob())
+    await new Promise((res, rej) => { el.addEventListener('loadeddata', res, { once: true }); el.addEventListener('error', () => rej(new Error('vidéo ' + file)), { once: true }) })
+    el.pause()
+    els.push({ el, cur: -1 })
+  }
+  V[id] = { els, fps: m.fps, chunk: m.chunk, frames: m.frames, vis: -1 }
+}
+
+// ---------- Outils de temps ----------
+function keyed(keys, t, ease = easeInOut) {   // interpolation adoucie de vecteurs [[t, [..]], …]
+  if (t <= keys[0][0]) return keys[0][1]
+  for (let i = 1; i < keys.length; i++) if (t <= keys[i][0]) { const [a, va] = keys[i - 1], [b, vb] = keys[i]; const k = b > a ? ease(clamp((t - a) / (b - a))) : 1; return va.map((x, j) => x + (vb[j] - x) * k) }
+  return keys[keys.length - 1][1]
+}
+const cam = (el, [z, fx, fy, ax, ay], extra = '') => { el.style.transform = `translate(${(ax - fx * z).toFixed(2)}px, ${(ay - fy * z).toFixed(2)}px) scale(${z.toFixed(5)})${extra}` }
+const inset = (el, [x0, y0, x1, y1], r = 0) => { el.style.clipPath = `inset(${y0.toFixed(1)}px ${(1080 - x1).toFixed(1)}px ${(1920 - y1).toFixed(1)}px ${x0.toFixed(1)}px round ${r.toFixed(1)}px)` }
+const lerp4 = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k)
+// Oscillateurs bouclés sur la durée exacte (aucun saut au raccord)
+let PERIOD = 20
+const osc = (t, approx, ph = 0) => { const n = Math.max(1, Math.round(PERIOD / approx)); return Math.sin(2 * Math.PI * n * t / PERIOD + ph) }
+
+// ---------- Instants dérivés des cues (tout se recale quand la vraie voix arrive) ----------
+let T = null
+function plan(C, TIMES, duration) {
+  const P = {}
+  P.PERIOD = Math.ceil(duration * FPS) / FPS
+  P.LOOP0 = P.PERIOD - 1.0
+  P.REL = Math.max(3.0, C.rel)                       // relance : le titre tient jusqu'à 3,0 s
+  P.PH_IN = P.REL + 0.5
+  P.GOUTTE = Math.max(C.goutte, P.PH_IN - 0.1)
+  P.ONDE = Math.max(C.onde, P.GOUTTE + 0.3)
+  P.CALC = Math.max(C.calc, P.ONDE + 0.25)
+  P.MAC_IN = P.CALC + 0.55
+  P.WIPE = Math.max(C.wipe, P.MAC_IN + 0.5)
+  P.ISO_IN = P.WIPE + 0.55
+  P.NU = Math.max(C.nu, P.ISO_IN - 0.15)
+  P.ECH = Math.max(C.ech, P.NU + 0.45)
+  P.ISOSW = Math.max(C.iso, P.ECH + 1.2)                    // le clic tombe sur « L'isolant »
+  P.PULSE = Math.max(P.ECH + 0.7, Math.min(C.pulse, P.ISOSW - 0.5))
+  P.PERTES = Math.max(C.pertes, P.ISOSW + 0.75)
+  P.FREIN = Math.max(C.frein, P.PERTES + 0.3)
+  P.RAV = Math.max(C.rav, P.FREIN + 0.55)
+  P.BRIQUE = Math.max(C.brique, P.RAV + 0.45)
+  P.PIERRE = Math.max(C.pierre, P.BRIQUE + 0.45)
+  P.PLATRE = Math.max(C.calc2, P.PIERRE + 0.35)
+  P.IMPER = Math.max(C.photo, P.PLATRE + 0.35)
+  P.LONG = Math.max(TIMES[5].end + 0.02, P.IMPER + 0.45)   // pause longue : le bloc tourne, « tout est calculé »
+  P.TRIP = Math.max(C.trip, P.LONG + 0.45)
+  P.B1 = P.TRIP + 0.25                                     // la bande 3 (le bloc) se forme d'abord, sur place
+  P.B2 = Math.max(C.p2 - 0.32, P.B1 + 0.28)
+  P.B3 = Math.max(C.s3 - 0.32, P.B2 + 0.28)
+  P.L1 = Math.max(C.m1, P.B1 + 0.2); P.L2 = Math.max(C.p2, P.B2 + 0.2); P.L3 = Math.max(C.s3, P.B3 + 0.2)
+  P.ENDC = Math.max(C.endc, P.L3 + 0.45)
+  P.endWords = TIMES[7]
+  // Pluie : image 0 = PL.T0 ; la bande 1 et la boucle rejoignent PL.T0 exactement à la fin
+  P.dropsHook = PL.drops.filter(d => d.accent && d.t >= PL.T0 - 0.02 && d.t <= PL.T0 + P.REL + 0.4)
+  // goutte soulignée dans le téléphone : la plus centrale qui naît autour du mot « goutte »
+  const pAt = t => 0.3 + (t - P.REL)
+  const cand = PG.drops.filter(d => Math.abs(d.t - pAt(P.GOUTTE)) < 0.32 && d.py > 360 && d.py < 1250)
+  cand.sort((a, b) => (Math.abs(a.px - 390) + Math.abs(a.py - 820) * 0.7) - (Math.abs(b.px - 390) + Math.abs(b.py - 820) * 0.7))
+  P.pDrop = cand[0] || null
+  return P
+}
+
+// Plages des vidéos (temps de capture en secondes) en fonction du temps de la vidéo
+const pluieAt = t => {
+  const P = T
+  if (t >= P.TRIP - 0.05) return Math.max(0, PL.T0 - (P.PERIOD - t))    // bande 1 puis boucle : rejoint l'image 0
+  return Math.min(PL.dur - 0.05, PL.T0 + t)
+}
+const macroAt = t => Math.min(MAC.dur - 0.02, Math.max(0, (t - T.CALC - 0.15) * 0.6))  // ralenti 0,6 (capture 60 i/s)
+const pageAt = t => Math.min(PG.dur - 0.05, Math.max(0, 0.3 + (t - T.REL)))
+const isoAt = t => {
+  const P = T, SW = ISO.switchAt
+  if (t >= P.TRIP - 0.05) return Math.min(ISO.dur - 0.05, SW + 1.4 + (t - P.TRIP) * 0.5)
+  if (t < P.ISOSW) return Math.max(0.1, SW - (P.ISOSW - t))
+  return Math.min(ISO.dur - 0.05, SW + (t - P.ISOSW))
+}
+
+// Anneaux d'onde, calés sur les vraies gouttes : rayon du front = âge × 0,145 × hauteur du canvas (WaterSurface.tsx)
+function ringsSVG(list, now, H, scale = 1) {
+  let s = ''
+  for (const d of list) {
+    const age = now - d.t
+    if (age < -0.02 || age > (d.life || 1.5)) continue
+    const a = Math.max(0, age)
+    const r = a * 0.145 * H
+    const o = Math.pow(1 - a / (d.life || 1.5), 1.4) * (d.k || 1)
+    s += `<circle class="a" cx="${d.px}" cy="${d.py}" r="${r.toFixed(1)}" stroke-opacity="${o.toFixed(3)}" stroke-width="${(4 * scale).toFixed(1)}"/>`
+    if (r > 70) s += `<circle class="b" cx="${d.px}" cy="${d.py}" r="${(r - 62).toFixed(1)}" stroke-opacity="${(o * 0.55).toFixed(3)}" stroke-width="${(2 * scale).toFixed(1)}"/>`
+    if (a < 0.22) s += `<circle class="c" cx="${d.px}" cy="${d.py}" r="${(10 * scale * (1 - a / 0.22)).toFixed(1)}" fill-opacity="${(1 - a / 0.22).toFixed(3)}"/>`
+  }
+  return s
+}
+
+function render(t, k) {
+  const { C, TIMES, WORDS } = k
+  if (!T) { T = plan(C, TIMES, k.duration); PERIOD = T.PERIOD }
+  const P = T
+  pending.length = 0
+  const inLoop = t >= P.LOOP0
+  const endOn = t >= P.ENDC - 0.1 && !inLoop
+
+  // ================= Triptyque, fin et boucle : géométrie des bandes =================
+  const BAND = [[120, 500, 370, 1240], [395, 500, 645, 1240], [670, 500, 920, 1240]]
+  const bandRect = (i, t0) => { const p = backOutClamp(ramp(t, t0, 0.5)); const [x0, y0, x1, y1] = BAND[i]; return [x0, y0, x1, y0 + Math.max(0.001, (y1 - y0) * p)] }
+  const trip = t >= P.TRIP
+  const retract = i => { const [x0, y0, x1, y1] = BAND[i]; const p = easeIn(ramp(t, P.LOOP0 + 0.02 + 0.05 * i, 0.3)); return [x0, y0 + (y1 - y0) * p, x1, y1 + 0.001] }
+  const retractOp = i => 1 - ramp(t, P.LOOP0 + 0.1 + 0.05 * i, 0.2)
+  // recul pendant la fin (les bandes continuent de vivre), retour à plat pour la boucle
+  const rec = trip ? easeInOut(ramp(t, P.ENDC - 0.05, 0.5)) * (1 - easeInOut(ramp(t, P.LOOP0 + 0.05, 0.6))) : 0
+  const recT = `translateY(${(36 * rec).toFixed(1)}px) scale(${(1 - 0.1 * rec + 0.04 * rec * ramp(t, P.ENDC, P.LOOP0 - P.ENDC)).toFixed(4)})`
+  const recF = rec > 0.001 ? `brightness(${(1 - 0.5 * rec).toFixed(3)}) blur(${(4 * rec).toFixed(2)}px)` : 'none'
+  const breathe = i => 10 * osc(t, 2.4, i * 2.1)
+
+  // ================= Étanchéité : la pluie plein cadre =================
+  const wH = $('winHero')
+  let heroOp = 0
+  if (t < P.MAC_IN + 0.05) heroOp = 1
+  if (trip) heroOp = 1
+  wH.style.opacity = heroOp
+  if (heroOp > 0) {
+    vtime('vPluie', pluieAt(t))
+    let hc = [1, 540, 960, 540, 960], filt = 'none'
+    if (!trip) {
+      // poussée lente vers la grosse goutte, puis la caméra glisse un peu
+      const D = PL.big
+      const z = 1 + 0.08 * easeInOut(clamp(t / P.REL))
+      const gx = -26 * easeInOut(ramp(t, 1.8, 1.6)), gy = 14 * easeInOut(ramp(t, 1.8, 1.6))
+      hc = [z, D.px, D.py, D.px + gx, D.py + gy]
+      if (t >= P.REL) {
+        // le fond derrière le téléphone : recul, flou, sombre
+        const b = easeOut(ramp(t, P.REL, 0.45))
+        hc = [lerp(z, 0.9, b), D.px, D.py, lerp(D.px + gx, 540, b), lerp(D.py + gy, 1000, b)]
+        filt = `blur(${(22 * b).toFixed(2)}px) brightness(${(1 - 0.62 * b).toFixed(3)})`
+      }
+      wH.style.clipPath = 'none'
+      wH.style.transform = 'none'
+    } else {
+      // bande 1 (pluie) ; à la boucle elle reprend tout l'écran dans le cadrage de l'image 0
+      let r = bandRect(0, P.B1)
+      let rad = 22
+      if (inLoop) {
+        const e = easeInOut(ramp(t, P.LOOP0 + 0.1, P.PERIOD - P.LOOP0 - 0.32))
+        r = lerp4(BAND[0], [0, 0, 1080, 1920], e); rad = 22 * (1 - e)
+      }
+      inset(wH, r, rad)
+      wH.style.transform = recT
+      const back = inLoop ? easeInOut(ramp(t, P.LOOP0 + 0.1, P.PERIOD - P.LOOP0 - 0.32)) : 0
+      const lift = 1.28 - 0.28 * back
+      filt = rec > 0.001 ? `brightness(${((1 - 0.5 * rec) * lift).toFixed(3)}) blur(${(4 * rec).toFixed(2)}px)` : back < 1 ? `brightness(${lift.toFixed(3)})` : 'none'
+      hc = [1, 540, 960, 540 - 300 * (1 - back), 960 + (inLoop ? 0 : breathe(0) * (1 - rec))]
+    }
+    cam($('heroWrap'), hc)
+    wH.style.filter = filt
+    // le vrai titre de la page : visible à l'image 0, revient à la fin de la boucle
+    const motOp = !trip ? 1 - ramp(t, P.REL + 0.05, 0.25) : ramp(t, P.PERIOD - 0.45, 0.3)
+    $('mot').style.opacity = motOp.toFixed(3)
+    // anneaux sur les vraies gouttes (accroche et boucle)
+    const a = pluieAt(t)
+    const acc = []
+    if (!trip && t < P.REL + 0.2) P.dropsHook.forEach(d => acc.push({ ...d, life: d.big ? 1.6 : 1.1, k: d.big ? 1 : 0.55 }))
+    if (inLoop) PL.drops.filter(d => d.loop).forEach(d => acc.push({ ...d, life: Math.min(1.2, PL.T0 - d.t - 0.04), k: 0.9 }))   // éteint avant l'image 0
+    setHTML($('ringsH'), ringsSVG(acc, a, 1920))
+  }
+
+  // ================= Étanchéité : gros plan au ralenti =================
+  const macOn = t >= P.CALC + 0.15 && t < P.WIPE + 0.62
+  const wM = $('winMacro')
+  wM.style.opacity = macOn ? ramp(t, P.CALC + 0.15, 0.25) : 0
+  if (macOn) {
+    vtime('vMacro', macroAt(t))
+    // la vidéo du gros plan couvre la région MAC.rect de la pluie, agrandie au plein cadre
+    const z0 = 1.0 + 0.07 * ramp(t, P.CALC, P.WIPE - P.CALC + 0.6)
+    const zIn = lerp(1.6, 1, easeOut(ramp(t, P.CALC + 0.1, 0.5)))
+    const z = z0 * zIn
+    cam($('macroWrap'), [z, 540, 900, 540 + 20 * ramp(t, P.CALC, 2.5), 900])
+    // les ondes qui se croisent : anneaux sur les gouttes du gros plan
+    const m = macroAt(t)
+    const acc = MAC.drops.filter(d => d.t > m - 1.3 && d.t < m + 0.05).slice(-3).map(d => ({ ...d, life: 1.3, k: 0.75 }))
+    setHTML($('ringsM'), ringsSVG(acc, m, 1920 * MAC.scale, 1))
+  }
+
+  // ================= Téléphone : la vraie page Étanchéité =================
+  const phOn = t >= P.REL - 0.02 && t < P.MAC_IN
+  $('phone').style.opacity = phOn ? (1 - ramp(t, T.CALC + 0.18, 0.22)).toFixed(3) : 0
+  if (phOn) {
+    vtime('vPage', pageAt(t))
+    // entrée : le téléphone se referme autour de l'eau ; sortie : on replonge dans l'écran
+    const qIn = 1 + 0.95 * (1 - easeOut(ramp(t, P.REL, 0.5)))
+    const qOut = 1 + 2.4 * easeIn(ramp(t, P.CALC, 0.55))
+    const q = qIn * qOut
+    const tilt = (1 - ramp(t, P.CALC, 0.3)) * easeOut(ramp(t, P.REL, 0.5))
+    const ry = (-9 + 2.5 * osc(t, 3.1)) * tilt, rx = (5 + 1.5 * osc(t, 2.7, 1)) * tilt
+    const fy = 6 * osc(t, 2.2) * tilt
+    // en replongeant, on vise la goutte soulignée
+    const fx = P.pDrop ? (P.pDrop.px / 780 * 560 + 14 - 294) : 0, fyy = P.pDrop ? (P.pDrop.py / 1688 * 1212 + 14 - 620) : 0
+    const o = easeIn(ramp(t, P.CALC, 0.55))
+    $('phone').style.transform = `translate(${(-fx * (q - 1) * o).toFixed(1)}px, ${(fy - fyy * (q - 1) * o).toFixed(1)}px) scale(${q.toFixed(4)}) rotateY(${ry.toFixed(2)}deg) rotateX(${rx.toFixed(2)}deg)`
+    $('vPage').style.opacity = ramp(t, P.REL + 0.04, 0.22).toFixed(3)
+    $('glare').style.backgroundPosition = `${lerp(110, -10, easeInOut(ramp(t, P.REL + 0.3, 1.2)))}% 0`
+    // « Chaque goutte dessine une onde » : la goutte qui tombe dans l'écran
+    const pa = pageAt(t)
+    const acc = P.pDrop ? [{ ...P.pDrop, life: 1.6, k: 1 }] : []
+    setHTML($('ringsP'), t >= P.GOUTTE - 0.3 ? ringsSVG(acc, pa, 1552, 2.0) : '')
+  }
+
+  // ================= Isolation : la vraie coupe de mur =================
+  const wI = $('winIso')
+  const isoFull = t >= P.WIPE && t < P.RAV + 0.62
+  const isoOn = isoFull || (trip && t < P.LOOP0 + 0.5)
+  wI.style.opacity = isoOn ? (inLoop ? retractOp(1) : 1) : 0
+  if (isoOn) {
+    vtime('vIso', isoAt(t))
+    if (!trip) {
+      // volet circulaire depuis le centre du gros plan, puis volet latéral vers Ravalement
+      const rr = 1250 * easeIn(ramp(t, P.WIPE, 0.55))
+      wI.style.clipPath = t < P.ISO_IN ? `circle(${rr.toFixed(1)}px at 540px 900px)` : 'none'
+      const sh = easeInOut(ramp(t, P.RAV, 0.55))
+      wI.style.transform = `translateX(${(-380 * sh).toFixed(1)}px)`
+      wI.style.filter = sh > 0 ? `brightness(${(1 - 0.6 * sh).toFixed(3)})` : 'none'
+      cam($('isoWrap'), cam_eval(P, t))
+    } else {
+      inset(wI, inLoop ? retract(1) : bandRect(1, P.B2), 22)
+      wI.style.transform = recT
+      wI.style.filter = recF
+      cam($('isoWrap'), [0.98, 640, 640, 520, 870 + breathe(1) * (1 - rec)])
+    }
+  }
+  // Loupe : la vraie bascule « Mur nu / Isolé par l'extérieur », agrandie
+  const lpOn = t >= P.NU - 0.15 && t < P.PERTES + 0.3 && !trip
+  const lp = lpOn ? clamp(pop(t, P.NU - 0.15, 0.35)) * (1 - easeIn(ramp(t, P.PERTES, 0.3))) : 0
+  setT($('loupe'), lp, `translateY(${((1 - lp) * -30).toFixed(1)}px) scale(${(0.9 + 0.1 * lp).toFixed(4)})`)
+  if (lp > 0) {
+    vtime('vIsoL', isoAt(t))
+    const TG = ISO.toggleBox            // région de la bascule dans la vidéo (px)
+    const s = 822 / TG[2]
+    $('loupe').style.height = (TG[3] * s).toFixed(1) + 'px'
+    $('vIsoL').style.transform = `translate(${(-TG[0] * s).toFixed(1)}px, ${(-TG[1] * s).toFixed(1)}px) scale(${s.toFixed(4)})`
+    const place = (el, b, on) => {
+      el.style.left = ((b[0] - TG[0]) * s - 8) + 'px'; el.style.top = ((b[1] - TG[1]) * s - 8) + 'px'
+      el.style.width = (b[2] * s + 16) + 'px'; el.style.height = (b[3] * s + 16) + 'px'
+      el.style.opacity = on
+    }
+    const nuOn = pulse(t, P.NU, 0.9)
+    const isoPulse = t >= P.PULSE - 0.1 && t < P.ISOSW + 0.5 ? 0.45 + 0.55 * Math.abs(Math.sin((t - P.PULSE) * Math.PI * 2.4)) * (1 - ramp(t, P.ISOSW + 0.1, 0.4)) : 0
+    place($('ringNu'), ISO.toggle[0], nuOn)
+    place($('ringIso'), ISO.toggle[1], isoPulse)
+    $('ringIso').style.transform = `scale(${(1 + 0.06 * Math.max(0, Math.sin((t - P.PULSE) * Math.PI * 2.4))).toFixed(4)})`
+    // le doigt tape le vrai bouton (le site bascule à cet instant dans la capture)
+    const b = ISO.toggle[1]
+    const tx = 129 + (b[0] + b[2] * 0.5 - TG[0]) * s, ty = 506 + (b[1] + b[3] * 0.6 - TG[1]) * s
+    const tp = ramp(t, P.ISOSW - 0.35, 0.15) * (1 - ramp(t, P.ISOSW + 0.2, 0.2))
+    setT($('tap'), tp, `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${Math.abs(t - P.ISOSW + 0.02) < 0.07 ? 0.8 : 1})`)
+  } else setT($('tap'), 0)
+  // la liste du site s'allume : 01 Mur porteur · 02 Isolant · 03 Enduit de finition
+  ;[0, 1, 2].forEach(i => {
+    const g = $('glow' + (i + 1))
+    const on = !trip && t >= P.FREIN - 0.1 && t < P.RAV ? pulse(t, P.FREIN - 0.1 + i * 0.16, 0.75) * (1 - ramp(t, P.RAV - 0.15, 0.15)) : 0
+    if (on <= 0) { g.style.opacity = 0; return }
+    const ic = cam_eval(P, t)
+    const L = ISO.layers[i]
+    const x = ic[3] - ic[1] * ic[0] + L[0] * ic[0], y = ic[4] - ic[2] * ic[0] + L[1] * ic[0]
+    g.style.left = (x - 6) + 'px'; g.style.top = (y + 2) + 'px'; g.style.width = (L[2] * ic[0] + 12) + 'px'; g.style.height = (L[3] * ic[0] - 4) + 'px'
+    g.style.opacity = on
+  })
+
+  // ================= Ravalement : les vrais blocs de matière =================
+  const wR = $('winRav')
+  const ravFull = t >= P.RAV && t < P.TRIP
+  const ravOn = t >= P.RAV && t < P.LOOP0 + 0.5
+  wR.style.opacity = ravOn ? (inLoop ? retractOp(2) : 1) : 0
+  if (ravOn) {
+    // brique : face « appareil » au début de la capture (le bloc tourne seul de 0,22 rad/s)
+    let which = 'vBrique', bt = 0.1 + (t - P.RAV)
+    if (!trip) {
+      if (t >= P.PIERRE && t < P.PLATRE) { which = 'vPierre'; bt = 0.2 + (t - P.PIERRE) }
+      else if (t >= P.PLATRE && t < P.IMPER) { which = 'vPlatre'; bt = 0.2 + (t - P.PLATRE) }
+      else if (t >= P.IMPER && t < P.LONG) { which = 'vImper'; bt = 0.2 + (t - P.IMPER) }
+      else if (t >= P.LONG) { bt = 0.1 + (P.PIERRE - P.RAV) + (t - P.LONG) }
+    } else bt = 0.1 + (P.PIERRE - P.RAV) + (P.TRIP - P.LONG) + (t - P.TRIP) * 0.55
+    ;['vBrique', 'vPierre', 'vPlatre', 'vImper'].forEach(id => { $(id).style.opacity = id === which ? 1 : 0 })
+    vtime(which, Math.min(V[which].frames / 30 - 0.04, bt))
+    const pose = cardPose(P, Math.min(t, P.TRIP))
+    if (!trip) {
+      const sl = easeInOut(ramp(t, P.RAV, 0.55))
+      wR.style.clipPath = sl < 1 ? `inset(0 0 0 ${(1080 * (1 - sl)).toFixed(1)}px)` : 'none'
+      wR.style.transform = 'none'; wR.style.filter = 'none'
+    } else {
+      // le bloc se resserre en bande 3, puis les bandes 1 et 2 descendent
+      const sh = easeInOut(ramp(t, P.TRIP, 0.5))
+      inset(wR, inLoop ? retract(2) : lerp4([0, 0, 1080, 1920], BAND[2], sh), 22 * sh)
+      wR.style.transform = recT
+      wR.style.filter = recF
+      const band = [795, 870 + breathe(2) * (1 - rec) * sh, 1.02, 0, 0]
+      for (let q = 0; q < 5; q++) pose[q] = lerp(pose[q], band[q], sh)
+    }
+    $('card').style.transform = `translate(${(pose[0] - 540).toFixed(1)}px, ${(pose[1] - 860).toFixed(1)}px) scale(${pose[2].toFixed(4)}) rotateY(${pose[3].toFixed(2)}deg) rotateX(${pose[4].toFixed(2)}deg)`
+    $('ravWrap').style.transform = 'none'
+  }
+  // étiquette de matière (comme les titres de section du site : 01 Pierre de taille…)
+  let mt = null
+  if (ravFull && !trip) {
+    if (t < P.PIERRE) mt = ['02', 'Brique']
+    else if (t < P.PLATRE) mt = ['01', 'Pierre de taille']
+    else if (t < P.IMPER) mt = ['03', 'Plâtre']
+    else if (t < P.LONG) mt = ['04', 'Imperméabilisation']
+  }
+  const macK = easeInOut(ramp(t, P.BRIQUE, 0.3)) * (1 - ramp(t, P.PIERRE - 0.06, 0.06))
+  const matOp = mt ? ramp(t, P.RAV + 0.35, 0.2) * (1 - macK) : 0
+  if (mt) setHTML($('mat'), `<b>${mt[0]}</b><span>${mt[1]}</span>`)
+  const matPop = Math.max(pulse(t, P.PIERRE, 0.25), pulse(t, P.PLATRE, 0.25), pulse(t, P.IMPER, 0.25))
+  setT($('mat'), matOp, `translateX(${(-12 * matPop).toFixed(1)}px)`)
+
+  // ================= Volets : anneau d'onde (vers Isolation), trait bleu (vers Ravalement) =================
+  const wr = t >= P.WIPE - 0.02 && t < P.ISO_IN + 0.1 ? 1250 * easeIn(ramp(t, P.WIPE, 0.55)) : 0
+  $('wipeC').setAttribute('r', wr.toFixed(1)); $('wipeC').setAttribute('cy', 900)
+  $('wipeRing').style.opacity = wr > 0 ? 1 - ramp(t, P.ISO_IN - 0.1, 0.2) : 0
+  const sl = easeInOut(ramp(t, P.RAV, 0.55))
+  $('wipeLine').style.left = (1080 * (1 - sl)).toFixed(1) + 'px'
+  $('wipeLine').style.opacity = t >= P.RAV && sl < 1 ? 1 : 0
+
+  // ================= Triptyque : bandes, noms des pages =================
+  ;[0, 1, 2].forEach(i => {
+    const L = [P.L1, P.L2, P.L3][i]
+    const on = trip && !inLoop ? clamp(pop(t, L, 0.35)) * (1 - ramp(t, P.ENDC - 0.1, 0.25)) : 0
+    const x = BAND[i][0]
+    const bl = $('bl' + (i + 1)), bs = $('bs' + (i + 1))
+    bl.style.left = x + 'px'; bs.style.left = x + 'px'
+    setT(bl, on, `translateY(${((1 - on) * 24).toFixed(1)}px)`)
+    bs.style.opacity = trip && !inLoop ? ramp(t, [P.B1, P.B2, P.B3][i] + 0.2, 0.3) * (1 - ramp(t, P.ENDC - 0.1, 0.3)) : 0
+  })
+
+  // ================= Titre fixe 0–3 s ; les mots s'allument au rythme de V1/V2 ; il revient pour la boucle =================
+  const titleOn = inLoop ? easeOut(ramp(t, P.PERIOD - 0.5, 0.38)) : 1 - ramp(t, P.REL - 0.2, 0.2)
+  setT($('title'), titleOn, `translateY(${((1 - titleOn) * -14).toFixed(1)}px) scale(${(0.97 + 0.03 * titleOn).toFixed(4)})`)
+  const tw = [...$('title').querySelectorAll('span')]
+  const words = [...WORDS[0], ...WORDS[1]]
+  words.forEach((w, i) => { if (tw[i]) { const lit = !inLoop && t >= w.t0 - 0.03 && t < w.t1 + 0.12; tw[i].style.color = lit || tw[i].classList.contains('blue') ? '#129bfa' : ''; tw[i].style.transform = lit ? 'translateY(-5px)' : 'none' } })
+  $('topShade').style.opacity = (endOn ? 0.5 : 1).toFixed(3)
+
+  // ================= Sous-titres (à partir de la relance) =================
+  caption($('caption'), t, k, { from: TIMES[2].start - 0.1, hide: endOn || inLoop || t < P.REL })
+  const capLen = $('caption').textContent.length
+  $('caption').style.fontSize = capLen > 62 ? '54px' : capLen > 40 ? '60px' : '64px'
+
+  // ================= Étiquettes =================
+  const lb = t >= P.REL ? clamp(pop(t, P.REL + 0.12, 0.35)) * (1 - ramp(t, P.CALC + 0.1, 0.2)) : 0
+  setT($('label'), lb, `translate(-50%, 0) scale(${(0.85 + 0.15 * lb).toFixed(4)})`)
+  let mk = '', mkOn = 0
+  if (t >= P.CALC && t < P.WIPE + 0.2) { mk = '<i></i>PLUIE CALCULÉE EN DIRECT · PAS UNE VIDÉO'; mkOn = clamp(pop(t, P.CALC + 0.3, 0.3)) * (1 - ramp(t, P.WIPE, 0.2)) }
+  else if (t >= P.ISO_IN - 0.15 && t < P.NU + 0.1) { mk = '<i></i>PAGE ISOLATION · <b>DÉMONSTRATION</b>'; mkOn = clamp(pop(t, P.ISO_IN - 0.15, 0.3)) * (1 - ramp(t, P.NU - 0.1, 0.2)) }
+  else if (t >= P.LONG - 0.05 && t < P.TRIP) { mk = '<i></i>AUCUNE TEXTURE CHARGÉE · TOUT EST CALCULÉ'; mkOn = clamp(pop(t, P.LONG, 0.3)) * (1 - ramp(t, P.TRIP - 0.2, 0.2)) }
+  setHTML($('marker'), mk)
+  $('marker').style.top = (t >= P.LONG - 0.05 ? 466 : 1150) + 'px'
+  setT($('marker'), mkOn, `translate(-50%, 0) scale(${(0.9 + 0.1 * clamp(mkOn)).toFixed(4)})`)
+
+  // ================= Carte de fin : V8 en gros, puis devis, zones, crédit =================
+  const e0 = P.ENDC
+  const eOut = ramp(t, P.LOOP0 - 0.3, 0.3)
+  const ew = WORDS[7]
+  setHTML($('endQ'), ew.map(w => `<span class="${/laquelle/i.test(w.w) ? 'g ' : ''}${t >= w.t0 - 0.03 ? 'on' : ''}">${w.w}</span>`).join(' '))
+  const eq = endOn ? clamp(pop(t, e0 + 0.05, 0.4)) * (1 - eOut) : 0
+  setT($('endQ'), eq, `translateY(${((1 - eq) * 50).toFixed(1)}px)`)
+  const c1 = endOn ? clamp(pop(t, e0 + 0.7, 0.35)) * (1 - eOut) : 0
+  setT($('cta'), c1, `translateY(${((1 - c1) * 30).toFixed(1)}px) scale(${(0.9 + 0.1 * c1).toFixed(4)})`)
+  const c2 = endOn ? ramp(t, e0 + 1.3, 0.3) * (1 - eOut) : 0
+  setT($('zones'), c2, `translateY(${((1 - c2) * 20).toFixed(1)}px)`)
+  const c3 = endOn ? clamp(pop(t, e0 + 1.9, 0.4)) * (1 - eOut) : 0
+  setT($('credit'), c3, `translateY(${((1 - c3) * 30).toFixed(1)}px) scale(${(0.9 + 0.1 * c3).toFixed(4)})`)
+
+  // éclair blanc très bref sur les coupes de matière
+  const fl = Math.max(pulse(t, P.PIERRE - 0.02, 0.12), pulse(t, P.PLATRE - 0.02, 0.12), pulse(t, P.IMPER - 0.02, 0.12)) * 0.28
+  $('flash').style.opacity = fl.toFixed(3)
+}
+// carte du bloc : entrée en biais, gros plan sur les joints, coupes, rotation lente -> [centre x, centre y, échelle, rotY, rotX]
+function cardPose(P, t) {
+  const base = [0.9, 420, 420, 540, 900]
+  const mac = [1.62, 330, 300, 540, 960]                   // gros plan : le haut de la carte reste sous les sous-titres
+  const cc = keyed([[P.RAV, [1.08, 420, 420, 640, 860]], [P.RAV + 0.55, base], [P.BRIQUE, base], [P.BRIQUE + 0.5, mac], [P.PIERRE - 0.02, mac], [P.PIERRE, base], [P.LONG, base], [P.TRIP, [0.84, 420, 420, 540, 900]]], t)
+  const popK = Math.max(pulse(t, P.PIERRE, 0.3), pulse(t, P.PLATRE, 0.3), pulse(t, P.IMPER, 0.3))
+  const ry = (t < P.RAV + 0.6 ? lerp(-18, 0, easeOut(ramp(t, P.RAV, 0.6))) : 0) + 4 * osc(t, 3.3) + (t >= P.LONG ? -10 * easeInOut(ramp(t, P.LONG, 1.2)) : 0)
+  return [cc[3] - (cc[1] - 420) * cc[0], cc[4] - (cc[2] - 420) * cc[0], cc[0] * (1 + 0.05 * popK), ry, 3 + 1.5 * osc(t, 2.9, 1)]
+}
+const backOutClamp = p => p <= 0 ? 0 : p >= 1 ? 1 : 1 + 2.2 * Math.pow(p - 1, 3) + 1.2 * Math.pow(p - 1, 2)
+// caméra de la scène Isolation (même courbe que dans render, pour placer les surlignages de la liste)
+function cam_eval(P, t) {
+  const A = [0.95, 486, 600, 520, 1000], Z = [1.55, 250, 560, 470, 960], L = [0.92, 486, 1180, 540, 845]
+  // A : le mur en entier · Z : le nuage de particules qui s'échappe · L : la liste des couches
+  const ic = keyed([[P.WIPE, [1.25, 486, 600, 540, 980]], [P.ISO_IN + 0.2, A], [P.ECH, A], [P.ECH + 0.55, Z], [P.PULSE - 0.25, Z], [P.PULSE + 0.25, A], [P.PERTES - 0.05, A], [P.PERTES + 0.55, L]], t)
+  // dérive lente continue : la scène ne se fige jamais
+  ic[0] *= 1 + 0.05 * ramp(t, P.WIPE, P.RAV - P.WIPE)
+  return ic
+}
+
+// Les données des captures (gouttes, mise en page) sont lues avant le démarrage : les sons en dépendent
+;(async () => {
+const j = async u => (await fetch(u)).json()
+;[PL, PG, ISO, MAC, MOT, VIDS] = await Promise.all(['assets/pluie.json', 'assets/page.json', 'assets/iso.json', 'assets/pluie-macro.json', 'assets/mot.json', 'assets/videos.json'].map(j))
+LTNS.start({
+  sentences: SENTENCES, cues: CUES, tail: TAIL, render,
+  settle: async () => {
+    const p = pending.splice(0)
+    if (p.length) await Promise.race([Promise.all(p), new Promise(r => setTimeout(r, 5000))])
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+  },
+  extraEvents: (C, TIMES) => {
+    const dur = TIMES[TIMES.length - 1].end + TAIL
+    const P = plan(C, TIMES, dur)
+    const ev = []
+    // « plic » sur les vraies gouttes soulignées de l'accroche, et sur celle de la boucle
+    P.dropsHook.forEach(d => ev.push({ t: d.t - PL.T0, sfx: d.big ? 'pop' : 'tick' }))
+    PL.drops.filter(d => d.loop).forEach(d => ev.push({ t: P.PERIOD - (PL.T0 - d.t), sfx: 'pop' }))
+    ev.push({ t: P.REL + 0.12, sfx: 'tick' })
+    ev.push({ t: P.ISO_IN - 0.2, sfx: 'tick' })
+    ev.push({ t: P.PULSE, sfx: 'tick' }, { t: P.PULSE + 0.42, sfx: 'tick' })
+    ev.push({ t: P.ISOSW + 0.45, sfx: 'tick' }, { t: P.ISOSW + 0.85, sfx: 'tick' })   // « clac » : l'isolant, puis l'enduit
+    for (let i = 0; i < 3; i++) ev.push({ t: P.FREIN - 0.1 + i * 0.16, sfx: 'tick' })
+    ev.push({ t: P.BRIQUE, sfx: 'whoosh' })
+    ev.push({ t: P.LONG, sfx: 'tick' })
+    ev.push({ t: P.TRIP, sfx: 'whoosh' }, { t: P.B1, sfx: 'pop' }, { t: P.B2, sfx: 'pop' })
+    ev.push({ t: P.L1, sfx: 'tick' }, { t: P.L2, sfx: 'tick' }, { t: P.L3, sfx: 'tick' })
+    ev.push({ t: P.ENDC + 0.7, sfx: 'pop' }, { t: P.ENDC + 1.3, sfx: 'tick' }, { t: P.ENDC + 1.9, sfx: 'ding' })
+    ev.push({ t: P.LOOP0, sfx: 'whoosh' })
+    return ev.filter(e => e.t >= 0 && e.t < P.PERIOD)
+  },
+  ready: async () => {
+    $('mot').style.left = MOT.x + 'px'; $('mot').style.top = MOT.y + 'px'
+    await Promise.all([
+      loadVideo('vPluie', 'pluie'), loadVideo('vMacro', 'pluie-macro'), loadVideo('vPage', 'page'),
+      loadVideo('vIso', 'iso'), loadVideo('vIsoL', 'iso'), loadVideo('vBrique', 'brique'), loadVideo('vPierre', 'pierre'),
+      loadVideo('vPlatre', 'platre'), loadVideo('vImper', 'impermeabilisation'),
+    ])
+    await Promise.all([...document.images].map(im => im.decode().catch(() => {})))
+    await document.fonts.ready
+    // titre : chaque ligne tient dans 1000 px
+    for (const el of document.querySelectorAll('#title > div')) {
+      const fs = parseFloat(getComputedStyle(el).fontSize), w = el.scrollWidth
+      if (w > 1000) el.style.fontSize = (fs * 1000 / w).toFixed(1) + 'px'
+    }
+  },
+})
+})()
+</script>
+</body>
+</html>
