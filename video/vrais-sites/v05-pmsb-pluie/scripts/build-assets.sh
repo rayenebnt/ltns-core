@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Construit assets/ (WebM VP9 + JSON) à partir des images capturées par capture-*.mjs.
 # Chromium de Playwright ne lit pas le H.264 : tout passe en VP9, image clé toutes les 10 images (recherche exacte).
-#   FR=<dossier des images> bash build-assets.sh        (ONLY_JSON=1 : refait seulement les JSON, sans réencoder)
+#   FR=<dossier des images> bash build-assets.sh        (ONLY_JSON=1 : refait seulement les JSON, sans réencoder ;
+#                                                        ONLY=pluie : ne réencode que cette capture)
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 S=$HERE/scripts
@@ -15,8 +16,13 @@ enc() { ffmpeg -v error -y "$@"; }
 # une seule grosse vidéo chargée en blob garde une requête ouverte et bloque l'attente « networkidle » de render.mjs.
 CHUNK=${CHUNK:-90}
 : > "$A/.videos"
+# ONLY=<nom> : ne réencode que cette capture (les autres gardent leurs morceaux, repris de videos.json)
+if [ -n "${ONLY:-}" ]; then
+  python3 -I -c 'import json,sys; m=json.load(open(sys.argv[1])); [print(k, v["fps"], v["chunk"], v["frames"], *v["files"]) for k, v in m.items()]' "$A/videos.json" > "$A/.videos.keep"
+fi
 # seqenc NOM DOSSIER PREMIÈRE PAS I/S [FILTRE] [IMAGES PAR MORCEAU]
 seqenc() {
+  if [ -n "${ONLY:-}" ] && [ "$1" != "$ONLY" ]; then grep -q "^$1 " "$A/.videos.keep" 2>/dev/null && grep "^$1 " "$A/.videos.keep" >> "$A/.videos"; return 0; fi
   local name=$1 dir=$2 start=$3 step=$4 fps=$5 vf=${6:-null} chunk=${7:-$CHUNK}
   local tmp; tmp=$(mktemp -d)
   local n=0 f=$start
@@ -38,8 +44,9 @@ seqenc() {
 P0=156
 # Étalonnage léger de l'eau (membrane très sombre) : on relève les tons moyens, sans rien ajouter ni déplacer
 GRADE="curves=all='0/0 0.12/0.14 0.4/0.52 1/1'"
-# Le filet du bloc de texte masqué (rangées 1647-1648, très pâle) est recouvert par les 4 rangées juste en dessous (fond uni)
-seqenc pluie "$FR/pluie" $P0 2 30 "split[a][b];[b]crop=1080:4:0:1650[s];[a][s]overlay=0:1646,$GRADE"
+# Le filet du bloc de texte masqué (rangées 1647-1648, très pâle) est recouvert par les 4 rangées juste en dessous (fond uni).
+# Le recouvrement se fait en RVB (gbrp) : en YUV, l'incrustation convertit la plage de couleurs du JPEG et le filet restait visible.
+seqenc pluie "$FR/pluie" $P0 2 30 "format=gbrp,split[a][b];[b]crop=1080:4:0:1650[s];[a][s]overlay=0:1646:format=gbrp,$GRADE"
 # Gros plan au ralenti : région MACRO (x y l h, px de la capture) agrandie au plein cadre, 60 i/s, à partir de MACRO_FROM s
 read -r MX MY MW MH <<<"${MACRO:-220 70 640 1138}"
 MACRO_FROM=${MACRO_FROM:-15.4}
@@ -73,7 +80,7 @@ for line in open(f'{A}/.videos'):
     m[name] = {'fps': int(fps), 'chunk': int(chunk), 'frames': int(n), 'files': files}
 json.dump(m, open(f'{A}/videos.json', 'w'), indent=1)
 PY
-rm -f "$A/.videos"
+rm -f "$A/.videos" "$A/.videos.keep"
 
 # Données : gouttes journalisées (instants et positions réels), mise en page de la démonstration
 python3 -I "$S/drops.py" "$FR/pluie/rlog.json" "$FR/pluie/drops.json" 1080 1920 > /dev/null
