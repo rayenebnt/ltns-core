@@ -4,9 +4,9 @@
 //   options : --page=pc.html --size=1920x1080 pour rendre une autre page de l'épisode (ex. la version PC)
 // Prérequis : un serveur local à la racine du dépôt sur le port 8765
 //   python3 -m http.server 8765 --directory <racine du dépôt>
-// Si voice.mp3 existe dans le dossier de l'épisode, il est mixé avec l'habillage sonore.
+// Si voice.mp3 existe dans le dossier de l'épisode, il est mixé. Les bruitages (pop, tic…) ne sont ajoutés qu'avec --bruitages.
 import { execFileSync } from 'child_process'
-import { mkdirSync, rmSync, writeFileSync, existsSync } from 'fs'
+import { mkdirSync, rmSync, writeFileSync, existsSync, readdirSync } from 'fs'
 import { dirname, join, resolve, relative, basename } from 'path'
 import { fileURLToPath } from 'url'
 import { cpus } from 'os'
@@ -73,11 +73,19 @@ console.log(`Images rendues en ${((Date.now() - started) / 1000).toFixed(0)} s`)
 
 } // fin du rendu des images
 
-// Habillage sonore synthétisé (pop, tic, souffle)
-execFileSync('python3', [join(COMMUN, 'sfx.py'), join(FRAMES, 'events.json'), join(FRAMES, 'sfx.wav')], { stdio: 'inherit' })
+// Habillage sonore synthétisé (pop, tic, souffle) : seulement avec --bruitages.
+// Par défaut la voix seule, sur une piste muette de la durée de la vidéo.
+const SFX = process.argv.includes('--bruitages')
+const base = join(FRAMES, SFX ? 'sfx.wav' : 'silence.wav')
+if (SFX) {
+  execFileSync('python3', [join(COMMUN, 'sfx.py'), join(FRAMES, 'events.json'), base], { stdio: 'inherit' })
+} else {
+  const seconds = readdirSync(FRAMES).filter(f => f.endsWith('.jpg')).length / FPS
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', String(seconds), base])
+}
 
 const voice = join(HERE, 'voice.mp3')
-const args = ['-v', 'error', '-y', '-framerate', String(FPS), '-i', join(FRAMES, '%05d.jpg'), '-i', join(FRAMES, 'sfx.wav')]
+const args = ['-v', 'error', '-y', '-framerate', String(FPS), '-i', join(FRAMES, '%05d.jpg'), '-i', base]
 let filter
 if (existsSync(voice)) {
   args.push('-i', voice)
