@@ -213,11 +213,11 @@ const CUES = {               // les sons suivent les instants planifiés (plan),
   pre: [2, 0, -0.12],
   sans: [2, 'sans', -0.25],
   et: [2, 'et', -0.05],
-  code: [2, 'rang.', -0.45],
+  code: [2, 'rang', -0.15],      // premier « rang » (« rang » et « rang. » se confondent) : les assises se posent sur « et il se monte »
   v4: [3, 0, -0.12],
   lum: [3, 'lumière', -0.1],
   split: [3, 'seule.', -0.15],
-  bas: [4, 'bas,', -0.12],
+  bas: [4, 'bas,', -0.05],
   real: [4, 'réalisations,', -0.1],
   avant: [4, 'avant,', -0.12],
   apres: [4, 'après.', -0.1],
@@ -281,6 +281,7 @@ function plan(C, TIMES, duration) {
   P.SLOW = P.SANS + 0.45                                          // ralenti : les premières pierres
   P.ET = Math.max(C.et - 0.05, P.SLOW + 0.4)                      // les assises se posent
   P.CODE = Math.max(C.code, P.ET + 0.45)
+  P.CK = clamp((Math.max(C.v4, P.CODE + 0.7) - P.CODE) / 1.5, 0.6, 1)   // carte de code courte : ses étapes se resserrent
   P.V4 = Math.max(C.v4, P.CODE + 0.7)
   P.LUM = Math.max(C.lum, P.V4 + 0.55)
   P.SPLIT = Math.max(C.split, P.LUM + 0.8)
@@ -436,12 +437,12 @@ function render(t, k) {
   const cIn = easeOut(ramp(t, P.CODE, 0.35)), cOut = easeIn(ramp(t, P.V4 - 0.05, 0.3))
   const cDrift = ramp(t, P.CODE, Math.max(0.6, P.V4 - P.CODE))
   setT($('code'), t >= P.CODE && cOut < 1 ? cIn * (1 - cOut) : 0, `translateY(${(1 - cIn) * 90 - cOut * 120 - 16 * cDrift}px) rotateX(${(1 - cIn) * 18}deg) scale(${1 + 0.025 * cDrift})`)
-  $('k13').classList.toggle('on', t >= P.CODE + 0.12)
-  $('k17').classList.toggle('on', t >= P.CODE + 0.42)
-  const rv = ramp(t, P.CODE + 0.6, 0.25)
+  $('k13').classList.toggle('on', t >= P.CODE + 0.12 * P.CK)
+  $('k17').classList.toggle('on', t >= P.CODE + 0.42 * P.CK)
+  const rv = ramp(t, P.CODE + 0.6 * P.CK, 0.25)
   $('rav').classList.toggle('on', rv > 0)
   $('rav').querySelector('u').style.transform = `scaleX(${easeOut(rv)})`
-  const sp = t >= P.CODE + 0.25 && cOut < 1 ? clamp(pop(t, P.CODE + 0.25, 0.32)) * (1 - cOut) : 0
+  const sp = t >= P.CODE + 0.25 * P.CK && cOut < 1 ? clamp(pop(t, P.CODE + 0.25 * P.CK, 0.32)) * (1 - cOut) : 0
   setT($('stamp'), sp, `translate(-50%, 0) rotate(-2deg) scale(${0.7 + 0.3 * sp})`)
 
   // ===== Téléphone =====
@@ -504,8 +505,8 @@ function render(t, k) {
   }
   if (scr === 'foot') {
     // pied de page (bas : zones, copyright, crédit ; coordonnées floutées plus haut), zoom sur « Site réalisé par LTNS »,
-    // tenu sur les 40 % restants pour qu'il se lise
-    const zDur = Math.max(0.3, (P.ENDC - P.FOOT) * 0.6)
+    // tenu sur la moitié restante pour qu'il se lise (le pied de page n'a qu'environ 1 s avec la vraie voix)
+    const zDur = Math.max(0.3, (P.ENDC - P.FOOT) * 0.5)
     const p = easeInOut(ramp(t, P.FOOT + 0.1, zDur))
     const imgH = $('footImg').offsetHeight
     const cy = 1817 * 560 / 780, cx = 233 * 560 / 780
@@ -530,7 +531,7 @@ function render(t, k) {
   $('laptop').style.opacity = t >= P.SPLIT && lpOut < 1 ? 1 : 0
   $('laptop').style.transform = `translateX(${(1 - lpIn) * 640 + lpOut * 700}px) rotateY(${-14 + 6 * lpIn}deg) rotateX(4deg)`
   if (t >= P.SPLIT && lpOut < 1) vframe('vDesk', Math.min(134, (t - P.SPLIT) * FPS * 1.3))
-  const dv = t >= P.SPLIT + 0.25 && t < P.BAS ? ramp(t, P.SPLIT + 0.25, 0.25) * (1 - ramp(t, P.BAS - 0.15, 0.15)) : 0
+  const dv = t >= P.SPLIT + 0.15 && t < P.BAS ? ramp(t, P.SPLIT + 0.15, 0.2) * (1 - ramp(t, P.BAS - 0.12, 0.12)) : 0
   setT($('devL'), dv, `translateY(${(1 - dv) * 20}px)`); setT($('devR'), dv, `translateY(${(1 - dv) * 20}px)`)
 
   // ===== Carte de fin : V6 en gros, puis devis, zones, marque =====
@@ -567,7 +568,7 @@ LTNS.start({
       { t: 0.02, sfx: 'whoosh' }, { t: 1.0, sfx: 'tick' }, { t: 1.32, sfx: 'tick' }, { t: 2.0, sfx: 'whoosh' },
       { t: P.REW, sfx: 'whoosh' }, { t: P.REW + 0.12, sfx: 'tick' }, { t: P.REW + 0.24, sfx: 'tick' }, { t: P.REW + 0.36, sfx: 'tick' },
       { t: P.SLOW, sfx: 'pop' },
-      { t: P.CODE + 0.25, sfx: 'pop' }, { t: P.CODE + 0.5, sfx: 'tick' },
+      { t: P.CODE + 0.25 * P.CK, sfx: 'pop' }, { t: P.CODE + 0.6 * P.CK, sfx: 'tick' },
       { t: P.ENDC + 0.7, sfx: 'pop' }, { t: P.ENDC + 1.3, sfx: 'tick' }, { t: P.ENDC + 1.9, sfx: 'ding' },
       { t: P.LOOP0, sfx: 'whoosh' },
       { t: P.PRE, sfx: 'tick' }, { t: P.SANS, sfx: 'whoosh' }, { t: P.CODE, sfx: 'pop' }, { t: P.V4, sfx: 'whoosh' },

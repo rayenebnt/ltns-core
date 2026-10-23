@@ -1,6 +1,6 @@
 # Vidéo 2 · Vrai projet PMSB : « Sur ce site, ta souris nettoie la façade. »
 
-TikTok 1080 × 1920, 30 i/s, environ 18,5 s avec la vraie voix (23,4 s en minutage estimé : le brouillon sans voix). Concept validé : `../concepts.json`, `final.videos[n=2]`.
+TikTok 1080 × 1920, 30 i/s, 21,7 s avec la vraie voix ElevenLabs (23,4 s en minutage estimé : le brouillon sans voix). Concept validé : `../concepts.json`, `final.videos[n=2]`.
 
 Tout ce qui est à l'écran vient du vrai site de PMSB (build de production local de `/home/user/rayenebnt/pmsb-ravalement`, capturé en temps virtuel). Le montage ajoute seulement le titre, les sous-titres, le halo autour du curseur, les traits bleus, la carte de code, les cadres de téléphone et d'ordinateur et la carte de fin.
 
@@ -45,15 +45,18 @@ Les clips mobiles `phone-hero`, `scroll` et `compare` sont les MP4 de la phase d
 
 ## Voix et rendu
 
-La voix n'est pas encore enregistrée : le brouillon utilise le minutage estimé du moteur. Quand les fichiers arrivent (`voice/01.mp3` … `06.mp3`, une phrase par segment `[pause]` du script, P.M.S.B. lu lettre par lettre) :
+Voix ElevenLabs (voix clonée) : `voix-originale.mp3` (fichier intact, `vrai-projet-02.mp3`), découpée en six phrases sur ses silences (`voice/01.mp3` … `06.mp3`, une phrase par segment `[pause]` du script, P.M.S.B. lu lettre par lettre). Les cinq grands silences de l’original (0,84 · 0,72 · 0,58 · 0,57 · 2,09 s) tombent bien entre les six phrases.
 
 ```bash
 cd /home/user/ltns-core
-python3 video/commun/sync-voice.py video/vrais-sites/v02-pmsb-souris     # timing.json, voice.mp3, voice-files.js
-node video/commun/render.mjs video/vrais-sites/v02-pmsb-souris
+python3 video/commun/sync-voice.py video/vrais-sites/v02-pmsb-souris                                      # timing.json, voice.mp3, voice-files.js
+python3 video/vrais-sites/v02-pmsb-souris/scripts/pause-longue.py video/vrais-sites/v02-pmsb-souris       # pause longue avant V6
+node video/commun/render.mjs video/vrais-sites/v02-pmsb-souris                                             # voix seule (--bruitages pour les sons)
 ```
 
-Tous les temps forts après 3 s sont accrochés à des mots (`CUES`, puis `plan()` qui impose des durées minimales), et les sons suivent ces instants planifiés : la vidéo se recale seule. `sync-voice.py` met 0,25 s entre les phrases, donc la pause longue disparaît ; `plan()` garde alors au moins 0,5 à 0,85 s pour le rail, 1,0 s pour le pied de page et 2,7 s pour la carte de fin (TAIL = 3,4 s). Essai avec un minutage simulé sur les durées du storyboard : 18,5 s, tous les temps forts en place. Contrôle : `node scripts/planche.mjs /tmp/planche.png` (vignettes 0, 0,5, 1, 1,5, 2, 3, 4 … fin).
+`sync-voice.py` met 0,25 s entre les phrases : sans la pause longue, « Ton métier, ce serait quel geste ? » tombait sur le rail et le pied de page, et la carte de fin n'arrivait qu'à la fin de la question. `scripts/pause-longue.py` rétablit la pause de l'enregistrement (2,0 s une fois les bords rognés) : rail 0,85 s, pied de page 1,05 s (zoom sur la moitié, crédit souligné puis tenu), carte de fin dès « Ton ».
+
+Tous les temps forts après 3 s sont accrochés à des mots (`CUES`, puis `plan()` qui impose des durées minimales). Minutage réel : V1 0,10-2,43 · V2 2,68-4,25 · V3 4,50-8,64 · V4 8,89-11,30 · V5 11,55-14,63 · pause · V6 16,64-18,29. Relance à 3,0 s (« P.M.S.B. »), préchargeur sur « alors », ouverture sur « sans », assises posées sur « et il se monte » (le cue `code` vise le premier « rang » : « rang » et « rang. » se confondent), carte de code sur « rang par rang » (ses étapes se resserrent quand elle a moins de 1,5 s), téléphone sur « Sur téléphone », lumière sur « lumière », écran partagé sur « seule », défilement sur « bas », comparateur sur « réalisations », AVANT sur « avant », 50 % sur « après », carte de fin sur V6, 2,1 s de carte après la voix, puis 1 s de retour à l'image 0. Contrôle : `node scripts/planche.mjs /tmp/planche.png` (vignettes 0, 0,5, 1, 1,5, 2, 3, 4 … fin).
 
 ## Légende et hashtags
 
