@@ -250,7 +250,7 @@ const CUES = {
   prix: [2, 'avec', 0.05, 'pop'],
   qsel: [3, 0, -0.2, 'tick'],
   q2: [3, 'total', 0, 'tick'], q26: [3, 'total', 0.18, 'tick'], q260: [3, 'total', 0.36, 'tick'],
-  recalc: [3, 'recalcule', -0.1],
+  recalc: [3, 'recalcule', 0],         // la caméra part sur les totaux avec « recalcule » : 260 et le total de la ligne restent lisibles
   seul: [3, 'seul.', -0.1, 'pop'],
   un: [4, 'Un', 0],
   clic: [4, 'clic', 0.05, 'tick'],
@@ -258,12 +258,12 @@ const CUES = {
   pdf: [4, 'PDF', 0.1, 'ding'],
   entete: [4, 'à', -0.1, 'whoosh'],
   p2: [4, 'en-tête', 0.15, 'whoosh'],   // la page 2 arrive pendant « en-tête » : l'en-tête a d'abord son travelling
-  quatre: [5, 'quatre', -0.25],         // le « pop » de « 4 SEMAINES » est dans extraEvents (instant planifié semA)
-  sem: [5, 'semaines', 0],
+  quatre: [5, 'quatre', -0.1],          // « 4 SEMAINES » arrive sur « quatre » ; son « pop » est dans extraEvents (instant planifié semA)
+  sem: [5, 'semaines', -0.2],           // vraie voix : « semaines » démarre ~0,2 s avant l'estimation du moteur (« quatre » est très bref)
 }
 // La fin (V7) démarre après les trois coupes de la pause longue : voir plan() (cutA / cutB)
 // sync-voice.py ne garde que 0,25 s entre les phrases : scripts/pause-longue.py rétablit la pause longue avant V7
-const TAIL = 1.9            // fin tenue 0,9 s après la dernière phrase, puis 1 s de retour à l'image 0
+const TAIL = 2.1            // fin tenue 1,1 s après la dernière phrase (« LTNS° » lisible 1 s), puis 1 s de retour à l'image 0
 const FPS = 30
 
 /* ── Géométrie ── */
@@ -384,13 +384,14 @@ async function ready(k) {
 /* ── Instants planifiés (tous dérivés des mots de la voix, communs au rendu et aux sons) ── */
 function plan(C, TIMES) {
   const unprint = Math.max(C.unprint, 2.95), pick = Math.max(C.pick, unprint + 0.7)
-  // « 4 SEMAINES » : au plus tôt avec « Livré en », au plus tard 0,8 s après l'arrivée de la page 2 (le cercle est tracé)
-  const semA = Math.max(C.quatre - 0.25, C.p2 + 0.8)
-  const b0 = Math.max(C.quatre, semA + 0.3), b3 = Math.max(C.sem + 0.15, b0 + 0.45)
+  // « 4 SEMAINES » : sur « quatre », mais au plus tôt 0,9 s après l'arrivée de la page 2 (le cercle « bon pour accord » est tracé et lu)
+  const semA = Math.max(C.quatre, C.p2 + 0.9)
+  // S1 → S4 se remplissent pendant « semaines » ; pleines avant la fin de la phrase
+  const b0 = Math.max(C.sem, semA + 0.3), b3 = Math.max(b0 + 0.42, TIMES[5].end - 0.3)
   const boxes = [0, 1, 2, 3].map(i => lerp(b0, b3, i / 3))
-  // Pause longue : trois coupes entre V6 et V7 (0,9 s au moins) ; la fin démarre avec V7
-  const cutA = TIMES[5].end + 0.05, cutB = Math.max(TIMES[6].start - 0.05, cutA + 0.9)
-  const tLoop = C.end + 0.9
+  // Pause longue : trois coupes entre V6 et V7 (0,9 s au moins), après 0,25 s de cases pleines ; la fin démarre avec V7
+  const cutA = Math.max(TIMES[5].end + 0.05, b3 + 0.22 + 0.25), cutB = Math.max(TIMES[6].start - 0.05, cutA + 0.9)
+  const tLoop = C.end + 1.1
   return { unprint, pick, semA, boxes, cutA, cutB, tLoop }
 }
 
@@ -491,11 +492,11 @@ function render(t, k) {
     g.style.opacity = p > 0 && p < 1 && t < 3 ? Math.sin(Math.PI * p) : 0
     g.style.left = lerp(x0 - 40, x1 - 60, p) + 'px'
   })
-  // Voile : pages 2 (recul), fin floutée
+  // Voile : pages 2 (recul), fin floutée (en 0,12 s : la question ne passe jamais en blanc sur la feuille nette)
   const endBlur = t >= endStart ? 1 - easeInOut(ramp(t, tLoop + 0.1, 0.5)) : 0
-  $('dim1').style.opacity = 0.45 * p2K + 0.62 * endBlur * ramp(t, endStart, 0.3)
+  $('dim1').style.opacity = 0.45 * p2K + 0.62 * endBlur * ramp(t, endStart, 0.12)
   const semK = t < cutA ? easeInOut(ramp(t, semA, 0.35)) : 0
-  const blur = 11 * semK + 9 * endBlur * ramp(t, endStart, 0.3)
+  const blur = 11 * semK + 9 * endBlur * ramp(t, endStart, 0.12)
   $('sheetPersp').style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none'
 
   /* ── Feuille 2 : totaux et « bon pour accord » ── */
@@ -689,7 +690,7 @@ function render(t, k) {
   for (let i = 0; i < TIMES.length; i++) if (t >= TIMES[i].start - 0.08) si = i
   if (si >= 0) $('caption').style.fontSize = FS[si] + 'px'
   // Pas de sous-titre pendant les coupes : la question de V7 apparaît d'un bloc sur la carte de fin
-  caption($('caption'), t, k, { from: Math.max(titleOff + 0.2, TIMES[2].start - 0.08), hide: tail || t >= cutA + 0.3 })
+  caption($('caption'), t, k, { from: Math.max(titleOff + 0.2, TIMES[2].start - 0.08), hide: tail || t >= cutA })
   const hud = t < tLoop ? clamp(pop(t, 3.0, 0.3)) : 1 - ramp(t, tLoop, 0.25)
   setT($('hud'), clamp(hud), `translateY(${(1 - clamp(hud)) * -20}px)`)
 

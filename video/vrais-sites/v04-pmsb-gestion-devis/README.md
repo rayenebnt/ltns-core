@@ -1,6 +1,6 @@
 # Vidéo 4 · Vrai projet PMSB Gestion : « Ses devis ? À la main. J'ai créé ça. »
 
-TikTok 1080 × 1920, 30 i/s. Le brouillon sans voix dure 22,2 s avec le minutage estimé du moteur. Avec la vraie voix (durées du storyboard, pause longue rétablie par `scripts/pause-longue.py`), la simulation donne 19,4 s. Concept validé : `../concepts.json`, `final.videos[n=4]`.
+TikTok 1080 × 1920, 30 i/s. Le brouillon sans voix durait 22,2 s avec le minutage estimé du moteur. La version finale, calée sur la vraie voix ElevenLabs (pause longue de 1,4 s rétablie par `scripts/pause-longue.py`), dure 20,2 s, voix seule (−16 LUFS, crête −1,4 dBFS). Concept validé : `../concepts.json`, `final.videos[n=4]`.
 
 Tout ce qui est à l'écran vient du **vrai logiciel PMSB Gestion**, lancé en local sur la **base de démonstration**. Les clients, les prix, les montants et les coordonnées y sont inventés. On voit :
 - le vrai PDF généré par l'appli ;
@@ -22,8 +22,8 @@ Le badge « Données de démonstration » reste à l'écran du début à la fin.
 | Image 0 → 3 s | Fond graphite, tableau de bord de démo très flouté. Page 1 du devis DEV-2026-0002 posée en 3D (rotateY −12°, rotateX 8°). Titre fixe « Ses devis ? À la main. / J'ai créé ça. », avec « ça » en bleu. Le reflet balaie la feuille dès 0,1 s, la caméra pousse de 1,00 à 1,04 et la feuille tourne doucement. Les mots du titre s'allument au rythme de la voix, les soulignés rouges scintillent, « à la main » se souligne au feutre rouge et « ça » pulse. Ensuite, la caméra descend le long des lignes 4 à 6, puis fait une macro sur « Devis N°DEV-2026-0002 » et le filigrane pendant que le tableau de bord devient net. | `assets/devis-0002-p1.jpg`, `tableau-de-bord*.jpg` |
 | V3 « Son logiciel : il tape quatre lettres… » | Étiquette « VRAI PROJET · PMSB GESTION ». La feuille se dé-imprime de bas en haut et rentre dans un ordinateur qui s'allume sur l'éditeur, et les modules de la barre latérale s'allument un par un. Clic dans « Ajouter depuis la bibliothèque… » : la liste jaillit et la caméra pousse lentement pendant la frappe. Les lettres « p e i n » arrivent en géant (bleu cerné de blanc, lisible sur l'appli), puis rentrent dans le champ, et la liste se filtre à chaque lettre. Clic sur « Peinture de façade pliolite, 2 couches » : la ligne tombe dans le tableau avec un rebond et un contour vert. Un travelling continu suit la ligne jusqu'au prix, puis la macro passe sur Qté / Unité / PU HT / TVA, avec l'étiquette « prix de démo ». | `assets/e00…e07.jpg` (une capture par geste) |
 | V4 « Le total se recalcule tout seul. » | Quantité 1 → 2 → 26 → 260. Le total de la ligne et le compteur « TOTAL TTC » suivent les **vraies valeurs de l'appli** à chaque frappe : 18 766,40 → 18 796,27 → 19 513,30 → 26 504,28 €. Le compteur porte l'étiquette « montants de démonstration ». Ensuite, la caméra pousse lentement sur la carte Montants et la barre fixe, qui s'entourent ; le compteur rapetisse pour laisser lire la carte. | `e08…e11.jpg`, `rects.json` (totaux relevés dans la page) |
-| V5 « Un clic, et le devis sort en PDF, à son en-tête. » | Le curseur clique sur « Enregistrer et voir le PDF » : onde, flash, puis « Devis enregistré. ». Les lignes s'envolent de l'écran vers la feuille A4, qui s'imprime de haut en bas dans la pose de l'image 0. C'est le PDF que l'appli a généré pour ce devis, DEV-2026-0013. Travelling sur l'en-tête « ENTREPRISE P.M.S.B / Prestations Multi Services Bâtiment », de « à » jusqu'à « en-tête ». La page 2 glisse à côté pendant « en-tête » avec les totaux, et la case « Bon pour accord » est entourée au feutre (0,8 s au moins avant « 4 SEMAINES »). | `e12, e13.jpg`, `devis-0013-p1.jpg`, `devis-0013-p2.jpg` |
-| V6 « Livré en quatre semaines. » | « LIVRÉ EN 4 SEMAINES », avec quatre cases S1 à S4 qui se remplissent. | (montage) |
+| V5 « Un clic, et le devis sort en PDF, à son en-tête. » | Le curseur clique sur « Enregistrer et voir le PDF » : onde, flash, puis « Devis enregistré. ». Les lignes s'envolent de l'écran vers la feuille A4, qui s'imprime de haut en bas dans la pose de l'image 0. C'est le PDF que l'appli a généré pour ce devis, DEV-2026-0013. Travelling sur l'en-tête « ENTREPRISE P.M.S.B / Prestations Multi Services Bâtiment », de « à » jusqu'à « en-tête ». La page 2 glisse à côté pendant « en-tête » avec les totaux, et la case « Bon pour accord » est entourée au feutre (0,9 s au moins avant « 4 SEMAINES »). | `e12, e13.jpg`, `devis-0013-p1.jpg`, `devis-0013-p2.jpg` |
+| V6 « Livré en quatre semaines. » | « LIVRÉ EN 4 SEMAINES » arrive sur « quatre ». Les quatre cases S1 à S4 se remplissent pendant « semaines » et restent pleines 0,25 s avant les coupes. | (montage) |
 | Pause longue | Trois coupes : tableau de bord sur téléphone, échéancier, menu du téléphone où la pastille rouge « 2 » rebondit. Pas de sous-titre pendant les coupes. | `m01.jpg`, `echeancier.jpg`, `m02.jpg` |
 | V7 « Et toi, tes devis, tu les fais comment ? » | La question en gros, avec « comment » surligné, sur la feuille floutée qui tourne et avance lentement jusqu'à la boucle, et qu'un reflet traverse. Ensuite : « Logiciel sur mesure · sur devis » et « Devis gratuit sous 48 h · lien en bio » (+0,7 s), « Partout en France à distance / sur place en Île-de-France » (+1,3 s), puis « LTNS° » (+1,9 s). | `devis-0013-p1.jpg` |
 | Boucle (1 s) | DEV-2026-0002 se réimprime de haut en bas et reprend exactement la pose 3D de l'image 0. Le badge se recolle sur la feuille et le titre revient : la dernière image est l'image 0. | `devis-0002-p1.jpg` |
@@ -76,25 +76,27 @@ Les jours de retard de l'échéancier dépendent de la date du jour.
 
 ## Voix et rendu
 
-La voix n'est pas encore enregistrée : le brouillon utilise le minutage estimé du moteur. Il y a 7 phrases, une par segment `[pause]` / `[long pause]` du script, et P.M.S.B. est lu lettre par lettre. Quand `voice/01.mp3` … `07.mp3` existent :
+La voix est la vraie voix ElevenLabs : `voix-originale.mp3` (la prise intacte, 21 s) et `voice/01.mp3` … `07.mp3`, une phrase par fichier, découpées sur les silences de la prise (une par segment `[pause]` / `[long pause]` du script). Pour recaler après un changement de voix :
 
 ```bash
 cd /home/user/ltns-core
 python3 video/commun/sync-voice.py video/vrais-sites/v04-pmsb-gestion-devis     # timing.json, voice.mp3, voice-files.js
 python3 video/vrais-sites/v04-pmsb-gestion-devis/scripts/pause-longue.py video/vrais-sites/v04-pmsb-gestion-devis   # rétablit la pause longue avant V7
-node video/commun/render.mjs video/vrais-sites/v04-pmsb-gestion-devis
+node video/commun/render.mjs video/vrais-sites/v04-pmsb-gestion-devis     # voix seule ; --bruitages pour ajouter pop, tic…
 ```
 
-**Pause longue.** `sync-voice.py` met toujours 0,25 s entre deux phrases, donc le `[long pause]` du script disparaîtrait et « Et toi, tes devis… » tomberait sur les trois coupes. `scripts/pause-longue.py` insère le silence manquant avant la phrase 7 (1,0 s de pause au total) dans `voice.mp3`, et décale `timing.json` et `envelope.json` d'autant. Il ne touche qu'à ce dossier et ne fait rien si la pause est déjà assez longue. À relancer après chaque `sync-voice.py`.
+**Pause longue.** `sync-voice.py` met toujours 0,25 s entre deux phrases, donc le `[long pause]` du script disparaîtrait et « Et toi, tes devis… » tomberait sur les trois coupes. `scripts/pause-longue.py` insère le silence manquant avant la phrase 7 (1,4 s de pause au total ; la prise originale en faisait 2,0) dans `voice.mp3`, et décale `timing.json` et `envelope.json` d'autant. Il ne touche qu'à ce dossier et ne fait rien si la pause est déjà assez longue. À relancer après chaque `sync-voice.py`.
 
 Tous les temps forts après 3 s sont accrochés à des mots (`CUES`), et les instants dérivés sont calculés au même endroit (`plan()`, partagé par l'image et les sons), donc la vidéo se recale seule :
 - le titre tient jusqu'à 3,0 s au moins, et les sous-titres ne démarrent qu'une fois le titre parti ;
-- l'en-tête a son travelling de « à » à « en-tête », puis la page 2 arrive ; « 4 SEMAINES » vient avec « Livré en », mais au plus tôt 0,8 s après la page 2 ;
-- les trois coupes occupent la pause longue entre V6 et V7, sur 0,9 s au moins ;
-- la carte de fin démarre avec V7 ;
-- la boucle commence 0,9 s après la dernière phrase.
+- l'en-tête a son travelling de « à » à « en-tête », puis la page 2 arrive ; « 4 SEMAINES » vient sur « quatre », mais au plus tôt 0,9 s après la page 2 ;
+- les cases S1 → S4 se remplissent pendant « semaines » ; les trois coupes suivent, après 0,25 s de cases pleines, et occupent la pause longue entre V6 et V7 sur 0,9 s au moins (1,14 s avec la vraie voix) ;
+- pas de sous-titre pendant les coupes ; la carte de fin démarre avec V7, la feuille s'y floute en 0,12 s ;
+- la boucle commence 1,1 s après la dernière phrase (« LTNS° » lisible 1 s).
 
-Sans voix, le moteur estime les phrases à 15 caractères/s avec 0,25 s entre elles : dans le brouillon, V7 commence donc pendant les coupes (on ne voit pas de sous-titre, la carte de fin arrive à la fin des coupes). Avec `pause-longue.py`, les coupes tombent dans le silence.
+Avec la vraie voix, le moteur place « semaines » environ 0,2 s trop tard (« quatre » est dit très vite) : le repère `sem` est avancé de 0,2 s pour que les cases suivent la voix.
+
+Sans voix (brouillon), le moteur estimait les phrases à 15 caractères/s avec 0,25 s entre elles, et V7 commençait pendant les coupes. Avec la vraie voix et `pause-longue.py`, les coupes tombent dans le silence.
 
 Contrôle : `node scripts/planche.mjs /tmp/planche.png` (vignettes 0, 0,5, 1, 1,5, 2, 2,5, 3, 4 … fin). Le serveur local doit tourner sur le port 8765.
 

@@ -9,7 +9,7 @@ pause est déjà assez longue (on peut le relancer sans risque).
   python3 video/commun/sync-voice.py video/vrais-sites/v04-pmsb-gestion-devis
   python3 video/vrais-sites/v04-pmsb-gestion-devis/scripts/pause-longue.py video/vrais-sites/v04-pmsb-gestion-devis
 
-Options : --avant 7 (numéro de la phrase qui suit la pause), --pause 1.0 (silence voulu, en s).
+Options : --avant 7 (numéro de la phrase qui suit la pause), --pause 1.4 (silence voulu, en s ; la prise originale en faisait 2,0).
 """
 import json
 import math
@@ -27,7 +27,7 @@ def main():
     opt = {a.split("=")[0][2:]: a.split("=")[1] for a in sys.argv[1:] if a.startswith("--") and "=" in a}
     here = os.path.abspath(args[0] if args else ".")
     avant = int(opt.get("avant", 7))
-    pause = float(opt.get("pause", 1.0))
+    pause = float(opt.get("pause", 1.4))
 
     timing_path = os.path.join(here, "timing.json")
     voice_path = os.path.join(here, "voice.mp3")
