@@ -1,6 +1,6 @@
 # Vidéo 2 · Vrai projet PMSB : « Sur ce site, ta souris nettoie la façade. »
 
-TikTok 1080 × 1920, 30 i/s, environ 18 s avec la vraie voix (22,6 s en minutage estimé : le brouillon sans voix). Concept validé : `../concepts.json`, `final.videos[n=2]`.
+TikTok 1080 × 1920, 30 i/s, environ 18,5 s avec la vraie voix (23,4 s en minutage estimé : le brouillon sans voix). Concept validé : `../concepts.json`, `final.videos[n=2]`.
 
 Tout ce qui est à l'écran vient du vrai site de PMSB (build de production local de `/home/user/rayenebnt/pmsb-ravalement`, capturé en temps virtuel). Le montage ajoute seulement le titre, les sous-titres, le halo autour du curseur, les traits bleus, la carte de code, les cadres de téléphone et d'ordinateur et la carte de fin.
 
@@ -9,10 +9,10 @@ Tout ce qui est à l'écran vient du vrai site de PMSB (build de production loca
 | Moment (calé sur la voix) | À l'écran | Source réelle |
 |---|---|---|
 | Image 0 → 3 s | Le héros WebGL StoneWall : pierre ravalée à gauche, encrassée à droite, l'anneau du curseur du site (halo bleu ajouté). Titre fixe « Sur ce site, ta souris / nettoie la façade. ». La souris glisse, le front suit, poussée 1,00 → 1,03, gros plan à 160 % sur les joints, retour plein cadre. | `assets/hero.webm`, `hero-macro.webm` (capture-hero.mjs) |
-| V2 « P.M.S.B. fait du ravalement… » | Étiquette « VRAI PROJET · PMSB ». Rembobinage du même plan : le curseur revient, la façade se démonte, les lettres redescendent. | `hero.webm` lu à l'envers |
+| V2 « P.M.S.B. fait du ravalement… » | Étiquette « VRAI PROJET · PMSB ». Rembobinage du même plan : le curseur revient vite (20 % du temps), puis la façade se démonte à vitesse lisible (images 50 → 30 : les pierres repartent, les lettres redescendent), puis le noir tenu jusqu'au préchargeur. | `hero.webm` lu à l'envers |
 | V3 « alors son mur est en trois D… » | Le vrai préchargeur (PMSB, compteur 000 → 100), puis l'ouverture : lettres qui montent, pierres au ralenti, assises posées du bas vers le haut (trait bleu sous chaque rang, à l'instant mesuré). Carte de code : lignes 13 et 17 de `StoneWall.tsx`, « ravale » s'allume, repère « aucun modèle 3D importé ». | `preloader.webm`, `intro120.webm`, `rows.json` |
 | V4 « Sur téléphone, la lumière se promène toute seule. » | Téléphone vectoriel incliné avec le héros mobile fini, reflet sur la vitre ; zoom : la lumière qui dérive seule, en temps accéléré (repère « temps accéléré »), suivie d'une trace pointillée ; écran partagé téléphone / ordinateur. | `phone-hero.webm`, `mur-long.webm`, `light-long.json`, `desk.webm` |
-| V5 « Et plus bas, ses réalisations, en avant, après. » | Défilement (la façade se disperse), comparateur « Travaux de bardages » de la page Réalisations : la poignée passe d'APRÈS à AVANT puis se pose à 50 %. Rail : pignon, cheminée, marbre, brique. Pied de page : « Site réalisé par LTNS », souligné. | `scroll.webm`, `compare.webm`, `rail-*.jpg`, `pied-de-page.jpg` |
+| V5 « Et plus bas, ses réalisations, en avant, après. » | Défilement (la façade se disperse), comparateur « Travaux de bardages » de la page Réalisations : la poignée glisse vers APRÈS, passe à AVANT puis se pose à 50 % ; le téléphone avance doucement. Le rail pousse le comparateur (pignon, cheminée, marbre, brique, une carte à la fois), puis le pied de page monte : zoom sur « Site réalisé par LTNS », souligné et tenu. | `scroll.webm`, `compare.webm`, `rail-*.jpg`, `pied-de-page.jpg` |
 | V6 « Ton métier, ce serait quel geste ? » | Question en gros sur le mur flouté (le curseur continue de nettoyer), puis « Devis gratuit sous 48 h · lien en bio », « Partout en France à distance · sur place en Île-de-France », « LTNS° ». | `hero.webm` flouté |
 | Boucle (1 s) | La façade se remonte sous le curseur (assemblage réel, accéléré), le titre revient : la dernière image enchaîne sur l'image 0. | `hero.webm` |
 
@@ -20,7 +20,7 @@ Masqué ou flouté à la source : numéro et e-mail de l'en-tête (en-tête masq
 
 ## Étalonnage
 
-Le shader nettoie la pierre avec un dégradé large (`smoothstep(9.5, 2.2, d)`) : dans un cadre 9:16, l'écart sale / propre est discret. Les plans du mur passent dans une courbe de contraste (`build-assets.sh`, variable `GRADE`), sans rien ajouter ni déplacer.
+Le shader nettoie la pierre avec un dégradé large (`smoothstep(9.5, 2.2, d)`) : dans un cadre 9:16, l'écart sale / propre est discret. Les plans du mur passent dans une courbe de contraste (`build-assets.sh`), sans rien ajouter ni déplacer : `GRADE_D`, plus creusée, pour les plans ordinateur (héros, gros plan, ouverture, écran partagé : la pierre encrassée devient presque noire, la zone ravalée reste claire), `GRADE` pour les clips mobiles.
 
 ## Régénérer les captures
 
@@ -53,7 +53,7 @@ python3 video/commun/sync-voice.py video/vrais-sites/v02-pmsb-souris     # timin
 node video/commun/render.mjs video/vrais-sites/v02-pmsb-souris
 ```
 
-Tous les temps forts après 3 s sont accrochés à des mots (`CUES`), donc la vidéo se recale seule. Contrôle : `node scripts/planche.mjs /tmp/planche.png` (vignettes 0, 0,5, 1, 1,5, 2, 3, 4 … fin).
+Tous les temps forts après 3 s sont accrochés à des mots (`CUES`, puis `plan()` qui impose des durées minimales), et les sons suivent ces instants planifiés : la vidéo se recale seule. `sync-voice.py` met 0,25 s entre les phrases, donc la pause longue disparaît ; `plan()` garde alors au moins 0,5 à 0,85 s pour le rail, 1,0 s pour le pied de page et 2,7 s pour la carte de fin (TAIL = 3,4 s). Essai avec un minutage simulé sur les durées du storyboard : 18,5 s, tous les temps forts en place. Contrôle : `node scripts/planche.mjs /tmp/planche.png` (vignettes 0, 0,5, 1, 1,5, 2, 3, 4 … fin).
 
 ## Légende et hashtags
 

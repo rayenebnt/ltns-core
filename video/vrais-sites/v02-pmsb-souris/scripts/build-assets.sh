@@ -12,11 +12,14 @@ A=$HERE/assets
 mkdir -p "$A"
 # Étalonnage : le shader nettoie la pierre en dégradé large ; on creuse l'écart sale / propre, sans rien ajouter
 GRADE="curves=all='0/0 0.1/0.05 0.22/0.16 0.4/0.56 0.7/0.88 1/1'"
+# Plans ordinateur (héros, gros plan, ouverture, écran partagé) : courbe plus creusée, la pierre encrassée
+# devient presque noire comme le demande l'image 0 ; la zone ravalée reste claire. Toujours sans rien ajouter.
+GRADE_D="curves=all='0/0 0.12/0.03 0.25/0.1 0.42/0.52 0.7/0.9 1/1'"
 VP9=(-c:v libvpx-vp9 -b:v 0 -crf 30 -row-mt 1 -g 10 -keyint_min 10 -pix_fmt yuv420p -an -deadline good -cpu-used 2)
 enc() { ffmpeg -v error -y "$@"; }
 
 # 1. Héros ordinateur (1440 x 2560 -> 1080 x 1920), 30 i/s, 1,6 s -> 12,8 s après le chargement
-enc -framerate 30 -i "$FR/hero/f%04d.jpg" -vf "scale=1080:1920:flags=lanczos,$GRADE" "${VP9[@]}" "$A/hero.webm"
+enc -framerate 30 -i "$FR/hero/f%04d.jpg" -vf "scale=1080:1920:flags=lanczos,$GRADE_D" "${VP9[@]}" "$A/hero.webm"
 cp "$FR/hero/ring.json" "$A/ring.json"
 # 1b. Gros plan (160 %) : même images, région MACRO de la vidéo 1080 x 1920 rendue depuis la source 1440 x 2560
 #     MACRO = x y l h en px de la vidéo 1080 ; images MACRO_FROM .. +MACRO_N
@@ -24,17 +27,17 @@ read -r MX MY MW MH <<<"${MACRO:-405 0 675 1200}"
 MACRO_FROM=${MACRO_FROM:-96}; MACRO_N=${MACRO_N:-44}
 S=$(python3 -c "print(1440/1080)")
 CX=$(python3 -c "print(round($MX*$S))"); CY=$(python3 -c "print(round($MY*$S))"); CW=$(python3 -c "print(round($MW*$S))"); CH=$(python3 -c "print(round($MH*$S))")
-enc -framerate 30 -start_number "$MACRO_FROM" -i "$FR/hero/f%04d.jpg" -frames:v "$MACRO_N" -vf "crop=$CW:$CH:$CX:$CY,scale=1080:1920:flags=lanczos,$GRADE" "${VP9[@]}" "$A/hero-macro.webm"
+enc -framerate 30 -start_number "$MACRO_FROM" -i "$FR/hero/f%04d.jpg" -frames:v "$MACRO_N" -vf "crop=$CW:$CH:$CX:$CY,scale=1080:1920:flags=lanczos,$GRADE_D" "${VP9[@]}" "$A/hero-macro.webm"
 echo "{\"x\":$MX,\"y\":$MY,\"w\":$MW,\"h\":$MH,\"from\":$MACRO_FROM,\"n\":$MACRO_N}" > "$A/hero-macro.json"
 
 # 2. Ouverture ordinateur à 120 i/s (1,5 s -> 3,7 s) : lettres, pierres au ralenti, assises
-enc -framerate 120 -i "$FR/intro120/f%04d.jpg" -vf "$GRADE" "${VP9[@]}" "$A/intro120.webm"
+enc -framerate 120 -i "$FR/intro120/f%04d.jpg" -vf "$GRADE_D" "${VP9[@]}" "$A/intro120.webm"
 
 # 3. Préchargeur mobile (3 px/px CSS) : on garde le bloc PMSB + compteur (bas de l'écran)
 enc -framerate 30 -i "$FR/preloader/f%04d.jpg" -frames:v 50 -vf "crop=1170:600:0:1932,scale=1080:-2:flags=lanczos,$GRADE" "${VP9[@]}" "$A/preloader.webm"
 
 # 4. Ordinateur pleine page (écran partagé)
-enc -framerate 30 -i "$FR/desk/f%04d.jpg" -vf "$GRADE" "${VP9[@]}" "$A/desk.webm"
+enc -framerate 30 -i "$FR/desk/f%04d.jpg" -vf "$GRADE_D" "${VP9[@]}" "$A/desk.webm"
 
 # 5. Lumière qui se promène seule (mobile, interface masquée), 24 s à 10 i/s
 enc -framerate 10 -i "$FR/murlong/f%04d.jpg" -vf "scale=780:1688,$GRADE" "${VP9[@]}" "$A/mur-long.webm"

@@ -71,7 +71,8 @@
   #code .bar b { color: var(--paper); font-weight: 500; }
   #code pre { padding: 26px 30px 30px; font-family: 'JetBrains Mono', monospace; font-size: 30px; line-height: 1.5; color: #6f6b62; white-space: pre-wrap; }
   #code .n { color: #4a4740; display: inline-block; width: 56px; }
-  #code .k { color: var(--paper); }
+  #code .k { color: #6f6b62; }
+  #code .k.on { color: var(--paper); }
   #code .gap { color: #4a4740; }
   #code .rav { color: var(--paper); position: relative; }
   #code .rav.on { color: var(--blue); text-shadow: 0 0 18px rgba(18, 155, 250, .7); }
@@ -107,18 +108,18 @@
   .dev { position: absolute; z-index: 25; top: 1172px; font-family: 'JetBrains Mono', monospace; font-size: 23px; letter-spacing: 2px; color: var(--paper); text-align: center; opacity: 0; line-height: 1.35; }
   .dev b { display: block; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 30px; letter-spacing: 1px; }
   .dev b em { font-style: normal; color: var(--blue); }
-  #devL { left: 92px; width: 360px; }
+  #devL { left: 52px; width: 440px; }
   #devR { left: 450px; width: 460px; }
   #marker { left: 540px; top: 520px; font-size: 24px; }
 
   /* Carte de fin */
-  #end { position: absolute; left: 80px; width: 820px; top: 600px; z-index: 35; }
+  #end { position: absolute; left: 80px; width: 820px; top: 600px; z-index: 35; transform-origin: 0 40%; }
   #endQ { font-weight: 900; font-size: 92px; line-height: 1; letter-spacing: -3px; text-transform: uppercase; text-shadow: 0 8px 40px rgba(0, 0, 0, .7); }
   #endQ span { display: inline-block; opacity: .28; }
   #endQ span.on { opacity: 1; }
   #endQ span.g.on { color: var(--blue); }
   #cta { display: inline-block; margin-top: 34px; font-weight: 800; font-size: 40px; letter-spacing: -.5px; color: var(--ink); background: var(--paper); padding: 16px 26px; border-radius: 16px; opacity: 0; }
-  #zones { margin-top: 22px; font-family: 'JetBrains Mono', monospace; font-size: 29px; line-height: 1.35; white-space: nowrap; letter-spacing: 1px; color: #d8d3c8; opacity: 0; }
+  #zones { margin-top: 22px; font-family: 'JetBrains Mono', monospace; font-size: 32px; line-height: 1.35; white-space: nowrap; letter-spacing: 1px; color: #d8d3c8; opacity: 0; }
   #brand { margin-top: 24px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 96px; letter-spacing: -2px; color: #fff; opacity: 0; line-height: 1; }
   #brand span { color: var(--cyan); }
   #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 60; pointer-events: none; }
@@ -166,9 +167,9 @@
   <!-- Code réel -->
   <div id="code">
     <div class="bar"><i></i><i></i><i></i><span>components/webgl/<b>StoneWall.tsx</b></span></div>
-    <pre><span class="n">13</span><span class="k">l'appareil se monte assise par assise</span> à l'arrivée, respire en
+    <pre><span class="n">13</span><span class="k" id="k13">l'appareil se monte assise par assise</span> à l'arrivée, respire en
 <span class="gap">  ⋯</span>
-<span class="n">17</span><span class="k">Le curseur, lui, <span class="rav" id="rav">ravale<u></u></span></span> : la pierre encrassée redevient claire</pre>
+<span class="n">17</span><span class="k" id="k17">Le curseur, lui, <span class="rav" id="rav">ravale<u></u></span></span> : la pierre encrassée redevient claire</pre>
   </div>
   <div class="tag" id="stamp">AUCUN MODÈLE 3D IMPORTÉ</div>
 
@@ -207,25 +208,25 @@ const SENTENCES = [
 ]
 const SPOKEN = { 'P.M.S.B.': 'pé emme esse bé', 'D,': 'dé' }
 // [phrase, mot | fraction, décalage (s), son]
-const CUES = {
+const CUES = {               // les sons suivent les instants planifiés (plan), voir extraEvents
   v2: [1, 0, -0.05],
-  pre: [2, 0, -0.12, 'tick'],
-  sans: [2, 'sans', -0.25, 'whoosh'],
+  pre: [2, 0, -0.12],
+  sans: [2, 'sans', -0.25],
   et: [2, 'et', -0.05],
-  code: [2, 'rang.', -0.45, 'pop'],
-  v4: [3, 0, -0.12, 'whoosh'],
-  lum: [3, 'lumière', -0.1, 'whoosh'],
-  split: [3, 'seule.', -0.15, 'pop'],
-  bas: [4, 'bas,', -0.12, 'whoosh'],
-  real: [4, 'réalisations,', -0.1, 'pop'],
-  avant: [4, 'avant,', -0.12, 'whoosh'],
-  apres: [4, 'après.', -0.1, 'tick'],
-  rail: [4, 'après.', 0.42, 'whoosh'],
-  foot: [4, 1.0, 0.02, 'tick'],
-  endc: [5, 0, -0.05, 'pop'],
+  code: [2, 'rang.', -0.45],
+  v4: [3, 0, -0.12],
+  lum: [3, 'lumière', -0.1],
+  split: [3, 'seule.', -0.15],
+  bas: [4, 'bas,', -0.12],
+  real: [4, 'réalisations,', -0.1],
+  avant: [4, 'avant,', -0.12],
+  apres: [4, 'après.', -0.1],
+  rail: [4, 'après.', 0.42],
+  foot: [4, 1.0, 0.02],
+  endc: [5, 0, -0.05],
 }
 const FPS = 30
-const TAIL = 2.6           // fin de carte (1,6 s) + retour à l'image 0 (1,0 s)
+const TAIL = 3.4           // fin de carte (≥ 2,7 s, dont 2,4 s après la voix) + retour à l'image 0 (1,0 s)
 const I0 = 78              // image du héros = image 0 (T0 = 4,2 s après le chargement)
 const AMB0 = 180           // héros flouté en fond : le curseur continue son S
 let RING = [], ROWS = [], LIGHT = [], MAC = null
@@ -288,8 +289,12 @@ function plan(C, TIMES, duration) {
   P.AVANT = Math.max(C.avant, P.REAL + 0.3)
   P.APRES = Math.max(C.apres, P.AVANT + 0.45)
   P.RAIL = Math.max(C.rail, P.APRES + 0.5)
-  P.FOOT = Math.max(C.foot, P.RAIL + 0.55)
-  P.ENDC = Math.max(C.endc, P.FOOT + 0.75)
+  // Rail ≥ 0,85 s (une carte à la fois), pied de page ≥ 1,0 s (le crédit doit se lire), carte de fin ≥ 2,7 s
+  // avant le retour : si la voix ne laisse pas la place, le rail se resserre d'abord (jusqu'à 0,5 s).
+  const endLatest = P.LOOP0 - 2.7
+  P.FOOT = Math.max(C.foot, P.RAIL + 0.85)
+  if (P.FOOT + 1.0 > endLatest) P.FOOT = Math.max(P.RAIL + 0.5, endLatest - 1.0)
+  P.ENDC = Math.max(C.endc, P.FOOT + 1.0)
   P.endWords = TIMES[5]
   // Ouverture ordinateur à 120 i/s : temps source (s depuis le chargement) en fonction du temps vidéo
   P.intro = [[P.SANS - 0.25, 2.25], [P.SLOW, 2.66], [P.ET, 2.98], [P.CODE, 3.32], [P.V4 + 0.4, 3.69]]
@@ -303,14 +308,20 @@ function heroIdx(t) {
   const P = T
   if (t < P.REW) return hookIdx(t)
   if (t < P.RW_END) {
+    // rembobinage : le curseur revient vite (20 %), puis la façade se démonte à vitesse lisible
+    // (images 50 → 30 : les pierres repartent, les lettres redescendent), puis le noir (30 → 14)
     const p = (t - P.REW) / (P.RW_END - P.REW)
-    return p < 0.4 ? lerp(P.iA, I0, p / 0.4) : lerp(I0, 9, easeInOut((p - 0.4) / 0.6))
+    if (p < 0.2) return lerp(P.iA, 50, p / 0.2)
+    if (p < 0.82) return lerp(50, 30, (p - 0.2) / 0.62)
+    return lerp(30, 14, (p - 0.82) / 0.18)
   }
+  if (t < P.V4 - 0.3) return 14                                   // noir tenu pendant le fondu (pas de retour du mur)
   if (t < P.ENDC) return AMB0 + (t - P.V4 + 0.4) * FPS * 0.28
   if (t < P.LOOP0) return Math.min(V.vHero.n - 1, AMB0 + (P.ENDC - P.V4 + 0.4) * FPS * 0.28 + (t - P.ENDC) * FPS * 0.8)
   const p = clamp((t - P.LOOP0) / (P.PERIOD - P.LOOP0))
   return 22 + (I0 - 22) * (p + 0.6 * p * (1 - p))                // l'assemblage rejoué en accéléré, puis la vitesse de l'image 0
 }
+const railDur = P => Math.max(0.4, P.FOOT - P.RAIL - 0.15)
 // Oscillateurs bouclés sur la durée exacte (pas de saut au raccord)
 const osc = (t, approx, ph = 0) => { const n = Math.max(1, Math.round(T.PERIOD / approx)); return Math.sin(2 * Math.PI * n * t / T.PERIOD + ph) }
 
@@ -401,7 +412,7 @@ function render(t, k) {
   $('preWrap').style.opacity = preOn ? ramp(t, P.PRE - 0.05, 0.15) : 0
   if (preOn) {
     vframe('vPre', seg([[P.PRE, 6], [P.SANS - 0.25, 45], [P.SANS, 49]], t))
-    $('preWrap').style.transform = `translateY(${-40 * ramp(t, P.PRE, P.SANS - P.PRE)}px) scale(${1 + 0.05 * ramp(t, P.PRE, P.SANS - P.PRE)})`
+    $('preWrap').style.transform = `translateY(${-40 * ramp(t, P.PRE, P.SANS - P.PRE)}px) scale(${1 + 0.14 * easeOut(ramp(t, P.PRE, P.SANS - P.PRE))})`
   }
 
   // ===== Ouverture ordinateur (120 i/s) : lettres, pierres au ralenti, assises + traits bleus =====
@@ -423,8 +434,11 @@ function render(t, k) {
 
   // ===== Carte de code : deux vraies lignes de StoneWall.tsx =====
   const cIn = easeOut(ramp(t, P.CODE, 0.35)), cOut = easeIn(ramp(t, P.V4 - 0.05, 0.3))
-  setT($('code'), t >= P.CODE && cOut < 1 ? cIn * (1 - cOut) : 0, `translateY(${(1 - cIn) * 90 - cOut * 120}px) rotateX(${(1 - cIn) * 18}deg)`)
-  const rv = ramp(t, P.CODE + 0.5, 0.25)
+  const cDrift = ramp(t, P.CODE, Math.max(0.6, P.V4 - P.CODE))
+  setT($('code'), t >= P.CODE && cOut < 1 ? cIn * (1 - cOut) : 0, `translateY(${(1 - cIn) * 90 - cOut * 120 - 16 * cDrift}px) rotateX(${(1 - cIn) * 18}deg) scale(${1 + 0.025 * cDrift})`)
+  $('k13').classList.toggle('on', t >= P.CODE + 0.12)
+  $('k17').classList.toggle('on', t >= P.CODE + 0.42)
+  const rv = ramp(t, P.CODE + 0.6, 0.25)
   $('rav').classList.toggle('on', rv > 0)
   $('rav').querySelector('u').style.transform = `scaleX(${easeOut(rv)})`
   const sp = t >= P.CODE + 0.25 && cOut < 1 ? clamp(pop(t, P.CODE + 0.25, 0.32)) * (1 - cOut) : 0
@@ -432,11 +446,11 @@ function render(t, k) {
 
   // ===== Téléphone =====
   // états : [x, y, échelle, rotY, rotX, rotZ] du centre du téléphone
-  const S_IN = [540, 1092, 1, -10, 5, -3], S_ZOOM = [638, 1046, 1.4, 0, 0, 0], S_SPLIT = [272, 860, 0.5, 9, 0, 0]
-  const S_SCROLL = [540, 1000, 0.86, -4, 2, 0], S_CMP = [540, 1092, 1.0, 0, 0, 0], S_RAIL = [540, 1092, 1.0, 0, 0, 0], S_FOOT = [540, 1092, 1.0, 0, 0, 0], S_OUT = [540, 760, 0.6, 0, 0, 0]
+  const S_IN = [540, 1092, 1, -10, 5, -3], S_IN2 = [548, 1076, 1.05, -3, 2, -1], S_ZOOM = [638, 1046, 1.4, 0, 0, 0], S_SPLIT = [272, 860, 0.5, 9, 0, 0]
+  const S_SCROLL = [540, 1000, 0.86, -4, 2, 0], S_CMP = [540, 1092, 1.0, 0, 0, 0], S_CMP2 = [540, 1084, 1.045, 0, 0, 0], S_RAIL = [540, 1084, 1.045, 0, 0, 0], S_FOOT = [540, 1092, 1.0, 0, 0, 0], S_OUT = [540, 760, 0.6, 0, 0, 0]
   const ph = keyed([
-    [P.V4 - 0.1, [540, 2500, 1, -24, 18, -8]], [P.V4 + 0.45, S_IN], [P.LUM, S_IN], [P.LUM + 0.5, S_ZOOM], [P.SPLIT - 0.05, S_ZOOM], [P.SPLIT + 0.45, S_SPLIT],
-    [P.BAS - 0.05, S_SPLIT], [P.BAS + 0.4, S_SCROLL], [P.REAL - 0.05, S_SCROLL], [P.REAL + 0.35, S_CMP], [P.RAIL - 0.1, S_CMP], [P.RAIL + 0.25, S_RAIL],
+    [P.V4 - 0.1, [540, 2500, 1, -24, 18, -8]], [P.V4 + 0.45, S_IN], [P.LUM, S_IN2], [P.LUM + 0.5, S_ZOOM], [P.SPLIT - 0.05, S_ZOOM], [P.SPLIT + 0.45, S_SPLIT],
+    [P.BAS - 0.05, S_SPLIT], [P.BAS + 0.4, S_SCROLL], [P.REAL - 0.05, S_SCROLL], [P.REAL + 0.35, S_CMP], [P.RAIL - 0.1, S_CMP2], [P.RAIL + 0.25, S_RAIL],
     [P.FOOT - 0.05, S_RAIL], [P.FOOT + 0.4, S_FOOT], [P.ENDC - 0.1, S_FOOT], [P.ENDC + 0.3, S_OUT]], t)
   const phOn = t >= P.V4 - 0.1 && t < P.ENDC + 0.45
   const phFloat = 6 * osc(t, 2.6)
@@ -450,9 +464,14 @@ function render(t, k) {
   show('vPhone', scr === 'hero' || (scr === 'mur' && t < P.LUM + 0.3) ? 1 : 0)
   show('vMur', scr === 'mur' ? xf(P.LUM) : 0)
   show('vScroll', scr === 'scroll' || (scr === 'cmp' && t < P.REAL + 0.25) ? 1 : 0)
-  show('vCompare', scr === 'cmp' ? xf(P.REAL, 0.25) : scr === 'rail' && t < P.RAIL + 0.2 ? 1 : 0)
-  $('rail').style.opacity = scr === 'rail' ? xf(P.RAIL, 0.2) : scr === 'foot' && t < P.FOOT + 0.2 ? 1 : 0
-  $('foot').style.opacity = scr === 'foot' ? xf(P.FOOT, 0.2) : 0
+  // compare → rail : le rail pousse le comparateur vers la gauche ; rail → pied de page : on descend (le pied monte)
+  const railIn = easeInOut(xf(P.RAIL, 0.28)), footIn = easeInOut(xf(P.FOOT, 0.32))
+  show('vCompare', scr === 'cmp' ? xf(P.REAL, 0.25) : scr === 'rail' && t < P.RAIL + 0.3 ? 1 : 0)
+  $('vCompare').style.transform = scr === 'rail' ? `translateX(${(-railIn * 560).toFixed(1)}px)` : 'none'
+  $('rail').style.opacity = scr === 'rail' || (scr === 'foot' && t < P.FOOT + 0.35) ? 1 : 0
+  $('rail').style.transform = `translate(${((1 - railIn) * 560).toFixed(1)}px, ${(scr === 'foot' ? -footIn * 1212 : 0).toFixed(1)}px)`
+  $('foot').style.opacity = scr === 'foot' ? 1 : 0
+  $('foot').style.transform = `translateY(${((1 - footIn) * 1212).toFixed(1)}px)`
   if (scr === 'hero' || (scr === 'mur' && t < P.LUM + 0.3)) vframe('vPhone', (t - P.V4 + 0.1) * FPS)
   // la lumière qui se promène seule, en accéléré (images 176 → 239 de la capture à 10 i/s : elle remonte vers le haut, éclairée)
   let mIdx = 176
@@ -471,27 +490,31 @@ function render(t, k) {
   }
   if (scr === 'scroll' || (scr === 'cmp' && t < P.REAL + 0.25)) vframe('vScroll', seg([[P.BAS, 0], [P.REAL, 46]], t))
   if (scr === 'cmp' || (scr === 'rail' && t < P.RAIL + 0.2)) {
-    // poignée : APRÈS (valeur 0, 3,0 s) → AVANT (valeur 100, 0,6 s) → 50 % (1,8 s)
-    const s = seg([[P.REAL, 3.0], [P.AVANT, 3.0], [P.AVANT + 0.5, 0.6], [P.APRES, 0.6], [P.APRES + 0.55, 1.8]], t)
+    // poignée : vers APRÈS (4,5 → 3,0 s du clip, elle glisse à gauche) → AVANT (0,6 s) → 50 % (1,8 s)
+    const s = seg([[P.REAL, 4.5], [P.AVANT, 3.0], [P.AVANT + 0.5, 0.6], [P.APRES, 0.6], [P.APRES + 0.55, 1.8]], t)
     vframe('vCompare', s * FPS)
   }
   if (scr === 'rail' || scr === 'foot') {
+    // une carte à la fois : chaque pas glisse puis se pose (pignon → cheminée → marbre → brique)
     const step = 442, n = 4
-    const p = ramp(t, P.RAIL + 0.08, Math.max(0.35, P.FOOT - P.RAIL - 0.12))
-    const x = -step * (n - 1) * easeInOut(p) + 30 * (1 - ramp(t, P.RAIL, 0.25))
+    const p = ramp(t, P.RAIL + 0.1, railDur(P))
+    const u = p * (n - 1), kk = Math.min(n - 2, Math.floor(u))
+    const x = -step * (kk + easeInOut(clamp((u - kk) / 0.75)))
     $('railStrip').style.transform = `translateX(${x.toFixed(1)}px)`
   }
   if (scr === 'foot') {
-    // pied de page : coordonnées floutées, puis zoom sur « Site réalisé par LTNS »
-    const p = easeInOut(ramp(t, P.FOOT, Math.max(0.3, P.ENDC - P.FOOT - 0.05)))
+    // pied de page (bas : zones, copyright, crédit ; coordonnées floutées plus haut), zoom sur « Site réalisé par LTNS »,
+    // tenu sur les 40 % restants pour qu'il se lise
+    const zDur = Math.max(0.3, (P.ENDC - P.FOOT) * 0.6)
+    const p = easeInOut(ramp(t, P.FOOT + 0.1, zDur))
     const imgH = $('footImg').offsetHeight
     const cy = 1817 * 560 / 780, cx = 233 * 560 / 780
     const zf = lerp(1, 2.0, p)
-    const ty = lerp(-(imgH - 1212) * 0.15, 606 - cy * zf, p), tx = lerp(0, 280 - cx * zf, p)
+    const ty = lerp(-(imgH - 1212), 606 - cy * zf, p), tx = lerp(0, 280 - cx * zf, p)
     $('footIn').style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${zf.toFixed(4)})`
     const cl = $('credLine')
     cl.style.left = (338 * 560 / 780) + 'px'; cl.style.top = (cy + 24) + 'px'; cl.style.width = (70 * 560 / 780) + 'px'
-    cl.style.transform = `scaleX(${easeOut(ramp(t, P.FOOT + 0.25, 0.35)).toFixed(3)})`
+    cl.style.transform = `scaleX(${easeOut(ramp(t, P.FOOT + 0.1 + zDur * 0.8, 0.3)).toFixed(3)})`
   }
   // marqueurs
   let mk = '', mkOn = 0
@@ -512,6 +535,8 @@ function render(t, k) {
 
   // ===== Carte de fin : V6 en gros, puis devis, zones, marque =====
   const e0 = P.ENDC
+  // la carte avance doucement pendant qu'on la lit (pas d'image figée)
+  $('end').style.transform = `scale(${(1 + 0.035 * easeInOut(ramp(t, e0, Math.max(0.5, P.LOOP0 - e0)))).toFixed(4)})`
   const eOut = ramp(t, P.LOOP0 - 0.3, 0.3)
   const ew = WORDS[5]
   LTNS.setHTML($('endQ'), ew.map((w, i) => `<span class="${/geste/i.test(w.w) ? 'g ' : ''}${t >= w.t0 - 0.03 ? 'on' : ''}">${w.w}</span>`).join(' '))
@@ -545,9 +570,14 @@ LTNS.start({
       { t: P.CODE + 0.25, sfx: 'pop' }, { t: P.CODE + 0.5, sfx: 'tick' },
       { t: P.ENDC + 0.7, sfx: 'pop' }, { t: P.ENDC + 1.3, sfx: 'tick' }, { t: P.ENDC + 1.9, sfx: 'ding' },
       { t: P.LOOP0, sfx: 'whoosh' },
+      { t: P.PRE, sfx: 'tick' }, { t: P.SANS, sfx: 'whoosh' }, { t: P.CODE, sfx: 'pop' }, { t: P.V4, sfx: 'whoosh' },
+      { t: P.LUM, sfx: 'whoosh' }, { t: P.SPLIT, sfx: 'pop' }, { t: P.BAS, sfx: 'whoosh' }, { t: P.REAL, sfx: 'pop' },
+      { t: P.AVANT, sfx: 'whoosh' }, { t: P.APRES, sfx: 'tick' }, { t: P.RAIL, sfx: 'whoosh' }, { t: P.FOOT, sfx: 'whoosh' },
+      { t: P.ENDC, sfx: 'pop' },
     ]
     for (let i = 1; i <= 4; i++) ev.push({ t: P.PRE + (P.SANS - 0.3 - P.PRE) * i / 4, sfx: 'tick' })
     for (let i = 0; i < 4; i++) ev.push({ t: P.ET + (P.CODE - P.ET) * (0.15 + 0.22 * i), sfx: 'tick' })
+    for (let i = 0; i < 3; i++) ev.push({ t: P.RAIL + 0.1 + railDur(P) * (i + 0.75) / 3, sfx: 'tick' })
     return ev
   },
   ready: async () => {
