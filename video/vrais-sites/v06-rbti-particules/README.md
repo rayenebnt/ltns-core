@@ -9,21 +9,21 @@ est injecté dans le navigateur au moment de la capture).
 
 | Moment | À l'écran | Source |
 |---|---|---|
-| Image 0 → 3 s | La vraie scène « morph » arrêtée sur la maison (≈ 760 px de large), fond nuit + halo violet du site, reflet discret. Titre fixe « 4 200 PARTICULES. / PAS UN SEUL MOT. » (« 4 200 » et « pas un seul mot » en orange #ff6100), les mots s'allument avec la voix. À 0,3 s la maison éclate en tourbillon (transition du site lue à l'envers, ≈ ×2), puis se reforme (lecture avant) avec une poussée 1,00 → 1,06. Sur « mot. », flash orange. | `assets/morph.webm` (scène capturée en 1440 × 1440) |
-| « Une maison… une clé… un euro. » | Étiquette « VRAI PROJET · RBTI ». La maison devient la clé, puis l'euro : le vrai morph, accéléré (pastille « ▸▸ ACCÉLÉRÉ »). | `morph.webm` |
-| « RBTI devient le locataire… » | Dézoom : les particules sont dans le canvas de la vraie carte de contact mobile (« Marre des impayés et des soucis de gestion ? »), dans un téléphone vectoriel (x 300-780). Bouton téléphone et lignes de contact floutés. | `assets/cta-card.webp` (capture 390 × 844 @3, canvas masqué) + `morph.webm` |
+| Image 0 → 3 s | La vraie scène « morph » arrêtée sur la maison (≈ 760 px de large), fond nuit + halo violet du site, reflet discret. Titre fixe « 4 200 PARTICULES. / PAS UN SEUL MOT. » (« 4 200 » et « pas un seul mot » en orange #ff6100), les mots s'allument avec la voix. À 0,3 s la maison éclate en tourbillon (transition du site lue à l'envers, ≈ ×2), puis se reforme (lecture avant) avec une poussée 1,00 → 1,06, puis la caméra continue d'avancer doucement tant que la maison tient. Sur « mot. », la maison s'illumine d'un coup (flash orange + halo additif). | `assets/morph.webm` (scène capturée en 1440 × 1440) |
+| « Une maison… une clé… un euro. » | Étiquette « VRAI PROJET · RBTI ». Sur « maison… », un reflet de lumière balaie la maison ; juste après, elle devient la clé, puis l'euro : le vrai morph, accéléré (pastille « ▸▸ ACCÉLÉRÉ »). | `morph.webm` |
+| « RBTI devient le locataire… » | Dézoom : les particules sont dans le canvas de la vraie carte de contact mobile (« Marre des impayés et des soucis de gestion ? »), dans un téléphone vectoriel (x ≈ 310-770). La carte est cadrée bord à bord dans l'écran (zoom 390/350 : les 20 px de fond clair de la page de part et d'autre de la carte sortent du cadre, ils se lisaient comme un défaut du téléphone). Quand le téléphone est très agrandi (dézoom, plongée), son haut s'efface sous le sous-titre : le texte de la carte ne passe jamais sous celui de la voix. Bouton téléphone et lignes de contact floutés. | `assets/cta-card.webp` (capture 390 × 844 @3, canvas masqué) + `morph.webm` |
 | « …le locataire du propriétaire » | Coup de fouet vers le haut : le héros. Le vrai titre H1 « On devient votre locataire, pas un intermédiaire » apparaît (transitions CSS du site, figées pas à pas) sur la ville 3D de nuit ; « votre locataire » se souligne en orange. | `assets/city.webm` (ville seule), `assets/h1-*.webp` (titre seul, transparent) |
 | « …et lui verse un loyer fixe. » | La caméra du site descend l'avenue (progression du défilement imposée à la scène), le titre remonte. | `city.webm` (images 105 → 179) |
-| « Sur son site, ce métier… » | Coup de fouet vers le bas : retour à la carte, plongée dans le canvas jusqu'au plan macro ×3 sur le faîte du toit (rendu 3240 × 3240), compteur orange 0 → 4 200. | `assets/macro.webm` |
+| « Sur son site, ce métier… » | Coup de fouet vers le bas : retour à la carte, plongée dans le canvas jusqu'au plan macro ×3 sur le faîte du toit (rendu 3240 × 3240, bords fondus), compteur orange 0 → 4 200. Hors du plan macro, la scène 1440 agrandie continue de bouger, légèrement floutée (profondeur de champ). | `assets/macro.webm` |
 | « …se dessine en lumière » | Recul : maison → clé → € → marque RBTI en accéléré (« ACCÉLÉRÉ »), puis la marque en particules devient le vrai logo extrudé en 3D. | `morph.webm`, `assets/mark.webm` |
 | « …juste avant le contact. » | Le logo recule ; une porte orange s'allume au fond du vrai couloir. | `assets/gates.webm` |
 | « Et la méthode ? Six étapes, six portes… » | On traverse le portique (scène « gates » seule), puis l'ordinateur vectoriel : la vraie section « Notre méthode » en 1440 × 900, rail épinglé, compteur 01/06 → 06/06, le dernier portique s'allume. Mention « SCÈNE 3D · VERSION ORDINATEUR » (ces scènes sont coupées sur mobile). Descriptions des cartes floutées. | `assets/rail.webm` |
 | Pause | Dans l'ordinateur, la page descend aux avantages : les 416 cubes se soulèvent sous le curseur, reflets orange. | `assets/field.webm` |
-| Fin | « TON MÉTIER, TU LE DESSINERAIS COMMENT ? » en grand (mot à mot), sur le nuage de particules (la marque se défait lentement). Puis « Devis gratuit sous 48 h · lien en bio », « Partout en France à distance / sur place en Île-de-France », « LTNS° ». | `morph.webm` |
+| Fin | « TON MÉTIER, TU LE DESSINERAIS COMMENT ? » en grand (mot à mot), sur le nuage de particules bien visible (la marque RBTI se défait lentement, la caméra avance). Puis « Devis gratuit sous 48 h · lien en bio », « Partout en France à distance / sur place en Île-de-France », « LTNS° », puis un reflet traverse le bouton. | `morph.webm` |
 | Boucle (dernière seconde) | Le nuage se resserre et reforme exactement la maison de l'image 0 (même image de la séquence), le titre revient : la dernière image est l'image 0. | `morph.webm` |
 
 Effets de montage, jamais présentés comme le comportement du site : zooms, coups de fouet, téléphone et ordinateur
-vectoriels, souligné, compteur, flash, reflet, accélérations (signalées « ACCÉLÉRÉ ») et la lecture à l'envers de
+vectoriels, souligné, compteur, flash, reflets (sol, balayage de la maison, bouton), flou de profondeur, accélérations (signalées « ACCÉLÉRÉ ») et la lecture à l'envers de
 l'accroche. Le titre H1 est posé sur la ville capturée sans le reste du bloc héros : le chapeau (« loyer garanti, zéro
 gestion »), les puces et « Disponible 7j/7 · Réponse sous 24h » ne sont jamais à l'écran.
 
@@ -38,6 +38,8 @@ cartes de la méthode (dont « loyer fixe garanti ») sont floutées dans l'ordi
 `SENTENCES` = le texte ElevenLabs (`vrai-projet-06.mp3`) découpé sur `[pause]` / `[long pause]` : **9 phrases**. Chaque
 temps fort est accroché à un mot (`CUES`, `plan()`), sauf l'accroche 0–3 s et la dernière seconde. Sans voix, le moteur
 estime le minutage (brouillon ≈ 26,8 s) ; avec un calage proche de la voix (concept), la vidéo fait ≈ 20,3 s.
+La maison commence à devenir la clé 0,6 s après « maison… » (ou 0,42 s avant « clé… » si c'est plus tôt) : même
+quand une phrase traîne, la maison ne reste jamais figée.
 `sync-voice.py` remet 0,25 s entre les fichiers : la pause longue disparaît, donc le champ de cubes garde au moins 0,8 s
 et la carte de fin attend la fin du champ (la question s'affiche d'abord en sous-titre).
 
