@@ -9,7 +9,9 @@ pause est déjà assez longue (on peut le relancer sans risque).
   python3 video/commun/sync-voice.py video/vrais-sites/v07-pmsb-gestion-relance
   python3 video/vrais-sites/v07-pmsb-gestion-relance/scripts/pause-longue.py video/vrais-sites/v07-pmsb-gestion-relance
 
-Options : --avant=6 (numéro de la phrase qui suit la pause), --pause=1.0 (silence voulu, en s).
+Options : --avant=6 (numéro de la phrase qui suit la pause), --pause=1.5 (silence voulu, en s).
+1,5 s par défaut : la prise ElevenLabs marque 2,7 s de silence à cet endroit ; avec 1,0 s, l'échéancier
+n'était entièrement visible qu'une demi-seconde.
 """
 import json
 import math
@@ -27,7 +29,7 @@ def main():
     opt = {a.split("=")[0][2:]: a.split("=")[1] for a in sys.argv[1:] if a.startswith("--") and "=" in a}
     here = os.path.abspath(args[0] if args else ".")
     avant = int(opt.get("avant", 6))
-    pause = float(opt.get("pause", 1.0))
+    pause = float(opt.get("pause", 1.5))
 
     timing_path = os.path.join(here, "timing.json")
     voice_path = os.path.join(here, "voice.mp3")

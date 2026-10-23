@@ -117,7 +117,7 @@
   #echLine img { width: 700px; height: 121.5px; }
   #pastCover { position: absolute; left: 0; top: 0; border-radius: 50%; }
   #pastille { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
-  #echSec { position: absolute; left: 58px; top: 715px; width: 964px; height: 432px; overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 40px 80px -30px rgba(22, 22, 27, .5); }
+  #echSec { position: absolute; left: 38px; top: 715px; width: 964px; height: 432px; overflow: hidden; border-radius: 22px; background: #fff; box-shadow: 0 40px 80px -30px rgba(22, 22, 27, .5); }
   #echSec img { position: absolute; left: 0; top: 0; width: 3312px; transform-origin: 0 0; }
   .redRing { position: absolute; border-radius: 10px; box-shadow: 0 0 0 4px var(--red2), 0 0 26px rgba(216, 67, 47, .55); opacity: 0; }
 
@@ -284,10 +284,10 @@ const CUES = {
   relance: [2, 'relance,', -0.04, 'pop'],
   demeure: [2, 'demeure', -0.04, 'ding'],
   propose: [2, 'propose', -0.05],
-  apres: [2, "d'après,", -0.05],
+  etape: [2, "l'étape", -0.05],
   texte: [2, 'texte', 0],
   v4: [3, 0, -0.15, 'whoosh'],
-  messagerie: [3, 'messagerie,', 0, 'tick'],
+  messagerie: [3, 'messagerie,', -0.08, 'tick'],
   lettre: [3, 'lettre', 0],
   pdf: [3, 'PDF', 0.02, 'whoosh'],
   recommande: [3, 'recommandé.', 0, 'pop'],
@@ -297,6 +297,15 @@ const CUES = {
   notee: [4, 'notée.', -0.05, 'pop'],
   comment: [5, 'comment', -0.03],
 }
+
+// Débuts de mots mesurés sur la vraie voix (s depuis le début de la phrase dans timing.json), là où la
+// répartition du moteur (au prorata de la longueur des mots) se trompe de plus de 0,15 s : la liste
+// « Rappel, relance, mise en demeure » est dite en trois temps égaux (0,65 s chacun), le moteur avançait
+// « relance » de 0,23 s et « mise » de 0,43 s. Corrige les sous-titres et les marches de l'escalier.
+const MOTS = { 2: { 'relance,': 0.70, mise: 1.43, en: 1.64, demeure: 1.76 } }
+// Fin : la carte de fin complète reste lisible ≥ 1,1 s, puis 1,05 s de retour à l'image 0
+const TAIL = 2.2, BACK = 1.05
+const EL_AT = [0.6, 0.62, 1.05, 1.5] // apparition des lignes de la carte de fin (s après T.end)
 
 let D, PR, T, PERIOD = 25, keysP, IMG = {}, MASKS = [], CHKS = [], WALL = 0, BADGE_W = 340
 const osc = (t, approx, ph = 0) => { const n = Math.max(1, Math.round(PERIOD / approx)); return Math.sin(TAU * (t * n / PERIOD + ph)) }
@@ -364,7 +373,7 @@ function buildKeys(C) {
     [T.mail + 0.06, with_(PF, { cx: 546 })], [T.mail + 0.45, PF2],
     [T.pdf, with_(PF2, { S: 2.3, cy: 890, ry: 1.5 })], [T.pdf + 0.42, PL],
     [T.v5 - 0.05, PL], [T.v5 + 0.4, PG],
-    [T.ech, with_(PG, { S: 2.28, cy: 838, ry: 1.5 })], [T.ech + 0.28, PH],
+    [T.ech, with_(PG, { S: 2.28, cy: 838, ry: 1.5 })], [T.ech + 0.2, PH],
     [T.loop + 0.1, PIN], [T.loop + 0.85, P0],
   ]
   return mono(K)
@@ -668,7 +677,7 @@ function render(t, k) {
   })
 
   /* Historique + flèche : la dernière relance → l'étape suivante proposée */
-  const hIn = tail ? 0 : easeOut(ramp(t, T.prop + 0.05, 0.3)), hOut = easeIn(ramp(t, T.texte - 0.34, 0.2))
+  const hIn = tail ? 0 : easeOut(ramp(t, T.prop + 0.05, 0.3)), hOut = easeIn(ramp(t, T.texte - 0.16, 0.2))
   const HS = 2.3, hw = 310, hh = 62
   const hc0 = { x: 20, y: 876 }
   $('histCard').style.width = (hw * HS) + 'px'; $('histCard').style.height = (hh * HS) + 'px'
@@ -693,7 +702,7 @@ function render(t, k) {
   const hd = (a, r) => `${(tip.x + Math.cos(ang + a) * r).toFixed(1)} ${(tip.y + Math.sin(ang + a) * r).toFixed(1)}`
   $('arrowHead').setAttribute('d', `M${tip.x.toFixed(1)} ${tip.y.toFixed(1)} L${hd(2.6, 30)} L${hd(-2.6, 30)} Z`)
   $('arrowHead').style.opacity = ap > 0.95 ? 1 : 0
-  const tg = tail ? 0 : back(ramp(t, T.hop + 0.3, 0.3)) * (1 - hOut)
+  const tg = tail ? 0 : back(ramp(t, T.hop + 0.12, 0.26)) * (1 - hOut)
   setT($('tagNext'), tg > 0 ? clamp(tg) : 0, `translate(${(tip.x + 64).toFixed(1)}px, ${(tip.y + 18).toFixed(1)}px) rotate(-3deg) scale(${(0.7 + 0.3 * tg).toFixed(3)})`)
 
   /* La lettre PDF */
@@ -701,12 +710,13 @@ function render(t, k) {
   const letterKeys = [
     [T.pdf - 0.01, { x: 150, y: 1960, s: 1, rz: 7, op: 1 }],
     [T.pdf + 0.42, { x: 150, y: 478, s: 1, rz: -1.2, op: 1 }],
-    [C.recommande - 0.28, { x: 148, y: 470, s: 1.02, rz: -0.6, op: 1 }],
-    [C.recommande + 0.12, { x: 84 - 111 * LS * 1.75, y: 700 - 902 * LS * 1.75, s: 1.75, rz: 0, op: 1 }],
-    [T.v5 - 0.12, { x: 84 - 111 * LS * 1.75, y: 700 - 1190 * LS * 1.75, s: 1.75, rz: 0, op: 1 }],
+    [C.recommande - 0.3, { x: 148, y: 470, s: 1.02, rz: -0.6, op: 1 }],
+    [C.recommande + 0.08, { x: 84 - 111 * LS * 1.75, y: 700 - 902 * LS * 1.75, s: 1.75, rz: 0, op: 1 }],
+    // la caméra descend doucement : « Lettre recommandée avec accusé de réception » reste sous le sous-titre, lisible
+    [T.v5 - 0.04, { x: 84 - 111 * LS * 1.75, y: 610 - 902 * LS * 1.75, s: 1.75, rz: 0, op: 1 }],
     [T.v5 + 0.42, { x: 30, y: 600, s: 0.6, rz: -9, op: 0.95 }],
     [T.ech, { x: 30, y: 590, s: 0.6, rz: -9.5, op: 0.95 }],
-    [T.ech + 0.28, { x: -520, y: 620, s: 0.6, rz: -16, op: 0 }],
+    [T.ech + 0.2, { x: -520, y: 620, s: 0.6, rz: -16, op: 0 }],
   ]
   if (!tail && t >= T.pdf - 0.01 && t < T.ech + 0.4) {
     const lp = track(t, mono(letterKeys))
@@ -714,7 +724,7 @@ function render(t, k) {
     $('letter').style.zIndex = t >= T.v5 ? 3 : 6
   } else $('letter').style.opacity = 0
   const LL = D.lettre.lignes, lrec = LL.find(l => l[4].startsWith('Lettre recommandée')), lobj = LL.find(l => l[4].startsWith('Objet'))
-  const mk = $('marker').style, mp = tail ? 0 : easeOut(ramp(t, C.recommande - 0.05, 0.35))
+  const mk = $('marker').style, mp = tail ? 0 : easeOut(ramp(t, C.recommande - 0.08, 0.3))
   mk.left = (lrec[0] - 10) + 'px'; mk.top = (lrec[1] - 8) + 'px'; mk.width = (lrec[2] - lrec[0] + 20) + 'px'; mk.height = (lrec[3] - lrec[1] + 16) + 'px'
   mk.transform = `scaleX(${mp.toFixed(4)})`
   const rlp = tail ? 0 : easeOut(ramp(t, T.pdf + 0.5, 0.35)), rls = $('redLine').style
@@ -723,13 +733,14 @@ function render(t, k) {
   rls.transform = `scaleX(${rlp.toFixed(4)})`
 
   /* Échéancier : les retards, la pastille rouge rebondit */
-  const eIn = tail ? 0 : easeOut(ramp(t, T.ech + 0.1, 0.28)), eOut = easeIn(ramp(t, T.end - 0.18, 0.2)) // sort avant que la question n'arrive (pas de fondu l'un sur l'autre)
+  // entre quand la carte est presque sortie (0,2 s), sort avant que la question n'arrive (pas de fondu l'un sur l'autre)
+  const eIn = tail ? 0 : easeOut(ramp(t, T.ech + 0.1, 0.2)), eOut = easeIn(ramp(t, T.end - 0.18, 0.2))
   $('ech').style.opacity = (eIn * (1 - eOut)).toFixed(3)
   $('ech').style.transform = `translateY(${((1 - eIn) * 70 + eOut * 150).toFixed(1)}px) scale(${(1 - 0.06 * eOut).toFixed(4)})`
   const EL = D.rects.el, es = 700 / EL.sideEch.w
   const b = EL.sideBadge, bx = (b.x - EL.sideEch.x - 2) * es, by = (b.y - EL.sideEch.y - 2) * es, bw = (b.w + 4) * es
   const pc = $('pastCover').style; pc.left = bx + 'px'; pc.top = by + 'px'; pc.width = bw + 'px'; pc.height = bw + 'px'; pc.background = D.fondPastille
-  const bt = Math.max(0, t - (T.ech + 0.3)), bounce = tail ? 0 : Math.abs(Math.sin(bt * 11)) * Math.exp(-bt * 3.2) * 30
+  const bt = Math.max(0, t - (T.ech + 0.25)), bounce = tail ? 0 : Math.abs(Math.sin(bt * 11)) * Math.exp(-bt * 3.2) * 30
   setT($('pastille'), 1, `translate(${bx}px, ${(by - bounce).toFixed(2)}px) scale(${(1 + bounce / 120).toFixed(3)})`)
   $('pastille').style.width = bw + 'px'; $('pastille').style.height = bw + 'px'
   const ES = 964 / 680
@@ -738,7 +749,7 @@ function render(t, k) {
   qa('#echSec .redRing').forEach((el, i) => {
     const r = EL.echJours[i], s = el.style
     s.left = ((r.x - 6) * ES) + 'px'; s.top = ((r.y - 4) * ES) + 'px'; s.width = ((r.w + 12) * ES) + 'px'; s.height = ((r.h + 8) * ES) + 'px'
-    s.opacity = tail ? 0 : easeOut(ramp(t, T.ech + 0.35 + i * 0.16, 0.18)).toFixed(3)
+    s.opacity = tail ? 0 : easeOut(ramp(t, T.ech + 0.28 + i * 0.16, 0.18)).toFixed(3)
   })
 
   /* Fin : la question, l'escalier qui s'allume, l'offre */
@@ -756,8 +767,7 @@ function render(t, k) {
     if (el.classList.contains('box')) el.style.setProperty('--k', tail ? 1 : easeOut(ramp(t, x.t0 - 0.03, 0.25)).toFixed(3))
   })
   const eLine = (id, d) => { const e = endOn ? back(ramp(t, T.end + d, 0.34)) : tail ? 1 - ramp(t, T.loop, 0.25) : 0; setT($(id), clamp(e).toFixed(3), `translateY(${((1 - clamp(e)) * 24).toFixed(1)}px) scale(${(0.94 + 0.06 * clamp(e, 0, 1.1)).toFixed(4)})`) }
-  const dE = Math.max(0.5, Math.min(1.9, T.loop - 0.55 - T.end)) / 1.9
-  eLine('e1', 0.7 * dE); eLine('e2', 0.72 * dE); eLine('e3', 1.3 * dE); eLine('e4', 1.9 * dE)
+  ;['e1', 'e2', 'e3', 'e4'].forEach((id, i) => eLine(id, EL_AT[i]))
   const stT = endOn ? ramp(t, T.end + 0.05, 0.3) : tail ? 1 - ramp(t, T.loop, 0.25) : 0
   $('stTop').style.opacity = stT.toFixed(3)
   qa('#stTop .st').forEach((el, i) => {
@@ -812,7 +822,7 @@ function computeT(C, TIMES) {
   T.v3 = C.v3; T.rap = C.rappel; T.rel = C.relance; T.dem = C.demeure
   T.pc0 = Math.max(C.lui + 0.3, Math.min(T.v3 - 0.15, T.rap - 0.42))
   T.prop = C.propose; T.texte = C.texte - 0.15
-  T.hop = Math.max(C.apres, T.prop + 0.42)
+  T.hop = Math.max(C.etape, T.prop + 0.36) // la pastille saute sur « l'étape d'après », l'étiquette reste lisible
   T.toPdf = Math.min(C.lettre - 0.05, C.messagerie + 0.75)
   T.v4 = TIMES[3].start - 0.15
   T.typeEnd = Math.min(Math.max(T.texte + 1.25, TIMES[2].end + 0.15), T.v4 + 0.25)
@@ -821,30 +831,54 @@ function computeT(C, TIMES) {
   T.v5 = C.v5; T.chaque = C.chaque; T.notee = C.notee
   T.ech = T.notee + 0.55
   T.end = Math.max(TIMES[5].start - 0.12, T.ech + 0.95)
-  T.loop = C.end + 0.55
-  T.dE = Math.max(0.5, Math.min(1.9, T.loop - 0.55 - T.end)) / 1.9
+  T.loop = C.end + TAIL - BACK
   return T
 }
 const mono = K => { for (let i = 1; i < K.length; i++) if (K[i][0] <= K[i - 1][0]) K[i][0] = K[i - 1][0] + 0.02; return K }
 
+// Recale les mots mesurés (MOTS) dans WORDS, puis les repères (CUES) qui s'y accrochent
+const normW = w => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+function applyMots(k) {
+  const { C, TIMES, WORDS } = k
+  for (const [si, m] of Object.entries(MOTS)) {
+    const W = WORDS[si]
+    for (const [w, dt] of Object.entries(m)) {
+      const i = W.findIndex(x => normW(x.w) === normW(w))
+      if (i < 0) { console.warn('mot mesuré introuvable :', w); continue }
+      W[i].t0 = TIMES[si].start + dt
+      W[i].t1 = Math.max(W[i].t1, W[i].t0 + 0.05)
+      if (i > 0) W[i - 1].t1 = W[i].t0
+    }
+  }
+  for (const [key, [si, f, off = 0]] of Object.entries(CUES)) {
+    if (typeof f !== 'string' || !MOTS[si]) continue
+    const x = WORDS[si].find(x => normW(x.w) === normW(f))
+    if (x) C[key] = x.t0 + off
+  }
+}
+// Bruitages (seulement avec render.mjs --bruitages ; la version publiée est en voix seule)
+const cueEvents = C => Object.entries(CUES).filter(([, c]) => typeof c[3] === 'string').map(([key, c]) => ({ t: C[key], sfx: c[3], cue: key }))
+function sfxEvents() {
+  const ev = [{ t: 0.1, sfx: 'ding' }, { t: 1.0, sfx: 'whoosh' }, { t: 1.42, sfx: 'pop' }, { t: 1.98, sfx: 'whoosh' }, { t: 2.79, sfx: 'tick' },
+    { t: T.swap, sfx: 'whoosh' }, { t: T.hop, sfx: 'tick' }, { t: T.hop + 0.4, sfx: 'pop' },
+    { t: T.mail + 0.12, sfx: 'pop' }, { t: T.pdfClick, sfx: 'tick' },
+    { t: T.ech + 0.08, sfx: 'whoosh' }, { t: T.ech + 0.25, sfx: 'pop' }, { t: T.end, sfx: 'whoosh' },
+    { t: T.end + EL_AT[0], sfx: 'pop' }, { t: T.end + EL_AT[2], sfx: 'pop' }, { t: T.end + EL_AT[3], sfx: 'ding' }, { t: T.loop + 0.1, sfx: 'whoosh' }]
+  for (let x = T.texte + 0.3; x < T.typeEnd - 0.05; x += 0.13) ev.push({ t: x, sfx: 'tick' })
+  return ev
+}
+
 LTNS.start({
-  sentences: SENTENCES, cues: CUES, spoken: SPOKEN, tail: 1.6, render,
+  sentences: SENTENCES, cues: CUES, spoken: SPOKEN, tail: TAIL, render,
   settle: () => new Promise(r => requestAnimationFrame(() => r())),
-  extraEvents: (C, TIMES) => {
-    computeT(C, TIMES)
-    const ev = [{ t: 0.1, sfx: 'ding' }, { t: 1.0, sfx: 'whoosh' }, { t: 1.42, sfx: 'pop' }, { t: 1.98, sfx: 'whoosh' }, { t: 2.79, sfx: 'tick' },
-      { t: T.swap, sfx: 'whoosh' }, { t: T.hop, sfx: 'tick' }, { t: T.hop + 0.4, sfx: 'pop' },
-      { t: T.mail + 0.12, sfx: 'pop' }, { t: T.pdfClick, sfx: 'tick' }, 
-      { t: T.ech + 0.12, sfx: 'whoosh' }, { t: T.ech + 0.32, sfx: 'pop' }, { t: T.end, sfx: 'whoosh' },
-      { t: T.end + 0.7 * T.dE, sfx: 'pop' }, { t: T.end + 1.3 * T.dE, sfx: 'pop' }, { t: T.end + 1.9 * T.dE, sfx: 'ding' }, { t: T.loop + 0.1, sfx: 'whoosh' }]
-    for (let x = T.texte + 0.3; x < T.typeEnd - 0.05; x += 0.13) ev.push({ t: x, sfx: 'tick' })
-    return ev
-  },
+  extraEvents: (C, TIMES) => { computeT(C, TIMES); return sfxEvents() },
   ready: async k => {
     const { C, TIMES, WORDS } = k
+    applyMots(k)
+    computeT(C, TIMES)
+    window.TL = cueEvents(C).concat(sfxEvents()).sort((a, b) => a.t - b.t)
     D = await (await fetch('assets/rects.json', { cache: 'no-store' })).json()
     PR = D.rects.panneau
-    computeT(C, TIMES)
     PERIOD = Math.ceil(k.duration * FPS) / FPS
     WALL = WORDS[0][1].t0
     window.T = T
