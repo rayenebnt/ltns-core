@@ -4,20 +4,20 @@ Vidéo TikTok 1080 × 1920, 30 i/s, en boucle. Concept validé : `../concepts.js
 Projet : le site vitrine de PMSB (pages Étanchéité, Isolation, Ravalement), build de production local de
 `/home/user/rayenebnt/pmsb-ravalement` (jamais modifié : servi par `next start` sur un port libre, capturé en temps virtuel).
 
-Brouillon muet (sans voix) : 26,9 s avec le minutage estimé par le moteur (il compte 15 caractères/s et ignore la pause longue) ; ≈ 22 s avec la vraie voix (calage du concept), sans rien changer à la page.
+Version finale : 24,8 s, calée sur la vraie voix ElevenLabs (voix seule, sans bruitages). Le brouillon muet faisait 26,9 s avec le minutage estimé par le moteur (15 caractères/s, sans pause longue).
 
 ## Ce qu'on voit (tout vient du vrai site)
 
 | Moment (calé sur la voix) | À l'écran | Source réelle |
 |---|---|---|
 | Image 0 → 3 s | Plein cadre : la membrane satinée de la page Étanchéité sous la pluie automatique, à la vraie résolution du canvas (1080 × 1920), voile du site conservé, tout le texte masqué sauf le vrai titre « ÉTANCHÉITÉ » (remonté entre y ≈ 786 et 880). Titre fixe « IL FAIT DE L'ÉTANCHÉITÉ. / SON SITE FAIT PLEUVOIR. » (« pleuvoir. » en bleu du site), les mots s'allument au rythme de V1/V2. À 0,35 s, une grosse goutte tombe près du centre (561, 669) : anneau bleu calé sur le vrai front d'onde, « plic ». Deuxième goutte soulignée à 1,05 s, troisième à 2,33 s (derrière le titre). Poussée 1,00 → 1,08 vers la goutte, la caméra glisse un peu. | `assets/pluie-*.webm` (WaterSurface, graine 5), `assets/mot.png` (le vrai h1, capturé seul sur fond transparent, même mise en page), `assets/pluie.json` (gouttes journalisées) |
-| V3 « Chaque goutte dessine une onde, calculée en direct. » | Relance : étiquette « VRAI PROJET · PMSB », l'eau rentre dans un téléphone vectoriel sans marque qui montre la vraie page Étanchéité mobile avec tout son texte (390 × 844). Sur « goutte », anneau sur une vraie goutte de l'écran. Sur « calculée », on replonge : gros plan au ralenti (capture 60 i/s, 0,6×), anneaux sur les ondes qui se croisent, repère « PLUIE CALCULÉE EN DIRECT · PAS UNE VIDÉO ». | `assets/page-*.webm`, `assets/page.json`, `assets/pluie-macro-*.webm` |
+| V3 « Chaque goutte dessine une onde, calculée en direct. » | Relance : étiquette « VRAI PROJET · PMSB », l'eau rentre dans un téléphone vectoriel sans marque qui montre la vraie page Étanchéité mobile avec tout son texte (390 × 844). Sur « goutte », anneau sur une vraie goutte de l'écran (la page est décalée de 0,05 à 0,55 s de capture pour que cette goutte tombe pile sur le mot). Sur « calculée », on replonge : gros plan au ralenti (capture 60 i/s, 0,6×), anneaux sur les ondes qui se croisent, repère « PLUIE CALCULÉE EN DIRECT · PAS UNE VIDÉO ». | `assets/page-*.webm`, `assets/page.json`, `assets/pluie-macro-*.webm` |
 | V4 « Page isolation : sur le mur nu, l'énergie s'échappe. » | Un anneau d'onde grandit jusqu'à remplir l'écran : volet vers la vraie démonstration « coupe de mur » (ThermalWall), repère « PAGE ISOLATION · DÉMONSTRATION » (le libellé de la section). Sur « mur », la caméra pousse sur la face du mur. Loupe sur la vraie bascule (« MUR NU » actif, anneau sur « nu »). Zoom × 1,55 sur le nuage de particules qui traverse le mur. | `assets/iso-*.webm` (InsulationDemo), `assets/iso.json` |
-| fin de V4 → V5 « L'isolant se pose, et les pertes sont freinées. » | « ISOLÉ PAR L'EXTÉRIEUR » pulse dans la loupe, le doigt tape le vrai bouton (le clic a eu lieu à cet instant dans la capture) : l'isolant vert puis l'enduit glissent sur le mur (« clac »). Les particules continuent, moins nombreuses à s'échapper (freinées, pas arrêtées). La caméra se rapproche des couches posées, puis descend sur la liste du site (le haut du mur, clair, est assombri derrière les sous-titres) : 01 Mur porteur · 02 Isolant · 03 Enduit de finition s'allument tour à tour. | idem |
+| fin de V4 → V5 « L'isolant se pose, et les pertes sont freinées. » | « ISOLÉ PAR L'EXTÉRIEUR » pulse dans la loupe, le doigt tape le vrai bouton (le clic a eu lieu à cet instant dans la capture) : l'isolant vert puis l'enduit glissent sur le mur (« clac »). Les particules continuent, moins nombreuses à s'échapper (freinées, pas arrêtées). La caméra se rapproche des couches posées, puis descend sur la liste du site (le haut du mur, clair, est assombri derrière les sous-titres) : 01 Mur porteur · 02 Isolant · 03 Enduit de finition s'allument tour à tour et restent allumés jusqu'au volet. | idem |
 | V6 « Page ravalement : la brique et la pierre sont calculées, pas photographiées. » | Volet latéral (trait bleu) vers la page Ravalement : le bloc de brique (MaterialCanvas, lancer de rayons) entre en biais, gros plan sur les joints de mortier ; coupes sur « pierre » (Pierre de taille), « calculées » (Plâtre), « photographiées » (Imperméabilisation). Étiquettes comme les titres de section du site (02 Brique, 01 Pierre de taille…). La vraie mention « Échantillon procédural » reste visible. | `assets/brique|pierre|platre|impermeabilisation-*.webm` |
-| Pause longue | La brique revient et tourne lentement, repère « AUCUNE TEXTURE CHARGÉE · TOUT EST CALCULÉ ». | idem |
+| Pause longue (1,4 s) | La brique revient et tourne lentement, repère « AUCUNE TEXTURE CHARGÉE · TOUT EST CALCULÉ ». | idem |
 | V7 « Trois métiers, trois pages, trois scènes. » | Le bloc se resserre en bande, puis la pluie et le mur descendent en décalé : triptyque pluie | mur | brique (x 120-920, y 500-1460), chaque bande reçoit son nom (Étanchéité · Isolation · Ravalement), les bandes respirent et glissent lentement, chacune dans son sens (parallaxe). | les trois captures |
-| V8 « Et le tien, ce serait laquelle ? » | Le triptyque recule et continue de vivre (pluie, particules, bloc qui tourne). V8 en gros, « laquelle ? » en bleu ; +0,7 s « Devis gratuit sous 48 h · lien en bio » ; +1,3 s « Partout en France à distance · sur place en Île-de-France » ; +1,9 s « PMSB · site réalisé par LTNS° ». | |
+| V8 « Et le tien, ce serait laquelle ? » | Le triptyque recule et continue de vivre (pluie, particules, bloc qui tourne). V8 en gros, « laquelle ? » en bleu ; +0,6 s « Devis gratuit sous 48 h · lien en bio » ; +1,05 s « Partout en France à distance · sur place en Île-de-France » ; +1,5 s « PMSB · site réalisé par LTNS° » (à la fin de la question). La carte reste entière 1,1 s, le devis se rappelle une fois au milieu. | |
 | Boucle (dernière seconde) | Les bandes mur et brique se replient, la bande pluie reprend tout l'écran dans le cadrage de l'image 0 (la capture continue jusqu'à l'image qui précède l'image 0), une goutte tombe au centre (anneau, « plic »), le vrai titre de la page et le titre fixe reviennent : la dernière image enchaîne sur l'image 0. | `assets/pluie-*.webm` |
 
 Effets de montage, jamais présentés comme le comportement du site : téléphone vectoriel, anneaux d'onde (posés sur les vraies
@@ -47,9 +47,21 @@ le minutage. Quand la voix arrive (`voice/01.mp3` … `08.mp3`, une phrase par s
 
 ```bash
 cd /home/user/ltns-core
-python3 video/commun/sync-voice.py video/vrais-sites/v05-pmsb-pluie     # timing.json, voice.mp3, voice-files.js
+python3 video/commun/sync-voice.py video/vrais-sites/v05-pmsb-pluie                                  # timing.json, voice.mp3, voice-files.js
+python3 video/vrais-sites/v05-pmsb-pluie/scripts/pause-longue.py video/vrais-sites/v05-pmsb-pluie   # pause longue avant V7
 node video/commun/render.mjs video/vrais-sites/v05-pmsb-pluie
 ```
+
+`voix-originale.mp3` est la prise ElevenLabs telle quelle ; `voice/01.mp3` … `08.mp3` en sont découpés sur les silences (les
+huit durées correspondent aux huit phrases). sync-voice.py ne garde que 0,25 s entre deux phrases : `scripts/pause-longue.py`
+rétablit la pause longue avant V7 (1,4 s ; 2,4 s dans la prise originale, raccourcie pour rester sous 25 s), le temps de lire
+« AUCUNE TEXTURE CHARGÉE · TOUT EST CALCULÉ » pendant que le bloc tourne.
+
+Minutage réel (s) : V1 0,10–1,41 · V2 1,66–2,96 · V3 3,21–6,08 · V4 6,33–9,59 · V5 9,84–12,23 · V6 12,48–16,30 ·
+pause longue · V7 17,72–20,29 · V8 20,54–21,96 · carte de fin tenue jusqu'à 23,5 · retour à l'image 0 · fin 24,77.
+Repères vérifiés sur l'énergie de la voix : « goutte » 3,58, « calculée » 4,93, « mur » 7,96, « nu » 8,13, « L'isolant » 9,88,
+« pertes » 11,32, « brique » 13,83, « pierre » 14,32, « calculées » 14,76, « photographiées » 15,68, « métiers » 18,10,
+« pages » 19,03, « scènes » 19,95.
 
 Contrôle : `node video/vrais-sites/v05-pmsb-pluie/scripts/planche.mjs /tmp/planche.png 1 270 --zones`
 (vignettes 0, 0,5, 1, 1,5, 2, 3, 4 … fin, zones TikTok en rouge).
