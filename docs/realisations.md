@@ -11,6 +11,7 @@ Dépose la capture d'écran de chaque site dans `public/realisations/`.
 | P01    | `rbti.jpg`         | rbti.fr             |
 | P02    | `pmsb.jpg`         | pmsbbatiment.fr     |
 | P03    | `pmsb-gestion.jpg` | logiciel privé (pas de lien) |
+| P04    | `swatter-tv.jpg`   | swatter-tv.fr       |
 
 Le nom du fichier est défini par le champ `img.name` du projet, dans
 `src/components/Realisations.jsx` (`name: 'rbti'` → `public/realisations/rbti.jpg`).

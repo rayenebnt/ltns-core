@@ -57,6 +57,23 @@ export const projects = [
     hi: '#2563eb',
     wide: true,
   },
+  {
+    id: 'P04',
+    year: '2026',
+    name: 'Swatter TV',
+    url: 'https://www.swatter-tv.fr',
+    domain: 'swatter-tv.fr',
+    type: 'Web TV & info régionale',
+    tag: 'REFONTE DE SITE',
+    description:
+      "Swatter TV Info, web TV locale de Thyez (Haute-Savoie) qui couvre toute l'Auvergne-Rhône-Alpes. Refonte complète du site de la chaîne, avec une interface de télévision moderne : toutes les rubriques réunies, du direct au replay.",
+    features: ['Direct', 'Vidéos', 'Info régionale', 'Météo', 'Programme TV', 'Agenda', 'Webcams', 'Replay'],
+    img: { name: 'swatter-tv', width: 1600, height: 1000, variants: true },
+    alt: "Page d'accueil du site de Swatter TV (swatter-tv.fr), web TV locale de Haute-Savoie",
+    bg: 'linear-gradient(135deg, #071224 0%, #0c1b35 50%, #040a16 100%)',
+    hi: '#d9aa45',
+    wide: true,
+  },
 ]
 
 /* Aperçu généré : sert de repli tant que la photo du site n'est pas déposée
@@ -215,8 +232,9 @@ export default function Realisations() {
           </span>
           <h2 className="section-title">Sites et logiciel,<br /><em>livrés au degré</em>.</h2>
           <p className="section-intro">
-            De la sous-location immobilière au logiciel de gestion d'une entreprise du
-            bâtiment : chaque projet est taillé aux besoins du client, sans template générique.
+            De la sous-location immobilière à une web TV régionale, en passant par le logiciel
+            de gestion d'une entreprise du bâtiment : chaque projet est taillé aux besoins du
+            client, sans template générique.
           </p>
         </div>
         <div className="section-temp">
