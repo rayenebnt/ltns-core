@@ -69,7 +69,7 @@ export const projects = [
       "Swatter TV Info, web TV locale de Thyez (Haute-Savoie) qui couvre toute l'Auvergne-Rhône-Alpes. Refonte complète du site de la chaîne, avec une interface de télévision moderne : toutes les rubriques réunies, du direct au replay.",
     features: ['Direct', 'Vidéos', 'Info régionale', 'Météo', 'Programme TV', 'Agenda', 'Webcams', 'Replay'],
     img: { name: 'swatter-tv', width: 1600, height: 1000, variants: true },
-    alt: "Page d'accueil du site de Swatter TV (swatter-tv.fr), web TV locale de Haute-Savoie",
+    alt: "Grille du programme TV de la semaine sur le site de Swatter TV (swatter-tv.fr), web TV locale de Haute-Savoie",
     bg: 'linear-gradient(135deg, #071224 0%, #0c1b35 50%, #040a16 100%)',
     hi: '#d9aa45',
     wide: true,
