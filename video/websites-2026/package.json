@@ -1,0 +1,15 @@
+{
+  "name": "ltns-websites-2026",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Cap Lumière : maquette fictive de site immobilier 3D (scroll cinématique) pour la vidéo TikTok « Les sites en 2026 »",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.170.0"
+  }
+}

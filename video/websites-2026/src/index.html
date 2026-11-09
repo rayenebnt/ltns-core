@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cap Lumière Résidences</title>
+<meta name="description" content="Projet fictif&nbsp;: concept de site immobilier en 3D par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div id="ui">
+  <div id="scrim" aria-hidden="true"></div>
+  <header class="top">
+    <button id="back" class="pill pill-glass" type="button" tabindex="-1">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8 10 12.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Retour à la tour
+    </button>
+    <div class="logo" aria-label="Cap Lumière Résidences">
+      <span class="logo-main">CAP LUMIÈRE</span>
+      <span class="logo-sub">RÉSIDENCES</span>
+    </div>
+    <button id="callback" class="pill pill-blue" type="button">Être rappelé</button>
+  </header>
+
+  <aside id="card" class="glass-card">
+    <h2 class="card-title">Choisissez<br>votre étage</h2>
+    <p class="card-text">Vingt-six étages face à la baie. Faites défiler pour monter dans la tour.</p>
+    <div class="card-floor">
+      <span class="card-floor-label">Étage</span>
+      <span class="card-floor-num" id="floor-num"><span class="digit is-in">08</span></span>
+      <span class="card-floor-of">/ 26</span>
+    </div>
+    <p class="card-l1" id="floor-l1">2 pièces · 64&nbsp;m² · vue mer</p>
+    <p class="card-l2" id="floor-l2">Exposition sud · balcon filant</p>
+    <button class="card-cta" id="floor-cta" type="button">Découvrir l’étage <b id="floor-cta-n">8</b></button>
+  </aside>
+
+  <div id="hint" class="hint">
+    <span>Faites défiler</span>
+    <i class="hint-line"></i>
+  </div>
+
+  <div id="room-tag" class="glass-chip">
+    <span class="k">Étage 14 · 168&nbsp;<span class="unit">m²</span></span>
+    <span class="v">Séjour</span>
+  </div>
+
+  <div class="hotspot" data-anchor="ceiling"><i></i><span>Plafond en chêne</span></div>
+  <div class="hotspot" data-anchor="view"><i></i><span>Vue mer panoramique</span></div>
+  <div class="hotspot" data-anchor="fire"><i></i><span>Cheminée en travertin</span></div>
+
+  <footer id="credit">Projet fictif · concept de site par LTNS° — ltns.fr</footer>
+  <div id="toast" role="status"></div>
+</div>
+
+<div id="loader">
+  <div class="loader-logo">
+    <span class="logo-main">CAP LUMIÈRE</span>
+    <span class="logo-sub">RÉSIDENCES</span>
+  </div>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="nogl-title">Cette page a besoin de WebGL 2.</p>
+    <p>Votre navigateur ou votre carte graphique ne le prend pas en charge, ou il est désactivé.
+    Ouvrez la page dans une version récente de Chrome, Edge ou Safari, avec l’accélération matérielle activée.</p>
+  </div>
+</div>
+
+<div id="scroll-space"></div>
+<!--@SCRIPT@-->
+</body>
+</html>
