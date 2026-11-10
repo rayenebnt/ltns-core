@@ -23,8 +23,9 @@ const VIEWS = {
   push: { pos: [6.4, 1.5, 6.0], target: [7.0, 1.0, -24], shadow: [[5, 0, -10], 24] },
   finale: { pos: [15, 4.5, 31], target: [-2, 0.5, -8], shadow: [[-3, 0, 2], 36] },
   styles: { pos: [6.2, 1.35, 14.5], target: [8.6, 1.05, -24], shadow: [[6, 0, -4], 26] },
-  repair: { pos: [-17.5, 1.5, -1.0], target: [-24, 1.0, -2.0], shadow: [[-23, 0, -2.5], 10] },
-  gate: { pos: [-20.6, 1.4, 0.6], target: [-24, 1.0, 0.6], shadow: [[-23.5, 0, 0.6], 6] },
+  // (the world's chapter 4 poses: the gate now sits at z -8.4 .. -7.2, repair.js GZ)
+  repair: { pos: [-15.2, 1.85, -3.9], target: [-24, 0.55, -4.8], shadow: [[-23.5, 0, -5.2], 9] },
+  gate: { pos: [-19.6, 1.6, -6.45], target: [-24, 0.72, -7.3], shadow: [[-23.6, 0, -7.8], 6] },
   // close-ups (materials and props)
   cu_douglas: { pos: [7.2, 1.25, -2.2], target: [9.0, 1.0, -4.6], shadow: [[8.6, 0, -4], 5] },
   cu_douglas_out: { pos: [11.2, 1.45, 2.0], target: [9.1, 1.1, -0.6], shadow: [[9, 0, -0.5], 5] },
@@ -38,7 +39,7 @@ const VIEWS = {
   cu_posts: { pos: [7.4, 1.0, 3.2], target: [8.8, 0.25, -1.5], shadow: [[8.6, 0, -1], 5] },
   cu_weathered: { pos: [-22.2, 1.3, -8.8], target: [-24, 1.0, -9.6], shadow: [[-24, 0, -9], 4] },
   cu_branch: { pos: [-20.0, 1.9, -7.2], target: [-23.6, 1.1, -4.8], shadow: [[-23, 0, -5], 6] },
-  cu_hinges: { pos: [-22.4, 1.45, -0.3], target: [-24, 1.15, 0.45], shadow: [[-24, 0, 0.5], 3] },
+  cu_hinges: { pos: [-22.4, 1.45, -8.7], target: [-24, 1.15, -7.95], shadow: [[-24, 0, -7.9], 3] },
 };
 
 // three light presets of the stand-in (close to the garden's values)

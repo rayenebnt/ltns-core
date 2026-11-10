@@ -150,6 +150,7 @@ export const VIEWS = {
   push: { pos: [6.4, 1.5, 6.0], target: [7.0, 1.0, -24], shadow: [[1, 0, -12], 26] },
   finale: { pos: [15, 4.5, 31], target: [-2, 0.5, -8], shadow: [[-3, 0, -4], 36] },
   styles: { pos: [6.2, 1.35, 14.5], target: [8.6, 1.05, -24], shadow: [[4, 0, -8], 30] },
-  repair: { pos: [-17.5, 1.5, -1.0], target: [-24, 1.0, -2.0], shadow: [[-25, 0, -3], 16] },
-  gate: { pos: [-20.6, 1.4, 0.6], target: [-24, 1.0, 0.6], shadow: [[-24, 0, 0], 11] },
+  // chapter 4 as composed by the world (the gate sits at z -8.4 .. -7.2, fences/repair.js GZ)
+  repair: { pos: [-15.2, 1.85, -3.9], target: [-24, 0.55, -4.8], shadow: [[-23.5, 0, -5.2], 9] },
+  gate: { pos: [-19.6, 1.6, -6.45], target: [-24, 0.72, -7.3], shadow: [[-23.6, 0, -7.8], 6] },
 };
