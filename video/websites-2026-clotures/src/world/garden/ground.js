@@ -73,7 +73,6 @@ float segDist(vec2 p, vec2 a, vec2 b, out float t) {
 float inBox(vec2 p, vec4 b, float w) {
   return smoothstep(-w, w, p.x - b.x) * smoothstep(-w, w, b.y - p.x) * smoothstep(-w, w, p.y - b.z) * smoothstep(-w, w, b.w - p.y);
 }
-float nz(vec2 p, float s) { return texture2D(uNoise, p * s).r; }
 
 void main() {
   vec2 p = vWorld.xz;

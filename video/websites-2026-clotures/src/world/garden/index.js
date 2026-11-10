@@ -8,9 +8,15 @@
 //   garden.update(dt, time, camera) per frame, before rendering (grass tiles, wind, clouds)
 //   garden.setQuality(level)       'max' | 'high' | 'medium' | 'low' (grass, shadow map, leaves)
 //   garden.sun                     the shadow-casting DirectionalLight
-//   garden.stats()                 garden-side counters
+//   garden.stats()                 garden-side counters (level, preset, blades, leaf cards...)
+//   garden.views                   the contract views with a shadow fit each (layout.js VIEWS)
+//   garden.setFenceAO(n, d, o)     contact darkening of the lawn along the new fence (strength n,
+//                                  built up to distance d from B) and along the old fence (o)
 // The garden owns the renderer's shadow-map type, tone mapping (ACES Filmic) and exposure, the
 // scene's environment map and its fog (aerial perspective for every material, atmosphere.js).
+// Built-in materials get the haze automatically. A custom ShaderMaterial with fog: true must
+// merge UniformsLib.fog and HAZE_UNIFORMS into its uniforms (HAZE_GLSL gives applyHaze()).
+// Camera: near 0.15, far 6000 (the countryside reaches 4.6 km).
 import * as THREE from 'three';
 import { HAZE, HAZE_UNIFORMS, HAZE_GLSL } from './atmosphere.js';
 import { heightAt, VIEWS } from './layout.js';
@@ -262,6 +268,11 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
     sun,
     views: VIEWS,
     uniforms: { light: lightU, sky: skyU, ground: ground.uniforms },
+    // contrast of the mowing stripes (ground and blades), 1 = as designed
+    setStripes(k = 1) {
+      ground.uniforms.uFence.value.w = k;
+      grass.setStripes(k);
+    },
     setFenceAO(newStrength = 0, builtD = 0, oldStrength = 0) {
       const u = ground.uniforms.uFence.value;
       u.x = newStrength;

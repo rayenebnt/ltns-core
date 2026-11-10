@@ -591,6 +591,18 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
 
 /* ======================================================= chapter 2 HUD */
 .styles-head { position: absolute; left: var(--m); top: calc(var(--nav-h) + 26px); }
+/* the title and tabs can sit over the pale tuffeau facade: a soft local shade behind them */
+.styles-head::before {
+  content: '';
+  position: absolute;
+  left: -34%;
+  right: -26%;
+  top: -55%;
+  bottom: -48%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(8, 10, 12, 0.46), rgba(8, 10, 12, 0.24) 55%, rgba(8, 10, 12, 0));
+  pointer-events: none;
+}
 .styles-head .kicker { color: rgba(255, 255, 255, 0.86); }
 .styles-head .h-beat { margin-top: 12px; font-size: clamp(36px, min(3.7vw, 6.2vh), 66px); }
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }

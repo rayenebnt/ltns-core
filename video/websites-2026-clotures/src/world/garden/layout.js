@@ -44,6 +44,12 @@ export const TREES = [
   { id: 'N4', kind: 'oak', x: -36, z: 5.5, h: 17, r: 7.6, seed: 19 },
   { id: 'N5', kind: 'lime', x: -48, z: -21, h: 19, r: 7.4, seed: 20 },
   { id: 'N6', kind: 'lime', x: -30.5, z: -29, h: 24, r: 9.6, seed: 21 },
+  // a lime by the lane outside the front fence, behind the chapter 1 and 2 cameras: never in
+  // frame, its dappled shade falls across the foreground lawn of the hero, styles and finale
+  { id: 'S1', kind: 'lime', x: -8.5, z: 25.5, h: 17, r: 7.4, seed: 23 },
+  // a big lime beyond the end of the new fence: frames the hero (and the finale) on the right
+  // of the house, as the reference's yard is framed by mature trees on both sides
+  { id: 'T6', kind: 'lime', x: 19.5, z: -46, h: 23, r: 8.6, seed: 24 },
 ];
 // the neighbours' tall hedge further back (hides the ground floor of their house)
 export const NEIGH_HEDGE = { x: -44, z0: -36, z1: 26, h: 2.7, t: 1.3 };
