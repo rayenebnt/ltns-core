@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cordeau — Clôtures en Touraine (concept fictif)</title>
+<meta name="description" content="Projet fictif&#8239;: concept de site par LTNS°. Cordeau est une entreprise fictive.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-mark" viewBox="0 0 28 28"><path d="M4.6 7.2h3.1v12.6L6.15 23.4 4.6 19.8z" fill="currentColor"/><path d="M20.3 7.2h3.1v12.6l-1.55 3.6-1.55-3.6z" fill="currentColor"/><path d="M7.7 10.1h12.6" stroke="#ee7a2f" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 10 10"><path d="M2.4 1.3 8.7 5 2.4 8.7z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 16 16"><path d="M3 8h9.4M8.8 4.3 12.5 8l-3.7 3.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 10 10"><path d="M2.1 5.3 4.2 7.3 8 3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the 3D chapters' overlays (pinned with the canvas, under the sliding sections) -->
+<div id="hud">
+  <div class="hud" id="hud1">
+    <div class="scrim-top" aria-hidden="true"></div>
+
+    <section class="beat hero" id="hero" aria-label="Accueil">
+      <p class="kicker k-dash a">CORDEAU · CLÔTURES EN TOURAINE</p>
+      <h1 class="display"><span class="ln a">De bonnes clôtures,</span> <span class="ln it a">bien posées.</span></h1>
+      <p class="lead a">Faites défiler&#8239;: un jardin de Touraine reçoit sa clôture, poteau après poteau, comme on la pose vraiment.</p>
+      <div class="actions a">
+        <button class="pill-play" id="play-install" type="button"><span class="disc" aria-hidden="true"><svg><use href="#i-play"/></svg></span><span class="vh">▶ </span>REGARDER LA POSE</button>
+        <span class="hint"><i aria-hidden="true"></i>OU FAITES DÉFILER</span>
+      </div>
+    </section>
+
+    <aside class="glass log" id="log" aria-label="Le carnet de chantier">
+      <div class="log-head">
+        <div class="log-l">
+          <p class="kicker">LE CARNET DE CHANTIER</p>
+          <p class="log-day" id="log-day"><span class="roll is-in">Jour 1</span></p>
+        </div>
+        <p class="log-count"><span class="log-n" id="log-n">0<span class="ns">&#8239;</span>m</span> <span class="log-of">posés sur <span id="log-total">77&#8239;m</span></span></p>
+      </div>
+      <ol class="log-list" id="log-list">
+        <li><i class="tick"><svg><use href="#i-check"/></svg></i><span>Réseaux repérés avant de creuser</span></li>
+        <li><i class="tick"><svg><use href="#i-check"/></svg></i><span>Poteaux scellés au béton</span></li>
+        <li><i class="tick"><svg><use href="#i-check"/></svg></i><span>Lisses de niveau et vissées</span></li>
+        <li><i class="tick"><svg><use href="#i-check"/></svg></i><span>Lames et couvertine</span></li>
+        <li><i class="tick"><svg><use href="#i-check"/></svg></i><span>Nettoyage et visite de fin</span></li>
+      </ol>
+    </aside>
+
+    <section class="beat b-left" id="b-posts">
+      <p class="kicker k-dash a">JOUR 2 · POTEAUX</p>
+      <h2 class="h-beat"><span class="ln a">Profonds, d’aplomb,</span> <span class="ln a">dans le béton.</span></h2>
+      <p class="body a">Chaque poteau descend hors gel et se scelle dans le béton&#8239;: l’hiver ne le fait pas bouger. Avant de creuser, on repère les réseaux enterrés.</p>
+    </section>
+
+    <section class="beat b-right" id="b-rails">
+      <p class="kicker k-dash a">JOUR 2 · LISSES</p>
+      <h2 class="h-beat"><span class="ln a">Tiré au cordeau.</span></h2>
+      <p class="body a">Les lisses se posent de niveau, le long d’un cordeau tendu, avec une visserie galvanisée qui résiste à la rouille.</p>
+    </section>
+
+    <section class="beat b-left" id="b-boards">
+      <p class="kicker k-dash a">JOUR 3 · LAMES</p>
+      <h2 class="h-beat"><span class="ln a">Aucun jour. <em>Jamais.</em></span></h2>
+      <p class="body a">Les lames se chevauchent&#8239;: quand le bois sèche et se rétracte, on ne voit toujours pas au travers.</p>
+    </section>
+
+    <section class="beat b-left" id="b-finale">
+      <p class="kicker k-dash a">JOUR 3 · FIN DE CHANTIER</p>
+      <h2 class="h-beat"><span class="ln a">Votre jardin, <em>terminé.</em></span></h2>
+      <p class="body a">On emporte chaque chute, on fait le tour de la clôture avec vous et on vous remet une garantie écrite.</p>
+      <div class="actions a"><button class="btn btn-orange cta" type="button">Demander un devis gratuit<svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+    </section>
+  </div>
+
+  <div class="hud" id="hud2">
+    <div class="scrim-top" aria-hidden="true"></div>
+    <div class="styles-head" id="styles-head">
+      <p class="kicker k-dash a">CHOISIR SA CLÔTURE</p>
+      <h2 class="h-beat a">Choisissez votre clôture.</h2>
+      <div class="tabs a" id="tabs" role="tablist" aria-label="Modèles">
+        <button class="tab is-active" type="button" role="tab" aria-selected="true" data-i="0">Bois plein</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-i="1">PVC blanc</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-i="2">Panneaux rigides</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-i="3">Ranch</button>
+        <button class="tab" type="button" role="tab" aria-selected="false" data-i="4">Ganivelle</button>
+      </div>
+    </div>
+
+    <aside class="glass card" id="card">
+      <div class="faces" id="faces">
+        <article class="face is-on" data-i="0">
+          <header class="face-head">
+            <div class="face-id"><p class="kicker">01 / 05 · OCCULTANT</p><h3 class="face-title">Douglas, lames croisées</h3></div>
+            <p class="face-price"><span class="price">120–180<span class="ns">&#8239;</span>€</span><span class="per">le mètre posé</span></p>
+          </header>
+          <p class="face-text">Chaleureux et solide&#8239;: les lames se chevauchent et cachent tout le jardin. Une lasure tous les deux ou trois ans le garde blond&#8239;; sans lasure, il grise joliment.</p>
+          <div class="meters">
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="5" aria-label="Intimité"><span class="m-label">Intimité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="2" aria-label="Peu d’entretien"><span class="m-label">Peu d’entretien</span><i class="bar"><b class="on"></b><b class="on"></b><b></b><b></b><b></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-label="Longévité"><span class="m-label">Longévité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></i></div>
+          </div>
+          <p class="face-ideal"><b>Idéal pour&#8239;:</b> jardins familiaux, vis-à-vis, chiens sauteurs.</p>
+        </article>
+        <article class="face" data-i="1">
+          <header class="face-head">
+            <div class="face-id"><p class="kicker">02 / 05 · OCCULTANT</p><h3 class="face-title">PVC blanc, plein</h3></div>
+            <p class="face-price"><span class="price">140–200<span class="ns">&#8239;</span>€</span><span class="per">le mètre posé</span></p>
+          </header>
+          <p class="face-text">Net et lumineux, sans peinture ni lasure&#8239;: un coup de jet d’eau par an suffit. Pas d’échardes, pas de pourriture.</p>
+          <div class="meters">
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="5" aria-label="Intimité"><span class="m-label">Intimité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="5" aria-label="Peu d’entretien"><span class="m-label">Peu d’entretien</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="4" aria-label="Longévité"><span class="m-label">Longévité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></i></div>
+          </div>
+          <p class="face-ideal"><b>Idéal pour&#8239;:</b> maisons claires, bords de piscine, lotissements.</p>
+        </article>
+        <article class="face" data-i="2">
+          <header class="face-head">
+            <div class="face-id"><p class="kicker">03 / 05 · AJOURÉ</p><h3 class="face-title">Panneaux rigides anthracite</h3></div>
+            <p class="face-price"><span class="price">60–95<span class="ns">&#8239;</span>€</span><span class="per">le mètre posé</span></p>
+          </header>
+          <p class="face-text">Solide et discret&#8239;: le jardin reste visible, la clôture se fait oublier. On peut y glisser des lames d’occultation plus tard.</p>
+          <div class="meters">
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="1" aria-label="Intimité"><span class="m-label">Intimité</span><i class="bar"><b class="on"></b><b></b><b></b><b></b><b></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="5" aria-label="Peu d’entretien"><span class="m-label">Peu d’entretien</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="4" aria-label="Longévité"><span class="m-label">Longévité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></i></div>
+          </div>
+          <p class="face-ideal"><b>Idéal pour&#8239;:</b> grands terrains, chiens, petits budgets.</p>
+        </article>
+        <article class="face" data-i="3">
+          <header class="face-head">
+            <div class="face-id"><p class="kicker">04 / 05 · CAMPAGNE</p><h3 class="face-title">Ranch, trois lisses noires</h3></div>
+            <p class="face-price"><span class="price">55–85<span class="ns">&#8239;</span>€</span><span class="per">le mètre posé</span></p>
+          </header>
+          <p class="face-text">L’esprit haras&#8239;: trois lisses de bois teintées noir dessinent le terrain sans le fermer. Un grillage côté jardin retient les chiens.</p>
+          <div class="meters">
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="1" aria-label="Intimité"><span class="m-label">Intimité</span><i class="bar"><b class="on"></b><b></b><b></b><b></b><b></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-label="Peu d’entretien"><span class="m-label">Peu d’entretien</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-label="Longévité"><span class="m-label">Longévité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></i></div>
+          </div>
+          <p class="face-ideal"><b>Idéal pour&#8239;:</b> prés, entrées de propriété, longères.</p>
+        </article>
+        <article class="face" data-i="4">
+          <header class="face-head">
+            <div class="face-id"><p class="kicker">05 / 05 · NATUREL</p><h3 class="face-title">Ganivelle en châtaignier</h3></div>
+            <p class="face-price"><span class="price">35–60<span class="ns">&#8239;</span>€</span><span class="per">le mètre posé</span></p>
+          </header>
+          <p class="face-text">Des piquets de châtaignier fendus, tenus par des fils d’acier torsadés. Rustique, sans traitement, elle prend une belle patine grise.</p>
+          <div class="meters">
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="2" aria-label="Intimité"><span class="m-label">Intimité</span><i class="bar"><b class="on"></b><b class="on"></b><b></b><b></b><b></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="4" aria-label="Peu d’entretien"><span class="m-label">Peu d’entretien</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></i></div>
+            <div class="meter" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-label="Longévité"><span class="m-label">Longévité</span><i class="bar"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></i></div>
+          </div>
+          <p class="face-ideal"><b>Idéal pour&#8239;:</b> potagers, jardins de campagne, bords de mer.</p>
+        </article>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-orange btn-sm" id="price-this" type="button">Chiffrer cette clôture<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <button class="link-btn" id="see-prices" type="button">Voir les tarifs</button>
+      </div>
+      <p class="fine">Prix fictifs, pour la démonstration.</p>
+    </aside>
+  </div>
+
+  <div class="hud" id="hud4">
+    <div class="scrim-top" aria-hidden="true"></div>
+    <div class="hotspots" id="hotspots">
+      <div class="hs" data-id="branche"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">Branche tombée sur la clôture</span></div>
+      <div class="hs" data-id="poteau"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">Poteau penché, lames cassées</span></div>
+      <div class="hs" data-id="penture"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">Penture qui s’arrache</span></div>
+      <div class="hs" data-id="portillon"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">Portillon qui frotte l’herbe</span></div>
+      <div class="hs is-after" data-id="pentures"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">Pentures renforcées</span></div>
+      <div class="hs is-after" data-id="cable"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">Câble anti-affaissement et tendeur</span></div>
+      <div class="hs is-after" data-id="garde"><i class="hs-line"></i><i class="hs-dot"></i><span class="hs-label">5&#8239;cm de garde au sol</span></div>
+    </div>
+
+    <section class="beat b-left" id="r-open">
+      <p class="kicker k-dash a">RÉPARATIONS</p>
+      <h2 class="h-beat"><span class="ln a">La tempête est passée&#8239;?</span> <span class="ln a"><em>On répare aussi.</em></span></h2>
+      <p class="body a">Poteaux penchés, lames cassées, portillon qui frotte. Faites défiler une visite de réparation, étape par étape.</p>
+      <div class="actions a"><button class="pill-play" id="play-repair" type="button"><span class="disc" aria-hidden="true"><svg><use href="#i-play"/></svg></span><span class="vh">▶ </span>VOIR LA RÉPARATION</button></div>
+    </section>
+
+    <section class="beat b-left" id="r-step1">
+      <p class="kicker k-dash a">ÉTAPE 1 · LA TRAVÉE</p>
+      <h2 class="h-beat"><span class="ln a">On redresse le poteau.</span> <span class="ln a">On change les lames.</span></h2>
+      <p class="body a">On retire le poteau cassé, on le rescelle dans du béton frais et on pose des lames neuves. En une saison ou deux, le bois neuf grise comme le reste.</p>
+    </section>
+
+    <section class="beat b-right" id="r-step2">
+      <p class="kicker k-dash a">ÉTAPE 2 · LE PORTILLON</p>
+      <h2 class="h-beat"><span class="ln a">Puis le portillon</span> <span class="ln a"><em>qui frotte.</em></span></h2>
+    </section>
+
+    <section class="beat b-left" id="r-step3">
+      <p class="kicker k-dash a">ÉTAPE 3 · RÉGLÉ</p>
+      <h2 class="h-beat"><span class="ln a">D’équerre, de niveau,</span> <span class="ln a"><em>et il ferme.</em></span></h2>
+      <p class="body a">La plupart des réparations se font en une visite. Envoyez une photo&#8239;: on peut souvent chiffrer avant de venir.</p>
+      <div class="actions a"><button class="btn btn-orange cta" type="button">Réserver une réparation<svg aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+    </section>
+  </div>
+</div>
+
+<!-- the page sections (virtual scroll: each one is translated by JS) -->
+<div id="flow">
+  <section class="sec light slide-over" id="white" aria-label="Ce qui ne se voit pas">
+    <div class="wrap">
+      <div class="white-head">
+        <div class="white-title">
+          <p class="kicker k-dash r">CE QUI NE SE VOIT PAS</p>
+          <h2 class="h-sec r"><span class="ln">Ce qu’on ne voit pas,</span> <span class="ln"><em>c’est ce qui dure.</em></span></h2>
+        </div>
+        <svg class="xsec r" viewBox="0 0 420 300" aria-hidden="true">
+          <defs>
+            <pattern id="x-soil" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(45)"><rect width="1" height="9" fill="rgba(21,23,26,0.16)"/></pattern>
+            <linearGradient id="x-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+            <mask id="x-mask"><rect x="0" y="92" width="420" height="208" fill="url(#x-fade)"/></mask>
+          </defs>
+          <rect x="0" y="92" width="420" height="208" fill="url(#x-soil)" mask="url(#x-mask)"/>
+          <path class="x-grass" d="M8 92l-2-6M17 92l1-5M29 92l-1-7M41 92l2-5M55 92l-2-6M88 92l1-6M101 92l-2-5M116 92l1-7M131 92l-1-5M146 92l2-6M163 92l-1-5M181 92l1-6M197 92l-2-5M286 92l1-6M301 92l-1-5M318 92l2-6M334 92l-1-7M351 92l1-5M367 92l-2-6M384 92l1-5M399 92l-1-6M413 92l2-5"/>
+          <path class="x-frost" d="M0 168H420"/>
+          <path class="x-net" d="M0 224H150"/>
+          <circle class="x-net-end" cx="150" cy="224" r="3"/>
+          <path class="x-flag-stem" d="M72 92V60"/>
+          <path class="x-flag" d="M72 60h17l-5 5.5 5 5.5H72z"/>
+          <path class="x-dim" d="M328 98v64M323 98h10M323 162h10"/>
+          <path class="x-foot" d="M206 148h70l8 114h-86z"/>
+          <g class="x-gravel"><circle cx="212" cy="272" r="2.4"/><circle cx="224" cy="276" r="2"/><circle cx="238" cy="271" r="2.6"/><circle cx="251" cy="277" r="2"/><circle cx="264" cy="272" r="2.4"/><circle cx="276" cy="276" r="2"/></g>
+          <path class="x-boards" d="M300 24h24v68h-24zM326 22h24v70h-24zM352 24h24v68h-24zM378 22h24v70h-24z"/>
+          <path class="x-rail" d="M252 38H420v13H252z"/>
+          <path class="x-post" d="M230 18h22v230h-22z"/>
+          <path class="x-grain" d="M237 26v214M245 30v206"/>
+          <path class="x-cap" d="M227 18h28l-3-6h-22z"/>
+          <path class="x-ground" d="M0 92H420"/>
+          <circle class="x-screw" cx="263" cy="44.5" r="2.3"/><circle class="x-screw" cx="290" cy="44.5" r="2.3"/>
+        </svg>
+      </div>
+      <div class="cols">
+        <div class="col r">
+          <svg class="ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 27V5"/><path d="M9 5.5h12l-3.2 4 3.2 4H9"/><path d="M3 27h26" stroke-dasharray="2.2 2.6"/></svg>
+          <h3>Réseaux repérés</h3>
+          <p>On vérifie les réseaux enterrés avant le premier trou.</p>
+        </div>
+        <div class="col r">
+          <svg class="ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 11h26"/><path d="M3 21h26" stroke-dasharray="2.2 2.6"/><path d="M13.5 4h5v24.5h-5z"/><path d="M24.5 3.5v5M22 6h5M22.7 4.2l3.6 3.6M26.3 4.2l-3.6 3.6"/></svg>
+          <h3>Hors gel</h3>
+          <p>Les poteaux descendent sous la zone de gel, scellés au béton.</p>
+        </div>
+        <div class="col r">
+          <svg class="ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M10 4.5h12v4H10z"/><path d="M13 8.5v15l3 4.5 3-4.5v-15"/><path d="M13 12.5l6 2M13 16.5l6 2M13 20.5l6 2"/></svg>
+          <h3>Visserie galvanisée</h3>
+          <p>Des fixations qui résistent à la rouille, même au ras du sol.</p>
+        </div>
+        <div class="col r">
+          <svg class="ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 3.5h12l5 5v20H8z"/><path d="M20 3.5v5h5"/><path d="M12.5 17.5l3 3 5.5-6"/></svg>
+          <h3>Garantie écrite</h3>
+          <p>Remise le dernier jour, avec le plan de votre clôture.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec dark" id="intro2" aria-label="Chapitre 2">
+    <div class="pin" id="intro2-pin">
+      <div class="intro-head" id="intro2-head">
+        <p class="kicker r">CHAPITRE 2 · MODÈLES</p>
+        <h2 class="h-sec r">Même jardin. <em>Cinq clôtures.</em></h2>
+        <p class="lead r">Faites défiler ou choisissez un modèle&#8239;: la clôture change devant vous, dans le même jardin.</p>
+      </div>
+      <div class="window" id="window" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <section class="sec light slide-over" id="pricing" aria-label="Chapitre 3, tarifs">
+    <div class="wrap">
+      <p class="kicker k-dash r">CHAPITRE 3 · TARIFS</p>
+      <h2 class="h-sec r">Chiffrez votre clôture <em>en vingt secondes.</em></h2>
+      <div class="est r">
+        <div class="est-main">
+          <figure class="est-draw" id="est-draw"><svg id="est-svg" viewBox="0 0 1000 250" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Élévation de la clôture"></svg></figure>
+          <div class="est-fields">
+            <div class="field f-model">
+              <span class="f-label" id="lbl-model">Modèle</span>
+              <div class="chips" id="chips-type" role="radiogroup" aria-labelledby="lbl-model">
+                <button class="chip is-on" type="button" role="radio" aria-checked="true" data-i="0">Bois plein</button>
+                <button class="chip" type="button" role="radio" aria-checked="false" data-i="1">PVC blanc</button>
+                <button class="chip" type="button" role="radio" aria-checked="false" data-i="2">Panneaux rigides</button>
+                <button class="chip" type="button" role="radio" aria-checked="false" data-i="3">Ranch</button>
+                <button class="chip" type="button" role="radio" aria-checked="false" data-i="4">Ganivelle</button>
+              </div>
+            </div>
+            <div class="field f-length">
+              <label class="f-label" for="len">Longueur <output id="len-out" for="len">40&#8239;m</output></label>
+              <input type="range" id="len" min="5" max="120" step="1" value="40">
+            </div>
+            <div class="field f-height">
+              <span class="f-label" id="lbl-height">Hauteur</span>
+              <div class="chips" id="chips-height" role="radiogroup" aria-labelledby="lbl-height">
+                <button class="chip" type="button" role="radio" aria-checked="false" data-h="1.5">1,50&#8239;m</button>
+                <button class="chip is-on" type="button" role="radio" aria-checked="true" data-h="1.8">1,80&#8239;m</button>
+              </div>
+            </div>
+            <div class="field f-gates">
+              <span class="f-label" id="lbl-gates">Portillons</span>
+              <div class="stepper" role="group" aria-labelledby="lbl-gates">
+                <button type="button" id="gates-minus" aria-label="Retirer un portillon">−</button>
+                <output id="gates-out" aria-live="polite">1</output>
+                <button type="button" id="gates-plus" aria-label="Ajouter un portillon">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="est-result" aria-live="polite">
+          <p class="res-range" id="res-range"><span class="nw">5&#8239;250&#8239;€ –</span> <span class="nw">7&#8239;950&#8239;€</span></p>
+          <ul class="res-lines">
+            <li id="res-size">40&#8239;m · hauteur 1,80&#8239;m</li>
+            <li id="res-gates">1 portillon</li>
+            <li id="res-days">2 à 3 jours de pose</li>
+          </ul>
+          <div class="res-foot">
+            <button class="btn btn-orange cta" type="button">Recevoir ce devis<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <p class="fine">Prix fictifs, pour la démonstration.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec dark" id="intro4" aria-label="Chapitre 4">
+    <div class="intro-head">
+      <p class="kicker r">CHAPITRE 4 · RÉPARATIONS</p>
+      <h2 class="h-sec r"><span class="ln">Une réparation,</span> <span class="ln"><em>pas forcément une clôture neuve.</em></span></h2>
+      <p class="lead r">Poteaux penchés, lames cassées, portillons qui frottent&#8239;: souvent, une seule visite suffit.</p>
+    </div>
+  </section>
+
+  <section class="sec light slide-over" id="final" aria-label="Fin">
+    <div class="final-wrap">
+      <svg class="final-mark r" id="final-mark" viewBox="0 0 640 44" aria-hidden="true"><path class="stk" d="M14 10h7v22l-3.5 8-3.5-8z"/><path class="stk" d="M619 10h7v22l-3.5 8-3.5-8z"/><path class="str" d="M21 15.5H619"/></svg>
+      <h2 class="h-final r"><span class="ln">Une clôture droite,</span> <span class="ln"><em>pour longtemps.</em></span></h2>
+      <p class="lead r">Cordeau est une entreprise fictive&#8239;: ce site est un concept imaginé par LTNS° pour montrer ce qu’un site peut faire en 2026.</p>
+      <div class="actions r">
+        <button class="btn btn-orange cta" type="button">Demander un devis gratuit<svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <button class="btn btn-ghost" id="replay" type="button">Revoir la pose</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<header class="nav on-3d" id="nav">
+  <button class="logo" id="logo" type="button" aria-label="Cordeau, retour en haut">
+    <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <span class="logo-txt"><span class="logo-name">Cordeau</span><span class="logo-sub">CLÔTURES · TOURAINE</span></span>
+  </button>
+  <div class="nav-r">
+    <nav class="links" aria-label="Sections">
+      <button type="button" data-go="install">POSE</button>
+      <button type="button" data-go="styles">MODÈLES</button>
+      <button type="button" data-go="pricing">TARIFS</button>
+      <button type="button" data-go="repair">RÉPARATIONS</button>
+    </nav>
+    <button class="nav-pill cta" type="button">DEVIS GRATUIT</button>
+  </div>
+</header>
+
+<aside class="glass sticky" id="sticky" aria-label="Devis gratuit sur place">
+  <div class="st-txt"><p class="st-title">Devis gratuit sur place</p><p class="st-sub">On mesure, vous recevez un prix écrit.</p></div>
+  <button class="btn btn-orange btn-sm cta" type="button">Obtenir mon devis</button>
+</aside>
+
+<p id="credit" class="credit">Projet fictif · concept de site par LTNS° — ltns.fr</p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <div class="loader-logo">
+    <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <span class="logo-txt"><span class="logo-name">Cordeau</span><span class="logo-sub">CLÔTURES · TOURAINE</span></span>
+  </div>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="nogl-title">Cette page a besoin de WebGL 2.</p>
+    <p>Ouvrez-la dans une version récente de Chrome, Edge ou Safari, avec l’accélération matérielle activée.</p>
+    <p class="nogl-credit">Projet fictif · concept de site par LTNS° — ltns.fr</p>
+  </div>
+</div>
+
+<div id="scroll-space"></div>
+<!--@SCRIPT@-->
+</body>
+</html>
