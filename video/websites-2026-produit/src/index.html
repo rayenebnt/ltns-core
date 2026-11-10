@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARDEUR · Shots au gingembre — concept fictif LTNS°</title>
+<meta name="description" content="Projet fictif&nbsp;: concept de site produit en 3D par LTNS°. ARDEUR est une marque imaginaire.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="vignette" aria-hidden="true"></div>
+
+<div id="ui">
+  <nav class="tabs" id="tabs" aria-label="Produits">
+    <button class="tab" type="button" data-i="0">Gommes agrumes</button>
+    <button class="tab is-active" type="button" data-i="1">Shot gingembre</button>
+    <button class="tab" type="button" data-i="2">Shot curcuma</button>
+  </nav>
+
+  <button class="arrow arrow-l" id="prev" type="button" aria-label="Produit précédent">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.8 3.6 5.4 8l4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <button class="arrow arrow-r" id="next" type="button" aria-label="Produit suivant">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.2 3.6 10.6 8l-4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <section class="head" id="head">
+    <h1 class="head-title"><span class="l1">RÉVEILLE</span><span class="l2">TON ÉNERGIE</span></h1>
+    <button class="cta" id="cta" type="button">Découvrir le shot<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9.2M8.6 4.2 12.4 8l-3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </section>
+  <p class="para" id="para">60&nbsp;ml dans chaque flacon. Gingembre, citron et une pointe de piment, en une gorgée.</p>
+
+  <footer class="bar" id="bar">
+    <div class="bar-l">
+      <button type="button" class="link" id="story">Notre histoire</button>
+      <button type="button" class="link" id="contact">Contact</button>
+    </div>
+    <button type="button" class="bar-logo logo" id="bar-logo" aria-label="ARDEUR, retour en haut">ARDEUR</button>
+    <div class="bar-r">
+      <button type="button" class="link" id="range">Voir la gamme <span class="arw">→</span></button>
+    </div>
+  </footer>
+  <p id="credit">Projet fictif · concept de site par LTNS° — ltns.fr</p>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<div id="cursor" aria-hidden="true"><b></b><span>DÉCOUVRIR</span></div>
+
+<div id="loader">
+  <div class="logo loader-logo">ARDEUR</div>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="nogl-title">Cette page a besoin de WebGL&nbsp;2.</p>
+    <p>Votre navigateur ou votre carte graphique ne le prend pas en charge, ou il est désactivé.
+    Ouvrez la page dans une version récente de Chrome, Edge ou Safari, avec l’accélération matérielle activée.</p>
+    <p class="nogl-credit">Projet fictif · concept de site par LTNS° — ltns.fr</p>
+  </div>
+</div>
+
+<div id="scroll-space"></div>
+<!--@SCRIPT@-->
+</body>
+</html>
