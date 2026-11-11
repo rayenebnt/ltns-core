@@ -104,7 +104,8 @@ rebond et oscillations) : `view` 0..1 (portant → fiche, 1,1 s), `focus` (posit
   60 Hz, un niveau de moins. Deux fois au plus, jamais vers le haut. Les images d'un
   redimensionnement ou d'une animation de plein écran ne comptent pas (1,5 s), un changement de
   densité de pixels sans redimensionnement (fenêtre passée sur un autre écran) suit le même
-  chemin, et un changement de niveau en cours d'usage ne fige plus les ressorts ni les
+  chemin (un redimensionnement ou un changement d'écran pendant le chargement est appliqué à la
+  fin de celui-ci), et un changement de niveau en cours d'usage ne fige plus les ressorts ni les
   étiquettes (pas de saut à l'image).
 
 ## Commandes

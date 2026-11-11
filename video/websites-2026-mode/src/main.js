@@ -718,6 +718,13 @@ async function start() {
       startTour();
     }
   }
+  // a resize or a change of screen scale while the loader was up (F11 pressed during loading,
+  // the window moved to another screen) came before the resize listener existed: applied now
+  // (code review: the scene stayed stretched, or drawn at the old scale, until the next resize)
+  {
+    const sz = renderer.getSize(new THREE.Vector2());
+    if (sz.x !== innerWidth || sz.y !== innerHeight || renderer.getPixelRatio() !== effDpr(level)) dispatchEvent(new Event('resize'));
+  }
   if (!CAPTURE) requestAnimationFrame(frame);
 
   // ------------------------------------------------------------------ test hooks
