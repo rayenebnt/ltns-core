@@ -14,8 +14,12 @@ export const N = 8; // garments on the rack
 // rack read as one block of colour; the reference reads as a calm row of slivers with gaps. The
 // framing keeps the rail at ~60 % of the width, so a longer rail with wider slots shows the same
 // garments at 0.84x with wall between them; the product view is framed in fractions: unchanged)
+// (v3, second review: on a phone the 2.8 m rail framed the rack at ~0.77x the reference's: the
+// hooks (1.75 m) spanned 37.5 % of the width against 41–47 %. A 2.4 m rail at the same ~60 % of
+// the width frames everything 1.17x bigger: hooks ~44 %, a resting garment ~21.5 % of the width
+// tall, the same wall gaps (they scale with the garments); the product view is unchanged)
 export const SLOT = 0.25; // m between two hooks: garments turned ~70° show a strip of wall between
-export const RAIL_LEN = 2.8; // m, end cap to end cap
+export const RAIL_LEN = 2.4; // m, end cap to end cap
 export const RAIL_R = 0.0125; // m, a 25 mm chrome tube (the hook curl is 27 mm inside)
 export const RAIL_Y = 0;
 export const PIVOT_Y = RAIL_Y + RAIL_R; // the hook tip rests on top of the tube

@@ -266,7 +266,11 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     }
     rail.mesh.visible = true;
     try {
-      if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
+      // (QA: without KHR_parallel_shader_compile, e.g. the software renderer Chrome falls back to
+      // when hardware acceleration is off, compileAsync only polls and three logs a warning on
+      // the console; a plain compile does the same work quietly)
+      const parallel = renderer.extensions && renderer.extensions.has('KHR_parallel_shader_compile');
+      if (renderer.compileAsync && parallel) await renderer.compileAsync(scene, camera);
       else renderer.compile(scene, camera);
     } catch (e) {
       renderer.compile(scene, camera);

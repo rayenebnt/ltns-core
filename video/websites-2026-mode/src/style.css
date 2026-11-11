@@ -8,7 +8,7 @@
   --sans: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --logo: 'Lilita One', 'Arial Rounded MT Bold', 'Inter Tight', sans-serif;
   /* the director's curves (director.js EASE) */
-  --ease: cubic-bezier(0.62, 0, 0.22, 1);
+  --ease: cubic-bezier(0.3, 0.05, 0.2, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -87,7 +87,9 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
 }
 #about { left: 26px; }
 #contact { right: 26px; }
-.close { position: fixed; right: 26px; z-index: 3; }
+/* (v3: no opacity transition here: ui.js sets it every frame from the view, and a CSS transition
+   retargeted every frame lagged it by ~0.6 s: FERMER came in 0.6 s after the top bar had gone) */
+.close { position: fixed; right: 26px; z-index: 3; transition: color 0.25s; }
 .top-link::after {
   content: '';
   position: absolute;
@@ -144,6 +146,10 @@ html:not(.cursor-off) .top-link:hover, .top-link.is-hover { color: var(--ink); }
 }
 .roll.is-below { transform: translate3d(-50%, 105%, 0); opacity: 0; }
 .roll.is-above { transform: translate3d(-50%, -105%, 0); opacity: 0; }
+/* (v3, second review: one line reads at a time) the leaving line fades out quickly, the arriving
+   one a beat later, both still rolling: no frame holds two half-visible lines */
+.roll.is-above, .roll.is-below { transition: transform 0.46s var(--ease-out), opacity 0.12s linear; }
+.roll.is-in { transition: transform 0.46s var(--ease-out), opacity 0.3s ease-out 0.07s; }
 
 .pill {
   position: absolute;

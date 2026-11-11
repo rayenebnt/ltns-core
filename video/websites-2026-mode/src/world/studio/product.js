@@ -9,8 +9,8 @@ import { spring, smooth, mix, clamp } from './physics.js';
 const ARC_Y = 0.07; // m, lifted off the rail on the way
 const ARC_Z = 0.3; // m, toward the camera on the way (passes in front of the rack)
 const TURN = -0.42; // rad, extra turn half-way (swung round by the hand), back to square at the end
-const DRIFT = 0.74; // m, the other garments drift outward along the rail while they fade (v2: the
-// wider slots; the same drift on screen)
+const DRIFT = 0.64; // m, the other garments drift outward along the rail while they fade (v3: the
+// rack is framed 1.17x bigger; 0.74 x 2.4 / 2.8: the same drift on screen as v2)
 const SIDE = { w: 9.5, z: 0.42 }; // 180° turn: follows the shell's eased side with an overshoot
 
 export function createProduct(rigs, fr) {

@@ -53,7 +53,11 @@ export function createUI(handlers) {
   });
 
   // ------------------------------------------------------------ text rolls
-  // the old line leaves up (or down), the new one comes in from the other side
+  // the old line leaves up (or down), the new one comes in from the other side. A new line that
+  // starts while the last roll is still running cuts the old lines at once (60 ms fade, no
+  // move): (v3, second review) in a fast sweep two or three names rolled through each other,
+  // two lines stacked for ~0.15 s; now at most one line reads at any time
+  const ROLL_S = 0.46; // style.css .roll transition
   function roll(host, text, dir, instant) {
     const old = [...host.querySelectorAll('.roll')];
     const nd = document.createElement('span');
@@ -62,15 +66,30 @@ export function createUI(handlers) {
       old.forEach((o) => o.remove());
       nd.className = 'roll is-in';
       host.appendChild(nd);
+      host._rollT = 0;
       return;
     }
+    const now = performance.now();
+    const busy = old.length > 0 && now - (host._rollT || 0) < ROLL_S * 1000;
+    host._rollT = now;
     nd.className = `roll ${dir > 0 ? 'is-below' : 'is-above'}`;
     host.appendChild(nd);
     void nd.offsetWidth;
     nd.className = 'roll is-in';
     old.forEach((o) => {
-      o.className = `roll ${dir > 0 ? 'is-above' : 'is-below'}`;
-      setTimeout(() => o.remove(), 520);
+      if (busy) {
+        // freeze where it is and vanish
+        const cs = getComputedStyle(o);
+        o.style.transform = cs.transform === 'none' ? '' : cs.transform;
+        o.style.opacity = cs.opacity;
+        o.style.transition = 'opacity 60ms linear';
+        void o.offsetWidth;
+        o.style.opacity = '0';
+        setTimeout(() => o.remove(), 90);
+      } else {
+        o.className = `roll ${dir > 0 ? 'is-above' : 'is-below'}`;
+        setTimeout(() => o.remove(), 520);
+      }
     });
   }
 
@@ -82,15 +101,23 @@ export function createUI(handlers) {
   let W = innerWidth, H = innerHeight;
   let pillTop = H - BAND_H - 72;
   let sideShown = -1;
+  // the arrows' dimming (0..1) and the garments' last screen centres (their speed)
+  let dimPrev = 0, dimNext = 0;
+  const prevRect = [];
 
   // measures that depend on the layout (after fonts and on resize)
   function measure(info) {
     W = innerWidth;
     H = innerHeight;
     slotsX = info && info.slots ? info.slots.map((s) => s.x) : null;
-    cap.w = capEl.querySelector('.roll.is-in')?.offsetWidth || cap.w;
+    // (QA: the newest line is the last child; a line cut by a fast roll keeps .is-in for 90 ms)
+    cap.w = capEl.lastElementChild?.offsetWidth || cap.w;
     pin.h = pinfoEl.offsetHeight;
     pillTop = dispoEl.offsetTop || pillTop; // (cached: a layout read every frame would force a reflow)
+    // (v3: re-anchor the caption: with nothing focused it keeps its place, and after a resize
+    // (going full screen with the hand off the rack) it stayed at the old window's height, on
+    // the garments or squeezed against the pill)
+    cap.ok = false;
   }
 
   // st: director state; an: world.anchors(); d: the director; o.instant: no smoothing, no CSS
@@ -105,13 +132,17 @@ export function createUI(handlers) {
     // ---------------------------------------------------- layers
     const kRack = 1 - smooth(0, 0.42, view);
     const kProd = smooth(0.6, 1, view);
+    // « FERMER × » takes over the top right as the top bar leaves (v3, second review: it came in
+    // at 1.0–1.25 s, 0.6 s after the top bar had gone): it cross-fades with CONTACT, in the same
+    // place, from view 0.32 (the top bar is gone at 0.42), full by 0.78
+    const kClose = smooth(0.32, 0.78, view);
     top.s('opacity', f3(kRack));
     top.s('transform', kRack < 1 ? `translate3d(0,${f1(-8 * (1 - kRack))}px,0)` : 'none');
     top.t('is-live', mode === 'rack');
     rack.s('opacity', f3(kRack));
     rack.t('is-live', mode === 'rack');
-    close.s('opacity', f3(kProd));
-    close.s('transform', kProd < 1 ? `translate3d(0,${f1(-8 * (1 - kProd))}px,0)` : 'none');
+    close.s('opacity', f3(kClose));
+    close.s('transform', kClose < 1 ? `translate3d(0,${f1(-8 * (1 - kClose))}px,0)` : 'none');
     // (v2, ux review: live from the last part of the opening, where the product UI is already
     // on screen; main.js keeps the action and runs it once the view has landed)
     const live = mode === 'product' || (mode === 'opening' && view > 0.8);
@@ -123,7 +154,7 @@ export function createUI(handlers) {
     rack.t('is-gone', kRack <= 0.001);
     prod.t('is-gone', kProd <= 0.001);
     top.t('is-gone', kRack <= 0.001);
-    close.t('is-gone', kProd <= 0.001);
+    close.t('is-gone', kClose <= 0.001);
 
     // ---------------------------------------------------- rack caption
     {
@@ -135,7 +166,7 @@ export function createUI(handlers) {
         roll(capEl, cap.text, dir, instant || cap.idx < 0);
         cap.idx = idx;
         cap.v = v;
-        cap.w = capEl.querySelector('.roll.is-in')?.offsetWidth || cap.w;
+        cap.w = capEl.lastElementChild?.offsetWidth || cap.w;
       }
       // under the focused garment's hem; when nothing is focused it stays under the last one
       const a = an && an.caption;
@@ -199,12 +230,34 @@ export function createUI(handlers) {
       const slide = (1 - kProd) * 18;
       prevS('transform', `translate3d(${f1(mx - slide)}px,${f1(y)}px,0)`);
       nextS('transform', `translate3d(${f1(W - mx + slide)}px,${f1(y)}px,0)`);
-      // prev / next: the garment leaving passes under the button on its side, which dims while
-      // it goes by (still clickable: a press queues the next garment)
-      const sw = st.swap;
-      const by = d.swapping ? smooth(0.12, 0.28, sw.k) - smooth(0.66, 0.9, sw.k) : 0;
-      prevS('opacity', f3(1 - 0.68 * (sw.dir > 0 ? by : 0)));
-      nextS('opacity', f3(1 - 0.68 * (sw.dir < 0 ? by : 0)));
+      // prev / next: the garment leaving passes under the button on its side, and the one
+      // arriving under the other: each button dims while a garment covers it (v3, second review:
+      // the entry side stayed opaque, a grey disc printed on the incoming shirt). From the
+      // garments' real screen rects (world anchors), led by their speed so the button is dim
+      // before the cloth reaches it; both stay clickable (a press queues the next garment)
+      const cov = (an && an.cover) || [];
+      const R = 22; // the 40 px button, and a hair
+      for (const c of cov) {
+        const p = prevRect[c.i];
+        c.vx = p && !instant && dt > 0 && dt < 0.25 ? clamp(((c.x0 + c.x1) / 2 - p) / dt, -6000, 6000) : 0;
+        prevRect[c.i] = (c.x0 + c.x1) / 2;
+      }
+      const covered = (ax, ay) => {
+        for (const c of cov) {
+          // (the arriving garment counts while it is still transparent: the button is dim
+          // before it shows; the leaving one stops counting once it has faded)
+          if (c.a < 0.05 && !c.active) continue;
+          const lead = c.vx * 0.12;
+          const x0 = c.x0 + Math.min(0, lead), x1 = c.x1 + Math.max(0, lead);
+          if (ax + R > x0 && ax - R < x1 && ay + R > c.y0 && ay - R < c.y1) return 1;
+        }
+        return 0;
+      };
+      const tauDim = 0.03;
+      dimPrev = instant ? covered(mx - slide, y) : approach(dimPrev, covered(mx - slide, y), dt, tauDim);
+      dimNext = instant ? covered(W - mx + slide, y) : approach(dimNext, covered(W - mx + slide, y), dt, tauDim);
+      prevS('opacity', f3(1 - 0.7 * (d.swapping ? dimPrev : 0)));
+      nextS('opacity', f3(1 - 0.7 * (d.swapping ? dimNext : 0)));
     }
   }
 

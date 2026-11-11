@@ -52,6 +52,22 @@ export function createPicker({ camera, fr, rigs, product, getState, captionIndex
     return null;
   }
 
+  // screen rect (CSS px) of a garment's bounding box as it hangs now (the DOM arrows dim when a
+  // garment passes under them)
+  const corner = new THREE.Vector3();
+  function screenRect(r, W, H) {
+    const g = r.garment, b = g.bounds;
+    g.group.updateMatrixWorld(true);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (let k = 0; k < 8; k++) {
+      corner.set(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z);
+      corner.applyMatrix4(g.group.matrixWorld).project(camera);
+      const sx = ((corner.x + 1) / 2) * W, sy = ((1 - corner.y) / 2) * H;
+      x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy);
+    }
+    return { i: r.i, x0, x1, y0, y1, a: clamp(1 - r.pose.fade), active: r.i === getState().active };
+  }
+
   const pv = new THREE.Vector3();
   function anchors() {
     const st = getState();
@@ -70,11 +86,19 @@ export function createPicker({ camera, fr, rigs, product, getState, captionIndex
     const midY = ((PRODUCT.top + PRODUCT.hem) / 2) * H;
     let tags = [];
     if (ra.tagDrop > 0.5 && ra.tags.mesh.visible) tags = ra.tags.rects(camera, W, H);
+    // the garments on screen in the product view (the shown one, and the one sliding out)
+    const cover = [];
+    if (st.view > 0.5) {
+      const sw = st.swap;
+      cover.push(screenRect(ra, W, H));
+      if (sw.k < 1 && sw.from !== sw.to && sw.from !== st.active) cover.push(screenRect(rigs[sw.from], W, H));
+    }
     return {
       caption: { x: cx, y: cy },
       title: { x: hem.x, y: hem.y + 0.03 * H },
       arrows: { left: { x: PRODUCT.arrowX * W, y: midY }, right: { x: (1 - PRODUCT.arrowX) * W, y: midY } },
       tags,
+      cover,
     };
   }
 

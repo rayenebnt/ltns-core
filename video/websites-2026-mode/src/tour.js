@@ -54,6 +54,9 @@ export const TOUR = [
 // started from the product view: close it first, then the first colours (onReset)
 // (the reset waits until the hero, back on the rail, has turned away again)
 const FROM_PRODUCT = [['move', ['close'], 0.8], ['wait', 0.1], ['click'], ['wait', 1.55], ['reset']];
+// (v3) when the hero must go back to Noir, the dye (0.9 s) plays during a longer first glide, so it
+// has landed before the sweep starts turning the hero's neighbours
+const RESET_GLIDE = 0.9;
 const CLICK_S = 0.14;
 const FADE_S = 0.35;
 
@@ -85,12 +88,15 @@ export function createTour({ el, target, clickAt, onEnd = () => {}, onReset = ()
     el.classList.toggle('is-press', p > 0.3);
   }
 
-  function start(p0, fromProduct = false) {
+  // fromProduct: close the product view first; resetDye: the hero's colour dyes back to Noir
+  // at the start (a 'reset' step), during a longer first glide
+  function start(p0, fromProduct = false, resetDye = false) {
     if (p0 && Number.isFinite(p0.x)) {
       cur.x = p0.x;
       cur.y = p0.y;
     }
-    steps = fromProduct ? [...FROM_PRODUCT, ...TOUR] : TOUR;
+    const main = resetDye ? [['glide', ['rackLeft'], RESET_GLIDE], ...TOUR.slice(1)] : TOUR;
+    steps = fromProduct ? [...FROM_PRODUCT, ...main] : resetDye ? [['reset'], ...main] : main;
     i = 0;
     t = 0;
     from = { ...cur };
@@ -99,6 +105,8 @@ export function createTour({ el, target, clickAt, onEnd = () => {}, onReset = ()
     parked = false;
     alpha = Math.max(alpha, 0);
     el.hidden = false;
+    // a leading 'reset' runs now (the step loop only fires the steps it advances into)
+    if (steps[0][0] === 'reset') onReset();
     draw();
   }
 

@@ -41,11 +41,20 @@ const hash = (i) => {
   return s - Math.floor(s);
 };
 
+// extra rest turn (degrees) of the garments right of the centre (v3, second review: at least 6 of
+// 7 wall gaps at rest). Turned away, a garment's near half points right and toward the camera;
+// right of the lens axis, perspective pushes that half outward, so the right-hand garments look
+// wider than the left-hand ones and touched (chest-band gaps 32, 39, 38, 16, 2, -4, -20 px at
+// 1440 x 900). These few degrees open them (32, 39, 38, 20, 13, 12, 2 px), with the same hover
+// cut-through count (tools: mode-shots/v3/tools/gapexp.mjs)
+const RIGHT_TURN = [0, 0, 0, 0, 2, 3, 4, 5.5];
+
 export function createRack(rigs) {
   for (const r of rigs) {
-    // ~66°..75° away, the fronts toward the key light (upper left); v2: a wider spread reads as
-    // garments hung by hand, and the sharper angle shows more wall between them
-    r.idleYaw = -(1.16 + 0.16 * hash(r.i + 1));
+    // ~66°..75° away (up to ~79° on the right, above), the fronts toward the key light (upper
+    // left); v2: a wider spread reads as garments hung by hand, and the sharper angle shows more
+    // wall between them
+    r.idleYaw = -(1.16 + 0.16 * hash(r.i + 1)) - ((RIGHT_TURN[r.i] || 0) * Math.PI) / 180;
     r.phase = hash(r.i + 11) * 6.283;
     r.yaw = { x: r.idleYaw, v: 0 };
     r.fwd = { x: 0, v: 0 };

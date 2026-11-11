@@ -326,9 +326,9 @@ async function start() {
     el: cursorEl,
     target: tourTarget,
     clickAt,
-    // a tour started in the product view closes it first, then snaps back to the first colours
-    // on the rack, where the hero is turned away
-    onReset: () => director.resetLook(),
+    // the hero dyes back to Noir on the rack, where it hangs turned away (after the close when
+    // the tour starts in the product view)
+    onReset: () => director.resetHero(),
     onEnd: () => {
       doc.classList.remove('is-touring');
       virtual = { ...tour.pos };
@@ -347,10 +347,10 @@ async function start() {
     doc.classList.add('is-touring');
     focusSource = 'pointer';
     pending = null;
-    // every take plays both dyes (noir -> rose -> jaune), whatever was clicked before
-    if (m === 'rack') director.resetLook();
+    // every take plays both dyes (noir -> rose -> jaune), whatever was clicked before: the hero
+    // dyes back to Noir at the start (tour.js 'reset' step), the other garments are left alone
     const p0 = real.inside ? { x: real.x, y: real.y } : virtual || { x: innerWidth * 0.56, y: innerHeight * 0.78 };
-    tour.start(p0, m === 'product');
+    tour.start(p0, m === 'product', director.heroNeedsReset());
   }
   function stopTour() {
     if (tour.playing) tour.stop();
@@ -482,8 +482,10 @@ async function start() {
       } else if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
         act(() => director.toggleSide());
-      } else if (e.key >= '1' && e.key <= '9') {
-        const v = +e.key - 1;
+      } else if ((e.key >= '1' && e.key <= '9' && e.key.length === 1) || /^(Digit|Numpad)[1-9]$/.test(e.code)) {
+        // (QA: by the physical key too: on a French AZERTY keyboard the digit row types & é "
+        // without Maj, so e.key alone ignored 1-3 unless Maj was held)
+        const v = (e.key >= '1' && e.key <= '9' && e.key.length === 1 ? +e.key : +e.code.slice(-1)) - 1;
         act(() => director.dyeTo(v));
       } else if (e.key === 'Escape') {
         e.preventDefault();

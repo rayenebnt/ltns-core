@@ -31,7 +31,10 @@ export const TIMING = {
 
 // one curve per move, the same as the CSS transitions of the shell (style.css --ease-*)
 export const EASE = {
-  view: bezier(0.62, 0, 0.22, 1), // leaves promptly, long soft landing
+  // (v3, second review: (0.62, 0, 0.22, 1) barely moved for 0.3 s after the click (view 0.012,
+  // 0.047, 0.128 at 0.1 / 0.2 / 0.3 s), a missed click on film; this one answers in the same
+  // frames (0.05, 0.20, 0.43) and keeps the soft landing (0.955 at 0.8 s) and the 1.1 s length)
+  view: bezier(0.3, 0.05, 0.2, 1),
   swap: bezier(0.55, 0, 0.3, 1),
   side: bezier(0.5, 0, 0.3, 1),
   dye: bezier(0.42, 0, 0.4, 1),
@@ -246,19 +249,20 @@ export function createDirector() {
     s.dye.k = 0;
     run(tw.dye, 0, 1, TIMING.dye, EASE.dye);
   }
-  // every tour take starts from the same look: every garment in its first colour (v2, ux
-  // review: after a manual rose, or a tour stopped after its rose, the next take skipped a dye)
-  function resetLook() {
-    PRODUCTS.forEach((p, i) => {
-      s.colors[i] = 0;
-      lastDyed[i] = 0;
-    });
-    s.dye.garment = HERO;
-    s.dye.from = s.dye.to = 0;
-    s.dye.k = 1;
-    stop(tw.dye, 1);
+  // every tour take plays both dyes (noir -> rose -> jaune): the hero goes back to its first
+  // colour first (v2, ux review: after a manual rose, the next take skipped a dye). (v3, second
+  // review: a snap of every garment popped the hero's colour in one frame at the start of the
+  // take.) Now only the hero, with a real dye, on the rack, where it hangs turned away; the
+  // others keep their colours (the tour never dyes them). Returns true when a dye runs.
+  function resetHero() {
+    if (running(tw.dye)) endDye();
     dyeQueue = null;
+    if (s.colors[HERO] === 0 && lastDyed[HERO] === 0) return false;
+    s.colors[HERO] = 0;
+    startDye(HERO, 0);
+    return running(tw.dye);
   }
+  const heroNeedsReset = () => s.colors[HERO] !== 0 || lastDyed[HERO] !== 0 || (running(tw.dye) && s.dye.garment === HERO);
   function endDye() {
     lastDyed[s.dye.garment] = s.dye.to;
     stop(tw.dye, 1);
@@ -352,7 +356,8 @@ export function createDirector() {
     setFocusTarget,
     focusBase,
     setPointer,
-    resetLook,
+    resetHero,
+    heroNeedsReset,
     magnet,
     get sideTarget() {
       return tw.side.b;

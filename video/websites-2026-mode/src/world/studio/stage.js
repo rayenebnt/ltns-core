@@ -103,18 +103,19 @@ export async function createStage(renderer, scene, quality) {
   scene.add(fill);
 
   // the shadow camera covers the rack and the product view (and their shadows on the wall)
-  // (v2: the 2.8 m rail and the product garment framed in a ~1.19x larger view: the rack, the
-  // drifting garments until they have faded (|x| < 2.05), the product hook top (y ~ +0.6) and
-  // hem (~ -1.1); the same width / height ratio of texels as before, so the blur stays round)
-  const focus = new THREE.Vector3(0.05, -0.3, -0.1);
+  // (v3: the 2.4 m rail frames the scene 1.17x closer than v2's 2.8 m one, so the box shrinks by
+  // the same 0.86: the rack, the drifting garments until they have faded (|x| < 1.8), the
+  // product hook top (y ~ +0.52) and hem (~ -0.95). Texels per screen pixel, hence the blur's
+  // size on screen, stay as in v2 (the review liked that halo); the box keeps its x / y ratio)
+  const focus = new THREE.Vector3(0.045, -0.26, -0.1);
   function placeLight() {
     key.target.position.copy(focus);
     key.position.copy(focus).addScaledVector(keyDir, 5);
     const sc = key.shadow.camera;
-    sc.left = -2.1;
-    sc.right = 2.1;
-    sc.top = 1.42;
-    sc.bottom = -1.42;
+    sc.left = -1.82;
+    sc.right = 1.82;
+    sc.top = 1.23;
+    sc.bottom = -1.23;
     sc.near = 3.2;
     sc.far = 6.6;
     sc.updateProjectionMatrix();
