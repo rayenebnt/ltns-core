@@ -80,8 +80,16 @@ export function createDirector() {
   const fo = { x: -1, v: 0 }; // the focus spring
   let focusTarget = null; // float slot, or null: nothing focused
   let lastFocused = HERO; // what the caption shows when nothing is focused
+  // the caption's garment while focused, with hysteresis: it changes only when the focus is
+  // clearly on another garment (v2, ux review: a hand resting on a boundary, ±1.5 px of
+  // tremor, rolled the caption 77 times in 90 frames; the two magnets make the focus ~5x as
+  // sensitive there). world/index.js applies the same rule to the caption's place
+  let capIdx = HERO;
+  const CAP_HYST = 0.62;
   let dyeQueue = null; // { garment, to }: a tag clicked while a dye runs plays right after it
-  let swapQueue = 0; // a prev/next pressed during a swap
+  // prev / next pressed during a swap: every press counts (v2: one direction only dropped
+  // quick presses); queued swaps run faster so that a burst stays short
+  let swapQueue = 0;
   let closeQueued = false;
   const ptrRaw = { x: 0, y: 0 };
 
@@ -120,9 +128,9 @@ export function createDirector() {
     }
     if (!running(tw.swap) && !busy()) {
       if (swapQueue) {
-        const d = swapQueue;
-        swapQueue = 0;
-        go(d);
+        const d = Math.sign(swapQueue);
+        swapQueue -= d;
+        go(d, TIMING.swap * 0.6);
       } else if (closeQueued) {
         closeQueued = false;
         close();
@@ -149,7 +157,8 @@ export function createDirector() {
       }
     } else s.focusOn = 0;
     s.focus = fo.x < 0 ? -1 : clamp(fo.x, 0, N - 1);
-    if (s.focus >= 0 && s.focusOn > 0.5) lastFocused = Math.round(s.focus);
+    if (s.focus >= 0 && Math.abs(s.focus - capIdx) > CAP_HYST) capIdx = clamp(Math.round(s.focus), 0, N - 1);
+    if (s.focus >= 0 && s.focusOn > 0.5) lastFocused = capIdx;
 
     s.pointer.x = approach(s.pointer.x, ptrRaw.x, dt, TIMING.pointer);
     s.pointer.y = approach(s.pointer.y, ptrRaw.y, dt, TIMING.pointer);
@@ -177,7 +186,7 @@ export function createDirector() {
     stop(tw.swap, 1);
     swapQueue = 0;
     focusTarget = i;
-    lastFocused = i;
+    lastFocused = capIdx = i;
     if (fo.x < 0) fo.x = i;
     stop(tw.side, 0);
     s.side = 0;
@@ -199,18 +208,18 @@ export function createDirector() {
     fo.x = s.active;
     fo.v = 0;
     s.focusOn = 1;
-    lastFocused = s.active;
+    lastFocused = capIdx = s.active;
     if (tw.side.b !== 0 || s.side > 0) run(tw.side, s.side, 0, TIMING.close * 0.8, EASE.side);
     run(tw.view, s.view, 0, TIMING.close * s.view, EASE.view);
     return true;
   }
 
-  // prev / next in the product view
-  function go(dir) {
+  // prev / next in the product view (dur: a queued swap runs faster)
+  function go(dir, dur = TIMING.swap) {
     if (mode() !== 'product') return false;
     dir = dir < 0 ? -1 : 1;
     if (running(tw.swap)) {
-      swapQueue = dir;
+      swapQueue = clamp(swapQueue + dir, -(N - 1), N - 1);
       return true;
     }
     const from = s.active, to = (from + dir + N) % N;
@@ -220,9 +229,9 @@ export function createDirector() {
     s.swap.k = 0;
     s.active = to;
     s.tagHover = -1;
-    run(tw.swap, 0, 1, TIMING.swap, EASE.swap);
+    run(tw.swap, 0, 1, dur, EASE.swap);
     // the next garment arrives showing its front
-    if (tw.side.b !== 0 || s.side > 0) run(tw.side, s.side, 0, TIMING.swap * 0.75, EASE.side);
+    if (tw.side.b !== 0 || s.side > 0) run(tw.side, s.side, 0, dur * 0.75, EASE.side);
     return true;
   }
 
@@ -236,6 +245,19 @@ export function createDirector() {
     s.dye.to = to;
     s.dye.k = 0;
     run(tw.dye, 0, 1, TIMING.dye, EASE.dye);
+  }
+  // every tour take starts from the same look: every garment in its first colour (v2, ux
+  // review: after a manual rose, or a tour stopped after its rose, the next take skipped a dye)
+  function resetLook() {
+    PRODUCTS.forEach((p, i) => {
+      s.colors[i] = 0;
+      lastDyed[i] = 0;
+    });
+    s.dye.garment = HERO;
+    s.dye.from = s.dye.to = 0;
+    s.dye.k = 1;
+    stop(tw.dye, 1);
+    dyeQueue = null;
   }
   function endDye() {
     lastDyed[s.dye.garment] = s.dye.to;
@@ -308,7 +330,8 @@ export function createDirector() {
     fo.v = 0;
     if (s.focus < 0) s.focusOn = 0;
     focusTarget = s.focus >= 0 && s.focusOn > 0 ? s.focus : null;
-    if (s.focus >= 0 && s.focusOn > 0.5) lastFocused = Math.round(s.focus);
+    if (s.focus >= 0) capIdx = clamp(Math.round(s.focus), 0, N - 1);
+    if (s.focus >= 0 && s.focusOn > 0.5) lastFocused = capIdx;
     ptrRaw.x = s.pointer.x;
     ptrRaw.y = s.pointer.y;
   }
@@ -329,6 +352,7 @@ export function createDirector() {
     setFocusTarget,
     focusBase,
     setPointer,
+    resetLook,
     magnet,
     get sideTarget() {
       return tw.side.b;
@@ -338,7 +362,7 @@ export function createDirector() {
     },
     // the garment the rack caption names: the focused one, or the last one
     get captionIndex() {
-      return s.focus >= 0 && s.focusOn > 0.05 ? clamp(Math.round(s.focus), 0, N - 1) : lastFocused;
+      return s.focus >= 0 && s.focusOn > 0.05 ? capIdx : lastFocused;
     },
     get swapping() {
       return running(tw.swap);

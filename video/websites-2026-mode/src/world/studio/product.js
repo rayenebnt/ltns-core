@@ -1,5 +1,5 @@
 // The product view: where the shown garment hangs (centred at ~47 % of the width, hook top at
-// ~13 %, hem at ~74 % of the height, square to the camera), how the opening carries it there
+// ~12 %, hem at ~69 % of the height, square to the camera), how the opening carries it there
 // from the rail (an arc toward the camera and a turn, so the travel reads as a hand taking it
 // off the rail), the prev / next slide, and the 180° turn on the hook for DEVANT / DOS.
 import * as THREE from 'three';
@@ -9,7 +9,8 @@ import { spring, smooth, mix, clamp } from './physics.js';
 const ARC_Y = 0.07; // m, lifted off the rail on the way
 const ARC_Z = 0.3; // m, toward the camera on the way (passes in front of the rack)
 const TURN = -0.42; // rad, extra turn half-way (swung round by the hand), back to square at the end
-const DRIFT = 0.62; // m, the other garments drift outward along the rail while they fade
+const DRIFT = 0.74; // m, the other garments drift outward along the rail while they fade (v2: the
+// wider slots; the same drift on screen)
 const SIDE = { w: 9.5, z: 0.42 }; // 180° turn: follows the shell's eased side with an overshoot
 
 export function createProduct(rigs, fr) {
@@ -59,7 +60,9 @@ export function createProduct(rigs, fr) {
           fade = 1 - smooth(0, 0.32, sw.k);
         } else {
           pp.x -= sw.dir * slideDist() * sw.k;
-          fade = smooth(0.62, 0.97, sw.k);
+          // (v2: gone sooner: 0.62..0.97 slid it, opaque, under the ← → button; the button on
+          // its way out also dims meanwhile, ui.js)
+          fade = smooth(0.25, 0.65, sw.k);
         }
       }
       if (isOut) {
@@ -71,7 +74,11 @@ export function createProduct(rigs, fr) {
         return out;
       }
       const a = Math.sin(Math.PI * v);
-      out.pos.set(mix(rackPos.x, pp.x, v), mix(rackPos.y, pp.y, v) + ARC_Y * a, mix(rackPos.z, pp.z, v) + ARC_Z * a);
+      // depth: the arc toward the camera (in front of the rack garments drifting away), then,
+      // once the rail and the rack have faded (view 0.5 / 0.62), back toward the wall where it
+      // hangs (PRODUCT.z): its shadow becomes a soft contact halo (it passes z = 0.1 at ~0.8)
+      const zArc = mix(rackPos.z, PRODUCT.zArc, v) + ARC_Z * a;
+      out.pos.set(mix(rackPos.x, pp.x, v), mix(rackPos.y, pp.y, v) + ARC_Y * a, mix(zArc, pp.z, smooth(0.7, 1, v)));
       out.yaw = mix(rackYaw, r.sideYaw.x, v) + TURN * a * a;
       out.scale = mix(1, s, smooth(0, 1, v));
       out.fade = fade;

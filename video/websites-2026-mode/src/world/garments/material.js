@@ -86,8 +86,14 @@ float rlDark = pow(1.0 - clamp(rlL * 1.6, 0.0, 1.0), 0.8);
 float rlWear = clamp(uLook.x * (0.2 + 0.8 * rlDark) * (0.5 * smoothstep(0.32, 1.0, rlNz.r) + 0.12 * (rlNz.b - 0.5)) + rlAt.a * (0.35 + 0.65 * uLook.x) * (0.4 + 0.6 * rlDark), 0.0, 1.0);
 rlBodyC = mix(rlBodyC, rlFaded, rlWear);
 rlBodyC *= 1.0 + (texture2D(uNoise, vRest.xy * 13.0).b - 0.5) * 0.06;
-// prints: cracked and faded on washed pieces
-float rlInk = rlAt.r * (1.0 - uLook.x * 0.3 * smoothstep(0.35, 0.9, rlNz.b));
+// light bodies (rose, jaune, blanc, bleu ciel...): their creases and sheen must keep the hue
+float rlLight = smoothstep(0.15, 0.5, rlLum(rlBodyC));
+// prints: cracked and faded on washed pieces (v2: the fade only on dark bodies: on the light
+// ones a faded white print vanished into the colour, 1.6:1 on rose)
+float rlInk = rlAt.r * (1.0 - uLook.x * 0.3 * rlDark * smoothstep(0.35, 0.9, rlNz.b));
+// dark ink on a light body: the craquelure's hairlines, once smaller than a texel, filter into
+// bright veins (a marble fill on jaune); fill them, the wear stays visible up close
+if (rlLum(rlInkC) < rlLum(rlBodyC)) rlInk = max(rlInk, smoothstep(0.08, 0.45, rlAt.r));
 vec3 rlCol = mix(rlBodyC, rlTrimC, rlAt.g);
 rlCol = mix(rlCol, rlInkC, rlInk);
 if (rlPart > 0.5 && rlPart < 1.5) {
@@ -112,8 +118,14 @@ if (rlPart > 0.5 && rlPart < 1.5) {
   rlInk = 0.0;
 }
 rlCol *= 1.0 - 0.32 * rlWet;
-// inside of the garment: in shadow, no print
-if (!gl_FrontFacing) rlCol *= 0.5;
+// inside of the garment: no print, and in shadow where it is really seen: through the neck
+// opening. (v2: darkened everywhere, the inside showing through pixel-wide cracks along the
+// seams of the turned rack garments made salt-and-pepper specks on the light pieces)
+float rlNeck = smoothstep(uDye.z - 0.17, uDye.z - 0.07, vRest.y);
+if (!gl_FrontFacing) {
+  if (rlBody) rlCol = mix(rlBodyC, rlTrimC, rlAt.g);
+  rlCol *= mix(0.97, 0.5, rlNeck);
+}
 diffuseColor.rgb = rlCol;
 `;
 
@@ -121,14 +133,20 @@ const FABRIC_NORMAL = /* glsl */ `
 #ifdef USE_NORMALMAP_TANGENTSPACE
   vec3 mapN = texture2D( normalMap, vNormalMapUv ).xyz * 2.0 - 1.0;
   float rlKs = rlBody ? mix(uRib.z, uRib.w, rlAt.g) * (1.0 - 0.75 * rlInk) : 0.0;
+  // (v2: the stitches fade out once a pixel covers several of them: at grazing angles on the
+  // rack they sparkled into salt-and-pepper specks on the white pieces)
+  float rlKnitPx = length(fwidth(vNormalMapUv)) * 16.0; // stitches per pixel (16 per tile)
+  rlKs *= clamp(2.0 - 0.8 * rlKnitPx, 0.3, 1.0);
   mapN.xy *= normalScale * rlKs;
   if (rlBody) {
     // low-frequency wrinkles of washed cotton: tall vertical creases (gravity), softer under prints
-    vec2 wq = vRest.xy * vec2(7.0, 1.1) + uDye.w + 0.37;
+    // (v2: fewer and broader (7 -> 4 across), and mostly off on light bodies, where these
+    // normal-only creases read as grey smudges: the real drape carries the folds there)
+    vec2 wq = vRest.xy * vec2(4.0, 1.1) + uDye.w + 0.37;
     float w0 = texture2D(uNoise, wq).r;
     float wx = texture2D(uNoise, wq + vec2(0.02, 0.0)).r - w0;
     float wy = texture2D(uNoise, wq + vec2(0.0, 0.02)).r - w0;
-    mapN.xy -= vec2(wx, wy * 0.4) * 0.55 * (1.0 - 0.6 * rlInk) * (1.0 - rlAt.g * 0.7);
+    mapN.xy -= vec2(wx, wy * 0.4) * 0.55 * mix(1.0, 0.3, rlLight) * (1.0 - 0.6 * rlInk) * (1.0 - rlAt.g * 0.7);
   }
   if (rlPart > 0.5 && rlPart < 1.5) {
     // ribs: alternating wales along uv.x (metres), faded out when smaller than a pixel
@@ -144,7 +162,10 @@ const FABRIC_NORMAL = /* glsl */ `
   float rlB0 = rlAt.b;
   float rlBx = texture2D(uAtlas, vAtlasUv + rlDx).b - rlB0;
   float rlBy = texture2D(uAtlas, vAtlasUv + rlDy).b - rlB0;
-  float rlRel = rlBody ? uLook.w : 0.0;
+  // (v2: the relief (seams, stitches) fades out when the atlas is minified: its derivative of
+  // sub-pixel lines is noise, specks along the edges of the resting rack garments)
+  float rlTexPx = max(length(rlDx), length(rlDy)) * float(textureSize(uAtlas, 0).x);
+  float rlRel = rlBody ? uLook.w * clamp(1.75 - 0.25 * rlTexPx, 0.3, 1.0) : 0.0;
   normal = rlPerturb(-vViewPosition, normal, vec2(rlBx, rlBy) * rlRel, faceDirection);
 }
 `;
@@ -160,9 +181,13 @@ const FABRIC_METAL = /* glsl */ `
 metalnessFactor = rlPart > 3.5 ? 1.0 : 0.0;
 `;
 const FABRIC_SHEEN = /* glsl */ `
+// a crack pixel shows the inside of the far panel, which the near one shadows: lift it to the
+// outside's light (not through the neck, where the inside is seen and stays dark)
+if (!gl_FrontFacing) totalEmissiveRadiance += rlCol * 0.5 * (1.0 - rlNeck);
 #ifdef USE_SHEEN
   float rlSh = rlPart > 3.5 ? 0.0 : mix(uMat.y, uMat.w, rlAt.g) * (1.0 - 0.7 * rlInk);
-  material.sheenColor = mix(rlCol, vec3(rlLum(rlCol)) + 0.12, 0.5) * rlSh * 1.6;
+  // (v2: the sheen toward grey greyed the light colours; on them it keeps the body's hue)
+  material.sheenColor = mix(rlCol, vec3(rlLum(rlCol)) + 0.12, 0.5 * (1.0 - rlLight)) * rlSh * 1.6;
   material.sheenRoughness = 0.5;
 #endif
 #ifdef USE_CLEARCOAT
@@ -216,7 +241,7 @@ export function createFabricMaterial({ atlas, normalMap, noise, knitRepeat, look
       .replace('#include <alphahash_fragment>', 'if (uFade.y > 0.0 && rlHash(vRest.xy) < uFade.y) discard;')
       .replace('#include <opaque_fragment>', '#include <opaque_fragment>\ngl_FragColor.rgb = mix(uFadeCol, gl_FragColor.rgb, uFade.x);');
   };
-  mat.customProgramCacheKey = () => 'ruelle-fabric-2' + (clearcoat ? '-cc' : '');
+  mat.customProgramCacheKey = () => 'ruelle-fabric-3' + (clearcoat ? '-cc' : '');
   return { material: mat, uniforms, depth: swingDepthMaterial(uniforms) };
 }
 

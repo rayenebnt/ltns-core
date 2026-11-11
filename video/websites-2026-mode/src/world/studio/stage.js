@@ -90,8 +90,10 @@ export async function createStage(renderer, scene, quality) {
 
   // key: soft, from the upper left and nearly frontal, so the shadows sit just behind the
   // garments (down and to the right), like a softbox beside the camera
+  // (v2, art review: (-0.2, 0.3, 0.93) threw the shadows 15–35 cm down and right, a CG drop
+  // shadow under the title, the caption and the tags; this one still models the folds)
   const key = new THREE.DirectionalLight(0xfffaf2, 1.75);
-  const keyDir = new THREE.Vector3(-0.2, 0.3, 0.93).normalize();
+  const keyDir = new THREE.Vector3(-0.1, 0.16, 0.98).normalize();
   key.castShadow = true;
   key.shadow.bias = -0.0005;
   key.shadow.normalBias = 0.012;
@@ -101,15 +103,18 @@ export async function createStage(renderer, scene, quality) {
   scene.add(fill);
 
   // the shadow camera covers the rack and the product view (and their shadows on the wall)
-  const focus = new THREE.Vector3(0.05, -0.75, -0.1);
+  // (v2: the 2.8 m rail and the product garment framed in a ~1.19x larger view: the rack, the
+  // drifting garments until they have faded (|x| < 2.05), the product hook top (y ~ +0.6) and
+  // hem (~ -1.1); the same width / height ratio of texels as before, so the blur stays round)
+  const focus = new THREE.Vector3(0.05, -0.3, -0.1);
   function placeLight() {
     key.target.position.copy(focus);
     key.position.copy(focus).addScaledVector(keyDir, 5);
     const sc = key.shadow.camera;
-    sc.left = -1.9;
-    sc.right = 1.9;
-    sc.top = 1.25;
-    sc.bottom = -1.35;
+    sc.left = -2.1;
+    sc.right = 2.1;
+    sc.top = 1.42;
+    sc.bottom = -1.42;
     sc.near = 3.2;
     sc.far = 6.6;
     sc.updateProjectionMatrix();

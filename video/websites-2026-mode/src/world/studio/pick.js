@@ -14,6 +14,8 @@ export function createPicker({ camera, fr, rigs, product, getState, captionIndex
   const v = new THREE.Vector3();
   // the rack's lowest hem (local, below the pivot): the bottom of the band and the caption line
   const lowHem = Math.min(...rigs.map((r) => r.garment.hemY));
+  const edgeOf = (r) => Math.max(SLOT * 0.8, r.garment.halfWidth * 1.1 + 0.02);
+  let edgeL = edgeOf(rigs[0]), edgeR = edgeOf(rigs[N - 1]);
 
   function onPlane(z) {
     const o = ray.ray.origin, d = ray.ray.direction;
@@ -32,7 +34,9 @@ export function createPicker({ camera, fr, rigs, product, getState, captionIndex
       // the band: from a little above the rail to just under the lowest hem, from half a slot
       // beyond the first hook to half a slot beyond the last one (the garments' turned width)
       if (p.y > PIVOT_Y + 0.07 || p.y < PIVOT_Y + lowHem - 0.05) return null;
-      if (p.x < slotX(0) - SLOT * 0.8 || p.x > slotX(N - 1) + SLOT * 0.8) return null;
+      // (v2, ux review: the end garments, facing the camera, reach beyond 0.8 slot: their outer
+      // sleeve released them; the band now covers their facing silhouette, pulled forward)
+      if (p.x < slotX(0) - edgeL || p.x > slotX(N - 1) + edgeR) return null;
       const slot = clamp((p.x - slotX(0)) / SLOT, 0, N - 1);
       return { kind: 'garment', index: Math.round(slot), slot };
     }
@@ -74,8 +78,11 @@ export function createPicker({ camera, fr, rigs, product, getState, captionIndex
     };
   }
 
+  // slots: the screen point of each hook on the rail (y: the rail line, for the tour's glide)
   function info() {
-    return { garments: N, slots: rigs.map((r) => ({ x: fr.toScreen(slotX(r.i), PIVOT_Y, 0).x })) };
+    edgeL = edgeOf(rigs[0]);
+    edgeR = edgeOf(rigs[N - 1]); // (a garment rebuilt at another quality has its own width)
+    return { garments: N, slots: rigs.map((r) => fr.toScreen(slotX(r.i), PIVOT_Y, 0)) };
   }
 
   return { pick, anchors, info, lowHem };

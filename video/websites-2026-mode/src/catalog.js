@@ -42,7 +42,9 @@ export const PRODUCTS = [
     },
     variants: [
       { id: 'noir', label: 'Noir', tag: 'NOIR', body: '#2a2a2c', ink: '#e9e5dc' },
-      { id: 'rose', label: 'Rose', tag: 'ROSE', body: '#f0a8c4', ink: '#fff6f8' },
+      // (v2: '#f0a8c4' / '#fff6f8' left the white print at 1.6:1, a pale ghost on a phone; the
+      // review's '#e48aae' measured 1.8:1, this one 2.3:1)
+      { id: 'rose', label: 'Rose', tag: 'ROSE', body: '#dc7ba4', ink: '#ffffff' },
       { id: 'jaune', label: 'Jaune', tag: 'JAUNE', body: '#f2d018', ink: '#1b1b1c' },
     ],
   },

@@ -101,7 +101,8 @@ function arcText(p, str, cx, cy, radius, size, font, spread, { fill = '#fff' } =
 }
 
 // screen-print cracks: a craquelure network (jittered lattice, some edges missing) of hairlines
-function cracks(p, x0, y0, x1, y1, density, seed) {
+// keep: share of the lattice edges drawn; flakes: share of the worn patches
+function cracks(p, x0, y0, x1, y1, density, seed, { keep = 0.72, flakes = 1 } = {}) {
   const { g, X, Y, S } = p;
   const r = rng(seed);
   const cell = 0.011 / Math.sqrt(density);
@@ -115,7 +116,7 @@ function cracks(p, x0, y0, x1, y1, density, seed) {
   // three batched paths (fine, medium, wide hairlines): thousands of strokes in three calls
   const paths = [new Path2D(), new Path2D(), new Path2D()];
   const edge = (a, b) => {
-    if (r() > 0.72) return;
+    if (r() > keep) return;
     const pa = paths[Math.floor(r() * 2.999)];
     const mx = (a[0] + b[0]) / 2 + (r() - 0.5) * cell * 0.25, my = (a[1] + b[1]) / 2 + (r() - 0.5) * cell * 0.25;
     pa.moveTo(X(a[0]), Y(a[1]));
@@ -129,7 +130,7 @@ function cracks(p, x0, y0, x1, y1, density, seed) {
   }
   paths.forEach((pa, k) => { g.lineWidth = Math.max(0.55, S([0.0004, 0.0006, 0.0009][k])); g.stroke(pa); });
   // a few worn patches where the ink flaked off
-  for (let k = 0; k < density * 14; k++) {
+  for (let k = 0; k < density * 14 * flakes; k++) {
     g.fillStyle = `rgba(0,0,0,${mix(0.25, 0.7, r())})`;
     g.beginPath();
     g.ellipse(X(mix(x0, x1, r())), Y(mix(y0, y1, r())), S(mix(0.002, 0.007, r())), S(mix(0.001, 0.004, r())), r() * 3, 0, Math.PI * 2);
@@ -217,8 +218,11 @@ const DESIGNS = {
     const ys = [y0, y0 - lead - 0.02, y0 - 2 * lead - 0.008];
     lines.forEach((t, i) => text(ink, t, 0.0, ys[i], size, '400 # Anton', { maxW: i === 2 ? 0.37 : 0 }));
     raise(rel, (c) => lines.forEach((t, i) => text(rel, t, 0, ys[i], size, '400 # Anton', { fill: c, maxW: i === 2 ? 0.37 : 0 })), 0.12, 0.001);
-    cracks(ink, -0.22, y0 - 0.3, 0.22, y0 + 0.08, 1.0, 77);
-    text(L.back.ink, 'RUELLE — MARSEILLE', 0, m.yH - 0.075, 0.0125, '800 # "Inter Tight"', { spacing: 0.0035 });
+    // (v2: a lighter craquelure (40 % of the edges, wider cells, half the flakes): the dense one
+    // read as a marble fill on jaune; noir keeps a visible crackle)
+    cracks(ink, -0.22, y0 - 0.3, 0.22, y0 + 0.08, 0.6, 77, { keep: 0.4, flakes: 0.5 });
+    // (v2: 12.5 mm letters were ~6 px at 1440 x 900: DOS showed a plain shirt; still a neck print)
+    text(L.back.ink, 'RUELLE — MARSEILLE', 0, m.yH - 0.09, 0.022, '800 # "Inter Tight"', { spacing: 0.005 });
   },
   debardeur: (L, m) => {
     const { ink } = L.front;

@@ -160,10 +160,13 @@ export function addParts(geo, { type, shape, m, surf, drape, h0, cell, st }) {
 
   // --- hoodie: hood on the back, kangaroo pocket, drawcords ---
   if (type === 'hoodie') {
-    // hood lying flat on the back: its open edge follows the back neckline, its peak hangs down
+    // hood hanging on the back: its crown rises ~7 cm above the shoulder line behind the hook
+    // and curls back into a rounded pouch (seen from the front behind both shoulders, from the
+    // side as a hood behind the neck), its peak hangs down the back
+    // (v2, art review: lying flat, the hood read as a shawl collar)
     const hoodPoly = [];
-    const yTop = m.yH - 0.004, yBot = m.yH - 0.37;
-    const ctrl = [[0, yTop], [0.07, yTop - 0.006], [0.135, m.yH - 0.035], [0.165, m.yH - 0.1], [0.16, m.yH - 0.2], [0.115, m.yH - 0.3], [0.04, yBot + 0.012], [0, yBot]];
+    const yTop = m.yH + 0.07, yBot = m.yH - 0.37;
+    const ctrl = [[0, yTop], [0.055, yTop - 0.008], [0.105, yTop - 0.03], [0.145, m.yH + 0.002], [0.172, m.yH - 0.07], [0.168, m.yH - 0.18], [0.12, m.yH - 0.3], [0.04, yBot + 0.012], [0, yBot]];
     const half = [];
     for (let i = 0; i < ctrl.length - 1; i++) for (let k = 0; k < 6; k++) {
       const t = k / 6, a = ctrl[i], b = ctrl[i + 1];
@@ -175,7 +178,9 @@ export function addParts(geo, { type, shape, m, surf, drape, h0, cell, st }) {
     const hood = buildPanel(hoodPoly, -1, cell * 1.25, {
       h0: 0.004,
       puff: 0.009,
-      drape: (x, y) => surf(x, Math.min(y, m.yH - 0.03), -1) - 0.006 - 0.01 * smooth(m.yH - 0.05, m.yH + 0.03, y),
+      // the crown curls back (a pouch behind the hook): the higher, the further back, rounder
+      // in the middle
+      drape: (x, y) => surf(x, Math.min(y, m.yH - 0.03), -1) - 0.006 - 0.01 * smooth(m.yH - 0.05, m.yH + 0.03, y) - 0.075 * smooth(m.yH - 0.12, m.yH + 0.07, y) * (1 - 0.45 * (x / 0.175) * (x / 0.175)),
       uvOf: (x, y) => atlasUv(x, y, -1),
     });
     geo.add(hood, PART.BODY);

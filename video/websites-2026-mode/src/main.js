@@ -90,6 +90,9 @@ else
   });
 
 async function start() {
+  // no browser menu (a two-finger click while swiping) and no drag ghost during a take
+  window.addEventListener('contextmenu', (e) => e.preventDefault());
+  window.addEventListener('dragstart', (e) => e.preventDefault());
   const canvas = $('scene');
   const opts = Object.assign({ antialias: true, powerPreference: 'high-performance', stencil: false, alpha: false }, WORLD.rendererOptions || {});
   const renderer = new THREE.WebGLRenderer({ canvas, ...opts });
@@ -132,10 +135,11 @@ async function start() {
   // the rack's screen geometry, for the tour and the keyboard: the hook x of each garment
   // (world.info) and a height inside the garments (probed with world.pick: the chest, where a
   // hand points at a garment); measured in the rack view, again after a resize
-  const rackGeo = { xs: null, y: 0.45 * innerHeight, ok: false };
+  const rackGeo = { xs: null, y: 0.45 * innerHeight, railY: 0.3 * innerHeight, ok: false };
   function measureRack() {
     const info = (world.info && world.info()) || {};
     rackGeo.xs = info.slots ? info.slots.map((s) => s.x) : null;
+    if (info.slots && Number.isFinite(info.slots[0].y)) rackGeo.railY = info.slots[0].y;
     ui.measure(info);
     if (!rackGeo.xs || state.view > 0.001) return;
     const x = rackGeo.xs[HERO];
@@ -248,18 +252,31 @@ async function start() {
   renderNow();
 
   // ------------------------------------------------------------------ actions
-  // every action goes through here: nothing while the product view opens or closes
+  // every action goes through here: nothing while the product view opens or closes, except in
+  // the last part of the opening, where the product view is already on screen: the action is
+  // kept and runs as soon as the view has landed (v2, ux review: a click or a key made in the
+  // last 0.3 s of the opening was silently lost, a missed click on film)
+  let pending = null;
+  const landing = () => director.mode() === 'opening' && state.view > 0.8;
   function act(fn) {
+    if (landing()) {
+      pending = fn;
+      return true;
+    }
     if (director.busy()) return false;
     return fn();
   }
   function canvasClick(x, y) {
-    if (director.busy()) return;
+    if (director.busy() && !landing()) return;
     const m = director.mode();
     const hit = pickAt(x, y);
     if (!hit) return;
-    if (m === 'rack' && hit.kind === 'garment') director.open(hit.index);
-    else if (m === 'product' && hit.kind === 'tag') director.dyeTo(hit.index);
+    if (m === 'rack' && hit.kind === 'garment') {
+      // after a swipe or an arrow key the garment that faces the camera (and is named in the
+      // caption) is the one a tap opens, wherever the resting hand is (v2, ux review)
+      const ft = director.focusTarget;
+      director.open(focusSource === 'keys' && ft !== null ? Math.round(ft) : hit.index);
+    } else if (hit.kind === 'tag') act(() => director.dyeTo(hit.index));
   }
   // the tour's clicks: the real button under the point, or the 3D
   function clickAt(x, y) {
@@ -274,6 +291,15 @@ async function start() {
   let virtual = null; // where the tour left its pointer, until the real one moves
   function tourTarget(name, arg) {
     if (name === 'slot') return rackPoint(arg);
+    // the glides' targets: left of the first garment, and above the rail over a garment
+    if (name === 'rackLeft') {
+      const p = rackPoint(0), q = rackPoint(1);
+      return p && q ? { x: p.x - 0.9 * (q.x - p.x), y: p.y } : null;
+    }
+    if (name === 'aboveRack') {
+      const p = rackPoint(arg);
+      return p ? { x: p.x, y: rackGeo.railY - 50 } : null;
+    }
     if (name === 'tag') {
       const an = world.anchors();
       const t = an && an.tags && an.tags[arg];
@@ -300,10 +326,18 @@ async function start() {
     el: cursorEl,
     target: tourTarget,
     clickAt,
+    // a tour started in the product view closes it first, then snaps back to the first colours
+    // on the rack, where the hero is turned away
+    onReset: () => director.resetLook(),
     onEnd: () => {
       doc.classList.remove('is-touring');
       virtual = { ...tour.pos };
-      wakeCursor();
+      // at the natural end the tour's arrow stays parked on the hero and the system cursor
+      // stays hidden until the hand moves: one arrow in the last frame of a take (v2, ux review)
+      if (tour.done) {
+        clearTimeout(cursorTimer);
+        doc.classList.add('cursor-off');
+      } else wakeCursor();
     },
   });
   let focusSource = 'pointer'; // 'pointer' (real or tour) | 'keys' (keyboard, wheel)
@@ -312,6 +346,9 @@ async function start() {
     const m = director.mode();
     doc.classList.add('is-touring');
     focusSource = 'pointer';
+    pending = null;
+    // every take plays both dyes (noir -> rose -> jaune), whatever was clicked before
+    if (m === 'rack') director.resetLook();
     const p0 = real.inside ? { x: real.x, y: real.y } : virtual || { x: innerWidth * 0.56, y: innerHeight * 0.78 };
     tour.start(p0, m === 'product');
   }
@@ -333,9 +370,14 @@ async function start() {
   window.addEventListener(
     'pointermove',
     (e) => {
-      wakeCursor();
       if (e.pointerType === 'touch') return;
       const moved = Math.abs(e.clientX - real.x) + Math.abs(e.clientY - real.y) > 2;
+      // the parked tour arrow: a tremor does not wake the system cursor, a real move does
+      if (tour.parked) {
+        if (!moved && real.inside) return;
+        tour.unpark();
+      }
+      wakeCursor();
       real.x = e.clientX;
       real.y = e.clientY;
       real.inside = true;
@@ -355,6 +397,7 @@ async function start() {
   window.addEventListener(
     'pointerdown',
     (e) => {
+      if (tour.parked) tour.unpark();
       wakeCursor();
       if (e.isTrusted && tour.playing) {
         stopTour();
@@ -398,6 +441,10 @@ async function start() {
 
   window.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return; // browser shortcuts
+    if (tour.parked) {
+      tour.unpark();
+      wakeCursor();
+    }
     const isP = e.key === 'p' || e.key === 'P';
     if (isP) {
       if (!e.repeat) tour.playing ? stopTour() : startTour();
@@ -409,11 +456,11 @@ async function start() {
       e.preventDefault();
       return;
     }
-    if (director.busy()) {
+    if (director.busy() && !landing()) {
       if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) e.preventDefault();
       return;
     }
-    const m = director.mode();
+    const m = landing() ? 'product' : director.mode();
     if (m === 'rack') {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
@@ -427,17 +474,20 @@ async function start() {
         director.open(director.captionIndex);
       }
     } else if (m === 'product') {
+      // (through act(): kept for the landing when pressed at the end of the opening)
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        director.go(e.key === 'ArrowRight' ? 1 : -1);
+        const d = e.key === 'ArrowRight' ? 1 : -1;
+        act(() => director.go(d));
       } else if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
-        director.toggleSide();
+        act(() => director.toggleSide());
       } else if (e.key >= '1' && e.key <= '9') {
-        director.dyeTo(+e.key - 1);
+        const v = +e.key - 1;
+        act(() => director.dyeTo(v));
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        director.close();
+        act(() => director.close());
       }
     }
   });
@@ -474,7 +524,13 @@ async function start() {
     const m = director.mode();
     if (m === 'rack') {
       if (!rackGeo.ok && state.view <= 0.001) measureRack();
-      if (focusSource === 'pointer') {
+      if (tp && !tour.hovering) {
+        // the tour's hand glides to its start (or back over the rail) without brushing the
+        // garments it passes: the rack settles calmly (v2, ux review: a fast wave of 4 or 5
+        // garments opened and closed every take)
+        director.setFocusTarget(tour.hold);
+        setCanvasCursor('');
+      } else if (focusSource === 'pointer') {
         const hit = p ? pickAt(p.x, p.y) : null;
         const on = hit && hit.kind === 'garment';
         director.setFocusTarget(on ? magnet(Number.isFinite(hit.slot) ? hit.slot : hit.index) : null);
@@ -574,6 +630,11 @@ async function start() {
     }
     input(dt);
     director.step(dt);
+    if (pending && director.mode() === 'product') {
+      const fn = pending;
+      pending = null;
+      fn();
+    } else if (pending && director.mode() !== 'opening') pending = null;
     renderFrame(dt);
     if (!window.__ready) {
       ready();
@@ -602,7 +663,10 @@ async function start() {
       const i = clamp(Math.round(v ?? HERO), 0, N - 1);
       director.set({ view: 1, active: i, focus: i, focusOn: 1, side: 0, swap: { from: i, to: i, k: 1, dir: 1 }, dye: { k: 1 }, tagHover: -1 });
     } else if (name === 'open') {
-      director.set({ view: clamp(+v || 0), active: HERO, focus: HERO, focusOn: 1, side: 0, swap: { from: HERO, to: HERO, k: 1, dir: 1 }, dye: { k: 1 }, tagHover: -1 });
+      // (from the rack: the world sees an opening, whatever the view was before)
+      director.set({ view: 0, active: HERO, focus: HERO, focusOn: 1, side: 0, swap: { from: HERO, to: HERO, k: 1, dir: 1 }, dye: { k: 1 }, tagHover: -1 });
+      world.update(state, 1, time);
+      director.set({ view: clamp(+v || 0) });
     } else throw new Error(`__goto: unknown « ${name} »`);
     renderNow();
   };
@@ -623,6 +687,7 @@ async function start() {
       focusTarget: director.focusTarget,
       captionIndex: director.captionIndex,
       tour: tour.playing,
+      pending: !!pending,
       governor: { on: gov.on, steps: gov.steps, note: gov.note, vsyncMs: +vsyncMs.toFixed(2), slowMs: +slowMs.toFixed(2), window: gov.win.length },
     };
   };

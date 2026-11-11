@@ -7,10 +7,13 @@ import { clamp, ease5, easeInOutSine, mix } from './util.js';
 
 const N = PRODUCTS.length;
 
-// [kind, target, seconds]; about 22 s, mirroring the reference video's take
+// [kind, target, seconds]; about 22 s, mirroring the reference video's take.
+// 'move' hovers what it passes (the rack turns under it), 'glide' does not: [kind, target,
+// seconds, slot held facing (or none)]
 export const TOUR = [
-  ['move', ['slot', 0], 0.6], // to the left end of the rack
-  ['sweep', [0, N - 1], 2.3], // along the rack, left to right
+  ['glide', ['rackLeft'], 0.55], // to the left of the rack, the garments left alone
+  ['move', ['slot', 0], 0.2], // onto the first garment
+  ['sweep', [0, N - 1], 2.2], // along the rack, left to right
   ['sweep', [N - 1, HERO], 1.1], // and back to the hero (fast: a wave)
   ['wait', 0.6],
   ['click'], // opens the product view (1.1 s)
@@ -43,23 +46,28 @@ export const TOUR = [
   ['wait', 0.1],
   ['click'], // back to the rack (1.1 s)
   ['wait', 0.9],
-  ['move', ['slot', HERO], 0.9], // settles on the rack, on the hero
+  // back over the rail to the hero, which came back facing the camera: no other garment turns
+  ['glide', ['aboveRack', HERO], 0.6, HERO],
+  ['move', ['slot', HERO], 0.35], // settles on the rack, on the hero
   ['wait', 1.2],
 ];
-// started from the product view: close it first
-const FROM_PRODUCT = [['move', ['close'], 0.8], ['wait', 0.1], ['click'], ['wait', 1.25]];
+// started from the product view: close it first, then the first colours (onReset)
+// (the reset waits until the hero, back on the rail, has turned away again)
+const FROM_PRODUCT = [['move', ['close'], 0.8], ['wait', 0.1], ['click'], ['wait', 1.55], ['reset']];
 const CLICK_S = 0.14;
 const FADE_S = 0.35;
 
-// a step's length: [kind, target, seconds], ['wait', seconds], ['click']
-const durOf = (s) => (s[0] === 'click' ? CLICK_S : s[0] === 'wait' ? s[1] : s[2]);
+// a step's length: [kind, target, seconds], ['wait', seconds], ['click'], ['reset']
+const durOf = (s) => (s[0] === 'click' ? CLICK_S : s[0] === 'reset' ? 0 : s[0] === 'wait' ? s[1] : s[2]);
 export const tourLength = (steps = TOUR) => steps.reduce((t, s) => t + durOf(s), 0);
 
 // el: the cursor element; target(name, arg) -> {x, y} CSS px or null; clickAt(x, y)
-export function createTour({ el, target, clickAt, onEnd = () => {} }) {
+export function createTour({ el, target, clickAt, onEnd = () => {}, onReset = () => {} }) {
   const cur = { x: innerWidth * 0.55, y: innerHeight * 0.8 };
   let steps = null, i = 0, t = 0, from = null, done = true;
   let playing = false, alpha = 0, pressT = 9;
+  // parked: the natural end leaves the arrow on the hero (no fade) until the hand moves
+  let parked = false;
   let hoverEl = null;
 
   function setHover(b) {
@@ -88,6 +96,7 @@ export function createTour({ el, target, clickAt, onEnd = () => {} }) {
     from = { ...cur };
     playing = true;
     done = false;
+    parked = false;
     alpha = Math.max(alpha, 0);
     el.hidden = false;
     draw();
@@ -109,7 +118,7 @@ export function createTour({ el, target, clickAt, onEnd = () => {} }) {
   function step(dt) {
     pressT += dt;
     if (!playing) {
-      if (alpha > 0) {
+      if (alpha > 0 && !parked) {
         alpha = Math.max(0, alpha - dt / FADE_S);
         draw();
         if (alpha === 0) el.hidden = true;
@@ -124,6 +133,7 @@ export function createTour({ el, target, clickAt, onEnd = () => {} }) {
       if (!s) {
         playing = false;
         done = true;
+        parked = true;
         setHover(null);
         onEnd();
         draw();
@@ -138,11 +148,11 @@ export function createTour({ el, target, clickAt, onEnd = () => {} }) {
       if (steps[i] && steps[i][0] === 'click') {
         pressT = 0;
         clickAt(cur.x, cur.y);
-      }
+      } else if (steps[i] && steps[i][0] === 'reset') onReset();
     }
     const s = steps[i];
     const k = clamp(t / durOf(s));
-    if (s[0] === 'move') {
+    if (s[0] === 'move' || s[0] === 'glide') {
       const to = resolve(s[1]);
       if (to) {
         const e = ease5(k);
@@ -170,7 +180,7 @@ export function createTour({ el, target, clickAt, onEnd = () => {} }) {
 
   // a move lands exactly on its (live) target
   function finish(s) {
-    if (s[0] === 'move') {
+    if (s[0] === 'move' || s[0] === 'glide') {
       const to = resolve(s[1]);
       if (to) {
         cur.x = to.x;
@@ -194,6 +204,22 @@ export function createTour({ el, target, clickAt, onEnd = () => {} }) {
     },
     get done() {
       return done;
+    },
+    // false while a glide moves the hand without hovering; hold: the slot kept facing meanwhile
+    get hovering() {
+      const s = playing && steps ? steps[i] : null;
+      return !(s && s[0] === 'glide');
+    },
+    get hold() {
+      const s = playing && steps ? steps[i] : null;
+      return s && s[0] === 'glide' && Number.isFinite(s[3]) ? s[3] : null;
+    },
+    get parked() {
+      return parked;
+    },
+    // the hand moved: the parked arrow fades out (the system cursor takes over)
+    unpark() {
+      parked = false;
     },
     get pos() {
       return { ...cur };

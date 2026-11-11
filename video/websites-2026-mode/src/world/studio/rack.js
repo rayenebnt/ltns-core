@@ -17,7 +17,9 @@ import { spring, bump, clamp, smooth, SNAP } from './physics.js';
 
 // tuning (exported for the cut-through scan in the harness tools)
 export const TUNE = {
-  fwd: 0.48, // m, the focused garment's pull toward the camera (+8 % on screen)
+  fwd: 0.48, // m, the focused garment's pull toward the camera (+7 % on screen)
+  // (v2: with the wider slots, the review's 0.36 / 0.10 measured worse in rackCuts (28 of 141
+  // resting focus values instead of 14); 0.48 / 0.16 keeps the turning sleeves clear)
   fwdPow: 0.35, // z = fwd * w^fwdPow: < 1 leads the turn (it clears its neighbours first)
   backL: 0.16, // m, neighbours on the left ease back (their near sleeve points at the focus)
   backR: 0.05, // m, neighbours on the right
@@ -41,8 +43,9 @@ const hash = (i) => {
 
 export function createRack(rigs) {
   for (const r of rigs) {
-    // ~64°..70° away, the fronts toward the key light (upper left)
-    r.idleYaw = -(1.12 + 0.105 * hash(r.i + 1));
+    // ~66°..75° away, the fronts toward the key light (upper left); v2: a wider spread reads as
+    // garments hung by hand, and the sharper angle shows more wall between them
+    r.idleYaw = -(1.16 + 0.16 * hash(r.i + 1));
     r.phase = hash(r.i + 11) * 6.283;
     r.yaw = { x: r.idleYaw, v: 0 };
     r.fwd = { x: 0, v: 0 };

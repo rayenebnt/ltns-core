@@ -97,6 +97,11 @@ export function createGarment(product, { quality = 'high', renderer = null } = {
   const t1 = performance.now();
   const atlas = buildAtlas(product, st, m, back, quality);
   const tAtlas = performance.now() - t1;
+  // (v2, art review: without anisotropic filtering every print on the resting rack, seen at
+  // ~70°, was mip-smeared into a grey smudge; set before the first upload, so free at build)
+  const maxAniso = renderer?.capabilities?.getMaxAnisotropy?.() || 1;
+  const atlasAniso = (lv) => Math.min(maxAniso, lv === 'low' ? 4 : lv === 'medium' ? 8 : 16);
+  atlas.anisotropy = atlasAniso(quality);
   const noise = noiseTexture();
   const nm = fabricNormal(st.fabric);
   if (renderer) setAnisotropy(renderer, quality);
@@ -206,6 +211,11 @@ export function createGarment(product, { quality = 'high', renderer = null } = {
   function setQuality(level) {
     fab.uniforms.uRib.value.z = level === 'low' ? 0 : look.knit;
     fab.uniforms.uRib.value.y = level === 'low' ? 0 : clearcoat;
+    const a = atlasAniso(level);
+    if (a !== atlas.anisotropy) {
+      atlas.anisotropy = a; // (a texture parameter: three applies it on the next upload)
+      atlas.needsUpdate = true;
+    }
   }
 
   const ms = performance.now() - t0;

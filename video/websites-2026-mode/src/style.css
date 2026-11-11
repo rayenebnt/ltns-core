@@ -329,6 +329,8 @@ html:not(.cursor-off) .link:hover .ne, .link.is-hover .ne { transform: translate
 }
 #toast::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 4px rgba(47, 61, 255, 0.28); }
 #toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+/* product view: above the hanger hook (its top is at 12 % of the height) */
+html.in-product #toast { top: 14px; }
 
 /* the tour's hand: its tip is the point it acts on */
 #cursor {
@@ -359,7 +361,8 @@ html:not(.cursor-off) .link:hover .ne, .link.is-hover .ne { transform: translate
   background: var(--paper);
   transition: opacity 0.8s var(--ease), visibility 0.8s;
 }
-#loader.is-done { opacity: 0; visibility: hidden; }
+/* (v2: no pointer events while it fades out: the first click on the rack was eaten) */
+#loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
 #loader .logo { font-size: 58px; }
 .loader-bar { display: block; width: 150px; height: 2px; overflow: hidden; border-radius: 2px; background: rgba(21, 21, 23, 0.1); }
 .loader-bar b { display: block; width: 100%; height: 100%; background: var(--blue); transform: scaleX(0); transform-origin: left; transition: transform 0.35s var(--ease-out); }

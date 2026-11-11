@@ -26,7 +26,7 @@ import { pendulum, tracker, smooth, clamp, SNAP } from './studio/physics.js';
 export const rendererOptions = { antialias: true };
 
 const LEVELS = ['low', 'medium', 'high', 'max'];
-// garment grid density per level (garments/index.js: 16 / 11.5 / 8.5 / 6.8 mm cells)
+// garment grid density per level (garments/index.js: 16 / 11.5 / 8.5 / 7.5 mm cells)
 const DENSITY = { low: 'low', medium: 'medium', high: 'high', max: 'max' };
 // pendulum coupling: how much of the pivot's acceleration reaches the swing (a hand carries the
 // hanger and damps most of it); the rack's moves are short and quick, the product's are slides
@@ -83,17 +83,28 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   const euler = new THREE.Euler();
   const qSwing = new THREE.Quaternion();
   const anchor = new THREE.Vector3();
+  // the caption's garment, with the shell's hysteresis (director.js capIdx): a hand resting on
+  // the boundary between two garments must not flip the caption's place every frame
+  let capIdx = HERO;
   const captionIndex = () => {
-    if (st && st.focus >= 0 && st.focusOn > 0.05) return clamp(Math.round(st.focus), 0, N - 1);
+    if (st && st.focus >= 0 && st.focusOn > 0.05) return capIdx;
     return lastFocused;
   };
+  // the direction of the last view change: the close fades the tags out where they hang
+  let prevView = 0, closing = false;
 
   function update(state, dt, time) {
     st = state;
     lastTime = time;
     const snap = dt >= SNAP;
-    if (state.focus >= 0 && state.focusOn > 0.5) lastFocused = clamp(Math.round(state.focus), 0, N - 1);
+    if (state.focus >= 0) {
+      if (snap || Math.abs(state.focus - capIdx) > 0.62) capIdx = clamp(Math.round(state.focus), 0, N - 1);
+      if (state.focusOn > 0.5) lastFocused = capIdx;
+    }
     const view = clamp(state.view);
+    if (view < prevView - 1e-6) closing = true;
+    else if (view > prevView + 1e-6 || view >= 1 || view <= 0) closing = false;
+    prevView = view;
     const sw = state.swap;
     const swapping = sw.k < 1 && sw.from !== sw.to;
 
@@ -156,9 +167,14 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
         continue;
       }
       let drop, fade;
-      if (isActive) {
+      if (isActive && closing && !swapping) {
+        // the close: they fade out where they hang, with the garment's first move (v2: pulled
+        // back into the hook, a sliver of a tag stayed by it half-way)
+        drop = view > 0.79 ? 1 : 0;
+        fade = smooth(0.98, 0.8, view);
+      } else if (isActive) {
         drop = smooth(0.42, 0.92, view) * (swapping ? smooth(0.5, 0.95, sw.k) : 1);
-        fade = 0;
+        fade = 1 - smooth(0, 0.45, drop); // they fly in out of the wall
       } else {
         drop = 1 - smooth(0, 0.42, sw.k);
         fade = smooth(0.1, 0.42, sw.k);

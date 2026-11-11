@@ -31,6 +31,7 @@ export function createUI(handlers) {
   const dispoEl = $('dispo');
   const toast = $('toast');
   let toastTimer = 0;
+  const docT = toggler(document.documentElement);
 
   function showToast() {
     toast.textContent = TOAST;
@@ -111,9 +112,14 @@ export function createUI(handlers) {
     rack.t('is-live', mode === 'rack');
     close.s('opacity', f3(kProd));
     close.s('transform', kProd < 1 ? `translate3d(0,${f1(-8 * (1 - kProd))}px,0)` : 'none');
-    close.t('is-live', mode === 'product');
+    // (v2, ux review: live from the last part of the opening, where the product UI is already
+    // on screen; main.js keeps the action and runs it once the view has landed)
+    const live = mode === 'product' || (mode === 'opening' && view > 0.8);
+    close.t('is-live', live);
     prod.s('opacity', f3(kProd));
-    prod.t('is-live', mode === 'product');
+    prod.t('is-live', live);
+    // the toast moves above the hanger hook in the product view (style.css)
+    docT('in-product', view > 0.5);
     rack.t('is-gone', kRack <= 0.001);
     prod.t('is-gone', kProd <= 0.001);
     top.t('is-gone', kRack <= 0.001);
@@ -193,6 +199,12 @@ export function createUI(handlers) {
       const slide = (1 - kProd) * 18;
       prevS('transform', `translate3d(${f1(mx - slide)}px,${f1(y)}px,0)`);
       nextS('transform', `translate3d(${f1(W - mx + slide)}px,${f1(y)}px,0)`);
+      // prev / next: the garment leaving passes under the button on its side, which dims while
+      // it goes by (still clickable: a press queues the next garment)
+      const sw = st.swap;
+      const by = d.swapping ? smooth(0.12, 0.28, sw.k) - smooth(0.66, 0.9, sw.k) : 0;
+      prevS('opacity', f3(1 - 0.68 * (sw.dir > 0 ? by : 0)));
+      nextS('opacity', f3(1 - 0.68 * (sw.dir < 0 ? by : 0)));
     }
   }
 

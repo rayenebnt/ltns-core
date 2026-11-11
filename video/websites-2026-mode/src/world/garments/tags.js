@@ -1,14 +1,17 @@
-// Paper hang tags, one per colour variant, hanging on threads from the hanger neck to the right
-// of the garment. Each tag is a damped pendulum about its punched hole (swing in the plane,
-// a little forward/back, and a twist). Cards and threads are one merged mesh, re-posed on the CPU
-// every frame (a few hundred vertices): one draw call for all the tags.
+// Paper hang tags, one per colour variant, to the right of the garment, each on its own short
+// vertical thread that fades out upward (as in the reference: strings from above, no knot to
+// show). Each tag and its thread are a damped pendulum about the thread's top (swing in the
+// plane, a little forward/back, and a twist). Cards and threads are one merged mesh, re-posed on
+// the CPU every frame (a few hundred vertices): one draw call for all the tags.
+// (v2, art review: the threads ran almost horizontally 40–58 cm from the hook shank over the
+// shoulder while the tags hung plumb, as if on wires)
 //
 // createTags(product, { quality, clearance }) -> {
 //   group        origin = thread anchor (put it at garment.tagAnchor, garment scale, no yaw)
 //   setHover(i)  -1 for none: a hovered tag gets a little push and keeps swaying
 //   kick(i, s)   impulse (click), s = strength (default 1)
-//   setActive(i) selected variant: its tag hangs a bit lower and forward
-//   setDrop(k)   0..1: tags fall in from the anchor on their threads (0 = hidden)
+//   setActive(i) selected variant: its tag hangs lower (a longer thread) and forward
+//   setDrop(k)   0..1: tags fly in from above on their threads (0 = hidden)
 //   update(dt)   pendulums (dt >= 0.5 snaps to rest)
 //   rects(camera, w, h) -> [{ x, y, w, h }] screen rects (CSS px, top-left origin)
 //   hit(raycaster) -> index or -1
@@ -83,8 +86,9 @@ function tagTexture(product, slots) {
     g.fillText('ruelle', hx, SH - 34);
   });
   // a solid patch for the threads (bottom right corner of the last slot is plain card colour,
-  // so draw a thread-coloured square in a free spot)
-  g.fillStyle = '#e9e6de';
+  // so draw a thread-coloured square in a free spot): a warm grey cotton string, visible on the
+  // wall near the tag, fading out upward (its radius tapers)
+  g.fillStyle = '#a49e94';
   g.fillRect(cv.width - 8, 0, 8, 8);
   const t = new THREE.CanvasTexture(cv);
   t.colorSpace = THREE.SRGBColorSpace;
@@ -156,11 +160,13 @@ export function createTags(product, { quality = 'high', clearance = defaultClear
   group.add(mesh);
 
   // pendulum state per tag
+  // rest: the hole at rest (from the group origin, the hanger neck); len: the thread above it
   const tags = product.variants.map((_, i) => ({
     rest: new THREE.Vector3(clearance + 0.04 + i * 0.087, -0.07 - i * 0.026, 0.012 + i * 0.004),
-    hole: new THREE.Vector3(), prev: new THREE.Vector3(), vel: new THREE.Vector3(),
+    len: 0.092 + 0.013 * i, // 9–12 cm: the tops step down less than the tags (natural, not a ruler)
+    top: new THREE.Vector3(), hole: new THREE.Vector3(), prev: new THREE.Vector3(), vel: new THREE.Vector3(),
     az: 0, vz: 0, ax: 0, vx: 0, ay: 0, vy: 0, // swing (z), forward (x), twist (y)
-    active: 0, hover: 0,
+    active: 0, hover: 0, L: 0.1,
   }));
   let hover = -1, activeIdx = 0, drop = 1, first = true, clock = 0; // own clock: deterministic under __setTime
   const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), ee = new THREE.Euler(), vv = new THREE.Vector3(), nn = new THREE.Vector3();
@@ -179,15 +185,17 @@ export function createTags(product, { quality = 'high', clearance = defaultClear
         nn.set(bnor[v * 3], bnor[v * 3 + 1], bnor[v * 3 + 2]).applyQuaternion(qq);
         nor[(o + v) * 3] = nn.x; nor[(o + v) * 3 + 1] = nn.y; nor[(o + v) * 3 + 2] = nn.z;
       }
-      // thread: anchor -> hole with a little sag, as a thin 4-sided tube
+      // thread: top -> hole, taut (the tag's weight), as a thin 4-sided tube whose radius
+      // tapers to nothing over its upper half: it fades out upward
       const t0 = o + nvCard;
-      const L = T.hole.length();
       for (let s = 0; s <= TH; s++) {
         const k = s / TH;
-        const px = T.hole.x * k, py = T.hole.y * k - Math.sin(Math.PI * k) * 0.035 * L, pz = T.hole.z * k + Math.sin(Math.PI * k) * 0.006;
+        const px = mix(T.top.x, T.hole.x, k), py = mix(T.top.y, T.hole.y, k), pz = mix(T.top.z, T.hole.z, k);
+        const tk = Math.min(1, k / 0.55);
+        const taper = tk * tk * (3 - 2 * tk); // 0 at the top, full over the lower half
         for (let r = 0; r < TR; r++) {
           const a = (r / TR) * Math.PI * 2;
-          const rr = 0.0006;
+          const rr = 0.0007 * taper;
           const ox = -Math.sin(a) * rr * 0.4, oy = Math.cos(a) * rr, oz = Math.sin(a) * rr;
           const q = (t0 + s * TR + r) * 3;
           pos[q] = px + ox; pos[q + 1] = py + oy; pos[q + 2] = pz + oz;
@@ -207,22 +215,28 @@ export function createTags(product, { quality = 'high', clearance = defaultClear
     for (let i = 0; i < n; i++) {
       const T = tags[i];
       T.active += ((i === activeIdx ? 1 : 0) - T.active) * (snap ? 1 : 1 - Math.exp(-dt / 0.12));
-      // the tag falls from the anchor along its thread when dropping in
+      // dropping in, the tags fly in from above and a little to the right (away from the
+      // garment) while their threads pay out; the selected tag hangs 2.5 cm lower on a longer
+      // thread and 1.5 cm forward, so the choice reads on a phone
       const k = ease(drop);
-      const tx = T.rest.x, ty = T.rest.y - 0.012 * T.active, tz = T.rest.z + 0.008 * T.active;
-      T.prev.copy(T.hole);
-      T.hole.set(tx * mix(0.25, 1, k), ty * k + 0.02 * (1 - k), tz);
+      T.prev.copy(T.top);
+      T.top.set(T.rest.x + 0.05 * (1 - k), T.rest.y + T.len + 0.05 * (1 - k), T.rest.z + 0.015 * T.active);
+      T.L = (T.len + 0.025 * T.active) * mix(0.45, 1, k);
       if (snap) {
         T.vel.set(0, 0, 0);
         T.az = T.vz = T.ax = T.vx = T.ay = T.vy = 0;
+        hang(T);
         continue;
       }
-      // hole acceleration drives the pendulum (physical swing when dropping in or moving)
-      const vx = (T.hole.x - T.prev.x) / dt, vy = (T.hole.y - T.prev.y) / dt;
+      // the top's acceleration drives the pendulum (physical swing when flying in or moving)
+      const vx = (T.top.x - T.prev.x) / dt, vy = (T.top.y - T.prev.y) / dt;
       const accX = (vx - T.vel.x) / dt, accY = (vy - T.vel.y) / dt;
       T.vel.set(vx, vy, 0);
       const w = Math.PI * 2 * 1.15, z = 0.11;
-      const force = clamp(-accX / 9.81, -2, 2) * 0.9 + clamp(accY / 9.81, -1, 1) * 0.1;
+      // (integration look-dev: coupling 0.9 -> 0.4 and a lower clamp: the drop-in swung the tags
+      // ±35° (the hole decelerates at ~0.7 g at the end of its fall); the reference's tags fly in
+      // and settle with a calm ±10–15° swing; a click still kicks them clearly)
+      const force = clamp(-accX / 9.81, -1, 1) * 0.4 + clamp(accY / 9.81, -1, 1) * 0.06;
       for (let it = 0; it < Math.ceil(dt / h); it++) {
         const sdt = dt / Math.ceil(dt / h);
         T.vz += (-w * w * T.az - 2 * z * w * T.vz + force * w * w) * sdt;
@@ -235,11 +249,19 @@ export function createTags(product, { quality = 'high', clearance = defaultClear
       }
       if (i === hover) {
         // a hovered tag keeps a gentle sway
-        T.vz += Math.sin(clock * 3.8 + i) * 0.04;
+        // (per second, not per frame: the same sway at 30, 60 or 120 Hz)
+        T.vz += Math.sin(clock * 3.8 + i) * 2.4 * dt;
       }
+      hang(T);
     }
     first = false;
     pose();
+  }
+  // the hole at the end of the thread, swung about the top (the card turns with it)
+  function hang(T) {
+    ee.set(T.ax, T.ay, T.az, 'YXZ');
+    qq.setFromEuler(ee);
+    T.hole.set(0, -T.L, 0).applyQuaternion(qq).add(T.top);
   }
 
   function kick(i, s = 1) {
