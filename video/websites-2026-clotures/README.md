@@ -160,7 +160,24 @@ prend l'état de survol. Un bouton cliqué ne garde pas le focus (les flèches r
 
 ## Budget mesuré
 
-@BUDGET@
+Mesuré le 11 novembre 2026 dans Chromium avec SwiftShader (rendu logiciel : les temps ne disent
+rien d'un vrai GPU) : `?capture&q=…`, `renderer.info` juste après `__goto` à 17 moments (accueil,
+pose, finale, fenêtre du chapitre 2, les cinq modèles et un balayage, réparation), vue 16:10. Les
+appels comprennent la passe d'ombre.
+
+| Niveau | Densité appliquée | Appels de rendu | Triangles | Carte d'ombre | Cartes de feuilles | Brins d'herbe |
+|---|---|---|---|---|---|---|
+| `max` | 2 | 23 à 35 | 347 k à 639 k | 4096 | 43 540 | 77 760 |
+| `high` | 1,75 | 23 à 35 | 323 k à 503 k | 2048 | 36 767 | 45 376 |
+| `medium` | 1,5 | 23 à 35 | 294 k à 406 k | 2048 | 28 059 | 20 688 |
+| `low` | 1 | 22 à 34 | 267 k à 352 k | 1024 | 21 770 | 7 040 |
+
+- En `high` : 27 à 35 appels au chapitre 1 (35 sur la finale, vue large), 24 à 25 au chapitre 2,
+  23 à la réparation.
+- 39 textures, 55 géométries et 28 programmes à tous les niveaux. Les 28 programmes sont compilés
+  pendant le chargement : aucun n'est créé ensuite, à aucun des 17 moments.
+- Les 60 images par seconde sur un portable à GPU intégré n'ont pas pu être mesurées ici : à
+  vérifier avec `?fps=1` avant la démo (voir DEMO.md).
 
 ## Contenus
 

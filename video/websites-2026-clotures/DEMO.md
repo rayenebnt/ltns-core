@@ -114,3 +114,4 @@ défilement, poteau après poteau. Entreprise fictive, imaginée et codée par L
 | La barre d'adresse reste visible (Mac, Chrome) | `Cmd` + `Maj` + `F` |
 | La lecture `P` s'est arrêtée | Un défilement ou une touche l'a interrompue : appuie de nouveau sur `P` |
 | Le chargement est long | Normal sur un petit portable : la page prépare tout le jardin avant de commencer, pour que rien ne saccade ensuite |
+| Au début de la réparation, le point « Poteau penché, lames cassées » manque | Fenêtre petite (par exemple Windows avec l'affichage à 150 %) : ce point se cache pour ne pas passer sous le texte. Avec l'affichage à 125 %, ou le zoom du navigateur à 90 % (`Ctrl` + `-`), il revient |
