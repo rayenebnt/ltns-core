@@ -78,12 +78,12 @@ export const PRESETS = {
     cloudLit: [1.45, 1.42, 1.36],
     cloudShade: [0.22, 0.26, 0.34],
     cloud: [0.5, 1.0, 0.45, 0.0],
-    ambSky: [0.22, 0.28, 0.39],
-    ambGround: [0.045, 0.07, 0.03],
+    ambSky: [0.38, 0.42, 0.5],
+    ambGround: [0.07, 0.09, 0.05],
     haze: [5e-4, 320, 0.93, 2.5],
     wet: 0.7,
-    exposure: 1.15,
-    env: 1.0,
+    exposure: 1.3,
+    env: 1.2,
     disc: [38, 35, 30],
     wind: 0.7,
   },
@@ -98,6 +98,9 @@ function mix(a, b, k) {
     if (Array.isArray(x)) out[key] = x.map((v, i) => v + (y[i] - v) * k);
     else out[key] = x + (y - x) * k;
   }
+  // exposure blends geometrically: a linear blend from the dim storm (2.7) to the clearing
+  // (1.3) drops the exposure faster than the sun comes back, so the clearing used to darken
+  out.exposure = a.exposure * Math.pow(b.exposure / a.exposure, k);
   out.sunDir = norm(out.sunDir);
   return out;
 }
