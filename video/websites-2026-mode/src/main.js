@@ -45,6 +45,19 @@ window.__set = window.__goto = window.__setTime = () => {};
 window.__stats = () => ({ ready: window.__ready });
 window.__world = null;
 if (CAPTURE) doc.classList.add('is-capture');
+// no pinch-zoom while the page loads either: a trackpad pinch reaches the page as ctrl + wheel,
+// and once zoomed, the same gesture could not undo it after loading (code review)
+window.addEventListener('wheel', (e) => {
+  if (e.ctrlKey) e.preventDefault();
+}, { passive: false });
+
+// the browser's and the system's own keys (F5 reload, F11 full screen, F12, a lone Maj or
+// Verr. Maj, volume and media keys): never swallowed, never taken as a hand on the page (code
+// review: during the tour the first F5 only stopped it, the page did not reload)
+const systemKey = (e) =>
+  /^F\d{1,2}$/.test(e.key) ||
+  ['Shift', 'CapsLock', 'Fn', 'FnLock', 'PrintScreen', 'Unidentified', 'Meta', 'OS', 'Control', 'Alt', 'AltGraph'].includes(e.key) ||
+  /^(Audio|Media|Brightness)/.test(e.key);
 
 function showNoGL() {
   $('nogl').hidden = false;
@@ -100,11 +113,18 @@ async function start() {
   canvas.addEventListener(
     'webglcontextlost',
     (e) => {
-      e.preventDefault();
-      showNoGL();
+      e.preventDefault(); // ask the browser for the context back
+      // a GPU reset (driver timeout, sleep and wake, a GPU switch) usually gives it back within a
+      // second: the message only if it does not (code review: after a restore the page stayed
+      // on « Cette page a besoin de WebGL 2 » for good)
+      setTimeout(() => {
+        if (renderer.getContext().isContextLost()) showNoGL();
+      }, 3000);
     },
     false,
   );
+  // back: a reload rebuilds everything (programs, textures, shadow map), the page starts over
+  canvas.addEventListener('webglcontextrestored', () => location.reload(), false);
 
   let level = FORCED ? Q : CAPTURE ? 'high' : 'max';
   let dpr = effDpr(level);
@@ -165,6 +185,13 @@ async function start() {
   function pickAt(x, y) {
     if (!world.pick) return null;
     return world.pick((x / innerWidth) * 2 - 1, 1 - (y / innerHeight) * 2);
+  }
+  // a hang tag swings (the opening, the hover's own kick) and can slide off a still pointer:
+  // within its screen rect, 10 px around, it still counts as under the pointer
+  function nearTag(i, x, y) {
+    const an = world.anchors ? world.anchors() : null;
+    const r = an && an.tags ? an.tags[i] : null;
+    return !!r && x > r.x - 10 && x < r.x + r.w + 10 && y > r.y - 10 && y < r.y + r.h + 10;
   }
 
   // ------------------------------------------------------------------ frames
@@ -239,7 +266,8 @@ async function start() {
       world.setQuality(level);
       world.resize(innerWidth, innerHeight, dpr);
     }
-    console.info(`[Ruelle] qualité ${level} (densité ${dpr}) : ${measured.join(', ')}`);
+    // (only with the ?fps=1 read-out: a plain load keeps the console empty; __stats().measured)
+    if (FPS) console.info(`[Ruelle] qualité ${level} (densité ${dpr}) : ${measured.join(', ')}`);
     if (measured.length > 1) await world.warmup(); // the locked level's programs, once more
     time = 0;
   }
@@ -269,7 +297,10 @@ async function start() {
   function canvasClick(x, y) {
     if (director.busy() && !landing()) return;
     const m = director.mode();
-    const hit = pickAt(x, y);
+    let hit = pickAt(x, y);
+    // a hovered hang tag that swung off the pointer still takes the click (look audit: the first
+    // click on ROSE right after the opening could be lost; see input())
+    if (m === 'product' && !hit && state.tagHover >= 0 && nearTag(state.tagHover, x, y)) hit = { kind: 'tag', index: state.tagHover };
     if (!hit) return;
     if (m === 'rack' && hit.kind === 'garment') {
       // after a swipe or an arrow key the garment that faces the camera (and is named in the
@@ -341,8 +372,16 @@ async function start() {
     },
   });
   let focusSource = 'pointer'; // 'pointer' (real or tour) | 'keys' (keyboard, wheel)
+  // P pressed while the product view opens or closes: the tour starts as soon as it has landed
+  // (code review: P right after FERMER or Échap was silently ignored)
+  let tourQueued = false;
   function startTour() {
-    if (director.busy() || CAPTURE) return;
+    if (CAPTURE) return;
+    if (director.busy()) {
+      tourQueued = true;
+      return;
+    }
+    tourQueued = false;
     const m = director.mode();
     doc.classList.add('is-touring');
     focusSource = 'pointer';
@@ -353,6 +392,7 @@ async function start() {
     tour.start(p0, m === 'product', director.heroNeedsReset());
   }
   function stopTour() {
+    tourQueued = false;
     if (tour.playing) tour.stop();
   }
 
@@ -362,6 +402,7 @@ async function start() {
 
   // the system cursor hides after 2 s without movement (filming) and comes back on movement
   let cursorTimer = 0;
+  let govHold = 0; // the governor ignores the frames of a resize or a full-screen animation
   function wakeCursor() {
     doc.classList.remove('cursor-off');
     clearTimeout(cursorTimer);
@@ -441,13 +482,17 @@ async function start() {
 
   window.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return; // browser shortcuts
+    if (systemKey(e)) return; // F5, F11, Maj alone...: the browser's
     if (tour.parked) {
       tour.unpark();
       wakeCursor();
     }
     const isP = e.key === 'p' || e.key === 'P';
     if (isP) {
-      if (!e.repeat) tour.playing ? stopTour() : startTour();
+      if (!e.repeat) {
+        if (tourQueued) tourQueued = false; // pressed twice during an opening or a closing: no tour
+        else tour.playing ? stopTour() : startTour();
+      }
       return;
     }
     if (tour.playing) {
@@ -464,6 +509,9 @@ async function start() {
     if (m === 'rack') {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
+        // one press, one garment: a held arrow (about 30 repeats a second) whipped the rack
+        // faster than its neighbours can make room (page audit)
+        if (e.repeat) return;
         const base = director.focusBase();
         focusSource = 'keys';
         virtual = null;
@@ -474,6 +522,12 @@ async function start() {
         director.open(director.captionIndex);
       }
     } else if (m === 'product') {
+      // a held key acts once (code review: the auto-repeat flipped DEVANT/DOS about 30 times a
+      // second, and a held arrow queued a whole turn of the carousel)
+      if (e.repeat) {
+        if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
+        return;
+      }
       // (through act(): kept for the landing when pressed at the end of the opening)
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
@@ -494,7 +548,15 @@ async function start() {
     }
   });
 
+  // a window dragged to a screen with another scale: devicePixelRatio changes without a resize
+  // event (code review); frame() checks it and takes the same path as a resize
+  let seenDpr = window.devicePixelRatio || 1;
   window.addEventListener('resize', () => {
+    seenDpr = window.devicePixelRatio || 1;
+    // the slow frames of a resize or of a full-screen animation are not the page's frame rate:
+    // the governor starts its count again 1.5 s later (code review)
+    govHold = performance.now() + 1500;
+    gov.win.length = 0;
     dpr = effDpr(level);
     world.resize(innerWidth, innerHeight, dpr);
     ui.measure((world.info && world.info()) || {});
@@ -541,7 +603,12 @@ async function start() {
       state.tagHover = -1;
     } else if (m === 'product') {
       const hit = p ? pickAt(p.x, p.y) : null;
-      state.tagHover = hit && hit.kind === 'tag' ? hit.index : -1;
+      let th = hit && hit.kind === 'tag' ? hit.index : -1;
+      // a hovered tag that swung off the still pointer stays hovered while the pointer is in its
+      // rect (look audit: the pick missed over the wall, the hover dropped and the first click
+      // on ROSE right after the opening was lost); over the garment it lets go at once
+      if (p && !hit && state.tagHover >= 0 && nearTag(state.tagHover, p.x, p.y)) th = state.tagHover;
+      state.tagHover = th;
       setCanvasCursor(state.tagHover >= 0 && !tp ? 'pointer' : '');
     } else {
       state.tagHover = -1;
@@ -569,14 +636,15 @@ async function start() {
     gov.steps++;
     gov.note = `${from}→${level}`;
     if (gov.steps >= 2) gov.on = false;
-    console.info(`[Ruelle] qualité abaissée : ${gov.note} (densité ${dpr})`);
+    if (FPS) console.info(`[Ruelle] qualité abaissée : ${gov.note} (densité ${dpr})`);
   }
   // a frame is slow when it takes more than 1.5 frames of 60 Hz (or of the screen, if slower)
   const slowMs = 1.5 * Math.max(vsyncMs, 1000 / 62);
   function govWatch(raw) {
     if (!gov.on) return;
     const ms = raw * 1000;
-    if (document.hidden || ms > 250) return; // a hidden tab or a resize is not the page's frame rate
+    // a hidden tab or a resize is not the page's frame rate
+    if (document.hidden || ms > 250 || performance.now() < govHold) return;
     gov.win.push(ms);
     if (gov.win.length > 120) gov.win.shift();
     if (gov.win.length < 120) return;
@@ -590,6 +658,7 @@ async function start() {
   if (FPS) {
     fpsEl = document.createElement('div');
     fpsEl.id = 'fps';
+    fpsEl.textContent = `q=${level} · mesure…`; // (the first figures come after half a second)
     document.body.appendChild(fpsEl);
   }
 
@@ -604,7 +673,7 @@ async function start() {
   // ?auto=1: the tour starts about 2 s after the page is up, unless a hand got there first
   let autoAt = AUTO && !CAPTURE ? performance.now() + 2000 : 0;
   const cancelAuto = (e) => {
-    if (e.isTrusted) autoAt = 0;
+    if (e.isTrusted && !(e.type === 'keydown' && systemKey(e))) autoAt = 0;
   };
   for (const ev of ['wheel', 'keydown', 'pointerdown']) window.addEventListener(ev, cancelAuto, { passive: true });
 
@@ -619,6 +688,7 @@ async function start() {
       const t0 = performance.now();
       while (performance.now() - t0 < SLOW_MS);
     }
+    if ((window.devicePixelRatio || 1) !== seenDpr) dispatchEvent(new Event('resize'));
     govWatch(raw);
     if (fpsEl) {
       fpsAcc.n++;
@@ -632,6 +702,7 @@ async function start() {
     }
     input(dt);
     director.step(dt);
+    if (tourQueued && !director.busy()) startTour();
     if (pending && director.mode() === 'product') {
       const fn = pending;
       pending = null;

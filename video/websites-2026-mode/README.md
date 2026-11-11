@@ -28,6 +28,8 @@ remplacerait `dist/ruelle.html`. Pas de serveur : ouvrir `dist/ruelle.html` dire
 `dist/`, `.cache/` et `node_modules/` sont ignorés par git. Les polices (Inter Tight 100–900,
 Anton, Lilita One, Yellowtail) et leurs licences (OFL, Apache 2.0) sont dans `src/fonts/` ;
 `tools/fonts.mjs` les injecte en base64 à la place du marqueur `/*@FONTS@*/` de `style.css`.
+Le fichier construit garde la notice MIT de three.js (`legalComments: 'eof'`) et un commentaire
+CSS qui nomme les licences des polices.
 
 ## Structure
 
@@ -99,7 +101,11 @@ rebond et oscillations) : `view` 0..1 (portant → fiche, 1,1 s), `focus` (posit
   l'intervalle entre images doit rester sous 17,4 ms (ou 1,05 fois la période de l'écran). La page
   part de `max` et descend d'un niveau tant qu'il dépasse, puis fige le niveau.
 - **Régulateur** ensuite : sur les 120 dernières images, si plus de 25 % dépassent 1,5 image à
-  60 Hz, un niveau de moins. Deux fois au plus, jamais vers le haut.
+  60 Hz, un niveau de moins. Deux fois au plus, jamais vers le haut. Les images d'un
+  redimensionnement ou d'une animation de plein écran ne comptent pas (1,5 s), un changement de
+  densité de pixels sans redimensionnement (fenêtre passée sur un autre écran) suit le même
+  chemin, et un changement de niveau en cours d'usage ne fige plus les ressorts ni les
+  étiquettes (pas de saut à l'image).
 
 ## Commandes
 
@@ -112,7 +118,7 @@ rebond et oscillations) : `view` 0..1 (portant → fiche, 1,1 s), `focus` (posit
 | Fiche | DEVANT \| DOS, `Espace`, `↑`, `↓` | Demi-tour sur le crochet (0,8 s) |
 | Fiche | Flèches rondes, `←` / `→` | Vêtement précédent / suivant (1 s, boucle de 8 ; chaque appui compte) |
 | Fiche | FERMER ×, `Échap` | Retour au portant (1,1 s) |
-| Portant, fiche | `P` | Lance la visite (pas pendant une ouverture ou une fermeture) ou l'arrête ; un clic, une touche ou la molette l'arrêtent aussi |
+| Portant, fiche | `P` | Lance la visite (pendant une ouverture ou une fermeture : dès qu'elle est finie) ou l'arrête ; un clic, une touche ou la molette l'arrêtent aussi (pas `F1`–`F12`, `Maj` seule ni les touches de volume, laissées au navigateur) |
 | Boutons | À PROPOS, CONTACT, VOIR LA DISPO, VOIR LA DISPO ↗ | Toast « Démonstration : Ruelle est une marque fictive imaginée par LTNS°. » |
 
 Pas de traversée sur le portant (v4, `untangle` dans `src/world/studio/rack.js`) : vus de
@@ -133,7 +139,13 @@ rapide garde la vague d'avant, plusieurs vêtements tournés à la fois.
 Le curseur système disparaît après 2 s sans mouvement et pendant la visite. Pendant l'ouverture et
 la fermeture, les entrées sont ignorées, sauf en fin d'ouverture (`view` > 0,8, la fiche est
 déjà à l'écran) : l'action est gardée et jouée à l'arrivée. Un bouton cliqué ne garde pas le
-focus.
+focus. Une touche gardée enfoncée n'agit qu'une fois (`←` `→`, `Espace`, `↑` `↓`, chiffres) ; les
+touches du navigateur et du système (`F1`–`F12` dont `F5` et `F11`, `Maj` seule, volume, médias)
+ne sont jamais interceptées. Sur la fiche, une étiquette survolée le reste tant que le pointeur est
+dans son rectangle (+10 px), même quand elle se balance hors du pointeur, et prend le clic.
+Contexte WebGL perdu : la page attend 3 s qu'il revienne (et se recharge à son retour), sinon elle
+affiche le message WebGL 2. La console reste vide : la ligne de mesure de la qualité ne s'affiche
+qu'avec `?fps=1`.
 
 ## Hooks de test
 

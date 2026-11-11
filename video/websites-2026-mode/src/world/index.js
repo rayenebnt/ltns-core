@@ -251,7 +251,9 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
       rebuilding = tracked;
     }
     for (const r of rigs) r.garment.setQuality(lv);
-    if (st) update(st, 1, lastTime);
+    // (in use, the shell's next frame updates as usual: a dt of 1 here snapped every spring, the
+    // garments popped by up to ~38° in one frame; code review)
+    if (st && !interactive) update(st, 1, lastTime);
   }
 
   // ------------------------------------------------------------------ warm-up
@@ -262,7 +264,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     for (const r of rigs) {
       r.fader.set(0, r.garment.group);
       r.tags.setDrop(1);
-      r.tags.update(1);
+      if (!fromRebuild) r.tags.update(1); // (a step down in use: the swinging tags keep their motion)
     }
     rail.mesh.visible = true;
     try {
@@ -276,11 +278,16 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
       renderer.compile(scene, camera);
     }
     renderer.render(scene, camera);
+    // back to what was on screen: while loading, a snapped update; after the governor's rebuild
+    // in use, only what the warm-up changed (fades, tags, rail), so no spring or swing is
+    // snapped mid-take (code review: a visible pop of the rack and of the tags)
     for (const r of rigs) {
-      r.tags.setDrop(0);
-      r.tagsOn = false;
+      r.tags.setDrop(fromRebuild ? r.tagDrop : 0);
+      r.tagsOn = fromRebuild && r.tagDrop > 0.001;
+      if (fromRebuild) r.fader.set(r.pose.fade, r.garment.group);
     }
-    if (saved) update(saved, 1, lastTime);
+    if (fromRebuild) railFade.set(smooth(0, 0.5, prevView), rail.mesh);
+    else if (saved) update(saved, 1, lastTime);
     renderer.render(scene, camera);
   }
 

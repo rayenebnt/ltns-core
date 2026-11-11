@@ -31,7 +31,7 @@ const esbuildOptions = {
   minify: true,
   format: 'iife',
   target: ['chrome100', 'edge100', 'safari15.4', 'firefox110'],
-  legalComments: 'none',
+  legalComments: 'eof', // three.js's MIT notice stays in the file (the fonts' notice: style.css)
   write: false,
   logLevel: 'warning',
   plugins: [worldStub],

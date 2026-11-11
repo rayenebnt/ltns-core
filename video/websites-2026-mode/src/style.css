@@ -1,4 +1,5 @@
 /*@FONTS@*/
+/* Polices incluses : Inter Tight, Anton et Lilita One (SIL Open Font License 1.1), Yellowtail (Apache License 2.0) ; textes complets dans src/fonts/. */
 
 :root {
   --ink: #151517;
@@ -303,9 +304,10 @@ html:not(.cursor-off) .link:hover .ne, .link.is-hover .ne { transform: translate
   bottom: calc(var(--band) + 10px);
   z-index: 3;
   margin: 0;
-  font: 500 10px/1.2 var(--sans);
+  /* (page audit: 10 px at 50 % read at about 3.3:1; the only notice always on screen) */
+  font: 500 11px/1.2 var(--sans);
   letter-spacing: 0.02em;
-  color: rgba(21, 21, 23, 0.5);
+  color: rgba(21, 21, 23, 0.62);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -405,7 +407,7 @@ html.in-product #toast { top: 14px; }
 #nogl .logo { font-size: 52px; margin-bottom: 22px; }
 .nogl-title { margin: 0 0 10px; font: 800 24px/1.2 var(--sans); color: var(--ink); }
 .nogl-credit { margin-top: 26px; font-size: 11px; color: rgba(21, 21, 23, 0.55); }
-body.no-gl .top, body.no-gl .layer, body.no-gl .close, body.no-gl .credit, body.no-gl #scene { display: none; }
+body.no-gl .top, body.no-gl .layer, body.no-gl .close, body.no-gl .credit, body.no-gl #scene, body.no-gl #cursor { display: none; }
 
 /* ================================================================ short windows */
 @media (max-height: 760px) {
