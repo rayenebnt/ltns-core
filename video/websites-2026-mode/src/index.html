@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruelle — Streetwear, Marseille (concept fictif)</title>
+<meta name="description" content="Projet fictif&#8239;: concept de site par LTNS°. Ruelle est une marque fictive.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-left" viewBox="0 0 16 16"><path d="M13 8H3.6M7.2 4.3 3.5 8l3.7 3.7" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-right" viewBox="0 0 16 16"><path d="M3 8h9.4M8.8 4.3 12.5 8l-3.7 3.7" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-ne" viewBox="0 0 10 10"><path d="M2.6 7.4 7.3 2.7M3.6 2.6h3.8v3.8" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- top bar (rack view) -->
+<header id="top" class="top">
+  <button class="top-link cta" id="about" type="button">À PROPOS</button>
+  <p class="logo" id="logo"><span>ruelle</span></p>
+  <button class="top-link cta" id="contact" type="button">CONTACT</button>
+</header>
+
+<!-- rack view -->
+<div id="rack-ui" class="layer">
+  <p id="caption" class="caption"></p>
+  <button id="dispo" class="pill cta" type="button">VOIR LA DISPO</button>
+</div>
+
+<!-- product view -->
+<button id="close" class="top-link close" type="button">FERMER ×</button>
+<div id="product-ui" class="layer">
+  <button id="prev" class="arrow" type="button" aria-label="Vêtement précédent"><svg aria-hidden="true"><use href="#i-left"/></svg></button>
+  <button id="next" class="arrow" type="button" aria-label="Vêtement suivant"><svg aria-hidden="true"><use href="#i-right"/></svg></button>
+  <div id="pinfo" class="pinfo">
+    <h1 id="title" class="title"></h1>
+    <div id="toggle" class="toggle" role="group" aria-label="Face">
+      <i class="thumb" aria-hidden="true"></i>
+      <button type="button" data-side="0" aria-pressed="true">DEVANT</button><button type="button" data-side="1" aria-pressed="false">DOS</button>
+    </div>
+    <button id="dispo2" class="link cta" type="button">VOIR LA DISPO<svg class="ne" aria-hidden="true"><use href="#i-ne"/></svg></button>
+  </div>
+</div>
+
+<!-- the band: one text, twice, so that -50 % lands on an identical frame (seamless) -->
+<div id="band" class="band" aria-hidden="true">
+  <div class="band-track">
+    <span>RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · </span><span>RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · RIEN À PROUVER · NOUVEAU DROP · MARSEILLE · </span>
+  </div>
+</div>
+
+<p id="credit" class="credit">Projet fictif · concept de site par LTNS° — ltns.fr</p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- the tour's hand -->
+<div id="cursor" hidden aria-hidden="true">
+  <svg viewBox="0 0 22 28" width="22" height="28"><path d="M2.2 1.6v20.6l5-4.9 3.3 7.6 3.6-1.6-3.3-7.4h7z" fill="#fff" stroke="#151517" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</div>
+
+<div id="loader">
+  <p class="logo"><span>ruelle</span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="logo"><span>ruelle</span></p>
+    <p class="nogl-title">Cette page a besoin de WebGL 2.</p>
+    <p>Ouvrez-la dans une version récente de Chrome ou d’Edge, avec l’accélération matérielle activée.</p>
+    <p class="nogl-credit">Projet fictif · concept de site par LTNS° — ltns.fr</p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
