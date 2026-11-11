@@ -39,7 +39,7 @@ const COL = {
   rustDark: lin(96, 52, 26),
   black: lin(22, 22, 23),
   galv: lin(176, 178, 180),
-  concrete: lin(138, 136, 130),
+  concrete: lin(118, 112, 102),
   soil: lin(84, 62, 44),
   soilWet: lin(50, 38, 28),
   mud: lin(56, 52, 36),
@@ -248,7 +248,7 @@ export function buildOldFence() {
   // ---------------------------------------------------------------- concrete and scuff
   // fresh collar for the straightened post
   kit.set({ pivot: P(LEAN.z, 0), d: LEAN.z, role: ROLE.FRESH, rnd: rnd(), leg: 0, anim: [0.335, 0.03, 0, 0], color: COL.concrete, rm: [0.9, 0] });
-  kit.mound({ c: P(LEAN.z, 0), radius: (a) => 0.16 * (1 + 0.05 * Math.sin(a * 3)), height: (rn) => 0.03 * (1 - rn * rn) + 0.004 + GROUND.lift * (1 - rn * 0.6), rings: 3, segs: 14 });
+  kit.mound({ c: P(LEAN.z, 0), radius: (a) => 0.16 * (1 + 0.05 * Math.sin(a * 3)), height: (rn) => 0.012 * (1 - rn * rn) + 0.002 + GROUND.lift * (1 - rn * 0.6), rings: 3, segs: 14 });
   // heaved soil at the foot of the leaning post (storm), torn turf
   kit.set({ role: ROLE.STORM, anim: [0.3, 0.04, 0.12, 1], color: COL.soilWet, rm: [0.95, 0] });
   kit.mound({ c: P(LEAN.z, 0, 0.18), radius: (a) => 0.28 * (1 + 0.3 * Math.sin(a * 2 + 1.0)), height: (rn, a) => 0.05 * (1 - rn) * (1 + 0.3 * Math.sin(a * 5)) + GROUND.lift * (1 - rn * 0.5), rings: 3, segs: 14 });

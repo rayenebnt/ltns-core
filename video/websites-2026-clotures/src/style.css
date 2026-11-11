@@ -586,9 +586,9 @@ html:not(.cursor-off) .nav-pill:hover { background: var(--orange); color: var(--
   bottom: 18px;
   z-index: 5;
   margin: 0;
-  font: 500 11px/1.2 var(--sans);
+  font: 500 12px/1.2 var(--sans);
   letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.74);
+  color: rgba(255, 255, 255, 0.86);
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.3);
   transition: color 0.4s, text-shadow 0.4s;
   pointer-events: none;
@@ -696,7 +696,7 @@ html:not(.cursor-off) .tab:hover { border-color: rgba(255, 255, 255, 0.34); }
 .face-ideal { margin: 15px 0 0; font: 400 12.5px/1.45 var(--sans); color: rgba(255, 255, 255, 0.74); }
 .face-ideal b { font-weight: 600; color: #fff; }
 .card-actions { display: flex; align-items: center; gap: 18px; margin-top: 18px; }
-.card .fine { margin: 12px 0 0; font: 400 10.5px/1.3 var(--sans); color: rgba(255, 255, 255, 0.46); }
+.card .fine { margin: 12px 0 0; font: 400 11.5px/1.3 var(--sans); color: rgba(255, 255, 255, 0.64); }
 
 /* ======================================================== chapter 4 HUD */
 .hotspots { position: absolute; inset: 0; }
@@ -881,7 +881,7 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border: 0; bo
 }
 html:not(.cursor-off) .stepper button:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.55); }
 .stepper button:disabled { opacity: 0.3; cursor: default; }
-.stepper output { min-width: 20px; text-align: center; font: 400 32px/1 var(--serif); }
+.stepper output { min-width: 20px; text-align: center; font: 500 24px/1 var(--sans); font-variant-numeric: tabular-nums; }
 
 .est-result {
   display: flex;
@@ -908,7 +908,7 @@ html:not(.cursor-off) .stepper button:hover { box-shadow: inset 0 0 0 1px rgba(2
 .res-lines { position: relative; margin: 24px 0 0; padding: 0; list-style: none; border-top: 1px solid rgba(255, 255, 255, 0.12); }
 .res-lines li { padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font: 500 14px/1.3 var(--sans); color: rgba(255, 255, 255, 0.82); }
 .res-foot { position: relative; margin-top: auto; padding-top: 24px; }
-.est-result .fine { margin: 12px 0 0; font: 400 11.5px/1.4 var(--sans); color: rgba(255, 255, 255, 0.46); }
+.est-result .fine { margin: 12px 0 0; font: 400 11.5px/1.4 var(--sans); color: rgba(255, 255, 255, 0.64); }
 
 /* estimator drawing */
 .d-ground { stroke: rgba(21, 23, 26, 0.34); stroke-width: 1.5; }
@@ -1023,7 +1023,8 @@ body.no-gl #hud, body.no-gl #flow, body.no-gl #nav, body.no-gl #sticky, body.no-
   .est-fields { margin-top: 18px; gap: 16px 30px; }
 }
 @media (max-height: 700px) {
-  .card .face-ideal, .card .fine { display: none; }
+  .card .face-ideal { display: none; }
+  .card .fine { margin-top: 8px; }
   .log-list li { font-size: 12px; }
 }
 /* very short windows (960 x 600, or a 150 % zoom): a smaller log, clear of the beat kickers */

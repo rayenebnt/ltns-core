@@ -121,6 +121,7 @@ export function createUI(handlers) {
   const logDay = $('log-day');
   const logN = $('log-n');
   const logTotal = $('log-total');
+  const logOfWord = document.querySelector('.log-of').firstChild;
   let dayShown = 'Jour 1';
   let nShown = -1;
   let total = 77;
@@ -325,6 +326,7 @@ export function createUI(handlers) {
       if (n !== nShown) {
         nShown = n;
         logN.innerHTML = `${n}<span class="ns">${NNBSP}</span>m`;
+        logOfWord.textContent = n < 2 ? 'posé sur ' : 'posés sur ';
       }
       LOG_TICKS.forEach((at, i) => logItems[i]('is-done', p >= at));
     }

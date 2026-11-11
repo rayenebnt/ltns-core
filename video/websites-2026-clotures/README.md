@@ -186,3 +186,5 @@ appels comprennent la passe d'ombre.
 - Aucun téléphone, adresse, e-mail, SIRET, avis client, label ni marque de fournisseur réelle ;
   aucune personne ni aucun animal en 3D ; aucune requête réseau ni aucun suivi.
 - Mention permanente : « Projet fictif · concept de site par LTNS° — ltns.fr ».
+- « Prix fictifs, pour la démonstration. » reste affiché sous les prix des cinq modèles et de
+  l'estimateur à toutes les tailles de fenêtre (les fenêtres basses ne masquent que « Idéal pour »).
