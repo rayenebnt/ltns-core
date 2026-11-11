@@ -1,15 +1,16 @@
 # Cordeau : site de poseur de clôtures en 3D au scroll (concept fictif)
 
-Maquette **fictive** d'un site de poseur de clôtures en 3D pour la vidéo TikTok « Les sites
-internet en 2026 » (format repris de @wearebrand.io, n° 3 de la série). Cordeau, « clôtures en
-Touraine », est une entreprise imaginaire : la mention en bas à gauche, la dernière section, le
-toast des boutons de devis et la ligne « Prix fictifs, pour la démonstration. » le disent.
+Maquette **fictive** pour la vidéo TikTok « Les sites internet en 2026 » (n° 3 de la série,
+format repris de @wearebrand.io). Cordeau, « clôtures en Touraine », est une entreprise
+imaginaire : la mention en bas à gauche, la dernière section, le toast des boutons de devis et la
+ligne « Prix fictifs, pour la démonstration. » le disent.
 
-- three.js 0.170.0, aucune image, aucun modèle ni HDR externe : ciel, jardin, maison de maître,
-  arbres, herbe, bois, clôtures et tempête sont construits et texturés au chargement (canvas,
-  shaders).
-- JS, CSS et polices tiennent dans **un seul fichier HTML** qui marche hors ligne depuis `file://`.
-- Pas de vidéo : la démo se fait en direct. Mode d'emploi pour la démo : [DEMO.md](DEMO.md).
+- three.js 0.170.0. Aucune image, aucun modèle, aucun HDR externe : ciel, jardin, maison de
+  maître, arbres, herbe, bois, clôtures et tempête sont construits et texturés au chargement
+  (canvas, shaders).
+- JS, CSS et polices tiennent dans **un seul fichier HTML**, qui marche hors ligne depuis
+  `file://` (aucune requête réseau, aucun suivi).
+- Pas de vidéo : la démo se fait en direct. Mode d'emploi : [DEMO.md](DEMO.md).
 
 ## Construire
 
@@ -18,8 +19,11 @@ cd video/websites-2026-clotures
 npm install                 # three@0.170.0 + esbuild 0.28.2
 node build.mjs              # → dist/cordeau.html (un seul fichier, ~890 Ko)
 node build.mjs --watch      # reconstruit à chaque modification de src/ (npm run watch)
-WORLD=stub node build.mjs   # la coque avec un monde 3D simplifié (src/world-stub), pour travailler l'interface
+WORLD=stub OUT=cordeau-stub.html node build.mjs   # la coque avec un monde simplifié (src/world-stub)
 ```
+
+`OUT` change le nom du fichier produit dans `dist/` (sans lui, la version simplifiée remplace
+`dist/cordeau.html`).
 
 Pas de serveur : ouvrir `dist/cordeau.html` directement. `dist/`, `.cache/` et `node_modules/`
 sont ignorés par git. Les polices (Instrument Serif, Inter Tight) et leurs licences OFL sont dans
@@ -31,44 +35,66 @@ sont ignorés par git. Les polices (Instrument Serif, Inter Tight) et leurs lice
 |---|---|
 | `build.mjs` | esbuild (IIFE minifiée), puis CSS et polices injectés dans `src/index.html` → `dist/cordeau.html` |
 | `src/index.html`, `src/style.css` | Tous les textes, la navigation, les HUD au-dessus de la 3D, les sections, le chargement, le voile des longs sauts, le message sans WebGL 2 |
-| `src/main.js` | Rendu, chargement, test de qualité puis régulateur, défilement, commandes (clavier, liens, onglets), voile, lectures auto, curseur, hooks de test |
+| `src/main.js` | Rendu, chargement, test de qualité puis régulateur, commandes (clavier, liens, onglets), voile, lectures automatiques, curseur, hooks de test |
 | `src/scroll.js` | Défilement virtuel : la barre native reste vraie, la page suit par un ressort critique (ω = 4,4) |
 | `src/layout.js` | Géométrie de la page : segments épinglés, `sceneAt` (état du monde pour une position), `posOf`, surface claire / sombre / 3D sous une ligne d'écran, fenêtre du chapitre 2 |
 | `src/ui.js` | Interface image par image : moments du chapitre 1, carnet de chantier, onglets et carte des modèles, points chauds de la réparation, couleurs de la navigation, barre de devis, toast |
 | `src/autoplay.js` | Clés des lectures : visite complète (`P`, `?auto=1`), « REGARDER LA POSE », « VOIR LA RÉPARATION » |
 | `src/estimator.js`, `src/pricing.js` | Calculateur du chapitre 3 (dessin SVG en direct) et modèle de prix |
-| `src/styles-data.js`, `src/format.js` | Données des cinq modèles, typographie française (espaces fines insécables, virgule décimale) |
+| `src/styles-data.js`, `src/format.js` | Chiffres des cinq modèles, typographie française (espaces fines insécables, virgule décimale) |
 | `src/world/index.js` | Le monde vu par la coque : trajectoires de caméra, préréglages de lumière, finale dorée, fenêtre du chapitre 2, préchauffage, points d'ancrage, qualité |
 | `src/world/grade.js` | Étalonnage photographique dans l'étape de tone mapping (aucune passe en plus) |
-| `src/world/garden/` | Ciel et perspective aérienne, préréglages « ete », « orage », « eclaircie », sol et pelouse, brins d'herbe instanciés, arbres, haies, maison de maître, campagne |
-| `src/world/fences/` | Clôture neuve (cinq types, pose du chapitre 1, balayage du chapitre 2), matériel du chantier, vieille clôture et réparation du chapitre 4, matériaux et textures |
-| `src/world-stub/index.js` | Monde simplifié de même API (`WORLD=stub`) |
+| `src/world/garden/` | Ciel et perspective aérienne, préréglages `ete`, `orage`, `eclaircie`, sol et pelouse, brins d'herbe instanciés, arbres, haies, maison de maître, campagne |
+| `src/world/fences/` | Clôture neuve (cinq types, pose du chapitre 1, balayage du chapitre 2), matériel de chantier, vieille clôture et réparation du chapitre 4, matériaux et textures |
+| `src/world-stub/index.js` | Monde simplifié, même API (`WORLD=stub`) |
 | `tools/harness.mjs`, `tools/harness-*` | Pages de test des modules 3D seuls |
+
+## API du monde
+
+La coque n'appelle que `src/world/index.js` (même API dans `src/world-stub/index.js`) :
+
+```js
+const world = await createWorld({ renderer, quality, onProgress }); // quality : 'max' | 'high' | 'medium' | 'low'
+world.camera;                  // THREE.PerspectiveCamera
+world.update(state, dt, time); // une fois par image, avant render()
+world.render();                // un seul renderer.render (passe d'ombre comprise)
+world.resize(w, h, pixelRatio);
+await world.warmup();          // compile tous les programmes, envoie tampons et textures (pendant le chargement)
+world.anchors();               // [{ id, x, y, visible }] en px CSS : branche, poteau, penture, portillon / pentures, cable, garde
+world.info();                  // { totalLength: 77, legs: [44, 33], built, ... }
+world.stats();                 // { calls, triangles, textures, geometries, programs, ... }
+world.setQuality(level);       // herbe, rayon des brins, carte d'ombre, feuilles, litière
+```
+
+`state = { seg, install, style: { from, to, k }, drift, repair, pointer: { x, y } }`, avec
+`seg` = `'install' | 'styles' | 'repair' | 'hidden'` (`'hidden'` : la 3D est couverte par des
+sections opaques, le monde ne fait rien), `install` et `repair` de 0 à 1, `style` = types 0 à 4
+et avancement du balayage, `drift` = approche de la vue des modèles, `pointer` de −1 à 1. La
+coque y ajoute `window` (rectangle en px CSS de la fenêtre du chapitre 2, ou `null`) et
+`stylesP` (progression du chapitre 2). Types : 0 bois plein, 1 PVC blanc, 2 panneaux rigides,
+3 ranch, 4 ganivelle.
 
 ## Le monde 3D
 
 - **Caméra** : une trajectoire par chapitre. L'œil suit une courbe de Catmull-Rom centripète
-  passant par les poses clés (et, entre les lames et la finale, deux points de passage au-dessus
-  de la clôture), parcourue à l'abscisse curviligne ; cette abscisse est une cubique monotone de
-  la progression (pentes de Fritsch-Carlson). La caméra ralentit sur chaque moment mais ne
-  s'arrête jamais entre la première et la dernière clé. Champ vertical : 45° au chapitre 1, 42°
-  ensuite (à 16:10). Le passage des lames à la finale dure de 0,71 à 0,96 (points de passage
-  espacés à l'abscisse curviligne) : environ 38 m/s au plus à 2 écrans par seconde, 34 m/s dans
-  la visite automatique ; le titre de la finale n'est entièrement affiché qu'une fois la caméra à
-  moins d'un mètre de sa pose.
-- **Lumière** : « ete » (fin de matinée d'été, perspective aérienne), « orage » (couvert clair,
-  herbe mouillée) puis « eclaircie » sur la fin de la réparation (0,70 → 1). L'exposition se
-  mélange géométriquement entre deux préréglages, pour que l'éclaircie éclaircisse vraiment la
-  scène jusqu'au bout. Fin du chapitre 1 (0,74 → 0,96) : soleil plus chaud, venu de derrière la
-  caméra à environ 45° (le jardin reste au soleil), par uniformes seulement.
-- **Démontages** : à la réparation, les pièces cassées debout quittent le cadre par le haut et
-  celles posées dans l'herbe s'enfoncent sous la pelouse (pas de fondu tramé à mi-course). Les
-  trois fanions rouges de l'accueil s'enfoncent quand la poussée commence.
+  passant par les poses clés, parcourue à l'abscisse curviligne ; elle ralentit sur chaque
+  moment mais ne s'arrête jamais entre la première et la dernière clé. Champ vertical : 45° au
+  chapitre 1, 42° ensuite, de 16:10 à 16:9 (élargi en dessous de 16:10, resserré au-delà de
+  16:9). Le passage des lames à la finale va de 0,71 à 0,96 ; le titre de la finale n'apparaît
+  qu'une fois la caméra posée.
+- **Lumière** : `ete` (fin de matinée d'été), `orage` (couvert, herbe mouillée) puis
+  `eclaircie` sur la fin de la réparation (0,70 → 1). Fin du chapitre 1 (0,74 → 0,96) : soleil
+  plus chaud venu de derrière la caméra, par uniformes seulement.
+- **Démontages** : à la réparation, les pièces cassées debout sortent du cadre par le haut,
+  celles posées dans l'herbe s'enfoncent sous la pelouse. Les fanions rouges de l'accueil
+  s'enfoncent quand « Réseaux repérés » est coché.
 - **Une passe** : une seule lumière avec ombre (sa caméra d'ombre suit la vue), MSAA, feuilles en
   alpha-to-coverage, tout le reste en géométrie fusionnée ou instanciée.
-- **Écart au contrat** : le portillon de la vieille clôture est à z −8,4 … −7,2 (`GZ` dans
+- **Écarts au contrat** : le portillon de la vieille clôture est à z −8,4 … −7,2 (`GZ` dans
   `src/world/fences/repair.js`) et non à 0 … 1,2, pour que, vu du jardin, la branche et la travée
-  cassée soient à gauche et le portillon à droite, comme dans la référence.
+  cassée soient à gauche et le portillon à droite, comme dans la référence. Les fenêtres des
+  textes du chapitre 1 suivent la caméra : lames 0,55 → 0,69, finale à partir de 0,905 (au lieu
+  de 0,57 → 0,76 et 0,84).
 
 ## Paramètres d'URL
 
@@ -76,7 +102,7 @@ sont ignorés par git. Les polices (Instrument Serif, Inter Tight) et leurs lice
 |---|---|
 | `?q=low`, `medium`, `high`, `max` | Qualité forcée (le régulateur est alors coupé) |
 | `?auto=1` | Visite complète, lancée une fois l'accueil affiché en entier |
-| `?fps=1` | Affichage en coin : niveau (et changement du régulateur, ex. `q=high→medium`), densité, images par seconde, pire image |
+| `?fps=1` | Affichage en haut au centre : niveau (et changement du régulateur, ex. `q=high→medium`), densité de pixels, images par seconde, pire image |
 | `?capture` | Rendu à la demande, déterministe : ni boucle, ni test de qualité, ni régulateur (captures) |
 | `?t=3` | Horloge figée (vent, nuages, respiration de la caméra) |
 | `?warm=0` | Saute le préchauffage (captures de mise au point seulement) |
@@ -92,28 +118,29 @@ sont ignorés par git. Les polices (Instrument Serif, Inter Tight) et leurs lice
 | `medium` | 1,5 | 2048 | 58 % | 10,5 m, 60 % |
 | `low` | 1 | 1024 | 45 % | 7 m, 40 % |
 
-Les cartes de feuilles grandissent un peu quand elles sont moins nombreuses. En `low`, la litière
-de la tempête s'éclaircit et le grillage du ranch ne projette plus d'ombre.
+Le niveau change donc aussi le coût du monde sur un écran 1× (moins de feuilles, un peu plus
+grandes ; moins de brins ; litière de la tempête allégée en `medium` et `low` ; le grillage du
+ranch ne projette plus d'ombre en `low`).
 
 - **Test au chargement** (sans `?q`) : à six moments lourds, la page dessine de vraies images
-  (3D et interface : carnet, carte, barre de devis, verre dépoli) sous l'écran de chargement et
-  garde le 80e centile de l'intervalle entre images. Elle descend d'un niveau tant qu'il dépasse
-  17,4 ms (ou 1,05 fois la période de l'écran si elle est plus longue), puis fige le niveau.
+  (3D et interface) sous l'écran de chargement et garde le 80e centile de l'intervalle entre
+  images. Elle part de `max` et descend d'un niveau tant qu'il dépasse 17,4 ms (ou 1,05 fois la
+  période de l'écran si elle est plus longue), puis fige le niveau.
 - **Régulateur** ensuite : sur les 120 dernières images où la 3D est visible, si plus de 20 %
-  dépassent 1,5 image à 60 Hz, la page descend d'un niveau, quand une section couvre la 3D
-  (tout de suite si plus de 45 % sont lentes). Deux fois au plus, jamais vers le haut.
+  dépassent 1,5 image à 60 Hz, la page descend d'un niveau quand une section couvre la 3D (tout
+  de suite si plus de 45 % sont lentes). Deux fois au plus, jamais vers le haut.
 
 ## Commandes
 
 | Commande | Effet |
 |---|---|
-| Défilement | Toute l'histoire ; le ressort laisse la page glisser moins d'une seconde après le geste |
+| Défilement (molette, pavé tactile, barre) | Toute l'histoire ; le ressort laisse la page glisser moins d'une seconde après le geste |
 | `↓`, `Espace`, `Page suivante` / `↑`, `Maj` + `Espace`, `Page précédente` | Moment suivant / précédent |
 | `Début` / `Fin` | Haut / bas de page |
-| `←` / `→`, onglets | Modèle précédent / suivant au chapitre 2 (la position de la page suit, défilement et onglets sont toujours d'accord) |
+| `←` / `→`, onglets | Modèle précédent / suivant au chapitre 2 ; la position de la page suit, défilement et onglets sont toujours d'accord |
 | `P` | Visite complète (22 s environ), ou l'arrête ; un défilement, une touche ou un toucher l'arrêtent aussi |
 | « ▶ REGARDER LA POSE » / « ▶ VOIR LA RÉPARATION » | Joue le chapitre 1 (7 s) / le chapitre 4 (6 s) |
-| Liens POSE, MODÈLES, TARIFS, RÉPARATIONS, logo, « Revoir la pose », « Voir les tarifs », « Chiffrer cette clôture » | Glissement vers la section ; au-delà de 2,5 écrans, fondu (crème ou encre selon la destination), saut, puis glissement sur le dernier 0,8 écran |
+| POSE, MODÈLES, TARIFS, RÉPARATIONS, logo, « Revoir la pose », « Voir les tarifs », « Chiffrer cette clôture » | Glissement vers la section ; au-delà de 2,5 écrans : fondu, saut, puis glissement sur le dernier 0,8 écran |
 | Boutons de devis et de réservation, « DEVIS GRATUIT » | Toast « Démonstration : Cordeau est une entreprise fictive imaginée par LTNS°. » |
 
 Le curseur système disparaît après 2 s sans mouvement ; tant qu'il est caché, aucun bouton ne
@@ -122,7 +149,7 @@ prend l'état de survol. Un bouton cliqué ne garde pas le focus (les flèches r
 ## Hooks de test
 
 - `window.__ready` : `false`, puis `true` après la première image (`'nogl'` sans WebGL 2).
-- `window.__setProgress(P)` : saute à la progression P de toute la page et rend l'image.
+- `window.__setProgress(P)` : saute à la progression P (0 à 1) de toute la page et rend l'image.
 - `window.__goto(nom, v)` : `install` (v = p), `white`, `intro2` (v = ouverture de la fenêtre),
   `styles` (v = type, une fraction = en plein balayage), `pricing`, `intro4`, `repair` (v = p),
   `final`.
@@ -133,28 +160,12 @@ prend l'état de survol. Un bouton cliqué ne garde pas le focus (les flèches r
 
 ## Budget mesuré
 
-Mesures du 11 novembre 2026 dans Chromium avec SwiftShader (rendu logiciel : les temps ne disent
-rien d'un vrai GPU), `renderer.info` après `__goto`, 18 moments de l'accueil à la fin de la
-réparation. Les appels comprennent la passe d'ombre.
-
-| Niveau | Appels de rendu | Triangles | Cartes de feuilles |
-|---|---|---|---|
-| `max` | 23 à 35 | 347 k à 639 k | 43,5 k |
-| `high` | 23 à 35 | 323 k à 503 k | 36,8 k |
-| `medium` | 23 à 35 | 294 k à 406 k | 28,1 k |
-| `low` | 22 à 34 | 267 k à 352 k | 21,8 k |
-
-- Le maximum d'appels est la finale du chapitre 1 (vue large, plus d'objets dans la passe
-  d'ombre).
-- 39 textures, 55 géométries, 28 programmes, tous compilés et envoyés au GPU pendant le
-  chargement : aucun programme n'est créé pendant le défilement.
-- Les 60 images par seconde sur un portable à GPU intégré n'ont pas pu être mesurées ici : à
-  vérifier avec `?fps=1` avant la démo (voir DEMO.md).
+@BUDGET@
 
 ## Contenus
 
 - Tous les textes visibles sont en français, avec l'espace fine insécable (U+202F) avant
-  « ; : ! ? », dans les guillemets, comme séparateur de milliers et avant « € » et les unités.
+  « ; : ! ? », comme séparateur de milliers et avant « € » et les unités, et la virgule décimale.
 - Aucun téléphone, adresse, e-mail, SIRET, avis client, label ni marque de fournisseur réelle ;
   aucune personne ni aucun animal en 3D ; aucune requête réseau ni aucun suivi.
 - Mention permanente : « Projet fictif · concept de site par LTNS° — ltns.fr ».

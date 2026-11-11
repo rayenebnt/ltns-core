@@ -82,7 +82,7 @@ export function createFences({ renderer, scene, quality = 'high', contact = true
   const wood = (t, extra = {}) => ({ map: t.map, normalMap: t.normalMap, roughnessMap: t.roughnessMap, normalScale: ns, roughness: 1, metalness: 0, ...extra });
   const M = {
     t0: fenceMaterial(shared, { name: 'douglas', ...wood(dg), tint: [0xe8d0bc, 0xfff4e8], grime: [0.8, 0.74, 0.66, 0.14] }),
-    t1: fenceMaterial(shared, { name: 'pvc', color: 0xe7ebf0, roughness: 0.3, metalness: 0, envMapIntensity: 1.25, tint: [0xffffff, 0xf6f8fb], grime: [0.86, 0.86, 0.84, 0.08] }), // a cool white: reads white, not cream, in the warm summer light
+    t1: fenceMaterial(shared, { name: 'pvc', color: 0xdde5ef, roughness: 0.3, metalness: 0, envMapIntensity: 1.25, tint: [0xffffff, 0xf2f6fb], grime: [0.86, 0.86, 0.84, 0.08] }), // a cool white: reads white, not cream, in the warm summer light
     t2: fenceMaterial(shared, { name: 'rigid', map: pw, color: 0x3a4044, roughness: 0.46, metalness: 0.15, side: THREE.DoubleSide, alphaToCoverage: true, shadowHash: true, grime: [0.85, 0.85, 0.85, 0.08] }),
     t3: fenceMaterial(shared, { name: 'ranch', ...wood(dg), color: 0x32363b, roughness: 0.85, tint: [0xdadada, 0xffffff], grime: [0.85, 0.82, 0.78, 0.12] }),
     t3m: fenceMaterial(shared, { name: 'ranch-mesh', map: mw, color: 0x1c1c1c, roughness: 0.5, metalness: 0.3, side: THREE.DoubleSide, alphaToCoverage: true, shadowHash: true }),
