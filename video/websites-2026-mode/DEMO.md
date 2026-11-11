@@ -38,9 +38,11 @@ restent tant que la page est ouverte, le rechargement remet tout comme au début
 1. **Le portant** : passe la flèche **lentement** le long des vêtements, à mi-hauteur, avec un
    doigt sur le pavé tactile. Le vêtement sous la flèche se tourne vers toi, avance un peu et se
    balance ; ses voisins bougent avec lui. Son nom s'affiche sous le portant (par exemple
-   « T-shirt Rien à prouver — Noir »). Un passage rapide fait une vague, mais pour la prise,
-   reste lent : en passage très rapide, deux vêtements voisins peuvent se traverser une fraction
-   de seconde. Quand la flèche quitte le portant, tout se remet en place.
+   « T-shirt Rien à prouver — Noir »). Un passage rapide fait une vague : les voisins pivotent
+   et s'écartent pour laisser passer celui sous la flèche, sans se traverser (seul un geste
+   très brusque, d'un bout à l'autre en moins d'une seconde, peut encore les faire se toucher).
+   Pour la prise, un passage lent reste le plus joli. Quand la flèche quitte le portant, tout se
+   remet en place.
    - Variante sans flèche à l'écran : laisse la flèche sur le mur, au-dessus du portant, et
      glisse **à deux doigts** (vers la gauche, la droite, le haut ou le bas), par petits gestes
      lents : on passe d'un vêtement à l'autre, et la flèche disparaît après 2 secondes. Les

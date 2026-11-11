@@ -105,7 +105,7 @@ rebond et oscillations) : `view` 0..1 (portant → fiche, 1,1 s), `focus` (posit
 
 | Où | Commande | Effet |
 |---|---|---|
-| Portant | Survol | Le vêtement sous le pointeur se tourne de face (ressort ≈ 0,35 s), avance et se balance ; la légende suit |
+| Portant | Survol | Le vêtement sous le pointeur se tourne de face (ressort ≈ 0,35 s), avance et se balance ; ses voisins lui font place sans le traverser ; la légende suit |
 | Portant | Molette, pavé tactile (deux doigts, horizontal ou vertical), `←` / `→` | Focus d'un vêtement à l'autre (90 px de geste par vêtement, posé sur le plus proche 0,17 s après la fin du geste) |
 | Portant | Clic, `Entrée` | Ouvre la fiche (1,1 s) ; après un geste ou une touche, le clic ouvre le vêtement de face |
 | Fiche | Clic sur une étiquette, `1` à `3` (rangée des chiffres, AZERTY compris, ou pavé numérique) | Teinture de l'ourlet au col (0,9 s) ; des clics rapides s'enchaînent sans retour en arrière |
@@ -114,6 +114,21 @@ rebond et oscillations) : `view` 0..1 (portant → fiche, 1,1 s), `focus` (posit
 | Fiche | FERMER ×, `Échap` | Retour au portant (1,1 s) |
 | Portant, fiche | `P` | Lance la visite (pas pendant une ouverture ou une fermeture) ou l'arrête ; un clic, une touche ou la molette l'arrêtent aussi |
 | Boutons | À PROPOS, CONTACT, VOIR LA DISPO, VOIR LA DISPO ↗ | Toast « Démonstration : Ruelle est une marque fictive imaginée par LTNS°. » |
+
+Pas de traversée sur le portant (v4, `untangle` dans `src/world/studio/rack.js`) : vus de
+dessus, les vêtements sont des segments (la mesure `stats().rack.cuts`). Deux vêtements qui se
+recouvrent le long de la tringle gardent leur ordre (qui est devant) tant qu'ils se recouvrent ;
+l'ordre ne s'inverse qu'une fois écartés. Après les ressorts, une paire qui se couperait est
+réglée sur le moins focalisé : il est retenu en arrière ; quand le plus focalisé est derrière
+(la main est passée au suivant), celui de devant pivote d'équerre, glisse de 12 cm sur la
+tringle et recule (jamais dans le mur) pendant que l'autre attend, tourné, puis se met de face
+avec son ressort habituel. Mesuré (1440 × 900, `?q=low`, horloge virtuelle) : 0 image coupée
+sur 279 de `P` à l'ouverture (57 avant), 0 en balayage manuel à 2,5, 4 et 5 vêtements/s dans
+les deux sens (20 à 28 avant), 0 position de repos sur 141 qui se touche (15 avant). Le
+portant au repos et le temps de mise de face du vêtement survolé ne changent pas ; en passage
+lent, les voisins s'écartent un peu plus franchement qu'avant au moment du relais. Au-delà de
+~10 vêtements/s (vitesse lissée de la main, `UNT.fast`), le démêlage s'efface : un geste très
+rapide garde la vague d'avant, plusieurs vêtements tournés à la fois.
 
 Le curseur système disparaît après 2 s sans mouvement et pendant la visite. Pendant l'ouverture et
 la fermeture, les entrées sont ignorées, sauf en fin d'ouverture (`view` > 0,8, la fiche est
