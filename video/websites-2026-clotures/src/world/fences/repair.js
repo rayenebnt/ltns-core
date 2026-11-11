@@ -115,7 +115,7 @@ export function buildOldFence() {
     const isLean = Math.abs(z - LEAN.z) < 0.01;
     if (isLean) {
       // old leaning post (attached to the lean matrix), replaced by a fresh one in the repair
-      old.set({ pivot: P(z, 0), d: z, role: ROLE.OLDHW, rnd: rnd(), leg: 5, anim: [0.33, 0, 0, 0] });
+      old.set({ pivot: P(z, 0), d: z, role: ROLE.OLDHW, rnd: rnd(), leg: 5, anim: [0.295, 0.03, 4.4, 0] });
       old.box({ c: P(z, (top - 0.4) / 2), A: fB.A, B: fB.B, G: fB.G, sa: 0.09, sb: 0.09, sg: top + 0.4, chamfer: 0.006, uv: woodUV(rnd, 0.09) });
       fresh.set({ pivot: P(z, 0), d: z, role: ROLE.FRESH, rnd: rnd(), leg: 0, anim: [0.32, 0.035, 0, 0] });
       fresh.box({ c: P(z, (1.8 - 0.4) / 2), A: fB.A, B: fB.B, G: fB.G, sa: 0.09, sb: 0.09, sg: 1.8 + 0.4, chamfer: 0.005, uv: woodUV(rnd, 0.09) });
@@ -141,8 +141,8 @@ export function buildOldFence() {
       railBox(old, z0, z1, y, woodUV(rnd, 0.09));
       // storm: the end at the leaning post follows it; the top rail of the far bay is snapped
       const leanEnd = Math.abs(z1 + 0.045 - LEAN.z) < 0.01 ? 1 : 0; // z1 side is the lean post
-      const order = 0.3 + rnd() * 0.05;
-      old.set({ role: ROLE.STORM, anim: [order, 0.03, 0.6, 0] });
+      const order = 0.29 + rnd() * 0.02;
+      old.set({ role: ROLE.STORM, anim: [order, 0.03, 4.4, 0] });
       const shift = y * Math.tan(-LEAN.out);
       const fixedZ = leanEnd ? z0 : z1, movingZ = leanEnd ? z1 : z0;
       if (k === 2 && leanEnd) {
@@ -187,8 +187,8 @@ export function buildOldFence() {
     // storm version, structured: in the branch's impact zone (z < -4.7) the tops are snapped
     // off; around the leaning post the boards are pushed over with it; beyond (z > -3.3) a few
     // are pulled off the top rail and hang, one or two are missing.
-    const order = 0.3 + rnd() * 0.06;
-    old.set({ role: ROLE.STORM, anim: [order, 0.03, 0.7, 0] });
+    const order = 0.29 + rnd() * 0.02;
+    old.set({ role: ROLE.STORM, anim: [order, 0.03, 4.4, 0] });
     const nearLean = Math.max(0, 1 - Math.abs(s.z - LEAN.z) / 1.8);
     const pushM = rotAbout(P(s.z, 0.0), V(1, 0, 0), LEAN.along * nearLean * 0.85)
       .multiply(rotAbout(P(s.z, 0.0), V(0, 0, 1), LEAN.out * nearLean * 0.9))
@@ -227,7 +227,7 @@ export function buildOldFence() {
     const c = P(z, 0.022 + GROUND.lift * 0.8 + (i % 3) * 0.02 + prop * dbr.len * 0.5, x);
     const G = V(Math.sin(yaw), prop, Math.cos(yaw)).normalize();
     const f = frame(G, V(0, 1, 0));
-    old.set({ pivot: c, d: z, role: ROLE.STORM, rnd: rnd(), leg: 0, anim: [0.3 + rnd() * 0.07, 0.03, 0.7, 0] });
+    old.set({ pivot: c, d: z, role: ROLE.STORM, rnd: rnd(), leg: 0, anim: [0.29 + rnd() * 0.02, 0.03, 0.12 + prop * dbr.len, 1] });
     old.box({ c, A: f.B, B: f.A.clone().negate(), G: f.G, sa: 0.14, sb: 0.02, sg: dbr.len, chamfer: 0.003, uv: dbr.uv });
   });
   // splinters near the break
@@ -237,7 +237,7 @@ export function buildOldFence() {
     const G = V(Math.sin(yaw), 0.05, Math.cos(yaw)).normalize();
     const f = frame(G, V(0, 1, 0));
     const len = 0.08 + rnd() * 0.25;
-    fresh.set({ pivot: P(z, 0.03, x), d: z, role: ROLE.STORM, rnd: rnd(), leg: 0, anim: [0.3 + rnd() * 0.07, 0.03, 0.5, 0] });
+    fresh.set({ pivot: P(z, 0.03, x), d: z, role: ROLE.STORM, rnd: rnd(), leg: 0, anim: [0.29 + rnd() * 0.02, 0.03, 0.09, 1] });
     const w = 0.008 + rnd() * 0.02;
     fresh.prism({ origin: P(z, 0.035 + GROUND.lift, x).addScaledVector(G, -len / 2), A: f.B, B: f.A.clone().negate(), G: f.G, poly: [[-w, -0.003], [w, -0.003], [w * 0.3, 0.003]], len, scaleEnd: 0.15, uv: woodUV(rnd, 0.03) });
   }
@@ -250,7 +250,7 @@ export function buildOldFence() {
   kit.set({ pivot: P(LEAN.z, 0), d: LEAN.z, role: ROLE.FRESH, rnd: rnd(), leg: 0, anim: [0.335, 0.03, 0, 0], color: COL.concrete, rm: [0.9, 0] });
   kit.mound({ c: P(LEAN.z, 0), radius: (a) => 0.16 * (1 + 0.05 * Math.sin(a * 3)), height: (rn) => 0.03 * (1 - rn * rn) + 0.004 + GROUND.lift * (1 - rn * 0.6), rings: 3, segs: 14 });
   // heaved soil at the foot of the leaning post (storm), torn turf
-  kit.set({ role: ROLE.STORM, anim: [0.3, 0.04, 0.0, 0], color: COL.soilWet, rm: [0.95, 0] });
+  kit.set({ role: ROLE.STORM, anim: [0.3, 0.04, 0.12, 1], color: COL.soilWet, rm: [0.95, 0] });
   kit.mound({ c: P(LEAN.z, 0, 0.18), radius: (a) => 0.28 * (1 + 0.3 * Math.sin(a * 2 + 1.0)), height: (rn, a) => 0.05 * (1 - rn) * (1 + 0.3 * Math.sin(a * 5)) + GROUND.lift * (1 - rn * 0.5), rings: 3, segs: 14 });
   // the gate's dragging corner: an arc of torn, wet soil along its swing, tufts of turf
   // thrown out of it, the corner dug in where it stopped

@@ -40,9 +40,10 @@ export const KIT_COLORS = {
 
 // flag positions (survey: utilities marked before digging) [x, z, colour]
 const FLAGS = [
-  // red: buried power line toward the garden light, crossing in front of the hero camera
-  // (kept right of the hero headline: the line runs from near the right edge toward the house)
-  [7.05, 11.6, 'red'], [6.7, 9.9, 'red'], [6.35, 8.0, 'red'], [5.95, 6.0, 'red'], [5.55, 4.0, 'red'], [5.2, 2.0, 'red'], [4.85, 0.0, 'red'],
+  // red: buried power line toward the garden light, in front of the hero camera (kept right of
+  // the hero headline). Only the hero's three: as the push-in starts (« Réseaux repérés » ticks),
+  // each sinks into the lawn well before the camera reaches it (4th value: install progress).
+  [7.05, 11.6, 'red', 0.086], [6.7, 9.9, 'red', 0.102], [6.35, 8.0, 'red', 0.148],
   // orange: telecom, crossing the fence line near d = 20
   [8.55, -1.9, 'orange'], [7.35, -2.4, 'orange'], [6.15, -2.9, 'orange'],
   // yellow: gas, toward the house
@@ -114,11 +115,12 @@ export function buildInstallKit() {
   }
 
   // ---------------------------------------------------------------- survey flags
-  FLAGS.forEach(([x, z, col], i) => {
+  FLAGS.forEach(([x, z, col, sink], i) => {
     const base = V(x, 0, z);
     const lean = V((rnd() - 0.5) * 0.12, 1, (rnd() - 0.5) * 0.12).normalize();
     const h = 0.68 + rnd() * 0.08;
-    const order = 0.02 + (i / FLAGS.length) * 0.16;
+    // cleanup order 0..1, or 10 + the progress at which the flag sinks into the lawn
+    const order = sink ? 10 + sink : 0.02 + (i / FLAGS.length) * 0.16;
     kit.set({ pivot: base, d: 0, role: ROLE.FLAG, rnd: rnd(), leg: 0, anim: [order, 0, 0, 0], color: C.galv, rm: [0.4, 1] });
     const f = frame(lean, V(1, 0, 0));
     kit.cylinder({ origin: base.clone().setY(-0.15), A: f.A, B: f.B, G: f.G, r: 0.0014, len: h + 0.15, n: 4, uv: { su: 1, sv: 1 } });

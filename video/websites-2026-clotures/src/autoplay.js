@@ -13,8 +13,8 @@ export const TOUR = [
   [2.2, 'install', 0.25],
   [3.3, 'install', 0.465],
   [4.4, 'install', 0.67],
-  [5.6, 'install', 1],
-  [6.0, 'install', 1],
+  [5.8, 'install', 1],
+  [6.1, 'install', 1],
   [7.0, 'white', 1],
   [7.4, 'white', 1],
   [8.4, 'intro2', 0],
@@ -50,7 +50,7 @@ export const INSTALL_PLAY = [
   [3.6, 'install', 0.48],
   [4.8, 'install', 0.665],
   [5.3, 'install', 0.69],
-  [6.9, 'install', 1],
+  [7.1, 'install', 1],
 ];
 
 // « ▶ VOIR LA RÉPARATION »: chapter 4 only

@@ -84,12 +84,12 @@ const INSTALL_TRACK = [
   [0.345, 'posts_b'],
   [0.43, 'rails'],
   [0.545, 'rails_b'],
-  [0.62, 'boards'],
-  [0.79, 'boards_b'],
-  [0.93, 'finale'],
+  [0.6, 'boards'],
+  [0.71, 'boards_b'],
+  [0.96, 'finale'],
   [1.0, 'finale_b'],
 ];
-const SWING = { from: 'boards_b', to: 'finale', via: [[6.35, 2.05, 8.6], [8.3, 3.05, 17.4]], at: [0.84, 0.885] };
+const SWING = { from: 'boards_b', to: 'finale', via: [[6.35, 2.05, 8.6], [8.3, 3.05, 17.4]], at: [0.765, 0.87] }; // via points spaced by arc length
 const REPAIR_TRACK = [
   [0.0, 'repair0'],
   [0.2, 'repair1'],
@@ -176,9 +176,11 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   // the grade rides on the tone-mapping step (ACES inside): set before any canvas render
   renderer.toneMapping = THREE.CustomToneMapping;
   const fences = await createFencesAsync({ renderer, scene, quality: level, contact: true, grassLift: 0.035, onProgress: (x) => progress(0.62 + 0.33 * x) });
-  // chapter 1 windows: the cap rail is done when its log item ticks (0.86), the cleanup when
-  // the last one ticks (0.95)
-  fences.config.uniforms.uWinCap.value.set(0.8, 0.86, 0.03, 0);
+  // chapter 1 windows: the boards end with their camera hold (0.70), the cap rail goes on while
+  // the camera rises over the fence and is done when its log item ticks (0.80), the cleanup
+  // when the last one ticks (0.95)
+  fences.config.uniforms.uWinBoards.value.set(0.52, 0.7, 0.03, 0);
+  fences.config.uniforms.uWinCap.value.set(0.72, 0.8, 0.03, 0);
   fences.config.uniforms.uWinClean.value.set(0.84, 0.95, 0.035, 0);
   gradeUniformsInto(scene);
   garden.setStripes(0.45); // the mowing stripes read, without striping the whole frame
@@ -320,9 +322,9 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     fences.setMode(mode);
   }
 
-  // the finale's warm finish (install 0.80 -> 1): a lower, warmer sun raking across the lawn,
-  // warmer highlights. Uniforms only (the environment map stays the summer one).
-  const WARM = { sunDir: [-0.62, 0.36, 0.7], sunCol: [1.0, 0.8, 0.58], sunI: 5.8, warmHi: 1.2 };
+  // the finale's warm finish (install 0.74 -> 0.96): a warmer sun from behind the camera, about
+  // 45 degrees high (the yard stays out of the big trees' shadows), warmer highlights. Uniforms only (the environment map stays the summer one).
+  const WARM = { sunDir: [-0.2, 0.7, 0.68], sunCol: [1.0, 0.82, 0.6], sunI: 6.0, warmHi: 1.2, expMul: 1.03 };
   let warmK = -1;
   function setWarm(k) {
     if (Math.abs(k - warmK) < 1e-4) return;
@@ -347,7 +349,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
       setMode('install');
       fences.setInstall(st.install);
       setPreset('ete', 1);
-      setWarm(smooth(0.8, 0.97, st.install));
+      setWarm(smooth(0.74, 0.96, st.install));
     }
   }
 

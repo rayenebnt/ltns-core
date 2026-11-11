@@ -206,7 +206,7 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
     const lerp3 = (a, b) => a.map((v, i) => v + (b[i] - v) * k);
     const d = lerp3(P.sunDir, O.sunDir || P.sunDir);
     const l = Math.hypot(d[0], d[1], d[2]) || 1;
-    return { ...P, sunDir: d.map((v) => v / l), sunCol: lerp3(P.sunCol, O.sunCol || P.sunCol), sunI: P.sunI + ((O.sunI ?? P.sunI) - P.sunI) * k };
+    return { ...P, sunDir: d.map((v) => v / l), sunCol: lerp3(P.sunCol, O.sunCol || P.sunCol), sunI: P.sunI + ((O.sunI ?? P.sunI) - P.sunI) * k, exposure: P.exposure * (1 + ((O.expMul ?? 1) - 1) * k) };
   }
 
   // environment maps of the three presets, baked once; blends are baked on demand

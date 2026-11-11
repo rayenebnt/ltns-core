@@ -7,9 +7,9 @@ import { NNBSP } from './format.js';
 export const TOAST = `Démonstration${NNBSP}: Cordeau est une entreprise fictive imaginée par LTNS°.`;
 
 // beat windows, in chapter progress [enter, leave] (the shell's choreography; see README)
-export const INSTALL_BEATS = { hero: [-1, 0.08], posts: [0.14, 0.34], rails: [0.38, 0.54], boards: [0.57, 0.76], finale: [0.84, 9] };
+export const INSTALL_BEATS = { hero: [-1, 0.08], posts: [0.14, 0.34], rails: [0.38, 0.54], boards: [0.55, 0.69], finale: [0.905, 9] };
 export const LOG_IN = 0.05; // the log panel arrives as the hero leaves (« Jour 1 » reads before the posts)
-export const LOG_TICKS = [0.09, 0.36, 0.55, 0.86, 0.95]; // each item ticks when its step is done in 3D
+export const LOG_TICKS = [0.09, 0.36, 0.55, 0.8, 0.95]; // each item ticks when its step is done in 3D
 export const LOG_DAYS = [[0, 'Jour 1'], [0.15, 'Jour 2'], [0.555, 'Jour 3']];
 export const REPAIR_BEATS = { open: [-1, 0.205], step1: [0.235, 0.49], step2: [0.52, 0.68], step3: [0.74, 9] };
 export const HOTSPOTS_BEFORE = ['branche', 'poteau', 'penture', 'portillon'];
@@ -21,7 +21,7 @@ export const HOTSPOT_AFTER_IN = { garde: 0.78, pentures: 0.84, cable: 0.9 };
 
 // metres of new fence shown in the log: posts, rails and boards weigh 30, 25 and 45 %
 export function builtShare(p) {
-  const posts = clamp((p - 0.1) / 0.26), rails = clamp((p - 0.36) / 0.19), boards = clamp((p - 0.55) / 0.25);
+  const posts = clamp((p - 0.1) / 0.26), rails = clamp((p - 0.36) / 0.19), boards = clamp((p - 0.52) / 0.18);
   return 0.3 * posts + 0.25 * rails + 0.45 * boards;
 }
 

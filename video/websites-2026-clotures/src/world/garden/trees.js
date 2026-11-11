@@ -435,7 +435,9 @@ void main() {
   vAO = aCrown.w;
   vTint = aLeaf.x;
   vUv = uv;
-  vShadow = sunShadow4(wp.xyz + uSunDir * 0.2, 0.0, 1.5);
+  // the outer shell of a crown samples its shadow from outside the crown (light leaks through
+  // the outer leaves); the cores keep the crown's own shadow
+  vShadow = sunShadow4(wp.xyz + uSunDir * (0.2 + 0.9 * aCrown.w * aCrown.w), 0.0, 1.5);
   gl_Position = projectionMatrix * viewMatrix * wp;
 }`;
 
@@ -466,19 +468,20 @@ void main() {
   vec3 n = normalize(vN) * (gl_FrontFacing ? 1.0 : -1.0);
   vec3 N = normalize(mix(n, vCN, 0.8));
   float ndl = dot(N, uSunDir);
-  float diff = clamp((ndl + 0.3) / 1.3, 0.0, 1.0) * vShadow;
+  float diff = clamp((ndl + 0.08) / 1.08, 0.0, 1.0) * vShadow; // a narrow wrap: sunlit outsides pop
   // light through the leaves: toward the sun (forward) and, diffusely, on the far side of a lit leaf
   float back = pow(clamp(dot(-V, uSunDir), 0.0, 1.0), 3.0);
   float thru = clamp(-dot(n, uSunDir), 0.0, 1.0);
   float trans = vShadow * (back * 0.6 + thru * 0.4);
   vec3 amb = mix(hemiAmbient(N), (uAmbSky + uAmbGround) * 0.5, 0.35);
-  vec3 col = albedo * (uSunCol * diff / G_PI + amb * vAO * (0.7 + 0.3 * vShadow));
-  col += albedo * vec3(1.0, 1.2, 0.45) * uSunCol * trans * 0.07;
+  // the sunlit outside of a crown pops (vAO ~ 1 outside), the cores stay deep (ambient x vAO^2)
+  vec3 col = albedo * (uSunCol * diff * (0.5 + 1.5 * vAO) / G_PI + amb * vAO * vAO * (0.7 + 0.3 * vShadow));
+  col += albedo * vec3(1.0, 1.2, 0.45) * uSunCol * trans * 0.16;
   // seen from below, a canopy glows with the sky light coming through it
   col += albedo * vec3(0.9, 1.15, 0.5) * uAmbSky * 0.2 * clamp(-N.y, 0.0, 1.0) * (0.5 + 0.5 * vAO);
   // soft sheen of the waxy upper side
   vec3 H = normalize(uSunDir + V);
-  col += uSunCol * pow(max(dot(n, H), 0.0), 24.0) * 0.012 * vShadow * (1.0 - uWet * 0.3);
+  col += uSunCol * pow(max(dot(n, H), 0.0), 24.0) * 0.03 * vAO * vShadow * (1.0 - uWet * 0.3);
   col = applyHaze(col, vWorld - cameraPosition, cameraPosition.y);
   gl_FragColor = vec4(col, clamp(a, 0.0, 1.0));
   #include <tonemapping_fragment>
@@ -507,7 +510,7 @@ export function createLeafMaterials(lightU) {
   const shared = { uMap: { value: atlas.tex }, uLeafScale: { value: 1 } };
   const mat = new THREE.ShaderMaterial({
     name: 'garden-leaves',
-    uniforms: { ...lightU, ...shared, uMapSize: { value: atlas.size }, uLeafTint: { value: new THREE.Vector3(0.84, 0.88, 0.8) } },
+    uniforms: { ...lightU, ...shared, uMapSize: { value: atlas.size }, uLeafTint: { value: new THREE.Vector3(1.0, 1.05, 0.88) } },
     vertexShader: LEAF_VERT,
     fragmentShader: LEAF_FRAG,
     side: THREE.DoubleSide,

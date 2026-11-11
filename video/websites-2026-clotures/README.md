@@ -52,10 +52,18 @@ sont ignorés par git. Les polices (Instrument Serif, Inter Tight) et leurs lice
   de la clôture), parcourue à l'abscisse curviligne ; cette abscisse est une cubique monotone de
   la progression (pentes de Fritsch-Carlson). La caméra ralentit sur chaque moment mais ne
   s'arrête jamais entre la première et la dernière clé. Champ vertical : 45° au chapitre 1, 42°
-  ensuite (à 16:10).
+  ensuite (à 16:10). Le passage des lames à la finale dure de 0,71 à 0,96 (points de passage
+  espacés à l'abscisse curviligne) : environ 38 m/s au plus à 2 écrans par seconde, 34 m/s dans
+  la visite automatique ; le titre de la finale n'est entièrement affiché qu'une fois la caméra à
+  moins d'un mètre de sa pose.
 - **Lumière** : « ete » (fin de matinée d'été, perspective aérienne), « orage » (couvert clair,
-  herbe mouillée) puis « eclaircie » sur la fin de la réparation (0,70 → 1). Fin du chapitre 1
-  (0,80 → 1) : soleil plus bas et plus chaud, par uniformes seulement.
+  herbe mouillée) puis « eclaircie » sur la fin de la réparation (0,70 → 1). L'exposition se
+  mélange géométriquement entre deux préréglages, pour que l'éclaircie éclaircisse vraiment la
+  scène jusqu'au bout. Fin du chapitre 1 (0,74 → 0,96) : soleil plus chaud, venu de derrière la
+  caméra à environ 45° (le jardin reste au soleil), par uniformes seulement.
+- **Démontages** : à la réparation, les pièces cassées debout quittent le cadre par le haut et
+  celles posées dans l'herbe s'enfoncent sous la pelouse (pas de fondu tramé à mi-course). Les
+  trois fanions rouges de l'accueil s'enfoncent quand la poussée commence.
 - **Une passe** : une seule lumière avec ombre (sa caméra d'ombre suit la vue), MSAA, feuilles en
   alpha-to-coverage, tout le reste en géométrie fusionnée ou instanciée.
 - **Écart au contrat** : le portillon de la vieille clôture est à z −8,4 … −7,2 (`GZ` dans
@@ -136,8 +144,8 @@ réparation. Les appels comprennent la passe d'ombre.
 | `medium` | 23 à 35 | 294 k à 406 k | 28,1 k |
 | `low` | 22 à 34 | 267 k à 352 k | 21,8 k |
 
-- Le maximum d'appels est la finale du chapitre 1 : le soleil bas fait entrer plus d'objets dans
-  la passe d'ombre.
+- Le maximum d'appels est la finale du chapitre 1 (vue large, plus d'objets dans la passe
+  d'ombre).
 - 39 textures, 55 géométries, 28 programmes, tous compilés et envoyés au GPU pendant le
   chargement : aucun programme n'est créé pendant le défilement.
 - Les 60 images par seconde sur un portable à GPU intégré n'ont pas pu être mesurées ici : à

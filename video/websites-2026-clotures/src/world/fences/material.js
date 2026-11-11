@@ -37,8 +37,8 @@ export function createSharedUniforms() {
     // install windows: x start, y end, z duration of one element, w extra (see below)
     uWinPosts: { value: new THREE.Vector4(0.1, 0.36, 0.035, 0.022) }, // w: dig lead
     uWinRails: { value: new THREE.Vector4(0.36, 0.55, 0.03, 0) },
-    uWinBoards: { value: new THREE.Vector4(0.55, 0.8, 0.03, 0) },
-    uWinCap: { value: new THREE.Vector4(0.8, 0.88, 0.03, 0) },
+    uWinBoards: { value: new THREE.Vector4(0.52, 0.7, 0.03, 0) },
+    uWinCap: { value: new THREE.Vector4(0.72, 0.8, 0.03, 0) },
     uWinClean: { value: new THREE.Vector4(0.84, 0.96, 0.035, 0) },
     // d -> build order: d in [0, x] takes the first 12 % of a window, [x, y] the rest
     uDMap: { value: new THREE.Vector2(14, 44) },
@@ -147,10 +147,18 @@ vec3 fenceAnim(vec3 p, out float fade) {
       }
     } else if (role < 8.5 || (role > 8.5 && role < 9.5) || role > 11.5) {
       // PROP / FLAG / STRING: lifted away one by one at cleanup
-      float t0 = uWinClean.x + aAnim.x * (uWinClean.y - uWinClean.x - uWinClean.z);
-      float e = fe_lin(t0, t0 + uWinClean.z, P);
-      p.y += fe_sm(e) * 0.35;
-      fade = 1.0 - fe_sm(e);
+      if (aAnim.x > 5.0) {
+        // a flag the camera passes over: sinks into the lawn at install progress aAnim.x - 10
+        float ts = aAnim.x - 10.0;
+        float e = fe_lin(ts, ts + 0.014, P);
+        p.y -= fe_sm(e) * 0.95;
+        fade = e < 1.0 ? 1.0 : 0.0;
+      } else {
+        float t0 = uWinClean.x + aAnim.x * (uWinClean.y - uWinClean.x - uWinClean.z);
+        float e = fe_lin(t0, t0 + uWinClean.z, P);
+        p.y += fe_sm(e) * 0.35;
+        fade = 1.0 - fe_sm(e);
+      }
       if (role > 8.5 && role < 9.5) {
         // flutter: amplitude aAnim.y, direction aAnim.zw, growing away from the pivot
         float r = length(rel);
@@ -175,19 +183,29 @@ vec3 fenceAnim(vec3 p, out float fade) {
     if (role < 20.5) {
       fade = 1.0 - uRepairOn;
     } else if (role < 21.5) {
+      // STORM: removed by motion, not by a fade. aAnim.w = 1: lying on the grass, sinks under
+      // the lawn by aAnim.z; else lifted by aAnim.z (ease in) out of the top of the frame,
+      // fading only at the very end
       float e = fe_lin(aAnim.x, aAnim.x + aAnim.y, R);
-      float k = fe_sm(e);
-      p.y += k * aAnim.z;
-      p.x += k * aAnim.z * 0.25 * (rnd - 0.5);
-      fade = uRepairOn * (1.0 - smoothstep(0.25, 1.0, e));
+      if (aAnim.w > 0.5) {
+        p.y -= fe_sm(e) * aAnim.z;
+        fade = uRepairOn * (e < 1.0 ? 1.0 : 0.0);
+      } else {
+        float k = e * e;
+        p.y += k * aAnim.z;
+        p.x += k * aAnim.z * 0.05 * (rnd - 0.5);
+        fade = uRepairOn * (1.0 - smoothstep(0.9, 1.0, e));
+      }
     } else if (role < 22.5) {
       float e = fe_lin(aAnim.x, aAnim.x + aAnim.y, R);
       float k = 1.0 - fe_out(e);
       p.y += k * 0.45;
       fade = uRepairOn * smoothstep(0.0, 0.08, e);
     } else if (role < 23.5) {
-      float e = fe_lin(aAnim.x, aAnim.x + 0.03, R);
-      fade = mix(1.0, 1.0 - e, uRepairOn);
+      // OLDHW: gone at aAnim.x; with aAnim.z > 0 it is lifted out first (the old leaning post)
+      float e = fe_lin(aAnim.x, aAnim.x + (aAnim.y > 0.0 ? aAnim.y : 0.03), R);
+      p.y += e * e * aAnim.z * uRepairOn;
+      fade = mix(1.0, aAnim.z > 0.0 ? 1.0 - smoothstep(0.9, 1.0, e) : 1.0 - e, uRepairOn);
     } else if (role < 24.5) {
       float e = fe_lin(aAnim.x, aAnim.x + aAnim.y, R);
       p = aPivot + rel * mix(0.55, 1.0, fe_out(e));
@@ -201,7 +219,10 @@ vec3 fenceAnim(vec3 p, out float fade) {
   if (leg > 3.5) p = (fe_attach(leg) * vec4(p, 1.0)).xyz;
   // chapter 2 sweep: the old type sinks, the new one rises, element by element along d
   if (abs(uSweep.y) > 0.5) {
-    float jd = d + (fract(rnd * 7.31) - 0.5) * 1.6;
+    // boards and the rest are jittered along d; posts and caps are not, and a rail rises after its far
+    // post and sinks before its near one (no loose rail ends at the junction of two types)
+    float jd = d + (role > 2.5 && abs(role - 4.0) > 0.5 ? (fract(rnd * 7.31) - 0.5) * 1.6 : 0.0);
+    if (role > 1.5 && role < 2.5) jd += uSweep.y > 0.0 ? 2.0 : -1.0;
     if (uSweep.y > 0.0) {
       float e = clamp((uSweep.x - jd - uSweep.z * 0.55) / uSweep.z, 0.0, 1.0);
       p.y -= (1.0 - fe_out(e)) * uSweep.w;

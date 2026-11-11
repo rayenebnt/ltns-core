@@ -10,7 +10,7 @@
   --orange-hi: #f48b45;
   --apricot: #f0a96b;
   --rust: #c2632b;
-  --glass: rgba(16, 18, 20, 0.64);
+  --glass: rgba(14, 16, 19, 0.74);
   --glass-line: rgba(255, 255, 255, 0.1);
   --m: clamp(24px, 4.2vw, 72px); /* page margin (layout.js pageMargin) */
   --nav-h: 76px;
@@ -247,9 +247,9 @@ html:not(.cursor-off) .btn-ghost:hover { box-shadow: inset 0 0 0 1px rgba(21, 23
   padding: 0 22px 0 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: rgba(16, 18, 20, 0.62);
-  -webkit-backdrop-filter: blur(14px) saturate(85%);
-  backdrop-filter: blur(14px) saturate(85%);
+  background: rgba(14, 16, 19, 0.72);
+  -webkit-backdrop-filter: blur(14px) saturate(35%);
+  backdrop-filter: blur(14px) saturate(35%);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   color: #fff;
   font: 600 11.5px/1 var(--sans);
@@ -297,8 +297,8 @@ html:not(.cursor-off) .link-btn:hover::after { opacity: 1; }
 /* ==================================================================== glass */
 .glass {
   background: var(--glass);
-  -webkit-backdrop-filter: blur(18px) saturate(85%);
-  backdrop-filter: blur(18px) saturate(85%);
+  -webkit-backdrop-filter: blur(18px) saturate(35%);
+  backdrop-filter: blur(18px) saturate(35%);
   border: 1px solid var(--glass-line);
   border-radius: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -409,13 +409,17 @@ html:not(.cursor-off) .nav-pill:hover { background: var(--orange); color: var(--
 .beat::before {
   content: '';
   position: absolute;
-  left: -36%;
-  right: -28%;
-  top: -62%;
-  bottom: -52%;
+  left: calc(-1 * var(--m));
+  right: -150px;
+  top: -76px;
+  bottom: -64px;
   z-index: -1;
-  /* flat in the middle (the kicker, the lines and the body all sit inside it), soft at the rim */
-  background: radial-gradient(closest-side, rgba(8, 10, 12, var(--scrim, 0.46)), rgba(8, 10, 12, calc(var(--scrim, 0.46) * 0.84)) 48%, rgba(8, 10, 12, calc(var(--scrim, 0.46) * 0.4)) 75%, rgba(8, 10, 12, 0));
+  /* a soft shade from the screen edge on the text side, darkest right behind the letters, gone
+     well before the middle of the frame; its top and bottom are feathered */
+  --s: var(--scrim, 0.4);
+  background: linear-gradient(var(--dir, 90deg), rgba(8, 10, 12, var(--s)) 0%, rgba(8, 10, 12, calc(var(--s) * 0.94)) 40%, rgba(8, 10, 12, calc(var(--s) * 0.68)) 68%, rgba(8, 10, 12, calc(var(--s) * 0.26)) 88%, rgba(8, 10, 12, 0) 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 76px, #000 calc(100% - 64px), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 76px, #000 calc(100% - 64px), transparent 100%);
   opacity: var(--k, 0);
   pointer-events: none;
   will-change: opacity;
@@ -430,16 +434,22 @@ html:not(.cursor-off) .nav-pill:hover { background: var(--orange); color: var(--
 /* lines and kickers hug their text (the hotspot labels measure the real text boxes) */
 .beat .ln, .beat .kicker { width: -webkit-fit-content; width: fit-content; max-width: 100%; }
 .b-right .ln, .b-right .kicker { margin-left: auto; }
-.b-right::before { left: -30%; right: -40%; }
+.b-right::before { left: -150px; right: calc(-1 * var(--m)); --dir: 270deg; }
 .beat .a { will-change: opacity, transform; }
 .actions { display: flex; align-items: center; gap: 22px; margin-top: 30px; }
 .b-right .actions { justify-content: flex-end; }
 
 /* beats over bright parts of the 3D (rails in the sun, the pale new section of the old fence) */
-#b-rails { --scrim: 0.74; }
-#r-step3 { --scrim: 0.8; }
-#r-step1, #b-finale { --scrim: 0.56; }
-.hero { --scrim: 0.55; }
+#b-rails { --scrim: 0.5; }
+#r-step3 { --scrim: 0.64; }
+#r-step1 { --scrim: 0.44; }
+/* the finale title sits over the sunlit front of the new fence */
+#b-finale { --scrim: 0.66; }
+#b-finale::before { right: -260px; }
+.hero { --scrim: 0.42; }
+.hud .beat .body, .hud .beat .lead { text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 0, 0, 0.3); }
+/* titles over the 3D: a strong local shadow right under the letters */
+.hud .beat .h-beat, .hud .beat .display { text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45), 0 0 2px rgba(0, 0, 0, 0.16); }
 /* small uppercase kickers over the 3D: a soft dark halo under the letters */
 .hud .beat .kicker, .hud .styles-head .kicker { text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42), 0 0 2px rgba(0, 0, 0, 0.25); }
 .hud .beat .kicker { position: relative; }
@@ -455,11 +465,11 @@ html:not(.cursor-off) .nav-pill:hover { background: var(--orange); color: var(--
   pointer-events: none;
 }
 /* italic accents over the 3D: a soft halo keeps the apricot legible on pale wood */
-.hud .h-beat em, .hud .display .it { text-shadow: 0 1px 18px rgba(0, 0, 0, 0.35), 0 0 2px rgba(0, 0, 0, 0.18); }
+.hud .h-beat em, .hud .display .it { text-shadow: 0 2px 22px rgba(0, 0, 0, 0.45), 0 0 2px rgba(0, 0, 0, 0.22); }
 
 /* hero */
 .hero { bottom: calc(15vh + 10px); width: min(760px, 58vw); }
-.hero::before { left: -45%; right: -25%; top: -48%; bottom: -40%; }
+.hero::before { right: -170px; top: -80px; bottom: -64px; }
 .hero .kicker { color: rgba(255, 255, 255, 0.94); }
 .hero .lead { max-width: 460px; }
 .hint {
@@ -1015,6 +1025,10 @@ body.no-gl #hud, body.no-gl #flow, body.no-gl #nav, body.no-gl #sticky, body.no-
 @media (max-height: 700px) {
   .card .face-ideal, .card .fine { display: none; }
   .log-list li { font-size: 12px; }
+}
+/* very short windows (960 x 600, or a 150 % zoom): a smaller log, clear of the beat kickers */
+@media (max-height: 640px) {
+  .log { zoom: 0.84; }
 }
 
 /* ============================================================== large screens */
