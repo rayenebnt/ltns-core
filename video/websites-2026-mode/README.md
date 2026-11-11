@@ -112,7 +112,7 @@ rebond et oscillations) : `view` 0..1 (portant → fiche, 1,1 s), `focus` (posit
 | Fiche | DEVANT \| DOS, `Espace`, `↑`, `↓` | Demi-tour sur le crochet (0,8 s) |
 | Fiche | Flèches rondes, `←` / `→` | Vêtement précédent / suivant (1 s, boucle de 8 ; chaque appui compte) |
 | Fiche | FERMER ×, `Échap` | Retour au portant (1,1 s) |
-| Partout | `P` | Lance ou arrête la visite ; un clic, une touche ou la molette l'arrêtent aussi |
+| Portant, fiche | `P` | Lance la visite (pas pendant une ouverture ou une fermeture) ou l'arrête ; un clic, une touche ou la molette l'arrêtent aussi |
 | Boutons | À PROPOS, CONTACT, VOIR LA DISPO, VOIR LA DISPO ↗ | Toast « Démonstration : Ruelle est une marque fictive imaginée par LTNS°. » |
 
 Le curseur système disparaît après 2 s sans mouvement et pendant la visite. Pendant l'ouverture et

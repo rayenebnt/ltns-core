@@ -38,12 +38,14 @@ restent tant que la page est ouverte, le rechargement remet tout comme au début
 1. **Le portant** : passe la flèche **lentement** le long des vêtements, à mi-hauteur, avec un
    doigt sur le pavé tactile. Le vêtement sous la flèche se tourne vers toi, avance un peu et se
    balance ; ses voisins bougent avec lui. Son nom s'affiche sous le portant (par exemple
-   « T-shirt Rien à prouver — Noir »). Un passage rapide fait une vague. Quand la flèche quitte
-   le portant, tout se remet en place.
-   - Variante sans flèche à l'écran : glisse **à deux doigts** (vers la gauche, la droite, le
-     haut ou le bas), par petits gestes lents : on passe d'un vêtement à l'autre, la flèche reste
-     immobile et disparaît après 2 secondes. Les touches `←` `→` font pareil, un vêtement à la
-     fois.
+   « T-shirt Rien à prouver — Noir »). Un passage rapide fait une vague, mais pour la prise,
+   reste lent : en passage très rapide, deux vêtements voisins peuvent se traverser une fraction
+   de seconde. Quand la flèche quitte le portant, tout se remet en place.
+   - Variante sans flèche à l'écran : laisse la flèche sur le mur, au-dessus du portant, et
+     glisse **à deux doigts** (vers la gauche, la droite, le haut ou le bas), par petits gestes
+     lents : on passe d'un vêtement à l'autre, et la flèche disparaît après 2 secondes. Les
+     touches `←` `→` font pareil, un vêtement à la fois. `Entrée` ouvre alors le vêtement de
+     face.
 2. **Le clic** : clique sur un vêtement (ou `Entrée` pour celui dont le nom est affiché). En une
    seconde environ, il vient au centre, se met de face et grandit ; les autres s'écartent et
    disparaissent, et ses étiquettes de couleur tombent à droite du cintre.
@@ -76,7 +78,7 @@ l'ouverture sont gardés et joués dès qu'elle est finie.
 | Fiche | `Espace`, `↑`, `↓` | DEVANT / DOS |
 | Fiche | `1`, `2`, `3` | Couleur 1, 2 ou 3 (selon le vêtement) |
 | Fiche | `Échap` | Retour au portant |
-| Partout | `P` | Lance ou arrête la visite automatique |
+| Portant ou fiche | `P` | Lance la visite automatique (pas pendant une ouverture ou une fermeture), ou l'arrête |
 
 ## 4. La visite automatique : `P`
 
@@ -180,5 +182,5 @@ fictive, site imaginé et codé par LTNS° (ltns.fr). #webdesign #siteinternet #
 | Un clic sur un vêtement ne l'ouvre pas | Attends la fin du mouvement en cours (une seconde), puis clique sur le vêtement lui-même, ou appuie sur `Entrée` |
 | `Échap` fait sortir du plein écran | Utilise plutôt « FERMER × » en haut à droite |
 | La visite `P` s'est arrêtée | Un clic, une touche ou un glissement l'a interrompue : appuie de nouveau sur `P`, elle repart du début |
-| `?auto=1` ne démarre pas | Un clic, une touche ou un glissement pendant le chargement l'a annulée : `F5`, puis ne touche à rien, ou appuie sur `P` |
+| `?auto=1` ne démarre pas | Un clic, une touche ou un glissement dans les 2 secondes après le chargement l'a annulée : `F5`, puis ne touche à rien, ou appuie sur `P` |
 | Le chargement est long | Normal sur un petit portable : la page fabrique les vêtements et mesure la puissance de l'ordinateur. Si la ligne bleue ne bouge plus pendant une minute, recharge (`F5` ou `Ctrl` + `R`, Mac : `Cmd` + `R`). Avec un réglage `?q=…` (partie 7), la mesure est sautée et le chargement est plus court |
