@@ -192,8 +192,8 @@ export function douglasTextures() {
     depth: [0.05, 0.11],
     rift: 0.45,
     wobble: 0.35,
-    early: [220, 158, 110],
-    late: [186, 112, 70],
+    early: [222, 166, 120],
+    late: [196, 138, 96],
     sap: [230, 198, 152],
     sapChance: 0.35,
     knot: [150, 88, 52],
@@ -222,9 +222,9 @@ export function pineTextures() {
     depth: [0.06, 0.14],
     rift: 0.4,
     wobble: 0.3,
-    early: [226, 204, 162],
-    late: [204, 172, 122],
-    sap: [234, 216, 176],
+    early: [226, 212, 186],
+    late: [204, 186, 156],
+    sap: [232, 220, 196],
     sapChance: 0.3,
     knot: [150, 98, 52],
     knots: [1, 3],
@@ -253,9 +253,9 @@ export function weatheredTextures() {
     depth: [0.05, 0.12],
     rift: 0.55,
     wobble: 0.45,
-    early: [134, 130, 122],
-    late: [160, 155, 145],
-    sap: [130, 125, 116],
+    early: [156, 152, 154],
+    late: [184, 178, 176],
+    sap: [150, 146, 146],
     sapChance: 0,
     knot: [90, 84, 78],
     knots: [1, 3],
@@ -287,11 +287,11 @@ export function weatheredTextures() {
       // dark streaks running down the boards, a few brownish patches of the old colour
       const s = smoothstep(0.55, 0.85, streak[i] * 0.7 + streak2[i] * 0.3);
       let r = col[i * 3], g = col[i * 3 + 1], bl = col[i * 3 + 2];
-      const dark = 1 - s * 0.38;
+      const dark = 1 - s * 0.25;
       r *= dark;
       g *= dark;
       bl *= dark * 0.98;
-      const p = smoothstep(0.62, 0.8, patch[i]) * 0.35;
+      const p = smoothstep(0.62, 0.8, patch[i]) * 0.2;
       r += (132 - r) * p;
       g += (112 - g) * p;
       bl += (88 - bl) * p;
@@ -345,7 +345,7 @@ export function chestnutTextures() {
   const fib = periodicNoise(W, H, 128, 10, 401);
   const fib2 = periodicNoise(W, H, 48, 30, 402);
   const big = periodicFbm(W, H, 4, 8, 3, 403);
-  const bark1 = periodicNoise(W, H, 24, 18, 404);
+  const bark1 = periodicNoise(W, H, 36, 7, 404); // long vertical fissures
   const bark2 = periodicNoise(W, H, 64, 90, 405);
   const col = new Uint8Array(W * H * 4);
   const hgt = new Float32Array(W * H);
@@ -359,21 +359,21 @@ export function chestnutTextures() {
         const f = (fib[i] - 0.5) * 0.8 + (fib2[i] - 0.5) * 0.6;
         const ring = 0.5 + 0.5 * Math.sin(x * 0.55 + (big[i] - 0.5) * 9);
         const t = 1 + f * 0.28 + (big[i] - 0.5) * 0.25;
-        r = (158 + ring * 20) * t;
-        g = (116 + ring * 15) * t;
-        b = (80 + ring * 9) * t;
+        r = (176 + ring * 16) * t;
+        g = (150 + ring * 13) * t;
+        b = (118 + ring * 9) * t;
         h = f * 0.5 + ring * 0.15;
         ro = 0.86 + f * 0.06;
       } else {
         const fiss = smoothstep(0.42, 0.18, Math.abs(bark1[i] - 0.5) * 2 + (bark2[i] - 0.5) * 0.3);
-        const t = 1 + (bark2[i] - 0.5) * 0.3;
-        r = (96 - fiss * 38) * t;
-        g = (82 - fiss * 34) * t;
-        b = (70 - fiss * 30) * t;
-        const grey = smoothstep(0.62, 0.78, big[i]);
-        r += (128 - r) * grey * 0.6;
-        g += (124 - g) * grey * 0.6;
-        b += (116 - b) * grey * 0.6;
+        const t = 1 + (bark2[i] - 0.5) * 0.24;
+        r = (112 - fiss * 44) * t;
+        g = (103 - fiss * 40) * t;
+        b = (93 - fiss * 36) * t;
+        const grey = smoothstep(0.6, 0.8, big[i]);
+        r += (124 - r) * grey * 0.25;
+        g += (120 - g) * grey * 0.25;
+        b += (114 - b) * grey * 0.25;
         h = -fiss * 1.2 + (bark2[i] - 0.5) * 0.3;
         ro = 0.92;
       }

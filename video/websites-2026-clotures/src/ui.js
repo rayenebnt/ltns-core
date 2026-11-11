@@ -8,14 +8,16 @@ export const TOAST = `Démonstration${NNBSP}: Cordeau est une entreprise fictive
 
 // beat windows, in chapter progress [enter, leave] (the shell's choreography; see README)
 export const INSTALL_BEATS = { hero: [-1, 0.08], posts: [0.14, 0.34], rails: [0.38, 0.54], boards: [0.57, 0.76], finale: [0.84, 9] };
-export const LOG_IN = 0.075; // the log panel arrives as the hero leaves
-export const LOG_TICKS = [0.1, 0.36, 0.55, 0.86, 0.95]; // each item ticks when its step is done in 3D
-export const LOG_DAYS = [[0, 'Jour 1'], [0.11, 'Jour 2'], [0.555, 'Jour 3']];
+export const LOG_IN = 0.05; // the log panel arrives as the hero leaves (« Jour 1 » reads before the posts)
+export const LOG_TICKS = [0.09, 0.36, 0.55, 0.86, 0.95]; // each item ticks when its step is done in 3D
+export const LOG_DAYS = [[0, 'Jour 1'], [0.15, 'Jour 2'], [0.555, 'Jour 3']];
 export const REPAIR_BEATS = { open: [-1, 0.205], step1: [0.235, 0.49], step2: [0.52, 0.68], step3: [0.74, 9] };
 export const HOTSPOTS_BEFORE = ['branche', 'poteau', 'penture', 'portillon'];
 export const HOTSPOTS_AFTER = ['pentures', 'cable', 'garde'];
 export const HOTSPOT_OUT = [0.17, 0.215]; // the « before » dots leave as the repair starts
-export const HOTSPOT_AFTER_IN = 0.86;
+// each « after » dot arrives as its piece lands in 3D: the gate lifted level (garde, 0.78), the
+// strap hinges (pentures, 0.84), the cable and turnbuckle (câble, 0.90)
+export const HOTSPOT_AFTER_IN = { garde: 0.78, pentures: 0.84, cable: 0.9 };
 
 // metres of new fence shown in the log: posts, rails and boards weigh 30, 25 and 45 %
 export function builtShare(p) {
@@ -181,7 +183,11 @@ export function createUI(handlers) {
   $('logo').addEventListener('click', () => handlers.onGo('top'));
   $('replay').addEventListener('click', () => handlers.onGo('top'));
   // buttons never keep the keyboard focus after a click: arrows and space stay with the page
-  document.querySelectorAll('button').forEach((b) => b.addEventListener('mouseup', () => b.blur()));
+  // (delegated: the estimator re-creates its height chips)
+  document.addEventListener('pointerup', (e) => {
+    const b = e.target && e.target.closest ? e.target.closest('button') : null;
+    if (b) setTimeout(() => b.blur(), 0);
+  });
 
   let L = null;
   // measures that depend on the layout (call after fonts and on resize)
@@ -391,9 +397,8 @@ export function createUI(handlers) {
         const j = HOTSPOTS_BEFORE.indexOf(h.id);
         a = smooth(-0.42 * V + j * 0.05 * V, -0.22 * V + j * 0.05 * V, x) * (1 - smooth(HOTSPOT_OUT[0] * A4, HOTSPOT_OUT[1] * A4, x));
       } else {
-        const j = HOTSPOTS_AFTER.indexOf(h.id);
-        const at = (HOTSPOT_AFTER_IN + j * 0.025) * A4;
-        a = smooth(at, at + 0.12 * V, x);
+        const at = (HOTSPOT_AFTER_IN[h.id] ?? 0.86) * A4;
+        a = smooth(at, at + 0.1 * V, x);
       }
       const an = byId[h.id];
       if (!an || !an.visible) a = 0;

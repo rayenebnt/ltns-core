@@ -97,7 +97,7 @@ void main() {
   float vis = smoothstep(aBlade.z, aBlade.z + 0.03, density) * region(root);
   float t = aShape.x;
   float H = uGrass.z * (0.6 + 0.8 * rnd) * vis;
-  float W = uGrass.w * (0.7 + 0.6 * rnd2) * (1.0 + dist * 0.045) / sqrt(max(uGrass2.w, 0.2));
+  float W = uGrass.w * (0.7 + 0.6 * rnd2) * (1.0 + dist * 0.02) / sqrt(max(uGrass2.w, 0.2));
   float yaw = rnd3 * 6.2831;
   vec2 side = vec2(cos(yaw), sin(yaw));
   float tri = g_stripeTri(root);
@@ -122,8 +122,8 @@ void main() {
   vec3 base = g_lawnColor(root, n1, n2, n3);
   base = mix(vec3(0.084, 0.152, 0.03) * (0.86 + 0.26 * n2.b), base, inYard);
   base *= mix(vec3(1.0), g_stripeTint(sgn, V, uGrass2.z * (0.55 + 0.45 * smoothstep(2.0, 18.0, dist))), inYard);
-  base *= 0.8 + 0.4 * rnd2;
-  base = mix(base, base * vec3(1.22, 1.16, 0.78), t * 0.4 * rnd);
+  base *= 0.9 + 0.2 * rnd2;
+  base = mix(base, base * vec3(1.22, 1.16, 0.78), t * 0.2 * rnd);
 #else
   vec3 base = g_meadowColor(root, n1, n2, n3) * (0.78 + 0.44 * rnd2);
   base = mix(base, vec3(0.24, 0.21, 0.1), step(0.82, rnd) * step(0.65, t) * 0.8);     // seed heads
@@ -131,12 +131,13 @@ void main() {
   vec3 fc = rnd2 > 0.6 ? vec3(0.7, 0.68, 0.6) : rnd2 > 0.25 ? vec3(0.55, 0.4, 0.04) : vec3(0.32, 0.18, 0.42);
   base = mix(base, fc, flower);
 #endif
-  float ao = mix(0.38, 1.0, pow(t, 0.8));
+  float ao = mix(0.62, 1.0, pow(t, 0.8));
   vec3 Nb = normalize(vec3(-side.y, 0.0, side.x));
   Nb *= sign(dot(Nb, V) + 1e-3);
   vec3 N = normalize(mix(Nb, vec3(0.0, 1.0, 0.0), 0.65));
   vec3 L = uSunDir;
-  float sh = sunShadow4(pos + vec3(0.0, 0.03, 0.0), 0.0005, 1.3);
+  // a shaded blade is never darker than the ground under it: soft shadow, a little lift
+  float sh = mix(0.12, 1.0, sunShadow4(pos + vec3(0.0, 0.03, 0.0), 0.0005, 2.0));
   float ndl = clamp(dot(N, L) * 0.6 + 0.4, 0.0, 1.0);
   vec3 col = base * (uSunCol * ndl * sh / G_PI + hemiAmbient(N) * ao);
   float back = pow(clamp(dot(-V, L), 0.0, 1.0), 2.0) * t;
@@ -158,7 +159,7 @@ void main() {
 }`;
 
 const KINDS = {
-  lawn: { n: 1600, segs: 2, height: 0.068, width: 0.0095, lean: 0.5, wind: 0.15, maxTiles: 420 },
+  lawn: { n: 1600, segs: 2, height: 0.068, width: 0.0055, lean: 0.5, wind: 0.15, maxTiles: 420 },
   meadow: { n: 640, segs: 4, height: 0.34, width: 0.0125, lean: 0.28, wind: 1.0, maxTiles: 420 },
 };
 

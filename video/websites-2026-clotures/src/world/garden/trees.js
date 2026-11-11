@@ -12,10 +12,12 @@ import { LIGHT_GLSL } from './lighting.js';
 import { HAZE_GLSL } from './atmosphere.js';
 import { heightAt } from './layout.js';
 
+const fract = (x) => x - Math.floor(x);
+
 const SPECIES = {
-  lime: { base: 0.13, cells: CELL.lime, card: [0.56, 0.82], trunkR: 0.46, bark: [0.7, 0.68, 0.66], points: 3300, leader: 0.35, up: 0.14,
+  lime: { base: 0.13, cells: CELL.lime, card: [0.68, 1.0], trunkR: 0.46, bark: [0.7, 0.68, 0.66], points: 3300, leader: 0.35, up: 0.14,
     lobes: 7, lobeR: [0.4, 0.56], ring: 0.5, lobeY: 0.0, lobeYv: 0.35, lobeTop: 0.42 },
-  oak: { base: 0.11, cells: CELL.oak, card: [0.6, 0.86], trunkR: 0.62, bark: [0.66, 0.6, 0.54], points: 3500, leader: 0.05, up: 0.05,
+  oak: { base: 0.11, cells: CELL.oak, card: [0.73, 1.05], trunkR: 0.62, bark: [0.66, 0.6, 0.54], points: 3500, leader: 0.05, up: 0.05,
     lobes: 10, lobeR: [0.32, 0.48], ring: 0.6, lobeY: 0.05, lobeYv: 0.4, lobeTop: 0.4 },
 };
 
@@ -394,9 +396,13 @@ function leafCards(tree, cards, density = 1) {
       const [t1, t2] = cardFrame(nn, rnd, s, s);
       const hy = Math.min(1, Math.max(0, (n.p[1] - (c[1] - rad[1])) / (2 * rad[1])));
       const lAo = 0.5 + 0.5 * Math.min(1, Math.max(0, (le - 0.2) / 0.8)) * (0.72 + 0.28 * Math.min(1, Math.max(0, lrel[1] * 0.5 + 0.5)));
-      const ao = (0.16 + 0.84 * Math.pow(Math.min(1, Math.max(0, (e - 0.12) / 0.9)), 1.5)) * (0.62 + 0.38 * hy) * lAo;
+      // dark cores, bright sunlit shells
+      const ao = (0.07 + 0.93 * Math.pow(Math.min(1, Math.max(0, (e - 0.12) / 0.9)), 2.0)) * (0.62 + 0.38 * hy) * lAo;
       const sway = Math.min(1, Math.hypot(n.p[0] - c[0], n.p[2] - c[2]) / rad[0]);
-      cards.add(centre, t1, t2, nn, out, ao, sp.cells[(rnd() * sp.cells.length) | 0], rnd(), rnd(), sway);
+      // hue per clump (some bluer, some yellower), a little per card
+      const lobeHue = fract(Math.sin(lb.c[0] * 12.9898 + lb.c[1] * 78.233 + lb.c[2] * 37.719) * 43758.5453);
+      const tint = Math.min(1, Math.max(0, 0.15 + 0.7 * lobeHue + (rnd() - 0.5) * 0.3));
+      cards.add(centre, t1, t2, nn, out, ao, sp.cells[(rnd() * sp.cells.length) | 0], tint, rnd(), sway);
     }
   }
 }
@@ -469,7 +475,7 @@ void main() {
   vec3 col = albedo * (uSunCol * diff / G_PI + amb * vAO * (0.7 + 0.3 * vShadow));
   col += albedo * vec3(1.0, 1.2, 0.45) * uSunCol * trans * 0.07;
   // seen from below, a canopy glows with the sky light coming through it
-  col += albedo * vec3(0.9, 1.15, 0.5) * uAmbSky * 0.55 * clamp(-N.y, 0.0, 1.0) * (0.5 + 0.5 * vAO);
+  col += albedo * vec3(0.9, 1.15, 0.5) * uAmbSky * 0.2 * clamp(-N.y, 0.0, 1.0) * (0.5 + 0.5 * vAO);
   // soft sheen of the waxy upper side
   vec3 H = normalize(uSunDir + V);
   col += uSunCol * pow(max(dot(n, H), 0.0), 24.0) * 0.012 * vShadow * (1.0 - uWet * 0.3);

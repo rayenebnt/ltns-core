@@ -10,7 +10,7 @@
   --orange-hi: #f48b45;
   --apricot: #f0a96b;
   --rust: #c2632b;
-  --glass: rgba(16, 18, 20, 0.6);
+  --glass: rgba(16, 18, 20, 0.64);
   --glass-line: rgba(255, 255, 255, 0.1);
   --m: clamp(24px, 4.2vw, 72px); /* page margin (layout.js pageMargin) */
   --nav-h: 76px;
@@ -222,14 +222,14 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   transition: transform 0.4s var(--ease), background-color 0.3s, box-shadow 0.4s var(--ease), color 0.3s;
 }
 .btn svg { width: 16px; height: 16px; transition: transform 0.4s var(--ease); }
-.btn:hover svg { transform: translateX(3px); }
+html:not(.cursor-off) .btn:hover svg { transform: translateX(3px); }
 .btn:active { transform: scale(0.97); }
 .btn-orange {
   background: var(--orange);
   color: var(--ink);
   box-shadow: 0 12px 28px rgba(238, 122, 47, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(120, 50, 10, 0.12);
 }
-.btn-orange:hover { background: var(--orange-hi); transform: translateY(-1px); box-shadow: 0 16px 34px rgba(238, 122, 47, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+html:not(.cursor-off) .btn-orange:hover { background: var(--orange-hi); transform: translateY(-1px); box-shadow: 0 16px 34px rgba(238, 122, 47, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
 .btn-sm { height: 40px; padding: 0 18px; font-size: 13px; gap: 8px; }
 .btn-sm svg { width: 14px; height: 14px; }
 .btn-ghost {
@@ -237,7 +237,7 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   color: var(--ink);
   box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.22);
 }
-.btn-ghost:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.6); }
+html:not(.cursor-off) .btn-ghost:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.6); }
 
 .pill-play {
   display: inline-flex;
@@ -247,9 +247,9 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   padding: 0 22px 0 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  background: rgba(16, 18, 20, 0.56);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  backdrop-filter: blur(14px) saturate(140%);
+  background: rgba(16, 18, 20, 0.62);
+  -webkit-backdrop-filter: blur(14px) saturate(85%);
+  backdrop-filter: blur(14px) saturate(85%);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   color: #fff;
   font: 600 11.5px/1 var(--sans);
@@ -268,8 +268,8 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   transition: transform 0.4s var(--ease);
 }
 .pill-play .disc svg { width: 10px; height: 10px; fill: var(--ink); margin-left: 2px; }
-.pill-play:hover { background: rgba(16, 18, 20, 0.72); border-color: rgba(255, 255, 255, 0.26); }
-.pill-play:hover .disc { transform: scale(1.08); }
+html:not(.cursor-off) .pill-play:hover { background: rgba(16, 18, 20, 0.72); border-color: rgba(255, 255, 255, 0.26); }
+html:not(.cursor-off) .pill-play:hover .disc { transform: scale(1.08); }
 
 .link-btn {
   border: 0;
@@ -291,14 +291,14 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   transform-origin: left center;
   transition: opacity 0.3s, transform 0.4s var(--ease);
 }
-.link-btn:hover { color: #fff; }
-.link-btn:hover::after { opacity: 1; }
+html:not(.cursor-off) .link-btn:hover { color: #fff; }
+html:not(.cursor-off) .link-btn:hover::after { opacity: 1; }
 
 /* ==================================================================== glass */
 .glass {
   background: var(--glass);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(85%);
+  backdrop-filter: blur(18px) saturate(85%);
   border: 1px solid var(--glass-line);
   border-radius: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -378,8 +378,8 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   transform-origin: left center;
   transition: transform 0.45s var(--ease);
 }
-.links button:hover { opacity: 1; }
-.links button:hover::after, .links button.is-here::after { transform: scaleX(1); }
+html:not(.cursor-off) .links button:hover { opacity: 1; }
+html:not(.cursor-off) .links button:hover::after, .links button.is-here::after { transform: scaleX(1); }
 .nav-pill {
   height: 38px;
   padding: 0 19px;
@@ -395,7 +395,7 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
 }
 .nav.on-3d .nav-pill, .nav.on-dark .nav-pill { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55); }
 .nav.on-light .nav-pill { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.35); }
-.nav-pill:hover { background: var(--orange); color: var(--ink); box-shadow: inset 0 0 0 1px var(--orange) !important; text-shadow: none; }
+html:not(.cursor-off) .nav-pill:hover { background: var(--orange); color: var(--ink); box-shadow: inset 0 0 0 1px var(--orange) !important; text-shadow: none; }
 
 /* ======================================================= beats over the 3D */
 .beat {
@@ -409,12 +409,13 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
 .beat::before {
   content: '';
   position: absolute;
-  left: -40%;
-  right: -30%;
-  top: -38%;
-  bottom: -46%;
+  left: -36%;
+  right: -28%;
+  top: -62%;
+  bottom: -52%;
   z-index: -1;
-  background: radial-gradient(closest-side, rgba(8, 10, 12, 0.44), rgba(8, 10, 12, 0.22) 52%, rgba(8, 10, 12, 0));
+  /* flat in the middle (the kicker, the lines and the body all sit inside it), soft at the rim */
+  background: radial-gradient(closest-side, rgba(8, 10, 12, var(--scrim, 0.46)), rgba(8, 10, 12, calc(var(--scrim, 0.46) * 0.84)) 48%, rgba(8, 10, 12, calc(var(--scrim, 0.46) * 0.4)) 75%, rgba(8, 10, 12, 0));
   opacity: var(--k, 0);
   pointer-events: none;
   will-change: opacity;
@@ -434,10 +435,32 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
 .actions { display: flex; align-items: center; gap: 22px; margin-top: 30px; }
 .b-right .actions { justify-content: flex-end; }
 
+/* beats over bright parts of the 3D (rails in the sun, the pale new section of the old fence) */
+#b-rails { --scrim: 0.74; }
+#r-step3 { --scrim: 0.8; }
+#r-step1, #b-finale { --scrim: 0.56; }
+.hero { --scrim: 0.55; }
+/* small uppercase kickers over the 3D: a soft dark halo under the letters */
+.hud .beat .kicker, .hud .styles-head .kicker { text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42), 0 0 2px rgba(0, 0, 0, 0.25); }
+.hud .beat .kicker { position: relative; }
+.hud .beat .kicker::after {
+  content: '';
+  position: absolute;
+  left: -16px;
+  right: -16px;
+  top: -8px;
+  bottom: -8px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(8, 10, 12, 0.34), rgba(8, 10, 12, 0.22) 60%, rgba(8, 10, 12, 0));
+  pointer-events: none;
+}
+/* italic accents over the 3D: a soft halo keeps the apricot legible on pale wood */
+.hud .h-beat em, .hud .display .it { text-shadow: 0 1px 18px rgba(0, 0, 0, 0.35), 0 0 2px rgba(0, 0, 0, 0.18); }
+
 /* hero */
 .hero { bottom: calc(15vh + 10px); width: min(760px, 58vw); }
-.hero::before { left: -45%; right: -25%; top: -30%; bottom: -40%; }
-.hero .kicker { color: rgba(255, 255, 255, 0.86); }
+.hero::before { left: -45%; right: -25%; top: -48%; bottom: -40%; }
+.hero .kicker { color: rgba(255, 255, 255, 0.94); }
 .hero .lead { max-width: 460px; }
 .hint {
   display: inline-flex;
@@ -600,7 +623,7 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   top: -55%;
   bottom: -48%;
   z-index: -1;
-  background: radial-gradient(closest-side, rgba(8, 10, 12, 0.46), rgba(8, 10, 12, 0.24) 55%, rgba(8, 10, 12, 0));
+  background: radial-gradient(closest-side, rgba(8, 10, 12, 0.58), rgba(8, 10, 12, 0.48) 48%, rgba(8, 10, 12, 0.22) 75%, rgba(8, 10, 12, 0));
   pointer-events: none;
 }
 .styles-head .kicker { color: rgba(255, 255, 255, 0.86); }
@@ -617,7 +640,7 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   white-space: nowrap;
   transition: background-color 0.4s var(--ease), color 0.4s, border-color 0.4s, box-shadow 0.4s;
 }
-.tab:hover { border-color: rgba(255, 255, 255, 0.34); }
+html:not(.cursor-off) .tab:hover { border-color: rgba(255, 255, 255, 0.34); }
 .tab.is-active {
   background: var(--orange);
   border-color: var(--orange);
@@ -802,7 +825,7 @@ html.is-capture *, html.is-capture *::before, html.is-capture *::after {
   white-space: nowrap;
   transition: background-color 0.35s var(--ease), color 0.35s, box-shadow 0.35s;
 }
-.chip:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.45); }
+html:not(.cursor-off) .chip:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.45); }
 .chip.is-on { background: var(--ink); color: var(--cream); box-shadow: inset 0 0 0 1px var(--ink); }
 .f-length input { margin-top: 14px; }
 input[type='range'] {
@@ -846,7 +869,7 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border: 0; bo
   font: 500 19px/1 var(--sans);
   transition: box-shadow 0.3s, background-color 0.3s, opacity 0.3s;
 }
-.stepper button:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.55); }
+html:not(.cursor-off) .stepper button:hover { box-shadow: inset 0 0 0 1px rgba(21, 23, 26, 0.55); }
 .stepper button:disabled { opacity: 0.3; cursor: default; }
 .stepper output { min-width: 20px; text-align: center; font: 400 32px/1 var(--serif); }
 
@@ -896,6 +919,20 @@ input[type='range']::-moz-range-thumb { width: 22px; height: 22px; border: 0; bo
 .h-final { margin: 34px 0 0; font: 400 clamp(50px, min(6.5vw, 11vh), 120px)/0.94 var(--serif); letter-spacing: -0.018em; }
 #final .lead { max-width: 560px; color: rgba(21, 23, 26, 0.7); }
 #final .actions { justify-content: center; margin-top: 34px; gap: 14px; }
+
+/* the veil of long programmatic jumps (main.js longMove): over the page, under the nav */
+#veil {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: var(--ink);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease), visibility 0s linear 0.3s;
+}
+#veil.is-light { background: var(--cream); }
+#veil.is-on { opacity: 1; visibility: visible; transition: opacity 0.16s ease-out, visibility 0s; }
 
 /* scroll-driven reveal of section content (JS sets --rv 0..1 per element) */
 .r { opacity: var(--rv, 1); transform: translateY(calc((1 - var(--rv, 1)) * 22px)); }

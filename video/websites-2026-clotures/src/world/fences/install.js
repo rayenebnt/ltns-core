@@ -19,7 +19,7 @@ export const KIT_COLORS = {
   soil: lin(118, 94, 70),
   soilDark: lin(70, 54, 40),
   hole: lin(22, 16, 12),
-  concrete: lin(158, 156, 148),
+  concrete: lin(140, 138, 130),
   gravel: lin(150, 146, 138),
   paint: [1.0, 0.16, 0.012],
   red: lin(222, 28, 26),
@@ -41,14 +41,15 @@ export const KIT_COLORS = {
 // flag positions (survey: utilities marked before digging) [x, z, colour]
 const FLAGS = [
   // red: buried power line toward the garden light, crossing in front of the hero camera
-  [6.6, 11.6, 'red'], [6.25, 9.9, 'red'], [5.9, 8.0, 'red'], [5.5, 6.0, 'red'], [5.1, 4.0, 'red'], [4.75, 2.0, 'red'], [4.4, 0.0, 'red'],
+  // (kept right of the hero headline: the line runs from near the right edge toward the house)
+  [7.05, 11.6, 'red'], [6.7, 9.9, 'red'], [6.35, 8.0, 'red'], [5.95, 6.0, 'red'], [5.55, 4.0, 'red'], [5.2, 2.0, 'red'], [4.85, 0.0, 'red'],
   // orange: telecom, crossing the fence line near d = 20
   [8.55, -1.9, 'orange'], [7.35, -2.4, 'orange'], [6.15, -2.9, 'orange'],
   // yellow: gas, toward the house
   [5.2, -1.0, 'yellow'], [4.8, -3.2, 'yellow'], [4.4, -5.4, 'yellow'], [4.0, -7.6, 'yellow'], [3.6, -9.8, 'yellow'],
 ];
 // stakes with pink flagging tape along the string line (d on the right leg)
-const STAKES_D = [-0.45, 7.6, 44.45]; // the middle one stands in the hero's foreground, right edge
+const STAKES_D = [-0.45, 5.4, 44.45]; // the middle one stands in the hero's foreground, right edge
 const STRING = { o: 0.058, y: 0.33 };
 
 export function buildInstallKit() {
@@ -79,13 +80,24 @@ export function buildInstallKit() {
       kit.set({ pivot: mc, role: ROLE.MOUND, color: C.soil, rm: [0.97, 0] });
       const m1 = rnd() * 6.28, m2 = rnd() * 6.28;
       const mh = 0.05 + rnd() * 0.025;
+      // crumbly spoil: a lumpy heap (several frequencies), clods scattered around it
+      const m3 = rnd() * 6.28;
       kit.mound({
         c: mc,
-        radius: (a) => 0.21 * (1 + 0.25 * Math.sin(a * 2 + m1) + 0.1 * Math.sin(a * 5 + m2)),
-        height: (rn, a) => mh * Math.pow(Math.max(0, 1 - rn * rn), 1.2) * (1 + 0.3 * Math.sin(a * 4 + m2) * rn + 0.18 * Math.sin(a * 9 + m1) * rn) + 0.004 + L * (1 - rn * 0.5),
-        rings: 5,
-        segs: 18,
+        radius: (a) => 0.21 * (1 + 0.25 * Math.sin(a * 2 + m1) + 0.1 * Math.sin(a * 5 + m2) + 0.06 * Math.sin(a * 11 + m3)),
+        height: (rn, a) =>
+          mh * Math.pow(Math.max(0, 1 - rn * rn), 1.2) * (1 + 0.32 * Math.sin(a * 4 + m2) * rn + 0.22 * Math.sin(a * 9 + m1) * rn + 0.16 * Math.sin(a * 17 + m3 + rn * 7) * Math.sin(rn * 9.4 + m1)) + 0.004 + L * (1 - rn * 0.5),
+        rings: 6,
+        segs: 24,
       });
+      for (let g = 0; g < 9; g++) {
+        const a = rnd() * 6.28, r = 0.12 + rnd() * 0.22;
+        const p = mc.clone().add(V(Math.cos(a) * r, 0, Math.sin(a) * r));
+        const sz = 0.014 + rnd() * 0.022;
+        kit.set({ color: (rnd() < 0.5 ? C.soil : C.soilDark).map((c) => c * (0.85 + rnd() * 0.3)), rm: [0.97, 0] });
+        const f = frame(V(rnd() - 0.5, 1, rnd() - 0.5), V(rnd() - 0.5, 0, rnd() - 0.5).add(V(0.001, 0, 0)));
+        kit.box({ c: p.setY(sz * 0.35 + L), A: f.A, B: f.B, G: f.G, sa: sz * (1 + rnd() * 0.6), sb: sz, sg: sz * 0.75, chamfer: sz * 0.35, uv: { su: 1, sv: 1 } });
+      }
       kit.set({ color: C.soilDark });
       kit.mound({ c: base.clone().addScaledVector(side, 0.17), radius: 0.12, height: (rn) => 0.012 * (1 - rn), y0: 0.003 + L, rings: 1, segs: 10 });
       for (let g = 0; g < 7; g++) {
@@ -97,7 +109,7 @@ export function buildInstallKit() {
       }
       // concrete collar (crowned to shed water)
       kit.set({ pivot: base, role: ROLE.COLLAR, color: C.concrete.map((c) => c * (0.94 + rnd() * 0.08)), rm: [0.93, 0] });
-      kit.mound({ c: base, radius: (a) => 0.15 * (1 + 0.06 * Math.sin(a * 3 + k1)), height: (rn) => 0.032 * (1 - rn * rn) + 0.004 + L * (1 - rn * 0.6), rings: 3, segs: 14 });
+      kit.mound({ c: base, radius: (a) => 0.15 * (1 + 0.06 * Math.sin(a * 3 + k1)), height: (rn, a) => 0.042 * (1 - rn * rn) * (1 + 0.1 * Math.sin(a * 5 + k2) * rn) + 0.004 + L * (1 - rn * 0.6), rings: 4, segs: 16 });
     });
   }
 

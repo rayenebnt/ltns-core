@@ -161,6 +161,9 @@ void main() {
   float wet = uWet * grassy;
   albedo *= mix(1.0, 0.84, uWet);
   albedo = mix(vec3(dot(albedo, vec3(0.3, 0.55, 0.15))), albedo, 1.0 - 0.18 * wet);
+  // a few puddle-dark, glossy patches along the old fence (trampled, waterlogged turf)
+  float pud = smoothstep(0.6, 0.76, n2.r) * smoothstep(0.35, 0.6, n3.g) * (1.0 - smoothstep(0.6, 3.2, dO)) * step(-24.0, p.x) * wet;
+  albedo = mix(albedo, albedo * vec3(0.5, 0.48, 0.42), pud * 0.85);
 
   // ---------------- lighting
   vec3 L = uSunDir;
@@ -176,6 +179,7 @@ void main() {
   vec3 R = reflect(-V, N);
   float fr = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
   col += wet * fr * hazeColor(R) * 0.07 * ao * (1.0 - smoothstep(0.0, 0.35, nv));
+  col += pud * (0.04 + 0.96 * pow(1.0 - nv, 5.0)) * hazeColor(R) * 0.35 * ao;
   float gl = pow(max(dot(R, L), 0.0), 90.0) * step(0.93, n4.a);
   col += wet * gl * uSunCol * sh * 0.06;
 

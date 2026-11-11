@@ -13,8 +13,8 @@ float g_stripeSign(float tri, float w) { return clamp(tri / w, -1.0, 1.0); }
 
 // lawn albedo (linear) from the four noise layers
 vec3 g_lawnColor(vec2 p, vec4 n1, vec4 n2, vec4 n3) {
-  vec3 lawn = vec3(0.068, 0.138, 0.024);
-  lawn = mix(lawn, vec3(0.104, 0.16, 0.03), smoothstep(0.55, 0.82, n1.r) * 0.7);   // drier, yellower
+  vec3 lawn = vec3(0.093, 0.15, 0.026);
+  lawn = mix(lawn, vec3(0.125, 0.165, 0.032), smoothstep(0.55, 0.82, n1.r) * 0.85);  // drier, yellower
   lawn = mix(lawn, vec3(0.042, 0.104, 0.025), smoothstep(0.5, 0.8, n1.g) * 0.65);  // lusher, darker
   lawn *= 0.84 + 0.28 * n2.b + 0.18 * (n3.g - 0.5);
   lawn = mix(lawn, vec3(0.048, 0.11, 0.036), smoothstep(0.7, 0.86, n3.r) * 0.45);  // clover

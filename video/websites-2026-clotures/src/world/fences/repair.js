@@ -3,9 +3,11 @@
 // Shadowbox construction (boards alternate on both faces of flat rails), grey weathered wood,
 // 1.80 m. Before the storm (chapters 1-2) it is intact. In the repair chapter:
 //   storm   the broken section z in [-6, -2]: snapped and hanging boards, boards on the grass,
-//           a post leaning toward the garden at z = -4, a big leafy lime branch across the top,
-//           the Z-braced gate (z in [0, 1.2], hinged at z = 0) sagging off a loose top hinge and
-//           dragging its free corner in the grass (scuff arc), leaf litter and twigs
+//           a post at z = -4 leaning along the fence (and a little toward the garden), a big
+//           leafy lime branch across the top of the section's left end, the Z-braced gate
+//           (z in [GZ, GZ + 1.2], hinged at GZ) hanging off a loose top hinge, swung out into the
+//           garden with its free corner dug into the grass (an arc of torn wet soil), mud, leaf
+//           litter and twigs
 //   repair  branch lifted away (0.20-0.28); post straightened (0.28-0.32), replaced by a fresh
 //           one in fresh concrete (0.32-0.36); broken pieces lifted away (0.30-0.38); fresh rails
 //           (0.34-0.38) and fresh pale boards one by one (0.37-0.50); gate lifted level
@@ -25,19 +27,22 @@ const T = V(0, 0, 1); // along the old fence
 // 1.2 m wide; one short intact bay separates it from the broken section [-6, -2]
 export const GZ = -8.4;
 export const GATE = { z0: GZ + 0.012, w: 1.176, y0: 0.05, h: 1.73, hingeZ: GZ };
-export const LEAN = { z: -4, angle: (-14 * Math.PI) / 180 };
-export const SAG = { alpha: (7.5 * Math.PI) / 180, beta: (17 * Math.PI) / 180, pivot: V(OX + 0.05, 0.17, GZ) };
+// the leaning post: mostly along the fence (toward the gate, so the lean reads from the
+// garden), a little toward the garden
+export const LEAN = { z: -4, along: (-11 * Math.PI) / 180, out: (-4 * Math.PI) / 180 };
+export const SAG = { alpha: (9.5 * Math.PI) / 180, beta: (31 * Math.PI) / 180, pivot: V(OX + 0.05, 0.17, GZ) };
 
 const P = (z, y, x = 0) => V(OX + x, y, z);
 const lin = (r, g, b) => [Math.pow(r / 255, 2.2), Math.pow(g / 255, 2.2), Math.pow(b / 255, 2.2)];
 const COL = {
-  rust: lin(110, 62, 36),
-  rustDark: lin(70, 42, 28),
+  rust: lin(44, 37, 32), // old iron: near black, rust shows through the grunge
+  rustDark: lin(96, 52, 26),
   black: lin(22, 22, 23),
   galv: lin(176, 178, 180),
-  concrete: lin(168, 166, 158),
+  concrete: lin(138, 136, 130),
   soil: lin(84, 62, 44),
-  soilWet: lin(58, 44, 32),
+  soilWet: lin(50, 38, 28),
+  mud: lin(56, 52, 36),
   turf: lin(92, 96, 52),
 };
 
@@ -57,7 +62,8 @@ export function gateMatrix(k) {
   return m;
 }
 export function leanMatrix(k) {
-  return rotAbout(V(OX, 0, LEAN.z), V(0, 0, 1), LEAN.angle * k);
+  const piv = V(OX, 0, LEAN.z);
+  return rotAbout(piv, V(1, 0, 0), LEAN.along * k).multiply(rotAbout(piv, V(0, 0, 1), LEAN.out * k));
 }
 
 const OLD_POSTS = (() => {
@@ -137,7 +143,7 @@ export function buildOldFence() {
       const leanEnd = Math.abs(z1 + 0.045 - LEAN.z) < 0.01 ? 1 : 0; // z1 side is the lean post
       const order = 0.3 + rnd() * 0.05;
       old.set({ role: ROLE.STORM, anim: [order, 0.03, 0.6, 0] });
-      const shift = y * Math.tan(-LEAN.angle);
+      const shift = y * Math.tan(-LEAN.out);
       const fixedZ = leanEnd ? z0 : z1, movingZ = leanEnd ? z1 : z0;
       if (k === 2 && leanEnd) {
         // snapped: two halves hanging
@@ -184,9 +190,13 @@ export function buildOldFence() {
     const order = 0.3 + rnd() * 0.06;
     old.set({ role: ROLE.STORM, anim: [order, 0.03, 0.7, 0] });
     const nearLean = Math.max(0, 1 - Math.abs(s.z - LEAN.z) / 1.8);
-    const pushM = rotAbout(P(s.z, 0.0), V(0, 0, 1), LEAN.angle * nearLean * 0.9).premultiply(new THREE.Matrix4().makeTranslation(nearLean * 0.015, 0, 0));
+    const pushM = rotAbout(P(s.z, 0.0), V(1, 0, 0), LEAN.along * nearLean * 0.85)
+      .multiply(rotAbout(P(s.z, 0.0), V(0, 0, 1), LEAN.out * nearLean * 0.9))
+      .premultiply(new THREE.Matrix4().makeTranslation(nearLean * 0.015, 0, 0));
     const r = rnd();
-    const kind = s.z < -4.7 ? (r < 0.72 ? 'snap' : r < 0.86 ? 'hang' : 'miss') : s.z < -3.3 ? (r < 0.8 ? 'push' : 'snap') : r < 0.3 ? 'hang' : r < 0.42 ? 'miss' : 'push';
+    // under the branch (the section's left end, z > -3.3) the tops are snapped off; around the
+    // leaning post the boards go over with it; toward the gate a few hang or are missing
+    const kind = s.z > -3.3 ? (r < 0.72 ? 'snap' : r < 0.86 ? 'hang' : 'miss') : s.z > -4.7 ? (r < 0.8 ? 'push' : 'snap') : r < 0.3 ? 'hang' : r < 0.42 ? 'miss' : 'push';
     if (kind === 'snap') {
       const ys = 0.62 + rnd() * 0.55;
       const m = old.vertexCount;
@@ -242,29 +252,50 @@ export function buildOldFence() {
   // heaved soil at the foot of the leaning post (storm), torn turf
   kit.set({ role: ROLE.STORM, anim: [0.3, 0.04, 0.0, 0], color: COL.soilWet, rm: [0.95, 0] });
   kit.mound({ c: P(LEAN.z, 0, 0.18), radius: (a) => 0.28 * (1 + 0.3 * Math.sin(a * 2 + 1.0)), height: (rn, a) => 0.05 * (1 - rn) * (1 + 0.3 * Math.sin(a * 5)) + GROUND.lift * (1 - rn * 0.5), rings: 3, segs: 14 });
-  // scuff arc of the dragging corner (hinge at z = 0, radius ~1.17)
-  kit.set({ pivot: P(GZ, 0), d: GZ, role: ROLE.STORMONLY, rnd: 0.5, leg: 0, anim: [0.84, 0.16, 0.0, 0], color: COL.soil, rm: [0.96, 0] });
+  // the gate's dragging corner: an arc of torn, wet soil along its swing, tufts of turf
+  // thrown out of it, the corner dug in where it stopped
+  kit.set({ pivot: P(GZ, 0), d: GZ, role: ROLE.STORMONLY, rnd: 0.5, leg: 0, anim: [0.86, 0.14, 0.45, 0], color: COL.soilWet, rm: [0.9, 0] });
   {
-    const R = 1.16, a1 = SAG.beta + 0.18, N = 18;
+    const R = Math.hypot(GATE.w - 0.02, 0.05), a1 = SAG.beta + 0.06, N = 26;
     const hz = SAG.pivot.z, hx = SAG.pivot.x;
     const base = kit.vertexCount;
     for (let i = 0; i <= N; i++) {
       const a = (i / N) * a1;
-      const wob = 0.025 + 0.015 * Math.sin(i * 2.3) + 0.01 * rnd();
-      for (const s of [-1, 1]) {
-        const r = R + s * wob;
-        kit.set({ color: s > 0 ? COL.soil : COL.soilWet });
-        kit.vert(V(hx + Math.sin(a) * r, 0.009 + GROUND.lift, hz + Math.cos(a) * r), UP, 0, 0);
+      // wider and deeper toward the end of the swing, where the corner dug in
+      const t = i / N;
+      const wob = (0.05 + 0.07 * t) * (1 + 0.25 * Math.sin(i * 2.3)) + 0.015 * rnd();
+      for (const s2 of [-1, 0, 1]) {
+        const r = R + s2 * wob;
+        kit.set({ color: s2 === 0 ? COL.soilWet : rnd() < 0.5 ? COL.soil : COL.mud });
+        kit.vert(V(hx + Math.sin(a) * r, 0.006 + GROUND.lift * (s2 === 0 ? 0.55 : 0.95) + (s2 === 0 ? 0 : 0.006 * rnd()), hz + Math.cos(a) * r), UP, 0, 0);
       }
     }
     for (let i = 0; i < N; i++) {
-      const a = base + i * 2;
-      kit.quadIdx(a, a + 1, a + 3, a + 2);
+      const a = base + i * 3;
+      kit.quadIdx(a, a + 1, a + 4, a + 3);
+      kit.quadIdx(a + 1, a + 2, a + 5, a + 4);
     }
-    // torn turf heaped where the corner digs in
+    // torn tufts along the arc (both sides) and a heap where the corner stopped
+    for (let i = 0; i < 14; i++) {
+      const a = rnd() * a1, side = rnd() < 0.5 ? -1 : 1;
+      const r = R + side * (0.08 + rnd() * 0.12);
+      kit.set({ color: rnd() < 0.6 ? COL.turf : COL.soil });
+      const c = V(hx + Math.sin(a) * r, 0, hz + Math.cos(a) * r);
+      const k1 = rnd() * 6.28;
+      kit.mound({ c, radius: (aa) => (0.035 + rnd() * 0.0) * (1 + 0.35 * Math.sin(aa * 3 + k1)), height: (rn) => 0.022 * (1 - rn * rn) + GROUND.lift, rings: 2, segs: 8 });
+    }
     const cz = hz + Math.cos(SAG.beta) * R, cx = hx + Math.sin(SAG.beta) * R;
-    kit.set({ color: COL.turf });
-    kit.mound({ c: V(cx + 0.04, 0, cz + 0.04), radius: (a) => 0.1 * (1 + 0.3 * Math.sin(a * 3)), height: (rn) => 0.022 * (1 - rn * rn) + GROUND.lift, rings: 2, segs: 10 });
+    kit.set({ color: COL.soil });
+    kit.mound({ c: V(cx + 0.06, 0, cz + 0.05), radius: (a) => 0.13 * (1 + 0.3 * Math.sin(a * 3)), height: (rn, a) => 0.035 * (1 - rn * rn) * (1 + 0.25 * Math.sin(a * 7)) + GROUND.lift, rings: 3, segs: 12 });
+  }
+  // mud: trampled wet patches under the leaning post and along the broken bays (cleaned up
+  // with the fresh concrete, 0.36 - 0.42)
+  kit.set({ pivot: P(LEAN.z, 0), d: LEAN.z, role: ROLE.STORMONLY, rnd: 0.5, leg: 0, anim: [0.36, 0.06, 1, 0], rm: [0.55, 0] });
+  // (low, under the tips of the lawn blades: the grass pokes through the wet soil)
+  for (const [z, x, r0] of [[-4.0, 0.32, 0.34], [-5.1, 0.5, 0.24], [-3.0, 0.45, 0.22], [-4.5, 0.95, 0.16]]) {
+    const k1 = rnd() * 6.28, k2 = rnd() * 6.28, k3 = rnd() * 6.28;
+    kit.set({ color: COL.mud.map((c) => c * (0.9 + rnd() * 0.25)) });
+    kit.mound({ c: P(z, 0, x), radius: (a) => r0 * (1 + 0.3 * Math.sin(a * 2 + k1) + 0.16 * Math.sin(a * 5 + k2) + 0.08 * Math.sin(a * 11 + k3)), height: () => 0, y0: 0.012, rings: 2, segs: 22 });
   }
 
   // ---------------------------------------------------------------- branch, litter
@@ -403,6 +434,7 @@ function buildGate(old, kit, rnd) {
 // ------------------------------------------------------------------ fallen lime branch
 function buildBranch(bark, leaves, fresh, rnd) {
   // main limb: butt on the neighbour's ground near N1, over the fence top, leafy end in the garden
+  // (lying across the left end of the broken section, seen from the garden: the gate stays clear)
   const main = [
     V(-27.3, 0.18, -6.25),
     V(-26.3, 0.78, -6.0),
@@ -413,13 +445,13 @@ function buildBranch(bark, leaves, fresh, rnd) {
     V(-22.35, 0.82, -6.06),
     V(-21.95, 0.4, -6.32),
     V(-21.7, 0.13, -6.52),
-  ];
+  ].map((p, i) => p.add(V(0, 0, 1.75 + i * 0.3)));
   const radii = main.map((_, i) => 0.085 * Math.pow(1 - i / (main.length - 0.6), 0.9) + 0.012);
   const ATT = 6;
-  bark.set({ pivot: main[3], d: -5.5, role: ROLE.STORMONLY, rnd: 0.5, leg: ATT, anim: [0.205, 0.06, 1, 0] });
+  bark.set({ pivot: main[3], d: -5.5, role: ROLE.STORMONLY, rnd: 0.5, leg: ATT, anim: [0.252, 0.028, 1, 0] });
   bark.tube({ pts: smoothPath(main, 4), r: smoothArr(radii, 4), n: 9, uv: { su: 0.5, sv: 1.2 }, caps: [true, true] });
   // pale splintered butt end
-  fresh.set({ pivot: main[3], d: -5.5, role: ROLE.STORMONLY, rnd: 0.5, leg: ATT, anim: [0.205, 0.06, 1, 0] });
+  fresh.set({ pivot: main[3], d: -5.5, role: ROLE.STORMONLY, rnd: 0.5, leg: ATT, anim: [0.252, 0.028, 1, 0] });
   const dir0 = main[0].clone().sub(main[1]).normalize();
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2;
@@ -466,7 +498,7 @@ function buildBranch(bark, leaves, fresh, rnd) {
         const td = d.clone().add(V((rnd() - 0.5) * 1.4, rnd() * 0.6 - 0.2, (rnd() - 0.5) * 1.4)).normalize();
         const e = s.clone().addScaledVector(td, 0.35 + rnd() * 0.35);
         e.y = Math.max(e.y, 0.04);
-        e.z = Math.max(-6.8, Math.min(e.z, -4.9));
+        e.z = Math.max(-4.15, Math.min(e.z, -0.6));
         bark.tube({ pts: [s, s.clone().lerp(e, 0.5).add(V(0, 0.03, 0)), e], r: [0.009, 0.006, 0.003], n: 4, uv: { su: 0.5, sv: 1.2 } });
         tips.push(e);
       }
@@ -475,13 +507,13 @@ function buildBranch(bark, leaves, fresh, rnd) {
   }
   for (let i = 4; i < main.length; i++) tips.push(main[i]);
   // leaf sprays around the tips (fresh green, a few turning)
-  leaves.set({ pivot: main[3], d: -5.5, role: ROLE.STORMONLY, rnd: 0.5, leg: ATT, anim: [0.205, 0.06, 1, 0] });
+  leaves.set({ pivot: main[3], d: -5.5, role: ROLE.STORMONLY, rnd: 0.5, leg: ATT, anim: [0.252, 0.028, 1, 0] });
   for (const tip of tips) {
     const n = 11 + Math.floor(rnd() * 6);
     for (let k = 0; k < n; k++) {
       const c = tip.clone().add(V((rnd() - 0.5) * 0.45, (rnd() - 0.3) * 0.36, (rnd() - 0.5) * 0.45));
       c.y = Math.max(c.y, 0.06 + rnd() * 0.05);
-      c.z = Math.max(-6.95 + rnd() * 0.1, Math.min(c.z, -4.85 - rnd() * 0.1));
+      c.z = Math.max(-4.3 + rnd() * 0.1, Math.min(c.z, -0.4 - rnd() * 0.1));
       const g = 0.62 + rnd() * 0.5;
       const t = rnd();
       leaves.set({ color: t < 0.07 ? [0.95 * g, 0.88 * g, 0.42 * g] : t < 0.4 ? [0.62 * g, 0.8 * g, 0.42 * g] : [0.78 * g, 0.93 * g, 0.58 * g] });
@@ -504,22 +536,25 @@ function leafCard(b, c, size, cell, rnd, flat = false) {
 // leaf litter and twigs on the grass of the repair area
 function buildLitter(leaves, bark, rnd) {
   const lift = 0.012 + GROUND.lift * 1.25;
-  leaves.set({ pivot: P(-4, 0), d: -4, role: ROLE.STORMONLY, rnd: 0.5, leg: 0, anim: [0, 0, 0, 0] });
-  for (let i = 0; i < 900; i++) {
-    // denser near the fence and the branch, thinning into the garden
-    const x = Math.pow(rnd(), 1.7) * 9.5 + 0.12;
+  for (let i = 0; i < 1400; i++) {
+    // denser near the fence, under the branch and along the broken section, thinning into the garden
+    const x = Math.pow(rnd(), 1.8) * 9.5 + 0.12;
     const z = -11.5 + rnd() * 13 + (rnd() - 0.5) * 2;
-    const near = Math.exp(-Math.abs(z + 5.2) / 4);
-    if (rnd() > 0.35 + 0.65 * near) continue;
+    const near = Math.exp(-Math.abs(z + 3.4) / 3.2);
+    if (rnd() > 0.3 + 0.7 * near) continue;
     const c = P(z, lift + rnd() * 0.012, x);
     const g = 0.7 + rnd() * 0.45;
     const t = rnd();
-    leaves.set({ color: t < 0.4 ? [0.95 * g, 1.05 * g, 0.72 * g] : t < 0.65 ? [0.8 * g, 0.92 * g, 0.55 * g] : t < 0.85 ? [1.1 * g, 0.95 * g, 0.42 * g] : [0.95 * g, 0.66 * g, 0.36 * g] });
-    leafCard(leaves, c, 0.12 + rnd() * 0.08, rnd() < 0.75 ? 2 : 3, rnd, true);
+    // most of it goes with the branch (raked away 0.20 - 0.30); a third stays on the grass
+    const raked = rnd() < 0.68;
+    leaves.set({ pivot: c, d: z, role: ROLE.STORMONLY, rnd: 0.5, leg: 0, anim: raked ? [0.2 + rnd() * 0.08, 0.02, 1, 0] : [0, 0, 0, 0] });
+    // linear multipliers of the green leaf texture: yellow-brown, brown, yellowing, green
+    leaves.set({ color: t < 0.32 ? [3.6 * g, 1.0 * g, 1.4 * g] : t < 0.6 ? [2.1 * g, 0.52 * g, 1.15 * g] : t < 0.8 ? [1.25 * g, 0.98 * g, 0.42 * g] : [0.9 * g, 1.02 * g, 0.66 * g] });
+    leafCard(leaves, c, 0.11 + rnd() * 0.08, rnd() < 0.75 ? 2 : 3, rnd, true);
   }
   // twigs
   bark.set({ pivot: P(-4, 0), d: -4, role: ROLE.STORMONLY, rnd: 0.5, leg: 0, anim: [0, 0, 0, 0] });
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 38; i++) {
     const x = 0.2 + Math.pow(rnd(), 1.4) * 6, z = -10.5 + rnd() * 10.5;
     const yaw = rnd() * 6.28, len = 0.15 + rnd() * 0.5;
     const a = P(z, lift * 0.7, x), b = a.clone().add(V(Math.sin(yaw) * len, 0.01, Math.cos(yaw) * len));
@@ -542,7 +577,7 @@ function smoothArr(arr, sub) {
 
 // anchors in the rest pose (transformed by the attachments at runtime)
 export const ANCHORS_REST = {
-  poteau: { p: V(OX + 0.06, 1.1, LEAN.z), att: 1 },
+  poteau: { p: V(OX + 0.06, 1.4, LEAN.z), att: 1 }, // upper third of the leaning post
   penture: { p: V(OX + 0.07, 1.58, GZ + 0.03), att: 0 },
   portillon: { p: V(OX + 0.05, 0.12, GATE.z0 + GATE.w - 0.06), att: 0 },
   pentures: { p: V(OX + 0.06, 1.58, GZ + 0.22), att: 0 },

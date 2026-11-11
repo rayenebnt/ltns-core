@@ -3,7 +3,7 @@
 // (createWorld / update / render / resize / warmup / anchors / info / stats / setQuality).
 import * as THREE from 'three';
 import * as WORLD from './world/index.js';
-import { computeLayout, sceneAt, posOf, logicalOf, yOfLogical, styleAt, N_STEPS } from './layout.js';
+import { computeLayout, sceneAt, posOf, logicalOf, yOfLogical, styleAt, surfaceAt, N_STEPS } from './layout.js';
 import { createScroller } from './scroll.js';
 import { createUI } from './ui.js';
 import { createEstimator } from './estimator.js';
@@ -23,7 +23,10 @@ export const LEVELS = ['low', 'medium', 'high', 'max'];
 const DPR = { low: 1, medium: 1.5, high: 1.75, max: 2 };
 const FORCED = LEVELS.includes(Q);
 const effDpr = (lv) => Math.min(window.devicePixelRatio || 1, DPR[lv]);
-const BUDGET_MS = 20.5; // worst median frame time allowed at the test stations
+// quality test: the 80th percentile of the frame interval at each test station must stay under
+// one 60 Hz frame (a missed vsync shows as 33 ms); then a governor watches the real frames
+const BUDGET_MS = 17.4;
+const SLOW_MS = +(params.get('slow') || 0); // debug: busy-wait this long in every frame
 
 const doc = document.documentElement;
 const $ = (id) => document.getElementById(id);
@@ -111,7 +114,7 @@ async function start() {
   await nextFrame();
 
   // ------------------------------------------------------------------ layout and UI
-  const dom = { white: $('white'), pricing: $('pricing'), intro4: $('intro4'), final: $('final'), intro2Head: $('intro2-head') };
+  const dom = { white: $('white'), pricing: $('pricing'), intro4: $('intro4'), final: $('final'), intro2Head: $('intro2-head'), sticky: $('sticky') };
   const scrollSpace = $('scroll-space');
   let L = computeLayout(dom);
   scrollSpace.style.height = `${L.total}px`;
@@ -134,7 +137,7 @@ async function start() {
   $('len').addEventListener('pointerup', (e) => e.currentTarget.blur());
 
   // ------------------------------------------------------------------ world state
-  const wstate = { seg: 'install', install: 0, style: { from: 0, to: 0, k: 1 }, drift: 0, repair: 0, pointer: { x: 0, y: 0 }, window: null };
+  const wstate = { seg: 'install', install: 0, style: { from: 0, to: 0, k: 1 }, drift: 0, stylesP: 0, repair: 0, pointer: { x: 0, y: 0 }, window: null };
   const ptr = { x: 0, y: 0, tx: 0, ty: 0 };
   let time = FIXED_T !== null ? FIXED_T : 0;
   let lastSc = null;
@@ -150,6 +153,7 @@ async function start() {
     wstate.style.to = sc.style.to;
     wstate.style.k = sc.style.k;
     wstate.drift = sc.drift;
+    wstate.stylesP = clamp(sc.s);
     wstate.repair = sc.repair;
     wstate.pointer.x = ptr.x;
     wstate.pointer.y = ptr.y;
@@ -185,28 +189,43 @@ async function start() {
   await world.warmup();
   setLoad(0.74);
   await nextFrame();
+  // the screen's own frame period, measured with nothing to draw (60 Hz: 16.7 ms, 120 Hz: 8.3 ms)
+  let vsyncMs = 1000 / 60;
+  if (!CAPTURE) {
+    const iv = [];
+    let prev = performance.now();
+    for (let i = 0; i < 12; i++) {
+      await nextFrame();
+      const now = performance.now();
+      if (i > 1) iv.push(now - prev);
+      prev = now;
+    }
+    iv.sort((a, b) => a - b);
+    vsyncMs = clamp(iv[iv.length >> 1], 4, 40);
+  }
 
-  const STATIONS = () => [posOf(L, 'install', 0), posOf(L, 'install', 0.62), posOf(L, 'install', 0.97), posOf(L, 'styles', 1.5), posOf(L, 'repair', 0.06), posOf(L, 'repair', 0.93)];
+  const STATIONS = () => [posOf(L, 'install', 0.02), posOf(L, 'install', 0.62), posOf(L, 'install', 0.97), posOf(L, 'styles', 1.5), posOf(L, 'repair', 0.06), posOf(L, 'repair', 0.93)];
+  // each station is drawn as a real frame (renderFrame: the 3D and the overlays in their real
+  // state: log, card, sticky bar, glass); the loader stays on top
   async function measureLevel() {
     let worst = 0;
     for (const py of STATIONS()) {
-      const sc = sceneAt(L, py);
-      fillState(sc);
+      scroller.jump(py);
       const dts = [];
       let prev = performance.now();
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 14; i++) {
         time += 1 / 60;
-        world.update(wstate, 1 / 60, time);
-        world.render();
+        renderFrame(1 / 60, { instant: true });
         await nextFrame();
         const now = performance.now();
         if (i > 1) dts.push(now - prev); // the first frames of a station may upload buffers
         prev = now;
       }
       dts.sort((a, b) => a - b);
-      worst = Math.max(worst, dts[dts.length >> 1]);
+      worst = Math.max(worst, dts[Math.floor(dts.length * 0.8)]);
       if (worst > 45) break; // far too slow already
     }
+    scroller.jump(0);
     return worst;
   }
   if (!FORCED && !CAPTURE) {
@@ -214,7 +233,7 @@ async function start() {
       const ms = await measureLevel();
       measured.push(`${level} ${ms.toFixed(1)} ms`);
       setLoad(0.78 + 0.05 * (tries + 1));
-      if (ms <= BUDGET_MS) break;
+      if (ms <= Math.max(BUDGET_MS, 1.05 * vsyncMs)) break;
       const i = LEVELS.indexOf(level);
       if (i <= 0) break;
       level = LEVELS[i - 1];
@@ -230,6 +249,41 @@ async function start() {
 
   // ------------------------------------------------------------------ moves
   const durFor = (to, from = scroller.heading) => clamp(0.85 + (0.11 * Math.abs(to - from)) / L.V, 1.0, 3.2);
+  // A long programmatic move (more than 2.5 screens) does not fast-forward through the story:
+  // a veil fades in (cream over a light target, ink otherwise), the page jumps to 0.8 screen
+  // before the target, and the last 0.8 screen glides in while the veil fades out.
+  const veilEl = $('veil');
+  const veil = { timer: 0, on: false, lastWheel: -1e9, ignoreGesture: false };
+  function veilOut() {
+    clearTimeout(veil.timer);
+    veil.timer = 0;
+    veil.on = false;
+    if (veilEl) veilEl.classList.remove('is-on');
+  }
+  function longMove(to, then) {
+    to = clamp(to, 0, L.max);
+    const from = scroller.heading;
+    const dist = to - from;
+    if (Math.abs(dist) <= 2.5 * L.V || !veilEl || CAPTURE) return false;
+    scroller.stop();
+    veil.ignoreGesture = performance.now() - veil.lastWheel < 220;
+    veilEl.classList.toggle('is-light', surfaceAt(L, to, 0.5 * L.V) === 'light');
+    veilEl.classList.add('is-on');
+    veil.on = true;
+    clearTimeout(veil.timer);
+    veil.timer = setTimeout(() => {
+      veil.timer = 0;
+      const pre = clamp(to - Math.sign(dist) * 0.8 * L.V, 0, L.max);
+      scroller.jump(pre);
+      if (then) then(pre);
+      else scroller.tweenTo(to, 0.9);
+      requestAnimationFrame(() => requestAnimationFrame(veilOut));
+    }, 170);
+    return true;
+  }
+  function glideTo(to, dur) {
+    if (!longMove(to)) scroller.tweenTo(to, dur ?? durFor(to));
+  }
   function goTo(name) {
     let to;
     if (name === 'top') to = 0;
@@ -238,7 +292,7 @@ async function start() {
     else if (name === 'pricing') to = posOf(L, 'pricing', 1);
     else if (name === 'repair') to = posOf(L, 'repair', 0.04);
     else to = posOf(L, name);
-    scroller.tweenTo(to, durFor(to));
+    glideTo(to);
   }
   function toType(i) {
     i = clamp(Math.round(i), 0, N_STEPS - 1);
@@ -258,8 +312,12 @@ async function start() {
     scroller.play(which, keys, () => chapterKeys(L, table, yOfLogical(L, from)) || [[0, scroller.st.target]]);
   }
   function startTour() {
-    const from = logicalOf(L, scroller.st.target);
-    scroller.play('tour', tourKeys(L, scroller.st.target), () => tourKeys(L, yOfLogical(L, from)));
+    const play = () => {
+      const from = logicalOf(L, scroller.st.target);
+      scroller.play('tour', tourKeys(L, scroller.st.target), () => tourKeys(L, yOfLogical(L, from)));
+    };
+    // far from the top: the veil, then the tour from the hero (no rewind through the story)
+    if (!longMove(0, () => (scroller.jump(0), play()))) play();
   }
   // beat-to-beat stops for the keyboard
   const STOPS = [
@@ -281,6 +339,19 @@ async function start() {
   // any wheel (scroll.js: a new gesture), touch or key input interrupts a playing tour and any
   // programmatic glide
   window.addEventListener('touchstart', () => scroller.stop(), { passive: true });
+  // a new wheel gesture or a touch during a veiled jump: stay where the page is (the tail of the
+  // gesture that was running when the jump started, trackpad momentum included, is ignored)
+  window.addEventListener(
+    'wheel',
+    () => {
+      const t = performance.now();
+      const same = t - veil.lastWheel < 220;
+      veil.lastWheel = t;
+      if (veil.timer && !(veil.ignoreGesture && same)) veilOut();
+    },
+    { passive: true },
+  );
+  window.addEventListener('touchstart', () => veil.timer && veilOut(), { passive: true });
   window.addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return; // browser shortcuts
     const isP = e.key === 'p' || e.key === 'P';
@@ -304,11 +375,11 @@ async function start() {
         break;
       case 'Home':
         e.preventDefault();
-        scroller.tweenTo(0, durFor(0));
+        glideTo(0);
         break;
       case 'End':
         e.preventDefault();
-        scroller.tweenTo(L.max, durFor(L.max));
+        glideTo(L.max);
         break;
       case 'ArrowLeft':
       case 'ArrowRight': {
@@ -364,6 +435,54 @@ async function start() {
   scroller.jump(0);
   renderFrame(1 / 60, { instant: true });
 
+  // the governor: after the loader, a laptop that cannot keep up (it heats up, another app takes
+  // the GPU) steps down one quality level, while the canvas is covered by a section if it can
+  // wait, at most twice per session, never back up. Off with a forced ?q and in ?capture.
+  // (?gov=1 keeps it on with a forced ?q: a test of the governor itself)
+  const gov = { on: (!FORCED || params.get('gov') === '1') && !CAPTURE, win: [], steps: 0, pending: false, severe: false, note: '' };
+  function govStep() {
+    gov.pending = gov.severe = false;
+    gov.win.length = 0;
+    const i = LEVELS.indexOf(level);
+    if (i <= 0) {
+      gov.on = false;
+      return;
+    }
+    const from = level;
+    level = LEVELS[i - 1];
+    dpr = effDpr(level);
+    world.setQuality(level);
+    world.resize(innerWidth, innerHeight, dpr);
+    gov.steps++;
+    gov.note = `${from}→${level}`;
+    if (gov.steps >= 2) gov.on = false;
+    console.info(`[Cordeau] qualité abaissée : ${gov.note} (densité ${dpr})`);
+  }
+  // a frame is slow when it takes more than 1.5 frames of 60 Hz (or of the screen, if slower)
+  const slowMs = 1.5 * Math.max(vsyncMs, 1000 / 62);
+  function govWatch(raw) {
+    if (!gov.on) return;
+    const ms = raw * 1000;
+    // a hidden tab, a resize or a veiled jump are not the page's own frame rate
+    if (document.hidden || ms > 250 || veil.on || !lastSc || lastSc.seg === 'hidden') {
+      if (gov.pending && lastSc && lastSc.seg === 'hidden') govStep();
+      return;
+    }
+    gov.win.push(ms);
+    if (gov.win.length > 120) gov.win.shift();
+    if (gov.win.length === 120 && !gov.pending) {
+      let slow = 0;
+      for (const x of gov.win) if (x > slowMs) slow++;
+      slow /= gov.win.length;
+      if (slow > 0.2) {
+        gov.pending = true;
+        gov.severe = slow > 0.45;
+        gov.win.length = 0;
+      }
+    }
+    if (gov.pending && gov.severe) govStep();
+  }
+
   let fpsEl = null;
   const fpsAcc = { n: 0, t: 0, worst: 0 };
   if (FPS) {
@@ -379,6 +498,10 @@ async function start() {
 
   if (CAPTURE) ready();
 
+  let autoPending = AUTO && !CAPTURE;
+  const cancelAuto = () => (autoPending = false);
+  for (const ev of ['wheel', 'keydown', 'touchstart', 'pointerdown']) window.addEventListener(ev, cancelAuto, { passive: true });
+
   let last = performance.now();
   function frame(now) {
     requestAnimationFrame(frame);
@@ -386,13 +509,18 @@ async function start() {
     const dt = Math.min(0.1, Math.max(0, raw));
     last = now;
     if (FIXED_T === null) time += dt;
+    if (SLOW_MS > 0) {
+      const t0 = performance.now();
+      while (performance.now() - t0 < SLOW_MS);
+    }
+    govWatch(raw);
     if (fpsEl) {
       fpsAcc.n++;
       fpsAcc.t += raw;
       fpsAcc.worst = Math.max(fpsAcc.worst, raw);
       if (fpsAcc.t >= 0.5) {
         const fps = fpsAcc.n / fpsAcc.t;
-        fpsEl.textContent = `q=${level} · ×${String(+dpr.toFixed(2)).replace('.', ',')} · ${fps < 10 ? fps.toFixed(1).replace('.', ',') : Math.round(fps)} i/s · pire ${Math.round(fpsAcc.worst * 1000)} ms`;
+        fpsEl.textContent = `q=${gov.note || level}${gov.pending ? '…' : ''} · ×${String(+dpr.toFixed(2)).replace('.', ',')} · ${fps < 10 ? fps.toFixed(1).replace('.', ',') : Math.round(fps)} i/s · pire ${Math.round(fpsAcc.worst * 1000)} ms`;
         fpsAcc.n = fpsAcc.t = fpsAcc.worst = 0;
       }
     }
@@ -404,9 +532,11 @@ async function start() {
     ptr.y += (ptr.ty - ptr.y) * kp;
     scroller.step(dt);
     renderFrame(dt);
-    if (!window.__ready) {
-      ready();
-      if (AUTO) startTour();
+    if (!window.__ready) ready();
+    // ?auto=1: the tour starts once the hero is fully drawn (its 1 s hold then plays on it)
+    if (autoPending && intro >= 1) {
+      autoPending = false;
+      startTour();
     }
   }
   if (!CAPTURE) requestAnimationFrame(frame);
@@ -442,6 +572,7 @@ async function start() {
       drift: wstate.drift,
       repair: wstate.repair,
       playing: scroller.playing,
+      governor: { on: gov.on, steps: gov.steps, pending: gov.pending, note: gov.note, vsyncMs: +vsyncMs.toFixed(2), slowMs: +slowMs.toFixed(2), window: gov.win.length },
     };
   };
   window.__world = world;

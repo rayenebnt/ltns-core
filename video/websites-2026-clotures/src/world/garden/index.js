@@ -33,11 +33,12 @@ import { TREES } from './layout.js';
 
 export { HAZE_UNIFORMS, HAZE_GLSL, LIGHT_GLSL, heightAt, VIEWS };
 
+// leaf: share of the leaf cards drawn (the cards grow a little to keep the crowns full)
 export const QUALITY = {
-  max: { shadow: 4096, grass: 1.0, grassR: 17, leaf: 1.0 },
-  high: { shadow: 2048, grass: 0.8, grassR: 14, leaf: 0.85 },
-  medium: { shadow: 2048, grass: 0.6, grassR: 10.5, leaf: 0.7 },
-  low: { shadow: 1024, grass: 0.4, grassR: 7, leaf: 0.55 },
+  max: { shadow: 4096, grass: 1.0, grassR: 17, leaf: 0.9 },
+  high: { shadow: 2048, grass: 0.8, grassR: 14, leaf: 0.76 },
+  medium: { shadow: 2048, grass: 0.6, grassR: 10.5, leaf: 0.58 },
+  low: { shadow: 1024, grass: 0.4, grassR: 7, leaf: 0.45 },
 };
 
 const nextFrame = () => new Promise((r) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => r()) : setTimeout(r, 0)));
@@ -195,6 +196,19 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
     placeSun();
   }
 
+  // a sun override blended over the preset (direction, colour, intensity), uniforms only: the
+  // environment map is not re-baked (the world's warm finale)
+  let sunOverride = null, overrideK = 0;
+  let baseParams = blendPreset('ete', 1);
+  function withOverride(P) {
+    if (!sunOverride || overrideK <= 0) return P;
+    const k = overrideK, O = sunOverride;
+    const lerp3 = (a, b) => a.map((v, i) => v + (b[i] - v) * k);
+    const d = lerp3(P.sunDir, O.sunDir || P.sunDir);
+    const l = Math.hypot(d[0], d[1], d[2]) || 1;
+    return { ...P, sunDir: d.map((v) => v / l), sunCol: lerp3(P.sunCol, O.sunCol || P.sunCol), sunI: P.sunI + ((O.sunI ?? P.sunI) - P.sunI) * k };
+  }
+
   // environment maps of the three presets, baked once; blends are baked on demand
   const envRT = {};
   for (const name of ['ete', 'orage', 'eclaircie']) {
@@ -205,6 +219,11 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
   let blendKey = '';
   let presetName = 'ete';
   let presetK = 1;
+  function setSunOverride(O, k = 1) {
+    sunOverride = O || null;
+    overrideK = O ? Math.max(0, Math.min(1, k)) : 0;
+    applyParams(withOverride(baseParams));
+  }
   function setPreset(name = 'ete', k = 1) {
     if (name !== 'orage' && name !== 'eclaircie') name = 'ete';
     k = Math.max(0, Math.min(1, k));
@@ -223,7 +242,8 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
       }
       scene.environment = blendRT.texture;
     }
-    applyParams(blendPreset(name, k));
+    baseParams = blendPreset(name, k);
+    applyParams(withOverride(baseParams));
   }
 
   // ------------------------------------------------------------ quality
@@ -234,7 +254,7 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
     // fewer, slightly larger leaf cards (the draw range keeps an even share of every crown)
     leafGeo.setDrawRange(0, Math.round(leafCount * Q.leaf) * 6);
     grass.setQuality(Q.grassR, Q.grass);
-    leafMats.shared.uLeafScale.value = Math.min(1.3, 1 / Math.sqrt(Q.leaf));
+    leafMats.shared.uLeafScale.value = Math.min(1.25, 1 / Math.pow(Q.leaf / 0.9, 0.5));
     if (sun.shadow.mapSize.x !== Q.shadow) {
       sun.shadow.mapSize.set(Q.shadow, Q.shadow);
       if (sun.shadow.map) {
@@ -262,6 +282,7 @@ export async function createGarden({ renderer, scene, quality = 'high', onProgre
   return {
     heightAt,
     setPreset,
+    setSunOverride,
     fitShadow,
     update,
     setQuality,

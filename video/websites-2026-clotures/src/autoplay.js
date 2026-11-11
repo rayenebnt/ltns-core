@@ -3,9 +3,10 @@
 import { posOf } from './layout.js';
 import { clamp } from './util.js';
 
-// The whole tour (P or ?auto=1), about 20 s: a 1 s hold on the hero, chapter 1, the white
-// section, the chapter 2 window opening, four type changes about 0.9 s apart, a quick pass over
-// the estimator, chapter 4 and an end hold on the repaired gate.
+// The whole tour (P or ?auto=1), about 22 s: a 1 s hold on the hero, chapter 1, the white
+// section, the chapter 2 window (a short hold on the card, then it opens), four type changes
+// about 0.9 s apart, a pause on the estimator, chapter 4 with a pause on « Puis le portillon »,
+// and an end hold on the repaired gate.
 export const TOUR = [
   [0.0, 'install', 0],
   [1.0, 'install', 0],
@@ -17,26 +18,28 @@ export const TOUR = [
   [7.0, 'white', 1],
   [7.4, 'white', 1],
   [8.4, 'intro2', 0],
-  [9.3, 'styles', 0],
+  [8.9, 'intro2', 0.03],
+  [9.8, 'styles', 0],
   // four changes 0.9 s apart: the scroll crosses each hold quickly and each sweep slowly
   // ('styles-s' = styles pin progress; step i spans [i/5, (i+1)/5], its sweep the first 30 %)
-  [9.6, 'styles-s', 0.2],
-  [10.15, 'styles-s', 0.266],
-  [10.5, 'styles-s', 0.4],
-  [11.05, 'styles-s', 0.466],
-  [11.4, 'styles-s', 0.6],
-  [11.95, 'styles-s', 0.666],
-  [12.3, 'styles-s', 0.8],
-  [12.85, 'styles-s', 0.866],
-  [13.3, 'styles', 4],
-  [14.2, 'pricing', 1],
-  [14.6, 'pricing', 1],
-  [15.5, 'intro4', 1],
-  [16.2, 'repair', 0],
-  [17.4, 'repair', 0.4],
-  [18.5, 'repair', 0.61],
-  [19.8, 'repair', 1],
-  [20.8, 'repair', 1],
+  [10.1, 'styles-s', 0.2],
+  [10.65, 'styles-s', 0.266],
+  [11.0, 'styles-s', 0.4],
+  [11.55, 'styles-s', 0.466],
+  [11.9, 'styles-s', 0.6],
+  [12.45, 'styles-s', 0.666],
+  [12.8, 'styles-s', 0.8],
+  [13.35, 'styles-s', 0.866],
+  [13.8, 'styles', 4],
+  [14.7, 'pricing', 1],
+  [15.3, 'pricing', 1],
+  [16.2, 'intro4', 1],
+  [16.9, 'repair', 0],
+  [18.1, 'repair', 0.4],
+  [19.0, 'repair', 0.585],
+  [19.6, 'repair', 0.62],
+  [20.9, 'repair', 1],
+  [21.9, 'repair', 1],
 ];
 
 // « ▶ REGARDER LA POSE »: chapter 1 only, with a short breath on each beat

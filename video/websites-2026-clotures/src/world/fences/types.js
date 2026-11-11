@@ -125,7 +125,7 @@ export function buildType1() {
         const d = d0 + (k + 0.5) * w;
         const base = legPoint(leg, d, 0, 0.17);
         b.set({ pivot: base, d, role: ROLE.BOARD, rnd: rnd(), leg: leg.id });
-        b.box({ c: base.clone().setY(0.17 + 1.53 / 2), A: f.A, B: f.B, G: f.G, sa: w, sb: 0.024, sg: 1.53, chamfer: 0.0035, uv: { su: 1, sv: 1 } });
+        b.box({ c: base.clone().setY(0.17 + 1.53 / 2), A: f.A, B: f.B, G: f.G, sa: w, sb: 0.024, sg: 1.53, chamfer: 0.005, uv: { su: 1, sv: 1 } });
       }
     }
   }

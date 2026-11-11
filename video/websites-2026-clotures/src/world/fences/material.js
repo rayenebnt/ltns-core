@@ -125,7 +125,7 @@ vec3 fenceAnim(vec3 p, out float fade) {
       float e = fe_lin(t0, t0 + W.z, P);
       float k = 1.0 - fe_out(e);
       p.y += k * k * (role < 3.5 ? 0.5 : 0.3);
-      fade = smoothstep(0.0, 0.12, e);
+      fade = smoothstep(0.0, 0.05, e);
     } else if (role < 7.5) {
       // MOUND / HOLE / COLLAR
       float tDig = tPost - uWinPosts.w;
@@ -184,7 +184,7 @@ vec3 fenceAnim(vec3 p, out float fade) {
       float e = fe_lin(aAnim.x, aAnim.x + aAnim.y, R);
       float k = 1.0 - fe_out(e);
       p.y += k * 0.45;
-      fade = uRepairOn * smoothstep(0.0, 0.35, e);
+      fade = uRepairOn * smoothstep(0.0, 0.08, e);
     } else if (role < 23.5) {
       float e = fe_lin(aAnim.x, aAnim.x + 0.03, R);
       fade = mix(1.0, 1.0 - e, uRepairOn);

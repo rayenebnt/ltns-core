@@ -82,7 +82,7 @@ export function createFences({ renderer, scene, quality = 'high', contact = true
   const wood = (t, extra = {}) => ({ map: t.map, normalMap: t.normalMap, roughnessMap: t.roughnessMap, normalScale: ns, roughness: 1, metalness: 0, ...extra });
   const M = {
     t0: fenceMaterial(shared, { name: 'douglas', ...wood(dg), tint: [0xe8d0bc, 0xfff4e8], grime: [0.8, 0.74, 0.66, 0.14] }),
-    t1: fenceMaterial(shared, { name: 'pvc', color: 0xe4e4de, roughness: 0.34, metalness: 0, tint: [0xffffff, 0xf7f7f3], grime: [0.84, 0.84, 0.8, 0.1] }),
+    t1: fenceMaterial(shared, { name: 'pvc', color: 0xececea, roughness: 0.3, metalness: 0, envMapIntensity: 1.25, tint: [0xffffff, 0xf9f9f6], grime: [0.86, 0.86, 0.83, 0.08] }),
     t2: fenceMaterial(shared, { name: 'rigid', map: pw, color: 0x3a4044, roughness: 0.46, metalness: 0.15, side: THREE.DoubleSide, alphaToCoverage: true, shadowHash: true, grime: [0.85, 0.85, 0.85, 0.08] }),
     t3: fenceMaterial(shared, { name: 'ranch', ...wood(dg), color: 0x32363b, roughness: 0.85, tint: [0xdadada, 0xffffff], grime: [0.85, 0.82, 0.78, 0.12] }),
     t3m: fenceMaterial(shared, { name: 'ranch-mesh', map: mw, color: 0x1c1c1c, roughness: 0.5, metalness: 0.3, side: THREE.DoubleSide, alphaToCoverage: true, shadowHash: true }),
@@ -91,7 +91,7 @@ export function createFences({ renderer, scene, quality = 'high', contact = true
     ikit: fenceMaterial(shared, { name: 'install-kit', vertexColors: true, rm: true, grunge: 0.3, roughness: 0.8, metalness: 0 }),
     ipine: fenceMaterial(shared, { name: 'install-pine', ...wood(pn), tint: [0xeee4d6, 0xffffff], grime: [0.78, 0.72, 0.62, 0.12] }),
     string: fenceMaterial(shared, { name: 'string', color: 0xff8a1e, emissive: 0xff6a00, emissiveIntensity: 0.35, roughness: 0.6, side: THREE.DoubleSide }),
-    old: fenceMaterial(shared, { name: 'weathered', ...wood(wt), normalScale: new THREE.Vector2(1.1, 1.1), tint: [0xccc8c0, 0xf2eee6], grime: [0.52, 0.56, 0.46, 0.45] }),
+    old: fenceMaterial(shared, { name: 'weathered', ...wood(wt), normalScale: new THREE.Vector2(1.1, 1.1), tint: [0xdad6d2, 0xf6f2ee], grime: [0.56, 0.58, 0.5, 0.4] }),
     fresh: fenceMaterial(shared, { name: 'fresh-pine', ...wood(pn), tint: [0xcdbfae, 0xe4d8c6], grime: [0.8, 0.76, 0.68, 0.12] }),
     okit: fenceMaterial(shared, { name: 'old-kit', vertexColors: true, rm: true, grunge: 0.35, roughness: 0.8, metalness: 0 }),
     bark: fenceMaterial(shared, { name: 'bark', ...wood(bk), tint: [0xdcd6cc, 0xfffaf0] }),

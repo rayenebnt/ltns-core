@@ -253,8 +253,9 @@ export function foliageAtlas() {
   const R = new Raster();
   // cells: row 0 at the top of the atlas image (rows are flipped into texture order at the end)
   const cell = (i) => [(i % ATLAS_N) * S, Math.floor(i / ATLAS_N) * S];
-  CELL.lime.forEach((c, i) => cluster(R, ...cell(c), 'lime', 101 + i, { count: 230, Lmin: 30, Lmax: 44 }));
-  CELL.oak.forEach((c, i) => cluster(R, ...cell(c), 'oak', 201 + i, { count: 200, Lmin: 36, Lmax: 50 }));
+  // denser clusters (more overlapping leaves, fewer transparent texels): fuller crowns
+  CELL.lime.forEach((c, i) => cluster(R, ...cell(c), 'lime', 101 + i, { count: 310, Lmin: 30, Lmax: 44, sprays: 4, R: 0.42 }));
+  CELL.oak.forEach((c, i) => cluster(R, ...cell(c), 'oak', 201 + i, { count: 270, Lmin: 36, Lmax: 50, sprays: 4, R: 0.42 }));
   CELL.hornbeam.forEach((c, i) => cluster(R, ...cell(c), 'hornbeam', 301 + i, { count: 300, Lmin: 26, Lmax: 36 }));
   cluster(R, ...cell(CELL.laurel[0]), 'laurel', 401, { count: 90, Lmin: 70, Lmax: 96 });
   cluster(R, ...cell(CELL.box[0]), 'box', 501, { count: 700, Lmin: 12, Lmax: 17, R: 0.43 });

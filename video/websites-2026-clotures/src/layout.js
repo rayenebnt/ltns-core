@@ -34,7 +34,7 @@ export function windowRect(L, e) {
   };
 }
 
-// dom: { white, pricing, intro4, final, intro2Head } (elements, already laid out)
+// dom: { white, pricing, intro4, final, intro2Head, sticky } (elements, already laid out)
 export function computeLayout(dom) {
   const V = Math.max(1, window.innerHeight);
   const W = Math.max(1, window.innerWidth);
@@ -63,7 +63,9 @@ export function computeLayout(dom) {
   const headBottom = head.offsetTop + head.offsetHeight;
   const m = pageMargin(W);
   const top = Math.round(Math.min(headBottom + Math.max(28, 0.045 * V), 0.62 * V));
-  L.win0 = { x: m, y: top, w: W - 2 * m, h: Math.round(V * 0.95) - top };
+  // the card ends above the sticky bar (which then sits in the dark margin, never across the edge)
+  const barTop = dom.sticky && dom.sticky.offsetHeight ? V - 22 - dom.sticky.offsetHeight : Math.round(V * 0.95);
+  L.win0 = { x: m, y: top, w: W - 2 * m, h: Math.max(Math.round(0.2 * V), Math.min(Math.round(V * 0.95), barTop - 18) - top) };
   // y at which the window's top edge enters the screen (the canvas must show the styles view)
   L.yWin = L.intro2Top + L.win0.y - V;
   return L;

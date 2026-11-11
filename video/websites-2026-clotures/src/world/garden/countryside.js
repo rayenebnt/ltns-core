@@ -65,23 +65,28 @@ export function createCountryside(lightU) {
   const items = []; // x, z, w, h, cell, tint
   const tree = (x, z, h, kind = 'round') => {
     const cell = kind === 'poplar' ? 4 + ((rnd() * 2) | 0) : kind === 'bush' ? 6 : kind === 'strip' ? 7 : (rnd() * 4) | 0;
-    const w = kind === 'poplar' ? h * 0.34 : kind === 'bush' ? h * 1.7 : kind === 'strip' ? h * (2.2 + rnd() * 1.2) : h * (0.8 + rnd() * 0.2);
+    // round crowns: +-35 % in size and in aspect, so no two read as the same lollipop
+    if (kind === 'round') h *= 0.75 + rnd() * 0.5;
+    const w = kind === 'poplar' ? h * 0.34 : kind === 'bush' ? h * 1.7 : kind === 'strip' ? h * (2.2 + rnd() * 1.2) : h * (0.6 + rnd() * 0.75);
     items.push([x, z, w, h, cell, rnd()]);
   };
   const [cx, cz] = CENTER;
 
-  // a hedgerow along the meadow on the right of the garden, and one behind the house
-  for (let z = -100; z < 50; z += 6 + rnd() * 7) {
-    if (rnd() < 0.18) continue;
-    const x = 58 + (rnd() - 0.5) * 3;
-    if (rnd() < 0.66) tree(x, z, 12 + rnd() * 9);
-    else tree(x, z, 3 + rnd() * 2.5, 'bush');
-  }
-  for (let x = 14; x < 58; x += 6 + rnd() * 8) {
-    if (rnd() < 0.2) continue;
-    if (rnd() < 0.6) tree(x, -104 + (rnd() - 0.5) * 3, 10 + rnd() * 7);
-    else tree(x, -104, 3.5 + rnd() * 2, 'bush');
-  }
+  // a hedgerow along the meadow on the right of the garden, and one behind the house: a
+  // continuous wooded edge (overlapping strips, crowns of every size, bushes at their feet)
+  // rather than a row of separate trees
+  const hedgerow = (ax, az, bx, bz) => {
+    const L = Math.hypot(bx - ax, bz - az);
+    for (let d = 0; d < L; d += 3.2 + rnd() * 3.6) {
+      const t = d / L, x = ax + (bx - ax) * t + (rnd() - 0.5) * 4, z = az + (bz - az) * t + (rnd() - 0.5) * 4;
+      const r = rnd();
+      if (r < 0.42) tree(x, z, 7.5 + rnd() * 6, 'strip');
+      else if (r < 0.78) tree(x, z, 10 + rnd() * 10);
+      else tree(x, z, 2.6 + rnd() * 2.6, 'bush');
+    }
+  };
+  hedgerow(60, -108, 60, 55);
+  hedgerow(14, -108, 60, -108);
   // field hedgerows: the field grid of the ground shader (turned 17 degrees)
   const A = 0.297, ca = Math.cos(A), sa = Math.sin(A);
   const toWorld = (qx, qy) => [ca * qx - sa * qy, sa * qx + ca * qy];
@@ -98,7 +103,7 @@ export function createCountryside(lightU) {
           const t = (i + rnd() * 0.6) / n;
           const [x, z] = horiz ? toWorld(qx0 + t * cellW, qy0) : toWorld(qx0, qy0 + t * cellH);
           const r = Math.hypot(x - cx, z - cz);
-          if (r < 110 || r > 1700) continue;
+          if (r < 150 || r > 1700) continue;
           if (rnd() < 0.7) tree(x, z, 8 + rnd() * 9);
           else tree(x, z, 3 + rnd() * 3, 'bush');
         }
@@ -125,9 +130,9 @@ export function createCountryside(lightU) {
       tree(ax + (bx - ax) * t + (rnd() - 0.5) * 1.5, az + (bz - az) * t + (rnd() - 0.5) * 1.5, 22 + rnd() * 7, 'poplar');
     }
   }
-  // isolated trees in the fields
+  // isolated trees in the fields (far enough for the haze to settle them)
   for (let i = 0; i < 60; i++) {
-    const a = rnd() * Math.PI * 2, r = 160 + Math.pow(rnd(), 0.7) * 1400;
+    const a = rnd() * Math.PI * 2, r = 230 + Math.pow(rnd(), 0.7) * 1400;
     tree(cx + Math.cos(a) * r, cz + Math.sin(a) * r, 11 + rnd() * 8);
   }
   // the wooded horizon

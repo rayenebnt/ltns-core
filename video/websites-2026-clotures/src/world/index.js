@@ -16,10 +16,11 @@
 //                                      leaves, litter (the shell sets the pixel ratio with it)
 //
 // Camera rigs: one keyframed track per segment (contract views refined against the
-// reference), eased between keys, plus a slow breathing drift and a small pointer parallax.
-// The chapter 2 window: while the dark intro shows the styles view through a rounded hole,
-// the projection is shifted (setViewOffset) so the hole frames the whole view, like a card
-// that grows to full screen; only the hole is drawn (scissor).
+// reference). The eye glides along a C1 path through the keys (it slows down at the beats but
+// never stops between the first and the last key), plus a slow breathing drift and a small
+// pointer parallax. The chapter 2 window: while the dark intro shows the styles view through
+// a rounded hole, the projection is shifted (setViewOffset) so the hole frames the whole view,
+// like a card that grows to full screen; only the hole is drawn (scissor).
 import * as THREE from 'three';
 import { GRADE, gradeUniformsInto } from './grade.js';
 import { createGarden } from './garden/index.js';
@@ -29,46 +30,53 @@ import { PRESETS } from './garden/presets.js';
 
 export const rendererOptions = { antialias: true };
 
+const VIGNETTE = 0.16;
+const GRADE_BASE = { warmHi: GRADE.a[2] };
+
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const smooth = (a, b, x) => {
   const t = clamp((x - a) / (b - a));
   return t * t * (3 - 2 * t);
 };
-const ease = (t) => t * t * (3 - 2 * t);
 const nextFrame = () => new Promise((r) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => r()) : setTimeout(r, 0)));
 
 // ---------------------------------------------------------------------------------- poses
-// pos -> tgt (metres), sh = shadow fit [centre x, centre z, radius]
+// pos -> tgt (metres), sh = shadow fit [centre x, centre z, radius]. Each '_b' pose is a short
+// continuation of the move that arrives at its beat (a slow dolly, never a step back).
 const GATE_C = GZ + 0.6; // centre of the gate opening (z)
 export const POSES = {
   // chapter 1: the string line from the bottom-right corner toward the house, the taped stake
-  // at the right edge, the house left of centre under its trees
-  hero: { pos: [7.8, 1.7, 14.6], tgt: [-0.6, -1.6, -34], sh: [-1, -10, 32] },
-  hero_b: { pos: [7.74, 1.68, 14.0], tgt: [-0.4, -1.5, -34], sh: [-1, -10, 32] },
-  posts: { pos: [7.45, 1.42, 10.3], tgt: [1.6, 0.95, -32], sh: [3, -9, 28] },
-  posts_b: { pos: [7.4, 1.4, 8.7], tgt: [2.2, 0.95, -32], sh: [3, -9, 28] },
-  rails: { pos: [7.6, 1.32, 5.3], tgt: [3.6, 0.95, -26], sh: [5, -8, 24] },
-  rails_b: { pos: [7.55, 1.3, 4.0], tgt: [3.8, 0.95, -26], sh: [5, -8, 24] },
-  boards: { pos: [6.0, 1.38, 6.6], tgt: [1.8, 1.0, -28], sh: [3, -8, 28] },
-  boards_b: { pos: [5.7, 1.4, 7.0], tgt: [1.4, 1.0, -28], sh: [3, -8, 28] },
-  finale: { pos: [6.2, 6.3, 28.0], tgt: [-2.4, 0.2, -14], sh: [-4, -2, 36] },
-  finale_b: { pos: [5.9, 6.2, 27.6], tgt: [-2.5, 0.2, -14], sh: [-4, -2, 36] },
-  // chapter 2: low and close inside the yard, the fence running away on the right
-  styles_in: { pos: [5.7, 1.8, 17.4], tgt: [8.0, 1.2, -24], sh: [5, -6, 26] },
-  styles: { pos: [6.2, 1.35, 14.5], tgt: [8.6, 1.05, -24], sh: [5, -6, 26] },
-  styles_b: { pos: [6.3, 1.36, 13.3], tgt: [8.6, 1.05, -24], sh: [5, -6, 26] },
-  // chapter 4: the broken section at the left, the gate (hinges on its right) at the right
-  repair0: { pos: [-15.2, 1.85, -3.9], tgt: [-24, 0.55, -4.8], sh: [-23.5, -5.2, 9] },
-  repair1: { pos: [-15.5, 1.83, -3.95], tgt: [-24, 0.58, -4.8], sh: [-23.5, -5.2, 9] },
-  repair2: { pos: [-16.4, 1.75, -3.4], tgt: [-24, 0.6, -4.3], sh: [-23.5, -4.5, 8] },
-  repair3: { pos: [-16.7, 1.72, -3.5], tgt: [-24, 0.62, -4.4], sh: [-23.5, -4.5, 8] },
-  gate0: { pos: [-19.6, 1.6, GZ + 1.95], tgt: [-24, 0.72, GZ + 1.1], sh: [-23.6, GATE_C, 6] },
-  gate1: { pos: [-19.8, 1.58, GZ + 1.85], tgt: [-24, 0.73, GZ + 1.1], sh: [-23.6, GATE_C, 6] },
-  gate2: { pos: [-19.4, 1.64, GZ + 2.1], tgt: [-24, 0.72, GZ + 1.15], sh: [-23.6, GATE_C, 6] },
+  // at the right edge, the house under its big trees with sky above the roof
+  hero: { pos: [7.4, 1.55, 17.0], tgt: [-1.2, 0.5, -34], sh: [-1, -8, 32] },
+  hero_b: { pos: [7.38, 1.54, 16.3], tgt: [-0.9, 0.56, -34], sh: [-1, -8, 32] },
+  posts: { pos: [7.42, 1.44, 11.2], tgt: [1.4, 0.95, -32], sh: [3, -9, 28] },
+  posts_b: { pos: [7.45, 1.4, 8.6], tgt: [2.2, 0.95, -32], sh: [3, -9, 28] },
+  rails: { pos: [7.55, 1.33, 5.6], tgt: [3.5, 0.95, -26], sh: [5, -8, 24] },
+  rails_b: { pos: [7.4, 1.32, 4.6], tgt: [3.4, 0.97, -26.5], sh: [5, -8, 24] },
+  boards: { pos: [6.55, 1.36, 4.15], tgt: [2.0, 1.0, -28], sh: [3, -8, 28] },
+  boards_b: { pos: [6.0, 1.42, 3.85], tgt: [1.5, 1.02, -28], sh: [3, -8, 28] },
+  // outside the front-right corner, lower and closer than a drone view: corner B in the lower
+  // centre, both legs wrapping the yard, the house framed by its trees
+  finale: { pos: [11.5, 3.4, 24.5], tgt: [-6.5, 0.4, -18], sh: [-3, -2, 34] },
+  finale_b: { pos: [11.64, 3.43, 24.82], tgt: [-6.6, 0.4, -18], sh: [-3, -2, 34] },
+  // chapter 2: across the yard, the fence crossing the frame at mid-height and running away to
+  // the left, the house cropped at the far left under the title, a big sky
+  styles_in: { pos: [0.5, 1.75, 13.4], tgt: [12.2, 1.2, -12.5], sh: [6, -2, 24] },
+  styles: { pos: [1.2, 1.3, 11.0], tgt: [12.5, 1.15, -12.5], sh: [6, -2, 24] },
+  styles_b: { pos: [1.5, 1.3, 10.2], tgt: [12.7, 1.15, -13], sh: [6, -2, 24] },
+  // chapter 4: close to the old fence, the branch and the broken section at the left, the gate
+  // hanging off its hinges (hinges on its right) at the right
+  repair0: { pos: [-17.6, 1.35, -5.0], tgt: [-24, 0.95, -5.6], sh: [-23.5, -5.6, 8] },
+  repair1: { pos: [-17.78, 1.37, -4.9], tgt: [-24, 0.95, -5.4], sh: [-23.5, -5.4, 8] },
+  repair2: { pos: [-18.15, 1.42, -4.45], tgt: [-24, 0.92, -4.75], sh: [-23.5, -4.6, 8] },
+  repair3: { pos: [-18.45, 1.45, -4.2], tgt: [-24, 0.9, -4.6], sh: [-23.5, -4.6, 8] },
+  gate0: { pos: [-19.6, 1.6, GZ + 1.95], tgt: [-24, 0.72, GZ + 0.75], sh: [-23.6, GATE_C, 6] },
+  gate1: { pos: [-19.82, 1.58, GZ + 1.7], tgt: [-24, 0.73, GZ + 0.5], sh: [-23.6, GATE_C, 6] },
+  gate2: { pos: [-19.97, 1.57, GZ + 1.6], tgt: [-24, 0.73, GZ + 0.42], sh: [-23.6, GATE_C, 6] },
 };
 
-// tracks: [progress, pose]; between keys the pose is eased (holds at the beats), and the
-// boards -> finale key uses a path that rises over the front fence
+// tracks: [progress, pose]; the boards -> finale move rises over the front fence through the
+// swing's via points (eye only, at the given progress)
 const INSTALL_TRACK = [
   [0.0, 'hero'],
   [0.075, 'hero_b'],
@@ -81,7 +89,7 @@ const INSTALL_TRACK = [
   [0.93, 'finale'],
   [1.0, 'finale_b'],
 ];
-const SWING = { from: 'boards_b', to: 'finale', via: [[6.0, 2.4, 14.8], [6.3, 3.6, 19.8]] };
+const SWING = { from: 'boards_b', to: 'finale', via: [[6.35, 2.05, 8.6], [8.3, 3.05, 17.4]], at: [0.84, 0.885] };
 const REPAIR_TRACK = [
   [0.0, 'repair0'],
   [0.2, 'repair1'],
@@ -91,8 +99,61 @@ const REPAIR_TRACK = [
   [0.88, 'gate1'],
   [1.0, 'gate2'],
 ];
+// vertical field of view (degrees at 16:10) per segment: a little wider for chapter 1
+const FOV = { install: 45, styles: 42, repair: 42 };
 
 const V = () => new THREE.Vector3();
+
+// Monotone cubic through (xs, ys) (Fritsch-Carlson slopes, weighted harmonic mean), zero
+// slope at both ends: no overshoot, C1, and a strictly increasing ys gives a slope > 0 at every
+// interior key.
+function monotoneCubic(xs, ys) {
+  const n = xs.length;
+  const d = [];
+  for (let i = 0; i < n - 1; i++) d.push((ys[i + 1] - ys[i]) / Math.max(1e-9, xs[i + 1] - xs[i]));
+  const m = new Array(n).fill(0);
+  for (let i = 1; i < n - 1; i++) {
+    if (d[i - 1] * d[i] <= 0) continue;
+    const h0 = xs[i] - xs[i - 1], h1 = xs[i + 1] - xs[i];
+    const w1 = 2 * h1 + h0, w2 = h1 + 2 * h0;
+    m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]);
+  }
+  return (x) => {
+    let i = 0;
+    while (i < n - 2 && x > xs[i + 1]) i++;
+    const h = xs[i + 1] - xs[i];
+    const t = clamp((x - xs[i]) / h);
+    const t2 = t * t, t3 = t2 * t;
+    return (2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * ys[i + 1] + (t3 - t2) * h * m[i + 1];
+  };
+}
+
+// A camera track: the eye on a centripetal Catmull-Rom curve through the key positions,
+// travelled by arc length; the arc length and each axis of the look-at point are monotone
+// cubics of the progress. keys: [[p, pos, tgt]]
+function buildTrack(keys) {
+  const ps = keys.map((k) => k[0]);
+  const curve = new THREE.CatmullRomCurve3(keys.map((k) => new THREE.Vector3().fromArray(k[1])), false, 'centripetal');
+  const per = 240;
+  curve.arcLengthDivisions = (keys.length - 1) * per;
+  const lengths = curve.getLengths();
+  const total = lengths[lengths.length - 1];
+  // arc length at each key (strictly increasing: a tiny step where two keys coincide)
+  const s = keys.map((_, i) => lengths[i * per]);
+  for (let i = 1; i < s.length; i++) s[i] = Math.max(s[i], s[i - 1] + 1e-4);
+  const sOf = monotoneCubic(ps, s);
+  const tg = [0, 1, 2].map((c) => monotoneCubic(ps, keys.map((k) => k[2][c])));
+  return {
+    total,
+    eye(p, out) {
+      return curve.getPointAt(clamp(sOf(clamp(p)) / Math.max(total, 1e-6)), out);
+    },
+    look(p, out) {
+      const q = clamp(p);
+      return out.set(tg[0](q), tg[1](q), tg[2](q));
+    },
+  };
+}
 
 export async function createWorld({ renderer, quality = 'high', onProgress = () => {} }) {
   const progress = (x) => {
@@ -120,7 +181,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   fences.config.uniforms.uWinCap.value.set(0.8, 0.86, 0.03, 0);
   fences.config.uniforms.uWinClean.value.set(0.84, 0.95, 0.035, 0);
   gradeUniformsInto(scene);
-  garden.setStripes(0.62); // the mowing stripes read, without striping the whole frame
+  garden.setStripes(0.45); // the mowing stripes read, without striping the whole frame
   progress(0.97);
 
   // ------------------------------------------------------------------ state
@@ -133,29 +194,40 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   let windowRect = null;
   let scissor = null;
 
-  // the boards -> finale swing rises over the front fence (rebuilt if the poses are edited)
-  let swingCurve = null, swingKey = '';
-  function swing() {
-    const key = JSON.stringify([POSES[SWING.from].pos, SWING.via, POSES[SWING.to].pos]);
-    if (key !== swingKey) {
-      swingKey = key;
-      const pts = [POSES[SWING.from].pos, ...SWING.via, POSES[SWING.to].pos].map((p) => new THREE.Vector3().fromArray(p));
-      swingCurve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  // C1 tracks (rebuilt if the poses are edited through the dev handles)
+  const tracks = { key: '', install: null, repair: null };
+  function trackKeys(track, swing) {
+    const keys = track.map(([p, n]) => [p, POSES[n].pos, POSES[n].tgt]);
+    if (swing) {
+      // the swing's via points join the eye path; their look-at points lie between the two poses
+      const A = POSES[swing.from], B = POSES[swing.to];
+      const pa = track.find((k) => k[1] === swing.from)[0], pb = track.find((k) => k[1] === swing.to)[0];
+      swing.via.forEach((v, i) => {
+        const at = swing.at[i], k = (at - pa) / (pb - pa);
+        keys.push([at, v, A.tgt.map((x, c) => x + (B.tgt[c] - x) * k)]);
+      });
+      keys.sort((a, b) => a[0] - b[0]);
     }
-    return swingCurve;
+    return keys;
+  }
+  function ensureTracks() {
+    const key = JSON.stringify([POSES, SWING, INSTALL_TRACK, REPAIR_TRACK]);
+    if (key === tracks.key) return;
+    tracks.key = key;
+    tracks.install = buildTrack(trackKeys(INSTALL_TRACK, SWING));
+    tracks.repair = buildTrack(trackKeys(REPAIR_TRACK, null));
   }
 
   // pose along a track at progress p -> eye, look, shadow fit
-  function trackPose(track, p) {
+  function trackPose(track, p, built) {
+    built.eye(p, eye);
+    built.look(p, look);
     let i = 0;
     while (i < track.length - 2 && p > track[i + 1][0]) i++;
     const [p0, a] = track[i];
     const [p1, b] = track[i + 1];
-    const k = ease(clamp((p - p0) / (p1 - p0)));
+    const k = clamp((p - p0) / (p1 - p0));
     const A = POSES[a], B = POSES[b];
-    if (a === SWING.from && b === SWING.to) swing().getPointAt(k, eye);
-    else eye.fromArray(A.pos).lerp(tmpA.fromArray(B.pos), k);
-    look.fromArray(A.tgt).lerp(tmpA.fromArray(B.tgt), k);
     shadowC.set(A.sh[0] + (B.sh[0] - A.sh[0]) * k, 0, A.sh[1] + (B.sh[1] - A.sh[1]) * k);
     // the radius changes in one step half way (no scale shimmer while the view drifts)
     shadowR = k < 0.5 ? A.sh[2] : B.sh[2];
@@ -169,11 +241,11 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     shadowR = k < 0.5 ? A.sh[2] : B.sh[2];
   }
 
-  // lens: 42 degrees vertical at 16:10; narrower windows keep the 16:10 width, wider ones
-  // (the chapter 2 window card) keep the 16:9 width
-  function lens(aspect) {
-    const t = Math.tan(THREE.MathUtils.degToRad(21));
-    let fov = 42;
+  // lens: FOV[seg] degrees vertical at 16:10; narrower windows keep the 16:10 width, wider
+  // ones (the chapter 2 window card) keep the 16:9 width
+  function lens(aspect, base = 42) {
+    const t = Math.tan(THREE.MathUtils.degToRad(base / 2));
+    let fov = base;
     if (aspect < 1.6) fov = THREE.MathUtils.radToDeg(2 * Math.atan((t * 1.6) / aspect));
     else if (aspect > 1.78) fov = THREE.MathUtils.radToDeg(2 * Math.atan((t * 1.78) / aspect));
     return fov;
@@ -181,17 +253,22 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
 
   function placeCamera(st, time) {
     const seg = st.seg;
+    ensureTracks();
     if (seg === 'styles') {
       const k = smooth(0, 1, st.drift);
       if (k < 1) poseLerp('styles_in', 'styles', 0.35 + 0.65 * k);
       else {
-        // slow dolly along the five types
-        const s = st.style;
-        const u = s.from === s.to ? s.to : s.from + (s.to - s.from) * s.k;
-        poseLerp('styles', 'styles_b', clamp(u / 4));
+        // slow dolly along the five types, continuous with the page (never stops on a type)
+        let u;
+        if (typeof st.stylesP === 'number') u = clamp(st.stylesP);
+        else {
+          const s = st.style;
+          u = clamp((s.from === s.to ? s.to : s.from + (s.to - s.from) * s.k) / 4);
+        }
+        poseLerp('styles', 'styles_b', u);
       }
-    } else if (seg === 'repair') trackPose(REPAIR_TRACK, st.repair);
-    else trackPose(INSTALL_TRACK, st.install);
+    } else if (seg === 'repair') trackPose(REPAIR_TRACK, st.repair, tracks.repair);
+    else trackPose(INSTALL_TRACK, st.install, tracks.install);
 
     // breathing drift (deterministic for a fixed time) and pointer parallax
     const close = seg === 'repair' ? 0.55 : 1;
@@ -210,20 +287,21 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     const win = seg === 'styles' && st.window && st.window.w > 2 && st.window.h > 2 ? st.window : null;
     windowRect = win;
     const W = size.w, H = size.h;
+    const base = FOV[seg] || 42;
     if (win) {
       const aspect = win.w / win.h;
       camera.aspect = aspect;
-      camera.fov = lens(aspect);
+      camera.fov = lens(aspect, base);
       camera.setViewOffset(win.w, win.h, -win.x, -win.y, W, H);
       const cover = (win.w * win.h) / (W * H);
       scissor = cover < 0.92 ? win : null;
-      GRADE.b[0] = 0.16 * smooth(0.6, 1, cover);
+      GRADE.b[0] = VIGNETTE * smooth(0.6, 1, cover);
     } else {
       camera.aspect = W / H;
-      camera.fov = lens(W / H);
+      camera.fov = lens(W / H, base);
       camera.clearViewOffset();
       scissor = null;
-      GRADE.b[0] = 0.16;
+      GRADE.b[0] = VIGNETTE;
     }
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
@@ -242,20 +320,34 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     fences.setMode(mode);
   }
 
+  // the finale's warm finish (install 0.80 -> 1): a lower, warmer sun raking across the lawn,
+  // warmer highlights. Uniforms only (the environment map stays the summer one).
+  const WARM = { sunDir: [-0.62, 0.36, 0.7], sunCol: [1.0, 0.8, 0.58], sunI: 5.8, warmHi: 1.2 };
+  let warmK = -1;
+  function setWarm(k) {
+    if (Math.abs(k - warmK) < 1e-4) return;
+    warmK = k;
+    garden.setSunOverride(k > 0 ? WARM : null, k);
+    GRADE.a[2] = GRADE_BASE.warmHi + (WARM.warmHi - GRADE_BASE.warmHi) * k;
+  }
+
   function applyState(st) {
     const seg = st.seg;
     if (seg === 'repair') {
       setMode('repair');
       fences.setRepair(st.repair);
       setPreset('eclaircie', smooth(0.7, 1, st.repair));
+      setWarm(0);
     } else if (seg === 'styles') {
       setMode('styles');
       fences.setStyle(st.style.from, st.style.to, st.style.k);
       setPreset('ete', 1);
+      setWarm(0);
     } else {
       setMode('install');
       fences.setInstall(st.install);
       setPreset('ete', 1);
+      setWarm(smooth(0.8, 0.97, st.install));
     }
   }
 

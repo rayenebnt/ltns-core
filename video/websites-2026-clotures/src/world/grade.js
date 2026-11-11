@@ -13,9 +13,9 @@ import { ShaderChunk, ShaderLib } from 'three';
 
 export const GRADE = {
   // x: saturation, y: S-curve amount, z: warm highlights, w: cool shadows
-  a: new Float32Array([1.08, 0.16, 0.7, 0.55]),
+  a: new Float32Array([0.98, 0.12, 0.7, 0.55]),
   // x: vignette strength, y: vignette start radius, z: green richness, w: black lift
-  b: new Float32Array([0.16, 0.42, 0.45, 0.012]),
+  b: new Float32Array([0.16, 0.42, 0.12, 0.02]),
   // xy: drawing-buffer size in px, z: aspect weight of the vignette
   res: new Float32Array([1440, 900, 0.72, 0]),
 };

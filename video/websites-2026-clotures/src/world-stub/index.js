@@ -10,6 +10,7 @@ import * as THREE from 'three';
 export const rendererOptions = { antialias: true };
 
 const A = new THREE.Vector3(9, 0, -26), B = new THREE.Vector3(9, 0, 18), C = new THREE.Vector3(-24, 0, 18);
+const GZ = -8.4; // hinge side of the old fence's gate (z), as in src/world/fences/repair.js
 const LEGS = [
   { from: B, to: A, len: 44 },
   { from: B, to: C, len: 33 },
@@ -20,7 +21,7 @@ const VIEWS = {
   finale: [[15, 4.5, 31], [-2, 0.5, -8]],
   styles: [[6.2, 1.35, 14.5], [8.6, 1.05, -24]],
   repair: [[-17.5, 1.5, -1.0], [-24, 1.0, -2.0]],
-  gate: [[-20.6, 1.4, 0.6], [-24, 1.0, 0.6]],
+  gate: [[-20.6, 1.4, GZ + 1.2], [-24, 1.0, GZ + 0.6]], // the gate as in the real world (fences/repair.js GZ)
 };
 // fence types: 0 bois plein, 1 PVC blanc, 2 panneaux rigides, 3 ranch, 4 ganivelle
 const TYPES = [
@@ -39,11 +40,11 @@ const QUALITY = {
 const ANCHORS = {
   branche: [-24.3, 2.05, -5.4],
   poteau: [-23.75, 1.1, -4.0],
-  penture: [-24.0, 1.55, 0.06],
-  portillon: [-23.7, 0.12, 0.95],
-  pentures: [-24.0, 1.52, 0.08],
-  cable: [-24.0, 0.95, 0.62],
-  garde: [-24.0, 0.04, 0.95],
+  penture: [-24.0, 1.55, GZ + 0.06],
+  portillon: [-23.7, 0.12, GZ + 0.95],
+  pentures: [-24.0, 1.52, GZ + 0.08],
+  cable: [-24.0, 0.95, GZ + 0.62],
+  garde: [-24.0, 0.04, GZ + 0.6],
 };
 const PRESETS = {
   ete: { sunDir: [-0.5, 0.62, 0.6], sun: [1.0, 0.93, 0.8], sunI: 2.7, sky: 0xbad3ee, gnd: 0x58683a, hemiI: 0.95, top: 0x3f86d6, hor: 0xd6e6f1, fog: 0xcfdde6, grass: 1.0 },
@@ -311,7 +312,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     m.frustumCulled = false;
   }
   const broken = (z) => z > -6 && z < -2;
-  const inGate = (z) => z > -0.05 && z < 1.25;
+  const inGate = (z) => z > GZ - 0.05 && z < GZ + 1.25;
   {
     let k = 0;
     const m = new THREE.Matrix4();
@@ -329,7 +330,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   scene.add(oldBoards, newBoards, oldPosts);
   // the gate, the branch, the debris
   const gate = new THREE.Group();
-  gate.position.set(OLD.x, 0, 0);
+  gate.position.set(OLD.x, 0, GZ);
   const gboards = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.75, 1.2), oldMat);
   gboards.position.set(0, 0.95, 0.6);
   const zbar = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 1.25), oldMat);
