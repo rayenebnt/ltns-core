@@ -176,6 +176,6 @@ portable du tournage.
 ## Reste connu (mineur, non corrigé)
 
 À p 0,62, les ombres précalculées des flèches des portiques, posées sur l’eau en haut du cadre,
-disparaissent d’une image à l’autre (jusqu’à 8 niveaux sur une bande de 15 à 50 px). Correctif
-possible : fondre leur couleur de multiplication vers (8, 8, 8) entre p 0,59 et 0,62 dans
-`src/world/voyage/index.js`.
+disparaissent d’une image à l’autre (5 à 6 niveaux dans une prise, 8 sans l’interface, sur une
+bande de 15 à 50 px). Correctif possible : fondre leur couleur de multiplication vers (8, 8, 8)
+entre p 0,59 et 0,62 dans `src/world/voyage/index.js`.
