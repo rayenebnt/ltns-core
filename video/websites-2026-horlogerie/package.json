@@ -1,0 +1,15 @@
+{
+  "name": "ltns-websites-2026-horlogerie",
+  "private": true,
+  "version": "1.0.0",
+  "description": "BALANCIER : maquette fictive de site d’atelier d’horlogerie en 3D (montre éclatée qui se remonte au défilement, version saphir) pour la vidéo TikTok « Les sites internet en 2026 »",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.170.0"
+  }
+}
