@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sillage — Transport et logistique, Le Havre (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’une entreprise de transport imaginaire, du port à l’avion, au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the wake: three curved parallel lines -->
+    <symbol id="i-wake" viewBox="0 0 30 22"><g fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M2.5 4.2c7.2 0 9.6 3.3 15.6 3.3 4.4 0 6.6-1.4 9.4-1.4"/><path d="M5.8 10.7c6.2 0 8.4 3.3 13.6 3.3 3.6 0 5.5-1.3 8.1-1.3"/><path d="M9.6 17.2c5 0 6.8 3 11.1 3 2.7 0 4.3-1 6.3-1"/></g></symbol>
+    <symbol id="i-contact" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="8.6" r="3.4"/><path d="M3.4 19.6c.6-3.4 3.1-5.3 6.1-5.3s5.5 1.9 6.1 5.3"/><path d="M15.2 3.6h5.4c.7 0 1.2.5 1.2 1.2v3.3c0 .7-.5 1.2-1.2 1.2h-2.2l-2.2 1.9V9.3h-1c-.7 0-1.2-.5-1.2-1.2V4.8c0-.7.5-1.2 1.2-1.2z"/></g></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 6.4 8.6 4.3l6.8 2.4 5.4-2.1v13l-5.4 2.1-6.8-2.4-5.4 2.1z"/><path d="M8.6 4.3v13M15.4 6.7v13"/><path d="M12 10.9c0 1.9-2.1 3.9-2.1 3.9" stroke-dasharray="1.2 1.6"/></g></symbol>
+    <symbol id="i-customs" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.9h8.4l3.9 3.9v13.1c0 .7-.5 1.2-1.2 1.2H6c-.7 0-1.2-.5-1.2-1.2V4.1c0-.7.5-1.2 1.2-1.2z"/><path d="M14.1 3v4h4M8 11h6.6M8 14.2h4"/><circle cx="15.6" cy="17" r="2.3"/></g></symbol>
+    <symbol id="i-price" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 12.1V4.6c0-.7.5-1.2 1.2-1.2h7.5l8.6 8.6c.5.5.5 1.2 0 1.7l-7.5 7.5c-.5.5-1.2.5-1.7 0z"/><circle cx="8.3" cy="8.3" r="1.6"/><path d="M11.4 13.6l3.2-3.2"/></g></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 16.6V11a5.6 5.6 0 0 1 11.2 0v5.6l1.6 1.7H4.8z"/><path d="M10.2 20.6a1.9 1.9 0 0 0 3.6 0M12 3.2v2.2"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: SCREENS screens of story, then the « Arrivée » section (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the text beats over the pinned 3D story (positions and opacities: ui.js) -->
+<main id="hud">
+  <!-- above the bright clouds: a soft vignette keeps the light header, the rail and the credit
+       legible (opacity from p: ui.js) -->
+  <i class="vignette" id="vignette" aria-hidden="true"></i>
+  <section class="beat beat-hero" id="b-hero">
+    <p class="kicker" data-t="hero.kicker"></p>
+    <h1 class="display flap" id="t-hero"></h1>
+    <p class="accent"><i class="thread" aria-hidden="true"></i><span data-t="hero.accent"></span></p>
+    <p class="lead" data-t="hero.text"></p>
+  </section>
+  <p class="hint" id="hint"><span data-t="hero.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+
+  <section class="beat beat-side beat-port" id="b-port">
+    <p class="kicker" data-t="port.kicker"></p>
+    <h2 class="display flap" id="t-port"></h2>
+    <p class="lead" data-t="port.text"></p>
+  </section>
+
+  <section class="beat beat-side beat-route" id="b-route">
+    <p class="kicker" data-t="route.kicker"></p>
+    <h2 class="display flap" id="t-route"></h2>
+    <p class="lead" data-t="route.text"></p>
+  </section>
+
+  <section class="beat beat-mer on-dark" id="b-mer">
+    <p class="kicker" data-t="mer.kicker"></p>
+    <h2 class="display flap" id="t-mer"></h2>
+  </section>
+
+  <section class="beat beat-services on-dark" id="b-services" aria-label="Services"></section>
+
+  <section class="beat beat-side beat-air on-dark" id="b-air">
+    <p class="kicker" data-t="air.kicker"></p>
+    <h2 class="display flap" id="t-air"></h2>
+    <p class="lead" data-t="air.text"></p>
+  </section>
+</main>
+
+<!-- « Arrivée »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner">
+    <div class="f-main">
+      <p class="kicker k-final" data-t="arrivee.kicker"></p>
+      <h2 class="display flap" id="t-final"></h2>
+      <p class="f-text" data-t="arrivee.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-dark cta" type="button" id="f-quote"><span data-t="arrivee.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="arrivee.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="board" id="board" role="table" aria-label="Arrivée"></div>
+    </div>
+  </div>
+  <div class="f-foot">
+    <svg class="f-mark" aria-hidden="true"><use href="#i-wake"/></svg>
+    <p class="f-statement" data-t="arrivee.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <a class="brand" id="brand" href="#" aria-label="Sillage">
+    <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-wake"/></svg><span class="brand-name" data-t="brand.name"></span></span>
+    <span class="brand-tag" data-t="brand.tagline"></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
+  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-wake"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-wake"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
