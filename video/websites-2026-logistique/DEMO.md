@@ -87,7 +87,7 @@ ils s’effacent, et ils se réécrivent quand tu redescends.
   à ce moment-là.
 
 « Revoir le trajet ↑ » (dans la section blanche) remonte tout le trajet jusqu’au début en
-4 à 5 secondes. Pour recommencer une prise, tu peux aussi appuyer sur `Début` ou cliquer sur le
+5 secondes environ. Pour recommencer une prise, tu peux aussi appuyer sur `Début` ou cliquer sur le
 logo SILLAGE, ou recharger (`F5`) : la page repart du début.
 
 ## 4. Au clavier, au menu et sur la ligne de droite

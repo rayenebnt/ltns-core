@@ -173,12 +173,9 @@ plus (seule la carte d’ombre de `max` fait 4096). Le vrai coût est le remplis
 n’ont été mesurées qu’en SwiftShader (logiciel) : à vérifier une fois avec `?fps=1` sur le
 portable du tournage.
 
-## Restes connus (mineurs, non corrigés)
+## Reste connu (mineur, non corrigé)
 
-- Un pincement du pavé tactile (`Ctrl` + molette) pendant le fondu de 0,29 s qui suit `P` lancé loin
-  du début annule encore la visite (`src/main.js`, écouteur de la coupure). Correctif d’une ligne :
-  ignorer `e.ctrlKey` dans cet écouteur, comme le fait déjà `src/scroll.js`.
-- À p 0,62, les ombres précalculées des flèches des portiques, posées sur l’eau en haut du cadre,
-  disparaissent d’une image à l’autre (5 à 6 niveaux sur une bande de 15 à 50 px). Correctif
-  possible : fondre leur couleur de multiplication vers (8, 8, 8) entre p 0,59 et 0,62 dans
-  `src/world/voyage/index.js`.
+À p 0,62, les ombres précalculées des flèches des portiques, posées sur l’eau en haut du cadre,
+disparaissent d’une image à l’autre (jusqu’à 8 niveaux sur une bande de 15 à 50 px). Correctif
+possible : fondre leur couleur de multiplication vers (8, 8, 8) entre p 0,59 et 0,62 dans
+`src/world/voyage/index.js`.

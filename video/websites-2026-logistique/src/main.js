@@ -324,8 +324,9 @@ async function start() {
     cutVeil.classList.remove('is-on');
     beginTour(0);
   }
-  // a wheel or a touch during the cut cancels it (there is no glide yet for scroll.js to stop)
-  for (const ev of ['wheel', 'touchstart']) window.addEventListener(ev, () => cutAt && stopTour(), { passive: true });
+  // a wheel or a touch during the cut cancels it (there is no glide yet for scroll.js to stop); a
+  // pinch (ctrl + wheel) does not, as in scroll.js
+  for (const ev of ['wheel', 'touchstart']) window.addEventListener(ev, (e) => cutAt && !e.ctrlKey && stopTour(), { passive: true });
   function stopTour() {
     if (cutAt) {
       // stopped during the cut: no tour, the veil lifts where the page is
@@ -364,9 +365,10 @@ async function start() {
     'pointermove',
     (e) => {
       if (e.pointerType === 'touch') return;
-      // a burst of movement (events less than 250 ms apart) counts once it is more than 2 px from
-      // where it began: a slow, steady hand wakes the cursor; a lone 1-2 px twitch (a hand resting on
-      // the mouse, fingers landing for a scroll) and same-position pointermoves do not
+      // a burst of movement (events less than 250 ms apart) counts once it is more than 6 px from
+      // where it began: a slow, steady hand wakes the cursor within about 0.1 s; a small drift (a hand
+      // resting on the mouse, fingers landing for a two-finger scroll) and same-position pointermoves
+      // do not
       if (e.timeStamp - real.t > 250) {
         real.ax = real.x;
         real.ay = real.y;
@@ -374,7 +376,7 @@ async function start() {
       real.t = e.timeStamp;
       real.x = e.clientX;
       real.y = e.clientY;
-      if (Math.abs(real.x - real.ax) + Math.abs(real.y - real.ay) <= 2) return;
+      if (Math.abs(real.x - real.ax) + Math.abs(real.y - real.ay) <= 6) return;
       real.ax = real.x;
       real.ay = real.y;
       wakeCursor();
