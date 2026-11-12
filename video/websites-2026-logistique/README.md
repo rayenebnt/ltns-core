@@ -166,7 +166,7 @@ appels / triangles) :
 | 0,8 | 6 / 11 k | 6 / 28 k | 6 / 28 k | 6 / 28 k |
 | 0,84 | 9 / 19 k | 9 / 36 k | 9 / 36 k | 9 / 36 k |
 
-15 textures et 26 programmes partout, à tous les niveaux : rien ne compile après le chargement.
+15 textures et 27 programmes partout, à tous les niveaux : rien ne compile après le chargement.
 Budget : 150 appels et 1,5 M de triangles par image (au pire 21 et 255 k), textures de 2048 au
 plus (seule la carte d’ombre de `max` fait 4096). Le vrai coût est le remplissage : l’océan
 (une passe plein écran) et le ray-march des nuages pendant la montée et l’avion. Les cadences
