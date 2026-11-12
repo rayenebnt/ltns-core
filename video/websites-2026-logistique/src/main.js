@@ -370,8 +370,9 @@ async function start() {
       // resting on the mouse, fingers landing for a two-finger scroll) and same-position pointermoves
       // do not
       if (e.timeStamp - real.t > 250) {
-        real.ax = real.x;
-        real.ay = real.y;
+        // the very first event after a load anchors on itself (there is no earlier position)
+        real.ax = real.t < 0 ? e.clientX : real.x;
+        real.ay = real.t < 0 ? e.clientY : real.y;
       }
       real.t = e.timeStamp;
       real.x = e.clientX;
@@ -528,7 +529,8 @@ async function start() {
   // ?auto=1: the tour starts about 2 s after the page is up, unless a hand got there first
   let autoAt = AUTO && !CAPTURE ? -1 : 0;
   const cancelAuto = (e) => {
-    if (e.isTrusted && !(e.type === 'keydown' && systemKey(e))) autoAt = 0;
+    // a pinch (ctrl + wheel) is not a scroll: it does not cancel either
+    if (e.isTrusted && !(e.type === 'wheel' && e.ctrlKey) && !(e.type === 'keydown' && systemKey(e))) autoAt = 0;
   };
   for (const ev of ['wheel', 'keydown', 'pointerdown', 'touchstart']) window.addEventListener(ev, cancelAuto, { passive: true });
 
