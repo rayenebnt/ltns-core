@@ -122,7 +122,7 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
     uWind: { value: new THREE.Vector2(5.0, 1.6) },
     uCloudMid: { value: (SKY.cloudBase + SKY.cloudTop) / 2 },
     uCloudLit: { value: col('#ffffff') },
-    uCloudShade: { value: col('#b4c3d3') },
+    uCloudShade: { value: col('#a3b3c6') },
     uCloudDark: { value: col('#71839b') },
     uPaper: { value: col('#eef0f1') },
     uWhite: { value: 0 },
@@ -163,6 +163,7 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
   setQuality(quality);
 
   const shipPos = new THREE.Vector3();
+  const restPos = new THREE.Vector3();
   const planeCentre = new THREE.Vector3();
   ship.positionAt(PLANE_PATH.centreP, planeCentre);
 
@@ -192,6 +193,9 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
     ship.object.position.copy(shipPos);
     uniforms.uShip.value.set(shipPos.x, shipPos.z, 0, 1);
     uniforms.uWake.value = ship.underWay(p);
+    // (v3) the wake's length: the way made since the berth, plus its first wash
+    ship.positionAt(0, restPos);
+    ocean.mesh.material.uniforms.uWakeLen.value = 14 + Math.max(0, shipPos.z - restPos.z);
     ocean.follow(camera);
     // clouds: coverage grows through the climb and the plane's crossing, then the white-out
     const white = smoothstep(PHASES.whiteout[0], PHASES.whiteout[1], p);
@@ -199,17 +203,25 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
     uniforms.uWhite.value = Math.pow(white, 1.4);
     // the camera climbs through a clearing (ocean and ship in view), which closes as the cover
     // thickens towards the white-out
-    const closing = within(p, [PHASES.plane[0] + 0.02, PHASES.whiteout[0] + 0.02]);
+    // (integrator) a long gap along the ship's track, centred a little north of the ship (over its
+    // wake); it closes in from its rim over [0.79, 0.815]: the ship slips under the cloud as the
+    // plane comes in
     const hAbove = Math.max(0, camera.position.y - SKY.cloudBase);
-    clouds.setClearing(camera.position.x, camera.position.z, 170 + 0.08 * hAbove, 1 - smoothstep(0, 1, closing));
+    const shut = smoothstep(0.79, 0.815, p);
+    const rC = (170 + 0.08 * hAbove) * (1 - 0.88 * shut);
+    clouds.setClearing(shipPos.x, shipPos.z - 0.35 * rC, rC, 1 - smoothstep(0.8, 0.815, p));
+    // (integrator) a cloud bank over the coast from the climb on: no straight quay edge from above
+    clouds.setBank(shipPos.z - 60, smoothstep(PHASES.rise[1] - 0.04, PHASES.rise[1] - 0.01, p));
     clouds.update(camera, time, white);
     // plane
     plane.place(p, planeCentre, time);
-    const pv = p > PHASES.plane[0] - 0.035 && p < PHASES.whiteout[1] + 0.01;
+    // (integrator) the plane stays over the white-out and flies out of the frame under « Arrivée »
+    const pv = p > PHASES.plane[0] - 0.035;
     plane.object.visible = pv;
     uniforms.uPlane.value.set(plane.object.position.x, plane.object.position.y, plane.object.position.z, PLANE_SHADOW_DROP);
     uniforms.uPlaneDir.value.set(plane.direction.x, plane.direction.z);
-    uniforms.uPlaneShadow.value = pv ? 1 - white : 0;
+    // (v3) the soft shadow goes with the clouds it falls on: no ghost plane on the paper
+    uniforms.uPlaneShadow.value = pv ? (1 - 0.6 * white) * (1 - white) : 0;
     // stage visibility (the integrator may override after this call)
     // the ground stays (the coast is in view from the sky); the road and its decor go
     road.group.visible = true;

@@ -35,7 +35,7 @@ export const ROAD = {
     [222, 260],
     [222, 404], // the road runs onto the quay apron and ends at a stop line by the berth
   ],
-  width: 11, // two lanes of 3.5 m plus shoulders
+  width: 15, // two wide lanes plus hard shoulders (drawn from an 11 m section scaled up: road.js)
   quayZ: 420, // the quay edge runs east–west at this z; open sea beyond (z > quayZ)
 };
 

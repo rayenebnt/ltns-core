@@ -57,6 +57,9 @@ function groundMaterial(markTex, bounds) {
     uBlobB: { value: Array.from({ length: NB }, () => new THREE.Vector4(1, 0, 0, 1)) },
     uShadowDark: { value: 0.32 },
     uMarkK: { value: 1 },
+    // the colour (output space) the yard's edges fade to in lit mode; < 0 = the paper. The
+    // integrator sets the voyage map ground's rendered colour, so there is no seam at the yard's end
+    uEdgeOut: { value: new THREE.Vector3(-1, -1, -1) },
   };
   m.userData.u = u;
   m.onBeforeCompile = (sh) => {
@@ -69,7 +72,7 @@ function groundMaterial(markTex, bounds) {
         varying vec3 vWPos;
         uniform sampler2D uMarks; uniform vec4 uBounds; uniform vec3 uConcrete; uniform float uShadowDark; uniform float uMarkK;
         uniform vec4 uBlob[${NB}]; uniform vec4 uBlobB[${NB}];
-        uniform float uStudio; uniform vec3 uPaper;
+        uniform float uStudio; uniform vec3 uPaper; uniform vec3 uEdgeOut;
         float gHash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float gNoise(vec2 x){ vec2 i = floor(x); vec2 f = fract(x); f = f * f * (3.0 - 2.0 * f);
           return mix(mix(gHash(i), gHash(i + vec2(1, 0)), f.x), mix(gHash(i + vec2(0, 1)), gHash(i + vec2(1, 1)), f.x), f.y); }
@@ -122,7 +125,7 @@ function groundMaterial(markTex, bounds) {
           vec3 studio = paperOut * mix(shade, 1.0, far);
           vec2 eb = min(gp - uBounds.xy, uBounds.zw - gp);
           float edge = smoothstep(-2.0, 10.0, min(eb.x, eb.y));
-          vec3 lit = mix(paperOut, gl_FragColor.rgb, edge);
+          vec3 lit = mix(uEdgeOut.x < 0.0 ? paperOut : uEdgeOut, gl_FragColor.rgb, edge);
           gl_FragColor.rgb = mix(lit, studio, uStudio);
         }`);
   };

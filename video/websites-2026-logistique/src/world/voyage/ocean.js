@@ -20,6 +20,7 @@ export function createOcean({ uniforms }) {
   const mat = new THREE.ShaderMaterial({
     uniforms: Object.assign({}, U, {
       uQuayZ: { value: ROAD.quayZ },
+      uWakeLen: { value: 1e5 },
       uSeaLevel: { value: SEA.level },
     }),
     vertexShader: /* glsl */ `
@@ -34,7 +35,7 @@ uniform sampler2D uNoise; uniform sampler2D uWaves;
 uniform float uTime; uniform float uDetail; uniform float uQuayZ;
 uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uSkyZenith; uniform vec3 uSkyHorizon; uniform vec3 uHaze;
 uniform vec3 uDeep; uniform vec3 uMid; uniform vec3 uShallow; uniform vec3 uAerated;
-uniform vec4 uShip; uniform vec4 uShipDim; uniform float uWake;
+uniform vec4 uShip; uniform vec4 uShipDim; uniform float uWake; uniform float uWakeLen;
 uniform float uThr0; uniform float uCloudShadow; uniform vec2 uWind; uniform float uCloudMid;
 varying vec3 vW;
 ${HULL_GLSL}
@@ -149,7 +150,7 @@ void main() {
       float rim = exp(-pow((axw + edgeN * wc * 0.4 - 0.82 * wc) / (1.6 + 0.004 * s), 2.0));
       rim *= smoothstep(0.45, 0.8, streak * 0.6 + churn * 0.5) * exp(-s / 700.0) * smoothstep(0.0, 30.0, s);
       float age = exp(-s / 480.0);
-      float young = exp(-s / 120.0);
+      float young = exp(-s / 80.0); // (v3) the white wash stays close behind the transom
       float blob = texture2D(uNoise, vec2(pa.x / 11.0, pa.y / 38.0) + vec2(0.0, 0.003 * t)).g;
       float turb = blob * 0.55 + churn * 0.3 + streak * 0.3 + cells * 0.15;
       float thr = mix(1.12, 0.6, age);
@@ -160,9 +161,12 @@ void main() {
       aer = core * exp(-s / 800.0) * (0.35 + 0.65 * smoothstep(0.35, 0.8, blob * 0.6 + churn * 0.5));
       slick = (1.0 - smoothstep(0.7 * wc, 1.35 * wc, axw)) * exp(-s / 1600.0);
     }
-    foam *= wakeOn;
-    aer *= wakeOn;
-    slick *= wakeOn;
+    // (v3) the wake is never longer than the way the ship has made (plus its first wash): leaving
+    // the berth it never reaches back to the quay
+    float wl = wakeOn * (1.0 - smoothstep(uWakeLen - 30.0, uWakeLen, ss));
+    foam *= wl;
+    aer *= wl;
+    slick *= wl;
   }
 
   // calm slick in the wake: small waves damped
@@ -208,12 +212,13 @@ void main() {
 
   // glints: a sharp sun lobe, a broad sheen, sparkles on facets turned to the sun
   float rs = max(dot(R, Ls), 0.0);
-  float spec = pow(rs, 1400.0) * 90.0 + pow(rs, 90.0) * 0.55 + pow(rs, 12.0) * 0.05;
+  // (integrator: a narrower, capped lobe and half the sparkles: sun on water, not grain)
+  float spec = min(pow(rs, 1800.0) * 70.0, 7.0) + pow(rs, 90.0) * 0.45 + pow(rs, 12.0) * 0.05;
   if (uDetail > 1.5) {
     vec3 Hh = normalize(V + Ls);
     float facet = smoothstep(0.93, 0.995, dot(n, Hh));
     float spk = texture2D(uNoise, p / 2.1 + vec2(0.07, -0.05) * t).a * texture2D(uNoise, p / 0.83 - vec2(0.11, 0.06) * t).a;
-    spec += smoothstep(0.62, 0.86, spk) * (0.6 + 6.0 * facet) * smoothstep(1500.0, 300.0, dist) * (0.4 + 0.9 * gust);
+    spec += smoothstep(0.72, 0.9, spk) * (0.5 + 4.5 * facet) * smoothstep(1500.0, 300.0, dist) * (0.4 + 0.9 * gust);
   }
   col += uSunColor * spec * lit * (1.0 - foam) * (1.0 - 0.7 * slick);
 

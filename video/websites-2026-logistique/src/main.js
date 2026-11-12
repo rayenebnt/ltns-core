@@ -291,15 +291,48 @@ async function start() {
   // ------------------------------------------------------------------ the tour
   let touring = false;
   let tourFromP = 0;
-  function startTour() {
-    if (CAPTURE) return;
-    const from = scroller.st.target;
+  // started away from the top, the tour opens with a clean cut back to the hero (a paper veil,
+  // a snap to p 0), never a fast rewind through the whole story
+  const cutVeil = document.createElement('div');
+  cutVeil.className = 'cutveil';
+  cutVeil.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(cutVeil);
+  let cutAt = 0; // performance.now() when the veil went up (frame-driven: no timer)
+  function beginTour(from) {
     tourFromP = pOf(from);
     touring = true;
     doc.classList.add('is-touring');
     scroller.play('tour', tourKeys(yOf, L.H, from), () => tourKeys(yOf, L.H, yOf(tourFromP)));
   }
+  function startTour() {
+    if (CAPTURE || cutAt) return;
+    const from = scroller.st.target;
+    if (pOf(from) <= 0.05) return beginTour(from);
+    touring = true;
+    doc.classList.add('is-touring');
+    cutVeil.classList.add('is-on');
+    cutAt = performance.now() || 1;
+  }
+  // called every frame: once the veil covers the page, snap to the hero and play
+  function cutStep(now) {
+    if (!cutAt || now - cutAt < 290) return;
+    cutAt = 0;
+    scroller.jump(0);
+    renderNow();
+    cutVeil.classList.remove('is-on');
+    beginTour(0);
+  }
+  // a wheel or a touch during the cut cancels it (there is no glide yet for scroll.js to stop)
+  for (const ev of ['wheel', 'touchstart']) window.addEventListener(ev, () => cutAt && stopTour(), { passive: true });
   function stopTour() {
+    if (cutAt) {
+      // stopped during the cut: no tour, the veil lifts where the page is
+      cutAt = 0;
+      touring = false;
+      doc.classList.remove('is-touring');
+      cutVeil.classList.remove('is-on');
+      return;
+    }
     if (scroller.playing === 'tour') scroller.stop();
   }
   scroller.onStop((m, natural) => {
@@ -487,6 +520,7 @@ async function start() {
   let last = performance.now();
   function frame(now) {
     requestAnimationFrame(frame);
+    cutStep(now);
     const raw = (now - last) / 1000;
     const dt = Math.min(0.1, Math.max(0, raw));
     last = now;

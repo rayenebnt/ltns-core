@@ -34,26 +34,26 @@ export const PHASES = {
   rise: [0.62, 0.74], // the camera rises: the ship gets smaller, the five services appear around it
   clouds: [0.72, 0.8], // up through the cloud layer
   plane: [0.78, 0.9], // the cargo plane crosses above the clouds, contrails behind it
-  whiteout: [0.855, 0.895], // the clouds thicken to white (pure paper by 0.895); the « Arrivée » section slides up
+  whiteout: [0.865, 0.9], // the clouds thicken to white (pure paper by 0.9); the « Arrivée » section slides up
 };
 
 // DOM text beats: [starts fading in, fully in, starts fading out, fully out], in p
 export const BEATS = [
   { id: 'hero', win: [0.0, 0.0, 0.03, 0.055] },
-  { id: 'port', win: [0.07, 0.09, 0.18, 0.2] },
+  { id: 'port', win: [0.07, 0.09, 0.19, 0.21] },
   { id: 'route', win: [0.33, 0.35, 0.415, 0.44] },
   { id: 'mer', win: [0.515, 0.535, 0.595, 0.62] },
   { id: 'services', win: [0.63, 0.66, 0.72, 0.75] },
-  { id: 'air', win: [0.815, 0.835, 0.875, 0.895] },
+  { id: 'air', win: [0.815, 0.835, 0.865, 0.885] },
   { id: 'arrivee', win: [0.9, 0.94, 1.0, 1.0] },
 ];
 
 // header and UI colour: 'dark' text on the light port, road and final section; 'light' text over
 // the sea and the sky
 export const TONE = [
-  { from: 0.0, to: 0.478, tone: 'dark' },
-  { from: 0.478, to: 0.872, tone: 'light' },
-  { from: 0.872, to: 1.0, tone: 'dark' },
+  { from: 0.0, to: 0.486, tone: 'dark' },
+  { from: 0.486, to: 0.885, tone: 'light' },
+  { from: 0.885, to: 1.0, tone: 'dark' },
 ];
 
 // where ↓ / ↑ / Espace stop, and the holds of the hands-free tour (P): p values where the story reads best

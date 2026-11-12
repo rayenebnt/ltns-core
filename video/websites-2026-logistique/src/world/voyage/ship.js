@@ -64,7 +64,7 @@ const PALETTE = [
   ['#6b2b2e', 7], // maroon
   ['#9eb3c2', 6], // light blue-grey
   ['#4a4e52', 6], // graphite
-  ['#a8562f', 5], // burnt orange-brown
+  ['#8e3f2c', 5], // rust red-brown ((v3) was a burnt orange: too close to ours from above)
 ];
 const BRAND = '#ff5a1f';
 
@@ -361,7 +361,9 @@ export async function createShip() {
   };
   const tops = [], lowers = [], fillers = [];
   let hero = null;
-  const heroBay = 6, heroRowFromCentre = -3;
+  // (v3) bay 3 from the bow: below the MER headline as the ship sails down the screen (bay 6 sat
+  // under its glyphs)
+  const heroBay = 3, heroRowFromCentre = -3;
   const bayProfile = (k) => 6 + Math.round(2.2 * Math.sin((Math.PI * (k + 0.5)) / nBays)) - (k < 2 ? 1 : 0);
   for (let k = 0; k < nBays; k++) {
     const z = bayZ[k];
@@ -392,8 +394,9 @@ export async function createShip() {
           const len = colPieces === 2 ? CONTAINER.l20 : CONTAINER.l40;
           const zc = colPieces === 2 ? z + (piece === 0 ? -1 : 1) * (CONTAINER.l20 / 2 + 0.04) : z;
           let col = rnd() < 0.6 ? clusterColour[r] : pick();
-          if (rnd() < 0.03 && Math.abs(k - heroBay) > 1) col = BRAND;
-          if (Math.abs(k - heroBay) <= 1 && (col === BRAND || col === '#a8562f' || col === '#c08a2e')) col = '#7d858b';
+          // (v3) the other boxes never wear the brand orange: ours is the only #ff5a1f box on deck
+          if (rnd() < 0.03 && Math.abs(k - heroBay) > 1) col = '#8e3f2c';
+          if (Math.abs(k - heroBay) <= 1 && (col === BRAND || col === '#8e3f2c' || col === '#c08a2e')) col = '#7d858b';
           const isTop = tIdx === tiers - 1;
           if (isHero && isTop) {
             hero = { x, y, z: zc, len, h };
@@ -435,9 +438,10 @@ export async function createShip() {
     B.box(0, wy + 5.3, sz1 - 6.5, 7.5, 0.25, 0.45, C('#e2e4e3'));
     B.box(4.5, wy + 2.2, sz1 - 3.5, 0.8, 1.2, 0.8, C('#bfc4c3'));
     B.cyl(-4, wy + 1.6, sz1 - 3.2, 0.7, 0.6, C('#f2f3f2'), 10);
-    // lifeboats (orange) on davits on both sides, life-raft canisters
+    // lifeboats on davits on both sides, life-raft canisters ((v3) light grey enclosed boats: the
+    // hero box stays the only orange mark on the ship from above)
     for (const s of [-1, 1]) {
-      B.box(s * 14.6, DECK_Y + 10.5, sz0 + 6, 2.8, 2.6, 8.6, C('#ee6a2e'), { top: C('#f07a3e') });
+      B.box(s * 14.6, DECK_Y + 10.5, sz0 + 6, 2.8, 2.6, 8.6, C('#c9cfd1'), { top: C('#d9dedf') });
       B.box(s * 14.6, DECK_Y + 11.9, sz0 + 6, 1.6, 0.4, 6.4, C('#f3f1ec'));
       B.box(s * 13.2, DECK_Y + 12.5, sz0 + 6, 0.5, 4.5, 0.5, C('#7c858a'));
       for (let i = 0; i < 3; i++) B.cyl(s * 12.6, DECK_Y + 8.2, sz0 + 12 + i * 1.6, 0.55, 1.4, white, 8);
@@ -448,7 +452,7 @@ export async function createShip() {
   {
     const fz = -L + 19.5, fw = 9.0, fl = 11, f0 = DECK_Y, f1 = DECK_Y + 35;
     B.box(0, (f0 + f1 - 6) / 2, fz, fw, f1 - 6 - f0, fl, white, { top: white });
-    B.box(0, f1 - 4.5, fz, fw + 0.06, 3.0, fl + 0.06, C(BRAND));
+    B.box(0, f1 - 4.5, fz, fw + 0.06, 3.0, fl + 0.06, C('#1d2a36')); // (v3) an ink band, not orange
     B.box(0, f1 - 1.5, fz, fw, 3.0, fl, C('#24282b'), { top: C('#2b2f33') });
     for (const [x, zz, r] of [[-2.2, fz + 2.0, 1.1], [2.2, fz + 2.0, 1.1], [0, fz - 2.6, 1.4]]) B.cyl(x, f1, zz, r, 1.6, C('#5a6066'), 12, C('#121416'));
     // the white wake mark: three curved lines on the orange band, both sides

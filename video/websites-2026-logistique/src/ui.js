@@ -2,7 +2,7 @@
 // over the 3D (opacity, drift, letter reveal from story.js BEATS), the five service callouts
 // anchored to the ship (world.anchors().callouts), the progress rail, the « Arrivée » section
 // (slide, headline reveal, split-flap board) and the toast.
-import { CHAPTERS, BEATS as WIN, TONE, STORY_END, within, chapterAt } from './story.js';
+import { CHAPTERS, BEATS as WIN, TONE, within, chapterAt } from './story.js';
 import * as T from './texts.js';
 import { createFlap, createBoard } from './flap.js';
 import { clamp, smooth, chase, styler, toggler } from './util.js';
@@ -85,6 +85,12 @@ export function createUI(h) {
   const B = Object.fromEntries(beats.map((b) => [b.id, b]));
   const hint = { el: $('hint'), s: styler($('hint')) };
   const vignette = styler($('vignette'));
+  const headscrim = styler($('headscrim'));
+  const airscrim = styler($('airscrim'));
+  const creditEl = $('credit');
+  const credit = styler(creditEl);
+  // the section's own credit, in its footer (the same text): the fixed one hands over to it
+  const fCredit = document.querySelector('#final .f-credit');
   const thread = styler(document.querySelector('.thread'));
   const heroParts = ['.kicker', '.accent', '.lead'].map((q) => styler(B.hero.el.querySelector(q)));
 
@@ -145,7 +151,7 @@ export function createUI(h) {
   });
 
   // ------------------------------------------------------------------ measures
-  const M = { W: innerWidth, H: innerHeight, railL: 400, finalH: innerHeight, m: 40, head: 78, railW: 64, titleOff: 200, boardOff: 300 };
+  const M = { W: innerWidth, H: innerHeight, railL: 400, finalH: innerHeight, m: 40, head: 78, railW: 64, titleOff: 200, boardOff: 300, fcOff: 1e5, creditH: 14, creditB: 22 };
   function measure() {
     M.W = innerWidth;
     M.H = innerHeight;
@@ -155,6 +161,9 @@ export function createUI(h) {
     const f0 = finalEl.getBoundingClientRect().top;
     M.titleOff = $('t-final').getBoundingClientRect().top - f0;
     M.boardOff = $('board').getBoundingClientRect().top - f0;
+    M.fcOff = fCredit ? fCredit.getBoundingClientRect().top - f0 : 1e5;
+    M.creditH = creditEl.offsetHeight || 14;
+    M.creditB = parseFloat(getComputedStyle(creditEl).bottom) || 22;
     const cs = getComputedStyle(doc);
     M.m = parseFloat(cs.getPropertyValue('--m')) || 40;
     M.head = parseFloat(cs.getPropertyValue('--head-h')) || 78;
@@ -192,6 +201,10 @@ export function createUI(h) {
 
     // above the bright clouds (the air chapter, light tone): the soft vignette
     vignette('opacity', (smooth(0.72, 0.78, p) * (1 - smooth(0.875, 0.9, p))).toFixed(3));
+    // under the header over the busy 3D (from the crane to the white-out)
+    headscrim('opacity', (smooth(0.16, 0.2, p) * (1 - smooth(0.86, 0.9, p))).toFixed(3));
+    // over the bright clouds: the credit's and the rail's backdrop
+    airscrim('opacity', (smooth(0.74, 0.77, p) * (1 - smooth(0.86, 0.885, p))).toFixed(3));
 
     // rail marker
     markerS('transform', `translate3d(0,${(clamp(p) * M.railL).toFixed(2)}px,0)`);
@@ -295,12 +308,23 @@ export function createUI(h) {
       // the section has landed): still a pure function of p for a given window
       const H = M.H;
       const tTop = top + M.titleOff, bTop = top + M.boardOff;
-      fin.rv = chase(fin.rv, on ? clamp((H - tTop) / (0.25 * H)) : 0, dt, rate(revealRate(fin.title)));
+      // (once the section is 60 % up, the headline and the board always land, the board on « LIVRÉ »:
+      // never frozen mid-scramble or mid-flip on the last frame of a take, wherever the scroll rests)
+      fin.rv = chase(fin.rv, on ? (top <= 0.4 * H ? 1 : clamp((H - tTop) / (0.25 * H))) : 0, dt, rate(revealRate(fin.title)));
       fin.title.set(fin.rv);
-      fin.bv = chase(fin.bv, on ? clamp((0.88 * H - bTop) / (0.42 * H)) : 0, dt, rate(BOARD_RATE));
+      fin.bv = chase(fin.bv, on ? (top <= 0.4 * H ? 1 : clamp((0.88 * H - bTop) / (0.42 * H))) : 0, dt, rate(BOARD_RATE));
       board.set(fin.bv);
       // the canvas is fully covered: main.js skips the 3D render
       fin.covered = top <= 0;
+      // the credit (always visible, never over a text): it rides just above the rising section's top
+      // edge, at least 8 px under the header, and hands over to the section's own credit (its footer)
+      // once that one is in view
+      const c0 = H - M.creditB - M.creditH; // its top at rest
+      const ty = Math.max(M.head + 8 - c0, Math.min(0, top - 12 - (H - M.creditB)));
+      const fcB = top + M.fcOff + M.creditH; // the footer credit's bottom edge
+      const cop = clamp((fcB - (H - 18)) / 18); // (it fades only once the footer one is fully in view)
+      credit('transform', ty < -0.01 ? `translate3d(0, ${ty.toFixed(1)}px, 0)` : 'none');
+      credit('opacity', cop.toFixed(3));
     }
   }
 

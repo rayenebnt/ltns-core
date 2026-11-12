@@ -140,8 +140,12 @@ float vh12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.545
   ground.renderOrder = -2;
   group.add(ground);
 
-  // --- the road ribbon
-  const LAT = [-14, -10.5, -7, -5.6, -3.6, -1.75, 0, 1.75, 3.6, 5.6, 7, 10.5, 14];
+  // --- the road ribbon ((v3) its cross-section is drawn for an 11 m road and scaled to ROAD.width:
+  // wider lanes and hard shoulders, then a flat mid-grey verge band each side, so the road reads
+  // at phone scale from the straight's altitude)
+  const RK = ROAD.width / 11;
+  const trailU = { value: new THREE.Vector2(0, 0) };
+  const LAT = [-14, -10.5, -9.2, -7, -5.6, -3.6, -1.75, 0, 1.75, 3.6, 5.6, 7, 9.2, 10.5, 14].map((l) => l * RK);
   const pos = [], att = [], nor = [], idx = [];
   const step = 1.0;
   const n = Math.ceil(length / step) + 1;
@@ -172,7 +176,7 @@ float vh12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.545
     polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -6,
   });
   roadMat.onBeforeCompile = (sh) => {
-    Object.assign(sh.uniforms, U, { uLen: { value: length } });
+    Object.assign(sh.uniforms, U, { uLen: { value: length }, uRK: { value: RK }, uTrail: trailU });
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec2 aRoad;\nvarying vec2 vRoad;\nvarying vec2 vWXZ;')
       .replace('#include <project_vertex>', '#include <project_vertex>\nvRoad = aRoad;\nvWXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
@@ -181,7 +185,7 @@ float vh12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.545
         '#include <common>',
         `#include <common>
 uniform sampler2D uNoise; uniform vec3 uAsph; uniform vec3 uAsphOld; uniform vec3 uMark; uniform vec3 uVerge; uniform vec3 uGravel; uniform vec3 uGround;
-uniform float uLen;
+uniform float uLen; uniform float uRK; uniform vec2 uTrail;
 varying vec2 vRoad; varying vec2 vWXZ;
 float rRough = 0.9;`
       )
@@ -189,7 +193,7 @@ float rRough = 0.9;`
         '#include <color_fragment>',
         `#include <color_fragment>
 {
-  float lat = vRoad.x, d = vRoad.y, al = abs(lat);
+  float lat = vRoad.x / uRK, d = vRoad.y, al = abs(lat);
   vec2 w = vWXZ;
   float grain = texture2D(uNoise, w / 3.1).a;
   float grain2 = texture2D(uNoise, w / 1.07 + 0.31).a;
@@ -221,14 +225,21 @@ float rRough = 0.9;`
   float wear = smoothstep(0.3, 0.62, grain * 0.55 + blot * 0.55 + grain2 * 0.15);
   mk *= (0.5 + 0.5 * wear) * (1.0 - 0.35 * tr);
   col = mix(col, uMark, mk * 0.92);
+  // (v3) the « sillage » trail: a 1.4 m brand-orange line on the centreline, from the gate to the
+  // truck (« suivi en direct » on the map)
+  float alm = abs(vRoad.x);
+  float fwm = max(fwidth(alm), 0.003) * 0.8;
+  float trail = (1.0 - smoothstep(0.7 - fwm, 0.7 + fwm, alm)) * (1.0 - smoothstep(uTrail.x - 4.0, uTrail.x, d)) * uTrail.y;
+  col = mix(col, vec3(1.0, 0.105, 0.014), trail * 0.9);
   // paved edge (irregular), gravel strip, verge fading into the ground
   // (integrator: a crisp paved edge and a narrow, flat light-grey gravel strip: no torn-paper edge)
   float eN = (blot - 0.5) * 0.06;
   float paved = 1.0 - smoothstep(5.48 + eN, 5.56 + eN, al);
-  vec3 gravel = uGravel * (0.96 + 0.06 * grain);
-  float vergeK = smoothstep(6.2 + eN, 6.45 + eN, al);
+  // (v3) a flat mid-grey verge band to 9.2 (about 5 m at a 15 m road), crisp edge, then the verge
+  vec3 gravel = vec3(0.40, 0.425, 0.44) * (0.97 + 0.05 * grain);
+  float vergeK = smoothstep(9.12 + eN, 9.22 + eN, al);
   vec3 grass = uVerge * (0.97 + 0.05 * blot);
-  grass = mix(grass, uGround, smoothstep(9.5, 13.0, al + eN * 2.0));
+  grass = mix(grass, uGround, smoothstep(10.0, 13.2, al + eN * 2.0));
   vec3 outside = mix(gravel, grass, vergeK);
   col = mix(outside, col, paved);
   float a = 1.0 - smoothstep(10.5, 13.8, al + eN * 3.0);
@@ -260,7 +271,7 @@ float rRough = 0.9;`
   // crash barriers along the curve, both sides, on posts every 4 m
   const barrierFrom = 46, barrierTo = Math.min(length - 20, 214);
   for (const side of [-1, 1]) {
-    const lat = side * 6.55;
+    const lat = side * 6.55 * RK;
     let prev = null;
     for (let d = barrierFrom; d <= barrierTo + 0.01; d += 2) {
       const p = offsetAt(d, lat, 0.62);
@@ -286,7 +297,7 @@ float rRough = 0.9;`
   const poles = [];
   for (let d = 22; d < length - 12; d += 44) poles.push(d);
   for (const d of poles) {
-    const lat = -9.4;
+    const lat = -9.4 * RK - 1.5;
     const base = offsetAt(d, lat, 0);
     tangentAt(d, _t);
     const rx = -_t.z, rz = _t.x; // towards the road (right of the pole's side)
@@ -409,6 +420,8 @@ float rRough = 0.9;`
     offsetAt,
     cranes: cranesX.map((x) => new THREE.Vector3(x, 0, quayZ)),
     meshes: { ground, road, decor, fine, shadows: shadowMesh },
+    // (v3) the orange trail: up to arc length d (m from the gate), strength k (0..1)
+    setTrail: (d, k) => trailU.value.set(d, k),
     setQuality,
     dispose() {
       for (const m of [ground, road, decor, fine, shadowMesh]) m.geometry.dispose();

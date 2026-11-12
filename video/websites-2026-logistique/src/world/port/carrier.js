@@ -21,6 +21,10 @@ export const CARRIER = {
 };
 
 const ORANGE = (k = 1) => ({ c: lin('#ff5a1f', k), r: 0.36, m: 0.0, e: -0.25 });
+// (integrator) the machine is graphite with a slight sheen: the orange hero container is the only
+// large orange mass on screen; orange stays on the spreader frame, a band along the top beams and
+// the plate (the brand used sparingly)
+const PAINT = (k = 1) => ({ c: lin('#2c3339', k), r: 0.42, m: 0.35 });
 const GRAPH = { c: lin('#2a2e33'), r: 0.55, m: 0.4 };
 const GRAPH_L = { c: lin('#3c4148'), r: 0.5, m: 0.45 };
 const DARK = { c: lin('#16181b'), r: 0.65, m: 0.2 };
@@ -33,8 +37,9 @@ function bodyGeometry(quality) {
   const k = new Kit();
   const { ZL, wheelX, topY } = CARRIER;
   const fine = quality !== 'low';
-  const O = ORANGE();
-  const O2 = ORANGE(0.92);
+  const O = PAINT();
+  const O2 = PAINT(0.86);
+  const OR = ORANGE();
   for (const s of [-1, 1]) {
     const z = s * ZL;
     // sill beam (lower longitudinal box girder) with a recessed web line
@@ -67,8 +72,8 @@ function bodyGeometry(quality) {
       const plate = extrude([[-0.3, 0.35], [0.3, 0.35], [0.4, topY - 2.9], [-0.4, topY - 2.9]], 0.03, 0.01);
       k.add(plate, mat([lx, 2.45, z + s * 0.285]), O2);
       // panel seam, hazard plate at the foot, conduits along the inner edge
-      k.add(box(0.05, topY - 3.6, 0.014), mat([lx, (topY + 2.9) / 2 + 0.2, z + s * 0.302]), { ...O, c: lin('#ff5a1f', 0.35) });
-      for (const ddx of [-0.33, 0.33]) k.add(box(0.03, topY - 3.6, 0.014), mat([lx + ddx * 1.05, (topY + 2.9) / 2 + 0.2, z + s * 0.302]), { ...O, c: lin('#ff5a1f', 0.62) });
+      k.add(box(0.05, topY - 3.6, 0.014), mat([lx, (topY + 2.9) / 2 + 0.2, z + s * 0.302]), { ...O, c: lin('#2c3339', 0.55) });
+      for (const ddx of [-0.33, 0.33]) k.add(box(0.03, topY - 3.6, 0.014), mat([lx + ddx * 1.05, (topY + 2.9) / 2 + 0.2, z + s * 0.302]), { ...O, c: lin('#2c3339', 0.7) });
       const hzp = new THREE.PlaneGeometry(0.84, 0.26);
       const HU = hzp.attributes.uv;
       for (let i = 0; i < HU.count; i++) HU.setY(i, HU.getY(i) * 0.5);
@@ -86,6 +91,7 @@ function bodyGeometry(quality) {
     k.add(rbox(9.6, 1.0, 0.6, 0.07, 2), mat([0, topY + 0.5, z]), O);
     k.add(box(9.0, 0.05, 0.02), mat([0, topY + 0.22, z + s * 0.305]), O2);
     k.add(box(9.0, 0.05, 0.02), mat([0, topY + 0.78, z + s * 0.305]), O2);
+    k.add(box(9.4, 0.35, 0.02), mat([0, topY + 0.5, z + s * 0.307]), OR); // the orange band
     // ladder with a safety cage on the rear leg (outer face)
     {
       const lx = -3.6;
@@ -193,8 +199,8 @@ function bodyGeometry(quality) {
       for (let i = 0; i < 7; i++) k.add(box(1.4, 0.05, 0.04), mat([ex + 0.5, ey + 0.4 + i * 0.13, s * (D / 2 + 0.005)], [s * 0.6, 0, 0]), DARK);
       k.add(box(1.5, 1.0, 0.012), mat([ex + 0.5, ey + 0.8, s * (D / 2 - 0.004)]), DARK);
       // a service door outline
-      k.add(box(0.9, 0.035, 0.02), mat([ex - 0.8, ey + 1.35, s * (D / 2 + 0.002)]), { ...O, c: lin('#ff5a1f', 0.8) });
-      k.add(box(0.035, 1.1, 0.02), mat([ex - 0.35, ey + 0.8, s * (D / 2 + 0.002)]), { ...O, c: lin('#ff5a1f', 0.8) });
+      k.add(box(0.9, 0.035, 0.02), mat([ex - 0.8, ey + 1.35, s * (D / 2 + 0.002)]), { ...O, c: lin('#2c3339', 0.6) });
+      k.add(box(0.035, 1.1, 0.02), mat([ex - 0.35, ey + 0.8, s * (D / 2 + 0.002)]), { ...O, c: lin('#2c3339', 0.6) });
     }
     k.add(box(0.03, 1.1, 3.2), mat([ex - L / 2 - 0.004, ey + 0.8, 0]), DARK);
     for (let i = 0; i < 9; i++) k.add(box(0.05, 0.04, 3.1), mat([ex - L / 2 - 0.02, ey + 0.32 + i * 0.12, 0]), GRAPH);
@@ -222,14 +228,14 @@ function spreaderGeometry(quality) {
   const tlX = 5.9925; // twistlock centres (40')
   const tlZ = 1.1295;
   // main frame
-  k.add(rbox(5.4, 0.42, 1.12, 0.05, 2), mat([0, 0.33, 0]), GRAPH);
+  k.add(rbox(5.4, 0.42, 1.12, 0.05, 2), mat([0, 0.33, 0]), ORANGE());
   // telescopic beams (lighter grey), sliding out of the frame
   for (const z of [-0.36, 0.36]) {
     k.add(rbox(11.6, 0.24, 0.24, 0.03), mat([0, 0.32, z]), GRAPH_L);
   }
   // end beams with twistlock housings, corner guides (flippers) with hazard faces
   for (const sx of [-1, 1]) {
-    k.add(rbox(0.38, 0.38, 2.44, 0.04, 2), mat([sx * 5.82, 0.29, 0]), GRAPH);
+    k.add(rbox(0.38, 0.38, 2.44, 0.04, 2), mat([sx * 5.82, 0.29, 0]), ORANGE());
     // hazard band on the end face
     const hz = new THREE.PlaneGeometry(2.2, 0.22);
     const U = hz.attributes.uv;

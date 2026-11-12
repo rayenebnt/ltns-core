@@ -73,7 +73,7 @@ const UNDER = { c: '#2b2622', r: 0.9, m: 0.1, e: 0 };
 const HOLE = { c: '#0d0d0e', r: 0.9, m: 0, e: 0 };
 const PLATE = { c: '#b9bec2', r: 0.35, m: 0.85, e: 0 };
 
-export function containerGeometry(len = 'l40', { hc = true, lod = 0, quality = 'high' } = {}) {
+export function containerGeometry(len = 'l40', { hc = true, lod = 0, quality = 'high', roofDecal = false } = {}) {
   const L = CONTAINER[len];
   const H = hc ? CONTAINER.hHC : CONTAINER.h;
   const k = new Kit();
@@ -162,7 +162,13 @@ export function containerGeometry(len = 'l40', { hc = true, lod = 0, quality = '
         P.setY(i, H - 0.012 - dent * ex * ez);
       }
       g.computeVertexNormals();
-      k.add(g, null, { ...PAINT, w: 4 });
+      // (integrator) the hero's roof carries its stencil (the long side's artwork: « SILLAGE » and the
+      // wake mark, reading along the box, upright when the box points east): « ours » from above
+      if (roofDecal) {
+        const U = g.attributes.uv;
+        for (let i = 0; i < P.count; i++) U.setXY(i, (0.75 * (P.getX(i) + L / 2)) / L, 0.04 + (0.92 * (W / 2 - P.getZ(i))) / W);
+      }
+      k.add(g, null, { ...PAINT, w: 4, d: roofDecal });
     }
     // ---- underside: floor and cross members
     k.add(box(L - 0.2, 0.02, W - 0.1), mat([0, 0.12, 0]), UNDER);

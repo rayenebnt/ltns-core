@@ -116,7 +116,7 @@ export async function createPort({ renderer, quality = 'high' } = {}) {
   // the hero container
   const heroTex = heroAtlas();
   const heroMat = boxMaterial({ atlas: heroTex, cells: 1, rust: 0.38, name: 'hero' });
-  let heroGeo = containerGeometry('l40', { hc: true, lod: 0, quality: Q });
+  let heroGeo = containerGeometry('l40', { hc: true, lod: 0, quality: Q, roofDecal: true });
   const heroInst = instAttr(1);
   {
     const c = new THREE.Color('#ff5a1f');
@@ -295,7 +295,7 @@ export async function createPort({ renderer, quality = 'high' } = {}) {
     group.add(truckCore.group);
     truckCore.setPose(pose);
     heroGeo.dispose();
-    heroGeo = containerGeometry('l40', { hc: true, lod: 0, quality: Q });
+    heroGeo = containerGeometry('l40', { hc: true, lod: 0, quality: Q, roofDecal: true });
     heroGeo.setAttribute('aInst', heroInst);
     hero.geometry = heroGeo;
     buildNear();

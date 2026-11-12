@@ -32,6 +32,12 @@
   <!-- above the bright clouds: a soft vignette keeps the light header, the rail and the credit
        legible (opacity from p: ui.js) -->
   <i class="vignette" id="vignette" aria-hidden="true"></i>
+  <!-- under the header over the busy 3D (stacks, road, sea, clouds): a soft backdrop that keeps the
+       logo, the nav and the pill legible (paper in the dark tone, deep blue in the light tone) -->
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+  <!-- over the bright clouds (light tone): a soft deep-blue shade along the bottom edge (the credit)
+       and behind the rail (opacity from p: ui.js) -->
+  <i class="airscrim" id="airscrim" aria-hidden="true"></i>
   <section class="beat beat-hero" id="b-hero">
     <p class="kicker" data-t="hero.kicker"></p>
     <h1 class="display flap" id="t-hero"></h1>
@@ -83,6 +89,7 @@
     </div>
   </div>
   <div class="f-foot">
+    <p class="f-credit" data-t="credit"></p>
     <svg class="f-mark" aria-hidden="true"><use href="#i-wake"/></svg>
     <p class="f-statement" data-t="arrivee.statement"></p>
   </div>

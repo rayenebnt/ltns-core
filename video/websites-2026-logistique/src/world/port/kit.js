@@ -171,7 +171,7 @@ uniform float uStudio; uniform vec3 uPaper; uniform vec2 uFadeZ; uniform float u
 // the depth fade, applied last (output space)
 const STUDIO_END = /* glsl */ `
 {
-  float fz = uStudio * uFadeMax * (1.0 - exp(-max(0.0, -vWPos.z - uFadeZ.x) / uFadeZ.y));
+  float fz = uStudio * mix(uFadeMax, 1.0, smoothstep(30.0, 42.0, -vWPos.z)) * (1.0 - exp(-max(0.0, -vWPos.z - uFadeZ.x) / uFadeZ.y));
   gl_FragColor.rgb = mix(gl_FragColor.rgb, linearToOutputTexel(vec4(uPaper, 1.0)).rgb, fz);
 }
 `;

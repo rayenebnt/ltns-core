@@ -107,20 +107,29 @@ function track(keys) {
 const LANE = PORT.gate.x - PORT.truck.x; // the yard lane, then the road from the gate
 const P_GO = PHASES.truckGo[0] + 0.06 * (PHASES.truckGo[1] - PHASES.truckGo[0]);
 const V_GATE = (2 * LANE) / (PHASES.truckGo[1] - P_GO); // the port module's speed at the gate
-const DRIVE = (() => {
-  const vCruise = 3300;
+// the truck accelerates on the road, cruises down the straight, then brakes onto the quay apron
+// and stops at the berth's stop line (D_STOP before the end of the road), next to the ship's stern:
+// the cruise speed is solved from the road's length so that it arrives at P_STOP
+const P_ACC = PHASES.road[0] + 0.05, P_BRAKE = PHASES.coast[0] + 0.025, P_STOP = PHASES.coast[0] + 0.065;
+const D_STOP = 12;
+let DRIVE = null;
+function buildDrive(roadLen) {
+  const target = LANE + roadLen - D_STOP;
+  // distance after the gate = V_GATE·(P_ACC − gate)/2 + vC·[(P_ACC − gate)/2 + (P_BRAKE − P_ACC) + (P_STOP − P_BRAKE)/2]
+  const g = PHASES.truckGo[1];
+  const vC = (target - LANE - (V_GATE * (P_ACC - g)) / 2) / ((P_ACC - g) / 2 + (P_BRAKE - P_ACC) + (P_STOP - P_BRAKE) / 2);
   const knots = [
     [P_GO, 0],
-    [PHASES.truckGo[1], V_GATE],
-    [PHASES.road[0] + 0.05, vCruise],
-    [PHASES.road[1] - 0.03, vCruise],
-    [PHASES.coast[0] + 0.045, 0],
+    [g, V_GATE],
+    [P_ACC, vC],
+    [P_BRAKE, vC],
+    [P_STOP, 0],
   ];
   // cumulative distance at each knot
   const S = [0];
   for (let i = 1; i < knots.length; i++) S.push(S[i - 1] + ((knots[i][0] - knots[i - 1][0]) * (knots[i][1] + knots[i - 1][1])) / 2);
-  return { knots, S };
-})();
+  DRIVE = { knots, S, vC };
+}
 function driveS(p) {
   const { knots, S } = DRIVE;
   if (p <= knots[0][0]) return 0;
@@ -141,10 +150,10 @@ function driveS(p) {
 // distance (m), pitch (°), yaw (°, + = the camera swings east, looking a little north-west), fov
 const C = PHASES;
 const SIDE = {
-  ox: track([[0, -7.2], [C.lift[0], -7.2], [C.lift[1], -8.6], [C.carry[1], -7.6], [C.lower[1], -7.4], [C.crane[0], -8.0]]),
+  ox: track([[0, -7.5], [C.lift[0], -7.5], [C.lift[1], -8.2], [C.carry[1], -7.6], [C.lower[1], -7.4], [C.crane[0], -8.0]]),
   // the target's height (absolute, m): the yard floor stays put on screen while the box goes up and down
-  ty: track([[0, 15.0], [C.lift[0], 15.0], [C.lift[1], 12.6], [C.carry[1], 12.0], [C.lower[1], 10.8], [C.crane[0], 10.2]]),
-  dist: track([[0, 160], [C.lift[0], 153], [C.lift[1], 118], [C.carry[1], 104], [C.lower[1], 98], [C.crane[0], 102]]),
+  ty: track([[0, 9.0], [C.lift[0], 9.0], [C.lift[1], 8.6], [C.carry[1], 8.2], [C.lower[1], 7.6], [C.crane[0], 7.6]]),
+  dist: track([[0, 95], [C.lift[0], 92], [C.lift[1], 88], [C.carry[1], 84], [C.lower[1], 82], [C.crane[0], 90]]),
   pitch: track([[0, -3.2], [C.lift[0], -3.2], [C.lift[1], -3.4], [C.carry[1], -3.6], [C.lower[1], -4.0], [C.crane[0], -5.0]]),
   yaw: track([[0, 0], [C.lift[0], 0], [C.lift[1], 4], [C.carry[1], 8], [C.lower[1], 10], [C.crane[0], 9]]),
   fov: track([[0, 20], [C.crane[0], 20]]),
@@ -154,34 +163,51 @@ const SIDE = {
 const TOP = {
   alt: track([
     [C.crane[1], 84],
-    [C.road[0] + 0.035, 112],
-    [C.road[0] + 0.08, 165],
-    [C.road[1] - 0.01, 190],
+    [C.road[0] + 0.035, 128],
+    [C.road[0] + 0.08, 190],
+    [C.coast[0] - 0.01, 212],
     [C.coast[0] + 0.035, 262],
-    [C.ship[0], 360],
+    [C.coast[0] + 0.065, 305],
+    [C.ship[0] + 0.02, 370],
     [C.ship[1], 430],
     [C.rise[0] + 0.07, 760],
-    [C.rise[1] - 0.01, 860],
-    [C.clouds[1], 2440],
-    [C.plane[0] + 0.05, 2455],
-    [1, 2500],
+    // (v3) the climb starts as the services fade out, and the cloud base → cloud top crossing is
+    // spread over 0.04 p (it was the largest jump of the film)
+    [C.rise[1] - 0.024, 830],
+    [C.rise[1] - 0.007, 905],
+    [C.rise[1] + 0.011, 1200],
+    [C.rise[1] + 0.029, 1500],
+    [C.clouds[1] + 0.005, 2290],
+    [C.plane[0] + 0.05, 2320],
+    [1, 2350],
   ]),
-  pitch: track([[C.crane[1], -90], [C.coast[0] + 0.01, -90], [C.coast[0] + 0.04, -78], [C.ship[0] - 0.005, -90], [1, -90]]),
+  // straight down all along (no tilt over the coast: the quay, the truck and the deck read as one map)
+  pitch: track([[C.crane[1], -90], [1, -90]]),
   fov: track([[C.crane[1], 38], [1, 38]]),
-  lead: track([[C.crane[1], 0.08], [C.road[0] + 0.04, 0.1], [C.road[1], 0.1]]),
-  shipOff: track([[C.ship[0], 34], [C.ship[0] + 0.03, 30], [C.ship[1], -16], [C.rise[0] + 0.05, 8], [C.rise[1], 0]]),
+  lead: track([[C.crane[1], 0.08], [C.road[0] + 0.04, 0.1], [C.coast[0] + 0.015, 0.1], [C.coast[0] + 0.06, 0.0]]),
+  // on the road's straight the target sits west of the truck (a fraction of the frame width): the
+  // road runs at about 0.65 W, clear of the centred nav and of the ROUTE text at the left
+  west: track([[C.road[0] + 0.035, 0], [C.road[0] + 0.085, 0.15], [C.coast[0], 0.15], [C.coast[0] + 0.035, 0]]),
+  // the ship's offset from the frame centre (m, + = ship BELOW the centre): the camera holds still
+  // while the ship sails down the screen through the MER headline, then centres it for the services
+  // (into the climb the target runs ahead of the ship, south: the coast stays out of the frame
+  // while the camera is still under the cloud layer)
+  shipOff: track([[C.ship[0] + 0.005, -35], [C.ship[1], 35], [C.rise[0] + 0.045, 8], [C.rise[1] - 0.01, 0], [C.rise[1] + 0.02, -130]]),
 };
 // subject blends (top rig): truck → ship over the coast, ship → plane track over the climb
-const W_SHIP = (p) => smoother((p - (C.coast[0] - 0.005)) / (C.ship[0] + 0.005 - (C.coast[0] - 0.005)));
+const W_SHIP = (p) => smoother((p - (C.coast[0] + 0.025)) / (C.ship[0] + 0.02 - (C.coast[0] + 0.025)));
 const W_PLANE = (p) => smoother((p - (C.clouds[0] + 0.03)) / (C.plane[0] + 0.045 - (C.clouds[0] + 0.03)));
 const W_CRANE = (p) => smoother(within(p, C.crane));
 // the camera's speed along the plane's track (fraction of the plane's), and where the track sits on
 // screen (m south of the frame centre at the plane's altitude: the plane passes above the AIR text)
-const PLANE_FOLLOW = 0.62;
-const PLANE_TRACK_OFF = 70;
+const PLANE_FOLLOW = 0.8;
+const PLANE_TRACK_OFF = 33;
+// the camera leads the plane along its track (m): at the AIR stop the plane sits left of the
+// centre, clear of the AIR text at the right, and it crosses the frame through the white-out
+const PLANE_LEAD = 49;
 
 // exposure and light per stage
-const EXPOSURE = track([[0, 1.0], [C.crane[0], 1.0], [C.crane[1], 1.12], [C.coast[0], 1.12], [C.ship[0], 1.32], [C.rise[1], 1.32], [C.clouds[1], 1.18], [1, 1.18]]);
+const EXPOSURE = track([[0, 1.0], [C.crane[0], 1.0], [C.crane[1], 1.12], [C.coast[0] + 0.055, 1.12], [C.ship[0], 1.32], [C.rise[1], 1.32], [C.clouds[1], 1.18], [1, 1.18]]);
 
 export async function createWorld({ renderer, quality = 'high', onProgress = () => {} } = {}) {
   let level = LEVELS.includes(quality) ? quality : 'high';
@@ -232,16 +258,20 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   const port = await createPort({ renderer, quality: level });
   scene.add(port.group);
   onProgress(0.45);
-  const voyage = await createVoyage({ renderer, quality: level, sun: SUN, gate: true });
+  // (no voyage gatehouse, pillars or fence: a plain box and a stray cube at the yard edge from above)
+  const voyage = await createVoyage({ renderer, quality: level, sun: SUN, gate: false });
   scene.add(voyage.group);
   onProgress(0.8);
   const road = voyage.road;
   const ship = voyage.ship;
   const plane = voyage.plane;
   const vGround = road.meshes.ground;
+  buildDrive(road.length);
   // a neutral, very light map ground (the warm sun would turn the module's default cream)
   voyage.uniforms.uGround.value.set('#e3e7ea');
-  voyage.uniforms.uConcrete.value.set('#d3d7da');
+  voyage.uniforms.uConcrete.value.set('#c3c8cb'); // the quay apron a shade darker: road, apron and sea read as one graphic
+  // the yard's edges fade (lit, from above) into the map ground's rendered colour, not the paper
+  port.terminal.groundUniforms.uEdgeOut.value.set(242 / 255, 245 / 255, 244 / 255);
 
   // the terminal's south apron rows (blocks S and T, z > 10) sit in front of the hero lane: in the
   // wide side view they would clutter the hero text at the left. They wait under the yard until the
@@ -356,7 +386,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     port.truckCentre(truckC);
     leadDir(s, tan);
     const lead = TOP.lead(p) * fh;
-    topT.set(truckC.x + tan.x * lead, 0, truckC.z + tan.z * lead);
+    topT.set(truckC.x + tan.x * lead - TOP.west(p) * fh * Math.max(1.6, W / H), 0, truckC.z + tan.z * lead);
     const wS = W_SHIP(p);
     if (wS > 0) {
       ship.positionAt(p, shipPos);
@@ -365,7 +395,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     }
     const wP = W_PLANE(p);
     if (wP > 0) {
-      const d = (p - PLANE_PATH.centreP) * PLANE_PATH.speed * PLANE_FOLLOW;
+      const d = (p - PLANE_PATH.centreP) * PLANE_PATH.speed * PLANE_FOLLOW + PLANE_LEAD;
       tmp.copy(planeCentre).addScaledVector(PDIR, d).addScaledVector(PPERP, PLANE_TRACK_OFF);
       tmp.y = 0;
       topT.lerp(tmp, wP);
@@ -486,8 +516,12 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     // 1. the port's choreography, then the truck on the road
     port.update(p, time);
     sinkApron(p < C.carry[1] + 0.01);
-    if (masts) masts.visible = masts.castShadow = p > C.crane[0] + 0.012;
+    // (the 30 m light masts read as black wedges in the crane and as long sticks at the frame edges
+    // from above: the yard does without them)
+    if (masts) masts.visible = masts.castShadow = false;
     const s = poseTruck(p);
+    // (v3) the orange « sillage » trail on the map, from the gate to the truck, over the road chapter
+    road.setTrail(s - LANE, sstep(C.road[0] - 0.005, C.road[0] + 0.015, p) * (1 - sstep(C.coast[0] + 0.005, C.coast[0] + 0.02, p)));
     // 2. the camera (final before the voyage update: the ocean and clouds follow it)
     const crane = placeCamera(p, s, state.pointer);
     // 3. the voyage (ship, plane, ocean, clouds, white-out), then the map's reveal
@@ -495,6 +529,21 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     voyage.setReveal(reveal); // before update: its stage visibility reads the reveal
     voyage.update(p, time, camera);
     vGround.visible = reveal > 0.001;
+    // (v3) from the climb on there is no land: the road, the quay and its cranes go, and the sea runs
+    // on to the north (its quay line moves away, out of the frame), so no straight coast or crane
+    // leg can show at the top of the frame, whatever the clouds do
+    const flood = sstep(C.clouds[0] + 0.022, C.clouds[0] + 0.055, p);
+    if (flood > 0) road.group.visible = false;
+    voyage.ocean.mesh.material.uniforms.uQuayZ.value = ROAD.quayZ - 4000 * flood;
+    // the white-out from above is the cloud layer itself thickening to paper (no full-screen veil):
+    // the plane and its contrails stay over it and fly out of the frame as « Arrivée » rises,
+    // a white product-render plane on paper (the bookend of the white port studio)
+    if (camera.position.y > SKY.cloudTop) voyage.clouds.veil.visible = false;
+    plane.object.visible = p > C.plane[0] - 0.035;
+    if (p > C.whiteout[1] + 0.003) {
+      voyage.ocean.mesh.visible = false;
+      ship.object.visible = false;
+    }
     // 4. what the camera can see: the port's yard and machines only while in view
     pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     frustum.setFromProjectionMatrix(pv);
@@ -505,7 +554,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     port.group.visible = yardOn || truckOn;
     // past the white-out the frame is the paper clear colour alone (nothing left to draw under the
     // sliding « Arrivée » section)
-    voyage.group.visible = p < C.whiteout[1] + 0.003;
+    voyage.group.visible = true;
     // 5. light, exposure, shadow fit
     placeLights(p, crane);
     void dt;
@@ -580,7 +629,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
 
   // every stage once, into a small corner of the canvas (the programs and shadow programs compile;
   // the pixels do not matter: the shell renders the real frame right after)
-  const WARM = [0.0, 0.1, 0.2, 0.24, 0.3, 0.36, 0.455, 0.55, 0.69, 0.745, 0.765, 0.84, 0.9];
+  const WARM = [0.0, 0.1, 0.2, 0.24, 0.3, 0.36, 0.455, 0.55, 0.69, 0.745, 0.765, 0.84, 0.875, 0.93];
   async function warmup() {
     const st = { p: curP, pointer: { x: 0, y: 0 } };
     const keep = curP;
@@ -653,4 +702,3 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
 }
 
 void ROAD;
-void SKY;

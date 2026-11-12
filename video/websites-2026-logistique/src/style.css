@@ -218,6 +218,40 @@ html:not(.cursor-off) .pill:hover, html.tone-light:not(.cursor-off) .pill:hover 
   pointer-events: none;
 }
 
+/* the cut back to the hero when the tour starts away from the top (main.js) */
+.cutveil { position: fixed; inset: 0; z-index: 40; background: var(--paper); opacity: 0; pointer-events: none; transition: opacity 0.26s var(--ease); }
+.cutveil.is-on { opacity: 1; }
+
+/* the header backdrop (opacity from p: ui.js; colour from the tone) */
+.headscrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 132px;
+  opacity: 0;
+  pointer-events: none;
+}
+.headscrim::before, .headscrim::after { content: ''; position: absolute; inset: 0; transition: opacity var(--tone-t) var(--ease); }
+.headscrim::before { background: linear-gradient(180deg, rgba(238, 240, 241, 0.9) 0, rgba(238, 240, 241, 0.62) 56px, rgba(238, 240, 241, 0) 100%); }
+.headscrim::after { opacity: 0; background: linear-gradient(180deg, rgba(6, 28, 56, 0.4) 0, rgba(6, 28, 56, 0.2) 60px, rgba(6, 28, 56, 0) 100%); }
+html.tone-light .headscrim::before { opacity: 0; }
+html.tone-light .headscrim::after { opacity: 1; }
+
+/* over the bright clouds: the credit's and the rail's backdrop (opacity from p: ui.js) */
+.airscrim {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, rgba(6, 28, 56, 0.38) 0, rgba(6, 28, 56, 0.2) 70px, rgba(6, 28, 56, 0) 150px),
+    linear-gradient(270deg, rgba(6, 28, 56, 0.3) 0, rgba(6, 28, 56, 0.24) 80px, rgba(6, 28, 56, 0) 170px);
+}
+/* the AIR beat over the bright clouds */
+.beat-air .kicker { color: #fff; text-shadow: 0 1px 12px rgba(6, 28, 56, 0.6); }
+.beat-air .lead { text-shadow: 0 1px 12px rgba(6, 28, 56, 0.62), 0 0 3px rgba(6, 28, 56, 0.35); }
+
 /* hero: top-left */
 .beat-hero {
   left: var(--m);
@@ -472,7 +506,7 @@ html.tone-light .rail-marker { box-shadow: 0 0 0 1.5px rgba(8, 30, 56, 0.45), 0 
   color: var(--ink);
   transform: translate3d(0, 100vh, 0);
   visibility: hidden;
-  box-shadow: 0 -30px 60px rgba(15, 20, 25, 0.06);
+  box-shadow: 0 -1px 0 rgba(15, 20, 25, 0.08);
   will-change: transform;
 }
 .final.is-on { visibility: visible; }
@@ -582,6 +616,7 @@ html:not(.cursor-off) .btn-line:hover { box-shadow: inset 0 0 0 1px var(--ink); 
   padding: 16px 0 22px;
   border-top: 1px solid rgba(15, 20, 25, 0.1);
 }
+.f-credit { margin-right: auto; font: 500 11.5px/1.2 var(--sans); letter-spacing: 0.02em; color: rgba(15, 20, 25, 0.62); white-space: nowrap; }
 .f-mark { width: 24px; height: 18px; color: var(--orange); flex: none; }
 .f-statement { max-width: 520px; font: 400 12.5px/1.5 var(--sans); color: rgba(15, 20, 25, 0.6); }
 
@@ -596,8 +631,11 @@ html:not(.cursor-off) .btn-line:hover { box-shadow: inset 0 0 0 1px var(--ink); 
   color: var(--fg-2);
   white-space: nowrap;
   pointer-events: none;
-  transition: color var(--tone-t) var(--ease);
+  border-radius: 6px;
+  transition: color var(--tone-t) var(--ease), background-color 0.25s, box-shadow 0.25s;
 }
+/* (while « Arrivée » slides up, ui.js moves it above the section's top edge, then hands over to the
+   section's own credit in its footer) */
 html.tone-light .credit, html.tone-light .brand, html.tone-light .nav-link, html.tone-light .rail-label { text-shadow: 0 1px 12px rgba(0, 18, 42, 0.42); }
 html.tone-light .mark { filter: drop-shadow(0 1px 6px rgba(0, 18, 42, 0.35)); }
 
@@ -686,6 +724,18 @@ body.no-gl #hud, body.no-gl #final, body.no-gl .top, body.no-gl .rail, body.no-g
 @media (max-width: 1100px) {
   .nav { gap: 14px; }
   .brand-tag { font-size: 8px; }
+}
+/* wide windows: the split-flap board is the payoff, across the section; the headline, the text
+   and the buttons in a row under it */
+@media (min-width: 1100px) {
+  .f-inner { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; row-gap: clamp(18px, 4vh, 44px); align-content: center; }
+  .f-side { grid-row: 1; }
+  .f-main { grid-row: 2; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: clamp(28px, 4.2vw, 84px); align-items: end; }
+  .f-main .k-final { grid-column: 1 / -1; }
+  #t-final { grid-column: 1; grid-row: 2 / span 2; }
+  .f-main .f-text { grid-column: 2; grid-row: 2; margin-top: 0; }
+  .f-main .f-actions { grid-column: 2; grid-row: 3; margin-top: clamp(14px, 2.4vh, 24px); }
+  .board { justify-self: start; margin-left: 0; --cell: clamp(14px, min(calc((80cqw - 40px) / 24.6), 4.6vh), 44px); }
 }
 @media (max-height: 760px) {
   :root { --head-h: 70px; }

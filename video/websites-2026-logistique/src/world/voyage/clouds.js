@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import { SKY } from '../layout.js';
 
-const MAP = 512, MAP_M = 8000; // texels, metres per tile
+const MAP = 512, MAP_M = 12000; // texels, metres per tile (integrator: bigger masses, real gaps)
 
 // shared GLSL (the ocean uses cloudColumn for its cloud shadows)
 export const CLOUD_FIELD_GLSL = /* glsl */ `
@@ -31,7 +31,7 @@ function bakeCloudMap(noise) {
       const lo = noise.sample(u * 2 + 0.13, v * 2 + 0.57, 0);
       const puffs = noise.sample(u * 6 + 0.37, v * 6 + 0.21, 1);
       const mid = noise.sample(u * 14 + 0.71, v * 14 + 0.05, 1);
-      const s = lo * 0.44 + puffs * 0.38 + mid * 0.18;
+      const s = lo * 0.62 + puffs * 0.28 + mid * 0.1;
       fl[y * MAP + x] = s;
       mn = Math.min(mn, s);
       mx = Math.max(mx, s);
@@ -75,6 +75,7 @@ export function createClouds({ uniforms, noise }) {
     uInside: { value: 0 },
     uInvVP: { value: new THREE.Matrix4() },
     uClear: { value: new THREE.Vector4(0, 0, 250, 0) },
+    uBank: { value: new THREE.Vector2(0, 0) }, // the coastal bank: z of its southern edge, strength
   };
 
   const vertexShader = /* glsl */ `
@@ -96,7 +97,7 @@ void main() {
 uniform sampler2D uNoise; uniform float uTime; uniform float uThr0; uniform float uThr1; uniform vec2 uWind;
 uniform vec3 uSunDir; uniform vec3 uCloudLit; uniform vec3 uCloudShade; uniform vec3 uCloudDark; uniform vec3 uPaper; uniform vec3 uHaze;
 uniform float uWhite; uniform float uDetail; uniform float uBase; uniform float uTop; uniform float uSteps; uniform float uSigma;
-uniform float uInside; uniform mat4 uInvVP; uniform vec4 uClear;
+uniform float uInside; uniform mat4 uInvVP; uniform vec4 uClear; uniform vec2 uBank;
 uniform vec4 uPlane; uniform vec2 uPlaneDir; uniform float uPlaneShadow;
 varying vec3 vW; varying vec2 vNdc;
 ${CLOUD_FIELD_GLSL}
@@ -135,7 +136,10 @@ void main() {
   if (tB <= tA) discard;
   tB = min(tB, tA + 5200.0);
   float dt = (tB - tA) / uSteps;
-  float jit = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+  // (integrator: a hashed white-noise jitter: the interleaved gradient noise showed as a diagonal hatch)
+  vec2 jq = fract(gl_FragCoord.xy * vec2(0.1031, 0.1030));
+  jq += dot(jq, jq.yx + 33.33);
+  float jit = fract((jq.x + jq.y) * jq.x);
   float t = tA + dt * jit;
   float T = 1.0;
   vec3 C = vec3(0.0);
@@ -155,8 +159,16 @@ void main() {
     vec2 dxz = p.xz + upper * vec2(2310.0, -1670.0);
     float s = cloudShape(dxz, wt) - upper * 0.035;
     // the camera's clearing: it rises through a hole that closes for the white-out
-    float cr = length(p.xz - uClear.xy);
-    s -= uClear.w * (1.0 - smoothstep(uClear.z * 0.5, uClear.z, cr)) * 0.45;
+    // (integrator) a long gap along the ship's track (north-south semi-axis 2.2 r, east-west 1.1 r),
+    // with a lobed rim (two noise octaves): a lane of open sea over the ship and its wake, not a
+    // round porthole
+    float cr = length((p.xz - uClear.xy) * vec2(0.909, 0.4545));
+    if (uClear.w > 0.0 && cr < uClear.z * 1.5) cr *= 0.74 + 0.34 * texture2D(uNoise, p.xz / 360.0 + 0.37).g + 0.18 * texture2D(uNoise, p.xz / 120.0 + 0.61).g;
+    // a cloud bank over the coast (north of uBank.x), so the climb never shows a straight quay edge:
+    // the camera's clearing does not open it
+    float bankM = uBank.y * (1.0 - smoothstep(uBank.x - 140.0, uBank.x, p.z));
+    s -= uClear.w * (1.0 - smoothstep(uClear.z * 0.5, uClear.z, cr)) * 0.45 * (1.0 - bankM);
+    s += bankM * 0.35;
     float d = s - thrAt(hn);
     float bil = 0.55;
     // the billow detail moves the density by at most ±0.06: skip its fetch in clear air
@@ -173,7 +185,8 @@ void main() {
         float s2 = cloudShape(dxz + toSun * 90.0, wt) - upper * 0.035;
         slope = clamp((s - s2) * 7.0, -1.0, 1.0);
       }
-      float a = 1.0 - exp(-smoothstep(0.0, 0.1, d) * uSigma * dt);
+      // (v3) clouds right at the camera thin out (no pop as the camera enters or leaves a deck)
+      float a = 1.0 - exp(-smoothstep(0.0, 0.06, d) * uSigma * dt * smoothstep(30.0, 240.0, t));
       // the local cloud top above this point (where the shape meets the rising threshold)
       float k = clamp((s - uThr0) / max(uThr1 - uThr0, 1e-4), 0.0, 1.0);
       float hnTop = 0.1 + 0.9 * pow(k, 0.714);
@@ -198,6 +211,7 @@ void main() {
   float alpha = 1.0 - T;
   if (alpha < 0.004) discard;
   vec3 col = C / alpha;
+  float planeSh = 0.0;
   if (uPlaneShadow > 0.0 && tHit > 0.0) {
     // uPlane.w: artistic drop factor (1 = true sun projection; less brings the shadow closer to
     // the plane so the top-down shot can hold both)
@@ -207,9 +221,10 @@ void main() {
     vec2 f = uPlaneDir, rr = vec2(-f.y, f.x);
     float sd = planeSD(vec2(dot(r, rr), dot(r, f)));
     float pen = 1.5 + drop * 0.0093;
-    col *= 1.0 - uPlaneShadow * 0.45 * (1.0 - smoothstep(-pen, pen, sd));
+    planeSh = uPlaneShadow * 0.45 * (1.0 - smoothstep(-pen, pen, sd));
   }
   col = mix(col, uPaper, uWhite);
+  col *= 1.0 - planeSh;
   col = mix(col, uHaze, (1.0 - exp(-max(tHit, tA) / 26000.0)) * (1.0 - uWhite));
   gl_FragColor = vec4(col, alpha);
   #include <tonemapping_fragment>
@@ -283,11 +298,14 @@ void main() {
     const k = Math.pow(Math.max(hn - 0.1, 0) / 0.9, 1.4);
     const thr = U.uThr0.value + (U.uThr1.value - U.uThr0.value) * k;
     const c = local.uClear.value;
-    const cr = Math.hypot(x - c.x, z - c.y);
+    const cr = Math.hypot((x - c.x) * 0.909, (z - c.y) * 0.4545);
     const clear = c.w * (1 - Math.min(1, Math.max(0, (cr - c.z * 0.5) / (c.z * 0.5)))) * 0.45;
     return map.sample(x + U.uWind.value.x * t, z + U.uWind.value.y * t) - upper * 0.035 - clear - thr;
   }
   // the clearing around the camera's column: radius in metres, strength 0..1
+  function setBank(z, k) {
+    local.uBank.value.set(z, k);
+  }
   function setClearing(x, z, radius, strength) {
     local.uClear.value.set(x, z, radius, strength);
   }
@@ -329,6 +347,7 @@ void main() {
     setSteps,
     setCoverage,
     setClearing,
+    setBank,
     densityAt,
     update,
     get steps() {
