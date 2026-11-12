@@ -162,7 +162,7 @@ appels / triangles) :
 | 0,22 | 20 / 77 k | 21 / 213 k | 21 / 239 k | 21 / 255 k |
 | 0,36 | 17 / 56 k | 18 / 190 k | 18 / 215 k | 18 / 231 k |
 | 0,55 | 7 / 15 k | 8 / 36 k | 8 / 36 k | 8 / 36 k |
-| 0,69 | 8 / 15 k | 9 / 36 k | 9 / 36 k | 9 / 36 k |
+| 0,69 | 6 / 10 k | 6 / 27 k | 6 / 27 k | 6 / 27 k |
 | 0,8 | 6 / 11 k | 6 / 28 k | 6 / 28 k | 6 / 28 k |
 | 0,84 | 9 / 19 k | 9 / 36 k | 9 / 36 k | 9 / 36 k |
 
@@ -172,3 +172,13 @@ plus (seule la carte d’ombre de `max` fait 4096). Le vrai coût est le remplis
 (une passe plein écran) et le ray-march des nuages pendant la montée et l’avion. Les cadences
 n’ont été mesurées qu’en SwiftShader (logiciel) : à vérifier une fois avec `?fps=1` sur le
 portable du tournage.
+
+## Restes connus (mineurs, non corrigés)
+
+- Un pincement du pavé tactile (`Ctrl` + molette) pendant le fondu de 0,29 s qui suit `P` lancé loin
+  du début annule encore la visite (`src/main.js`, écouteur de la coupure). Correctif d’une ligne :
+  ignorer `e.ctrlKey` dans cet écouteur, comme le fait déjà `src/scroll.js`.
+- À p 0,62, les ombres précalculées des flèches des portiques, posées sur l’eau en haut du cadre,
+  disparaissent d’une image à l’autre (5 à 6 niveaux sur une bande de 15 à 50 px). Correctif
+  possible : fondre leur couleur de multiplication vers (8, 8, 8) entre p 0,59 et 0,62 dans
+  `src/world/voyage/index.js`.
