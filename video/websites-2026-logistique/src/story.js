@@ -40,7 +40,7 @@ export const PHASES = {
 // DOM text beats: [starts fading in, fully in, starts fading out, fully out], in p
 export const BEATS = [
   { id: 'hero', win: [0.0, 0.0, 0.03, 0.055] },
-  { id: 'port', win: [0.07, 0.09, 0.19, 0.21] },
+  { id: 'port', win: [0.07, 0.09, 0.185, 0.2] }, // (gone before the cavalier backs under it)
   { id: 'route', win: [0.33, 0.35, 0.415, 0.44] },
   { id: 'mer', win: [0.515, 0.535, 0.595, 0.62] },
   { id: 'services', win: [0.63, 0.66, 0.72, 0.75] },
@@ -52,9 +52,12 @@ export const BEATS = [
 // the sea and the sky
 export const TONE = [
   { from: 0.0, to: 0.486, tone: 'dark' },
-  { from: 0.486, to: 0.885, tone: 'light' },
-  { from: 0.885, to: 1.0, tone: 'dark' },
+  { from: 0.486, to: 0.879, tone: 'light' },
+  { from: 0.879, to: 1.0, tone: 'dark' },
 ];
+// the credit (bottom left) meets the sea before the header does: the quay edge passes under it at
+// p ≈ 0.433–0.435 at every window size; it turns light there, then follows TONE
+export const CREDIT_LIGHT = [0.434, 0.486];
 
 // where ↓ / ↑ / Espace stop, and the holds of the hands-free tour (P): p values where the story reads best
 export const STOPS = [0.0, 0.185, 0.225, 0.37, 0.555, 0.69, 0.845, 1.0];

@@ -167,7 +167,9 @@ void main() {
     // a cloud bank over the coast (north of uBank.x), so the climb never shows a straight quay edge:
     // the camera's clearing does not open it
     float bankM = uBank.y * (1.0 - smoothstep(uBank.x - 140.0, uBank.x, p.z));
-    s -= uClear.w * (1.0 - smoothstep(uClear.z * 0.5, uClear.z, cr)) * 0.45 * (1.0 - bankM);
+    // ((v3) a gradual edge: the cover thins towards the ship, with broken cloud in the outer part
+    // of the gap, rather than a hard-rimmed hole)
+    s -= uClear.w * (1.0 - smoothstep(uClear.z * 0.2, uClear.z * 1.05, cr)) * 0.45 * (1.0 - bankM);
     s += bankM * 0.35;
     float d = s - thrAt(hn);
     float bil = 0.55;

@@ -2,7 +2,7 @@
 // over the 3D (opacity, drift, letter reveal from story.js BEATS), the five service callouts
 // anchored to the ship (world.anchors().callouts), the progress rail, the « Arrivée » section
 // (slide, headline reveal, split-flap board) and the toast.
-import { CHAPTERS, BEATS as WIN, TONE, within, chapterAt } from './story.js';
+import { CHAPTERS, BEATS as WIN, TONE, CREDIT_LIGHT, within, chapterAt } from './story.js';
 import * as T from './texts.js';
 import { createFlap, createBoard } from './flap.js';
 import { clamp, smooth, chase, styler, toggler } from './util.js';
@@ -89,6 +89,7 @@ export function createUI(h) {
   const airscrim = styler($('airscrim'));
   const creditEl = $('credit');
   const credit = styler(creditEl);
+  const creditT = toggler(creditEl);
   // the section's own credit, in its footer (the same text): the fixed one hands over to it
   const fCredit = document.querySelector('#final .f-credit');
   const thread = styler(document.querySelector('.thread'));
@@ -198,13 +199,15 @@ export function createUI(h) {
       dots.forEach((d) => d.t('is-here', d.c.id === ch));
     }
     dots.forEach((d) => d.t('is-past', p >= d.c.from - 1e-4));
+    // (over the water before the header is: light text, story.js CREDIT_LIGHT)
+    creditT('is-light', p >= CREDIT_LIGHT[0] && p < CREDIT_LIGHT[1]);
 
     // above the bright clouds (the air chapter, light tone): the soft vignette
     vignette('opacity', (smooth(0.72, 0.78, p) * (1 - smooth(0.875, 0.9, p))).toFixed(3));
     // under the header over the busy 3D (from the crane to the white-out)
     headscrim('opacity', (smooth(0.16, 0.2, p) * (1 - smooth(0.86, 0.9, p))).toFixed(3));
     // over the bright clouds: the credit's and the rail's backdrop
-    airscrim('opacity', (smooth(0.74, 0.77, p) * (1 - smooth(0.86, 0.885, p))).toFixed(3));
+    airscrim('opacity', (smooth(0.74, 0.77, p) * (1 - smooth(0.868, 0.88, p))).toFixed(3));
 
     // rail marker
     markerS('transform', `translate3d(0,${(clamp(p) * M.railL).toFixed(2)}px,0)`);

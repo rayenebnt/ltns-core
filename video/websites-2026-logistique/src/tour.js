@@ -6,12 +6,12 @@ import { STOPS } from './story.js';
 import { clamp } from './util.js';
 
 // the hold at each stop (s): hero, lift, crane, road, ship headline, services, plane, board
-const HOLDS = [1.0, 0.9, 0.5, 1.1, 1.2, 1.1, 1.2, 1.8];
+const HOLDS = [0.9, 0.9, 0.45, 1.1, 1.2, 1.2, 1.4, 1.7];
 const MOVE_BASE = 0.42; // s per move
 const MOVE_PER_SCREEN = 0.7; // s per screen of scroll
 // tour-only waypoints between two stops (not key stops): [p, hold s]: the box hoisted, the box set
 // down (green lamps), the truck at the berth, inside the clouds
-const WAYPOINTS = [[0.075, 0.55], [0.15, 0.45], [0.47, 0.25], [0.77, 0.35]];
+const WAYPOINTS = [[0.075, 0.55], [0.15, 0.45], [0.47, 0.2], [0.77, 0.35]];
 // the two key transitions play slower than the rest: the scroll inside these windows counts 1.5×
 // (the pick-and-place below p 0.19, the climb through the clouds 0.74 → 0.80)
 const SLOW = [[0, 0.19], [0.74, 0.8]];
