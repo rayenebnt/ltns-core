@@ -131,15 +131,15 @@ ajustée à la vue.
 
 `F1`–`F12`, `Maj`, `Tab`, les raccourcis `Ctrl` / `Cmd` / `Alt` et les touches multimédia restent au
 navigateur (même pendant la visite). Le curseur se cache après 2 s sans mouvement et pendant la
-visite. Contexte WebGL perdu : message après 3 s s’il ne revient pas ; rendu : la page se recharge.
+visite. Contexte WebGL perdu : message après 3 s s’il ne revient pas ; s’il revient, la page se recharge.
 
 ## Qualité et budget
 
 | Niveau | Densité (au plus celle de l’écran) | Carte d’ombre | Océan | Nuages (pas) | Conteneurs du navire | Décor de route |
 |---|---|---|---|---|---|---|
-| `max` | 2 | 4096 | 4 octaves de vagues, scintillements, ondes de Kelvin | 26 | 2 288 | complet |
-| `high` | 1,75 | 2048 | idem | 18 | 2 288 | complet |
-| `medium` | 1,5 | 2048 | 3 octaves, ondes de Kelvin | 12 | 2 288 | complet |
+| `max` | 2 | 4096 | 4 octaves de vagues, scintillements, ondes de Kelvin | 26 | 2 288 | complet |
+| `high` | 1,75 | 2048 | idem | 18 | 2 288 | complet |
+| `medium` | 1,5 | 2048 | 3 octaves, ondes de Kelvin | 12 | 2 288 | complet |
 | `low` | 1 | 1024 | 2 octaves | 8 | 564 (dessus des piles) | sans poteaux de glissière ni de clôture, sans bollards ni défenses |
 
 Le port réduit aussi la finesse de ses maillages (pneus, échelles, fonds des conteneurs).

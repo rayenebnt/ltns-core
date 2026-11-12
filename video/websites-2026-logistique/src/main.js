@@ -260,9 +260,11 @@ async function start() {
   // ------------------------------------------------------------------ moves
   // a programmatic glide: longer for longer distances; a long one replays the journey quickly
   // (the world is a pure function of p: the camera simply runs the path faster)
-  const durFor = (to, from = scroller.heading) => clamp(1.0 + (0.16 * Math.abs(to - from)) / L.H, 1.1, 3.6);
+  const durFor = (to, from = scroller.st.target) => clamp(1.0 + (0.16 * Math.abs(to - from)) / L.H, 1.1, 3.6);
   function glideTo(y, dur) {
     stopTour();
+    // a double-click or a second press for the glide already under way changes nothing
+    if (scroller.motion && scroller.motion.kind === 'tween' && Math.abs(scroller.heading - clamp(y, 0, L.max)) < 1) return;
     scroller.tweenTo(y, dur ?? durFor(y));
   }
   // nav and rail: each chapter opens on the stop where it reads best (the stop inside the chapter
@@ -340,18 +342,19 @@ async function start() {
     touring = false;
     doc.classList.remove('is-touring');
     // at the natural end the system cursor stays hidden until the hand moves (one clean last
-    // frame for the take)
+    // frame for the take); a key, a wheel or P leave it as it is: it comes back only on a move
+    // or a click (the pointer handlers)
     if (natural) {
       clearTimeout(cursorTimer);
       doc.classList.add('cursor-off');
-    } else wakeCursor();
+    }
   });
 
   // ------------------------------------------------------------------ input
   // the system cursor hides after 2 s without movement (filming) and comes back on movement
   let cursorTimer = 0;
   let govHold = 0; // the governor ignores the frames of a resize or a full-screen animation
-  const real = { x: -1, y: -1 };
+  const real = { x: -1, y: -1, ax: -1, ay: -1, t: -1e9 };
   function wakeCursor() {
     doc.classList.remove('cursor-off');
     clearTimeout(cursorTimer);
@@ -361,10 +364,19 @@ async function start() {
     'pointermove',
     (e) => {
       if (e.pointerType === 'touch') return;
-      const moved = Math.abs(e.clientX - real.x) + Math.abs(e.clientY - real.y) > 2;
+      // a burst of movement (events less than 250 ms apart) counts once it is more than 2 px from
+      // where it began: a slow, steady hand wakes the cursor; a lone 1-2 px twitch (a hand resting on
+      // the mouse, fingers landing for a scroll) and same-position pointermoves do not
+      if (e.timeStamp - real.t > 250) {
+        real.ax = real.x;
+        real.ay = real.y;
+      }
+      real.t = e.timeStamp;
       real.x = e.clientX;
       real.y = e.clientY;
-      if (!moved) return;
+      if (Math.abs(real.x - real.ax) + Math.abs(real.y - real.ay) <= 2) return;
+      real.ax = real.x;
+      real.ay = real.y;
       wakeCursor();
       ptr.tx = clamp((e.clientX / innerWidth) * 2 - 1, -1, 1);
       ptr.ty = clamp(1 - (e.clientY / innerHeight) * 2, -1, 1);
@@ -379,7 +391,8 @@ async function start() {
       wakeCursor();
       if (e.isTrusted && touring) {
         stopTour();
-        swallowUntil = performance.now() + 700;
+        // only a primary press is followed by a click to swallow
+        if (e.button === 0) swallowUntil = performance.now() + 700;
       }
     },
     { passive: true },

@@ -642,6 +642,9 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     for (const p of WARM) {
       st.p = p;
       update(st, 1, 0);
+      // the cloud veil shows only while the camera sits inside a cloud puff (time-dependent), never at
+      // these states: show it for one climb state so its program compiles under the loader too
+      if (p === 0.765) voyage.clouds.veil.visible = true;
       renderer.render(scene, camera);
       await new Promise((r) => setTimeout(r, 0));
     }

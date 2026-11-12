@@ -76,7 +76,7 @@ ils s’effacent, et ils se réécrivent quand tu redescends.
 **Pour finir la prise**, deux bonnes dernières images :
 - **Le tableau sur « LIVRÉ »** : descends jusqu’en bas et lâche. Une fois la section blanche
   bien montée, le titre et le tableau finissent toujours de s’écrire, même si tu t’arrêtes. Si tu
-  t’arrêtes un peu avant la fin (moins d’une demi-hauteur d’écran), la page termine seule la
+  t’arrêtes un peu avant la fin (moins d’une petite demi-hauteur d’écran), la page termine seule la
   descente après une courte pause. Ne touche plus rien : le tableau se pose en deux secondes
   environ, puis arrête de filmer.
 - **Le message** : clique une fois sur « Demander un devis » (dans la section blanche) ou sur
@@ -183,7 +183,7 @@ chargement est plus court (elle saute la mesure de puissance).
 > **Les sites internet en 2026 😮‍💨**
 
 Exemple de description : « Concept de site pour une entreprise de transport : on suit un
-conteneur au défilement, du port à la route, puis en mer et en avion. Entreprise fictive, site
+conteneur au défilement, par le port, la route et la mer, avec l’avion pour l’urgent. Entreprise fictive, site
 imaginé et codé par LTNS° (ltns.fr). #webdesign #siteinternet #3d »
 
 ## 10. Rappel : c’est un concept
@@ -201,9 +201,9 @@ imaginé et codé par LTNS° (ltns.fr). #webdesign #siteinternet #3d »
 
 | Problème | Solution |
 |---|---|
-| « Cette page a besoin de WebGL 2. » | Mettre Chrome ou Edge à jour et activer « Utiliser l’accélération graphique si disponible » (Chrome : Paramètres → Système ; Edge : Paramètres → Système et performances), relancer le navigateur, puis rouvrir le fichier |
+| « Cette page a besoin de WebGL 2. » | Mets Chrome ou Edge à jour et active « Utiliser l’accélération graphique si disponible » (Chrome : Paramètres → Système ; Edge : Paramètres → Système et performances), relance le navigateur, puis rouvre le fichier |
 | L’image saccade | Chargeur branché, autres onglets fermés, puis `?q=low` (partie 8) |
-| Le curseur se voit | Ne plus toucher la souris ni le pavé tactile pendant 2 secondes |
+| Le curseur se voit | Ne touche plus la souris ni le pavé tactile pendant 2 secondes |
 | Textes trop grands ou trop petits | Zoom à 100 % : `Ctrl` + `0` (Mac : `Cmd` + `0`) |
 | La barre d’adresse reste visible (Mac, Chrome) | `Cmd` + `Maj` + `F` |
 | La barre de menus ou le Dock apparaissent (Mac) | La flèche a touché un bord de l’écran : ramène-la vers le milieu |

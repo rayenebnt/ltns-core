@@ -76,7 +76,7 @@ export const CREDIT = 'Projet fictif · concept de site par LTNS° — ltns.fr';
 // every call to action (the header pill, « Demander un devis »)
 export const TOAST = `Démonstration${NN}: Sillage est une entreprise fictive imaginée par LTNS°.`;
 // without WebGL 2
-export const NOGL = ['Cette page a besoin de WebGL 2.', 'Ouvrez-la dans une version récente de Chrome ou d’Edge, avec l’accélération matérielle activée.'];
+export const NOGL = ['Cette page a besoin de WebGL 2.', 'Ouvrez-la dans une version récente de Chrome ou d’Edge, avec l’accélération graphique activée.'];
 
 // 3D markings (canvas textures). The hero container and the brand's own fleet carry the brand;
 // every other container carries only generic technical stencils (no shipping line, no real code).

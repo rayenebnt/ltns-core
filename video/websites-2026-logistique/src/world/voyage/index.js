@@ -223,9 +223,10 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
     // (v3) the soft shadow goes with the clouds it falls on: no ghost plane on the paper
     uniforms.uPlaneShadow.value = pv ? (1 - 0.6 * white) * (1 - white) : 0;
     // stage visibility (the integrator may override after this call)
-    // the ground stays (the coast is in view from the sky); the road and its decor go
+    // the ground stays (the coast is in view from the sky); the road, its decor and baked shadows
+    // go once the ship is out at sea (PHASES.rise[0]): no lattice stubs at the top edge in the climb
     road.group.visible = true;
-    const roadOn = p < PHASES.clouds[1] && uniforms.uReveal.value > 0.01;
+    const roadOn = p < PHASES.rise[0] && uniforms.uReveal.value > 0.01;
     for (const k of ['road', 'decor', 'fine', 'shadows']) road.meshes[k].visible = roadOn && (k !== 'fine' || level !== 'low');
     ocean.mesh.visible = p > PHASES.crane[0] && p < PHASES.whiteout[1] + 0.02;
     ship.object.visible = p > PHASES.road[0] && p < PHASES.whiteout[1] + 0.02;

@@ -41,6 +41,7 @@ export function createScroller() {
   window.addEventListener(
     'wheel',
     (e) => {
+      if (e.ctrlKey) return; // a trackpad pinch (ctrl + wheel) is not a scroll: main.js blocks its zoom
       lastInput = clock;
       if (e.deltaY) lastDir = Math.sign(e.deltaY);
       const t = now();
