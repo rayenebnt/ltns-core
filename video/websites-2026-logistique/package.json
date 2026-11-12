@@ -1,0 +1,15 @@
+{
+  "name": "ltns-websites-2026-logistique",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SILLAGE : maquette fictive de site de transport et logistique en 3D (port, route, mer, air au défilement) pour la vidéo TikTok « Les sites internet en 2026 »",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.170.0"
+  }
+}
