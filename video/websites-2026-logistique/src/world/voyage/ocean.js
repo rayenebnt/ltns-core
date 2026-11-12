@@ -70,18 +70,21 @@ void main() {
     sl += d1 * cos(a1) * 0.05 + d2 * cos(a2) * 0.04 + d3 * cos(a3) * 0.03;
     hgt += sin(a1) * 0.4 + sin(a2) * 0.3 + sin(a3) * 0.2;
   }
+  // wind patches: rougher, more glittering areas and calmer ones (cat's paws), drifting slowly
+  float gust = smoothstep(0.25, 0.75, texture2D(uNoise, p / 2600.0 + vec2(0.0021, 0.0013) * t).r);
+  float rough = 0.7 + 0.6 * gust;
   vec3 o1 = wv(rot2(p, 0.3) / 97.0 + vec2(0.011, 0.006) * t);
   vec3 o2 = wv(rot2(p, -0.9) / 31.0 + vec2(-0.017, 0.021) * t);
-  sl += o1.xy * 0.13 + o2.xy * 0.11;
+  sl += o1.xy * 0.13 + o2.xy * 0.11 * rough;
   hgt += (o1.z - 0.5) * 1.2 + (o2.z - 0.5) * 0.7;
   if (uDetail > 0.5) {
     vec3 o3 = wv(rot2(p, 1.7) / 9.7 + vec2(0.034, -0.029) * t);
-    sl += o3.xy * 0.09;
+    sl += o3.xy * 0.09 * rough;
     hgt += (o3.z - 0.5) * 0.4;
   }
   if (uDetail > 1.5) {
     vec3 o4 = wv(rot2(p, 2.6) / 3.3 + vec2(-0.06, -0.047) * t);
-    sl += o4.xy * 0.07;
+    sl += o4.xy * 0.07 * rough;
   }
 
   // --- the ship's wake systems (analytic, world-anchored noise)
@@ -112,7 +115,7 @@ void main() {
       float br = smoothstep(0.42, 0.8, cells * 0.55 + fine * 0.45 + churn * 0.35);
       float crest = exp(-pow((off - xc) / wc, 2.0)) * exp(-sbp / 55.0) * gate;
       float trail = exp(-pow((off - xc) / (wc * 1.8), 2.0)) * exp(-sbp / 110.0) * smoothstep(0.55, 0.85, streak * 0.55 + churn * 0.55) * gate;
-      float cushion = exp(-length(vec2(q.x, q.y - L + 4.0)) / 6.0) * smoothstep(0.3, 0.7, cells * 0.6 + fine * 0.6);
+      float cushion = exp(-length(vec2(q.x, q.y - L + 5.0)) / 5.0) * smoothstep(0.45, 0.75, cells * 0.6 + fine * 0.6 + churn * 0.2);
       foam = max(foam, crest * (0.25 + 0.75 * br));
       foam = max(foam, trail * 0.55);
       foam = max(foam, cushion * 0.9 * step(0.0, dH));
@@ -139,8 +142,12 @@ void main() {
       float wc = 0.8 * Bh + 0.03 * s + 3.0 * smoothstep(0.0, 40.0, s);
       float meander = (texture2D(uNoise, vec2(pa.y / 900.0, 0.31)).r - 0.5) * 22.0 * smoothstep(0.0, 300.0, s);
       float axw = abs(q.x - meander);
-      float edgeN = (churn - 0.5) * 0.7 + (texture2D(uNoise, p / 70.0 + 0.4).g - 0.5) * 0.6;
+      float lobes = texture2D(uNoise, p / 170.0 + vec2(0.4, 0.0) + vec2(0.0, 0.0015) * t).g - 0.5;
+      float edgeN = (churn - 0.5) * 0.7 + (texture2D(uNoise, p / 70.0 + 0.4).g - 0.5) * 0.6 + lobes * 0.9;
       float core = 1.0 - smoothstep(0.35 * wc, wc, axw + edgeN * wc * 0.4);
+      // brighter foam lines where the turbulent water meets the calm sea, broken and fading
+      float rim = exp(-pow((axw + edgeN * wc * 0.4 - 0.82 * wc) / (1.6 + 0.004 * s), 2.0));
+      rim *= smoothstep(0.45, 0.8, streak * 0.6 + churn * 0.5) * exp(-s / 700.0) * smoothstep(0.0, 30.0, s);
       float age = exp(-s / 480.0);
       float young = exp(-s / 120.0);
       float blob = texture2D(uNoise, vec2(pa.x / 11.0, pa.y / 38.0) + vec2(0.0, 0.003 * t)).g;
@@ -149,6 +156,7 @@ void main() {
       float wf = smoothstep(thr, thr + 0.14, turb) * core;
       float wash = (1.0 - smoothstep(0.25 * wc, 0.8 * wc, axw + edgeN * 6.0)) * young * smoothstep(-30.0, 5.0, ss);
       foam = max(foam, max(wf * (0.5 + 0.5 * age), wash * smoothstep(0.3, 0.6, turb)));
+      foam = max(foam, rim * 0.75);
       aer = core * exp(-s / 800.0) * (0.35 + 0.65 * smoothstep(0.35, 0.8, blob * 0.6 + churn * 0.5));
       slick = (1.0 - smoothstep(0.7 * wc, 1.35 * wc, axw)) * exp(-s / 1600.0);
     }
@@ -191,7 +199,7 @@ void main() {
 
   // water body: deep natural blues, lighter and greener near the quay, crests a touch lighter
   float nearQ = 1.0 - smoothstep(uQuayZ + 15.0, uQuayZ + 170.0, p.y);
-  vec3 body = mix(uDeep, uMid, clamp(0.35 + hgt * 0.22, 0.0, 1.0));
+  vec3 body = mix(uDeep, uMid, clamp(0.35 + hgt * 0.22 + (gust - 0.5) * 0.25, 0.0, 1.0));
   body = mix(body, uShallow, nearQ * 0.85);
   body = mix(body, uAerated, aer * 0.38);
   float diff = 0.72 + 0.5 * max(dot(n, Ls), 0.0);
@@ -205,7 +213,7 @@ void main() {
     vec3 Hh = normalize(V + Ls);
     float facet = smoothstep(0.93, 0.995, dot(n, Hh));
     float spk = texture2D(uNoise, p / 2.1 + vec2(0.07, -0.05) * t).a * texture2D(uNoise, p / 0.83 - vec2(0.11, 0.06) * t).a;
-    spec += smoothstep(0.62, 0.86, spk) * (0.6 + 6.0 * facet) * smoothstep(1500.0, 300.0, dist);
+    spec += smoothstep(0.62, 0.86, spk) * (0.6 + 6.0 * facet) * smoothstep(1500.0, 300.0, dist) * (0.4 + 0.9 * gust);
   }
   col += uSunColor * spec * lit * (1.0 - foam) * (1.0 - 0.7 * slick);
 

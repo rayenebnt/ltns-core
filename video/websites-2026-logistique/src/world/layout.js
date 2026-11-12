@@ -32,18 +32,18 @@ export const ROAD = {
     [188, 16],
     [214, 58],
     [222, 120],
-    [222, 300],
-    [222, 520],
+    [222, 260],
+    [222, 404], // the road runs onto the quay apron and ends at a stop line by the berth
   ],
   width: 11, // two lanes of 3.5 m plus shoulders
-  quayZ: 560, // the quay edge runs east–west at this z; open sea beyond (z > quayZ)
+  quayZ: 420, // the quay edge runs east–west at this z; open sea beyond (z > quayZ)
 };
 
 // --- the sea (chapter 03, top view)
 export const SEA = {
   level: 0,
   // the container ship sails due south (+Z, down the screen); its position is a function of p
-  ship: { x: 260, z: 760, length: 300, beam: 43 },
+  ship: { x: 260, z: 620, length: 300, beam: 43 },
 };
 
 // --- the sky (chapter 04)

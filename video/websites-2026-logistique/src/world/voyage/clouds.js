@@ -159,7 +159,8 @@ void main() {
     s -= uClear.w * (1.0 - smoothstep(uClear.z * 0.5, uClear.z, cr)) * 0.45;
     float d = s - thrAt(hn);
     float bil = 0.55;
-    if (uDetail > 0.5) {
+    // the billow detail moves the density by at most ±0.06: skip its fetch in clear air
+    if (uDetail > 0.5 && d > -0.065) {
       // billows that change with height: no smooth vertical walls
       vec2 dq = (p.xz + uWind * wt * 1.3 + vec2(hn * 157.0, -hn * 211.0)) / 175.0;
       bil = texture2D(uNoise, dq).g;
@@ -198,13 +199,15 @@ void main() {
   if (alpha < 0.004) discard;
   vec3 col = C / alpha;
   if (uPlaneShadow > 0.0 && tHit > 0.0) {
+    // uPlane.w: artistic drop factor (1 = true sun projection; less brings the shadow closer to
+    // the plane so the top-down shot can hold both)
     float drop = uPlane.y - pHit.y;
-    vec2 sc = uPlane.xz - uSunDir.xz / max(uSunDir.y, 0.2) * drop;
+    vec2 sc = uPlane.xz - uSunDir.xz / max(uSunDir.y, 0.2) * drop * uPlane.w;
     vec2 r = pHit.xz - sc;
     vec2 f = uPlaneDir, rr = vec2(-f.y, f.x);
     float sd = planeSD(vec2(dot(r, rr), dot(r, f)));
     float pen = 1.5 + drop * 0.0093;
-    col *= 1.0 - uPlaneShadow * 0.4 * (1.0 - smoothstep(-pen, pen, sd));
+    col *= 1.0 - uPlaneShadow * 0.45 * (1.0 - smoothstep(-pen, pen, sd));
   }
   col = mix(col, uPaper, uWhite);
   col = mix(col, uHaze, (1.0 - exp(-max(tHit, tA) / 26000.0)) * (1.0 - uWhite));

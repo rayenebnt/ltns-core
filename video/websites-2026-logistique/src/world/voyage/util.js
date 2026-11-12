@@ -252,11 +252,12 @@ export class Builder {
   }
 }
 
-// --- baked planar shadows. Every caster is a list of convex parts (boxes); each part's shadow is
-// the 2D convex hull of its 8 corners projected along the sun onto the ground, triangulated as a
-// fan (so a part never darkens itself twice). Parts are stacked a few millimetres apart in height,
-// each lower than the previous one, and the mesh writes depth: where two parts overlap, the later
-// (lower) one fails the depth test, so overlapping shadows do not double-darken either.
+// --- baked planar shadows. Every caster is a list of convex parts (boxes, beams); each part's
+// shadow is the 2D convex hull of its corners projected along the sun onto the ground,
+// triangulated as a fan (so a part never darkens itself twice). Parts carry a layer: layers sit
+// 1 cm apart in height and are drawn from the highest down, and the mesh writes depth, so where
+// two parts of different layers overlap the later (lower) one fails the depth test and the
+// shadow does not double-darken (the crane parts each get their own layer).
 export class ShadowBaker {
   constructor(sunDir, groundY = 0.05) {
     this.sun = sunDir.clone().normalize();

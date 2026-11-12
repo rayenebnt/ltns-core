@@ -1,7 +1,7 @@
 // SILLAGE: the « voyage » module — the road, the sea, the ship, the sky and the plane.
 //
 // API
-//   const voyage = await createVoyage({ renderer, quality = 'high', sun = VOYAGE_SUN })
+//   const voyage = await createVoyage({ renderer, quality = 'high', sun = VOYAGE_SUN, gate = true })
 //     renderer : the THREE.WebGLRenderer (only used for capabilities; nothing is rendered here)
 //     quality  : 'low' | 'medium' | 'high' | 'max'
 //     sun      : THREE.Vector3, direction TOWARDS the sun (normalised). Default VOYAGE_SUN: from the
@@ -9,6 +9,8 @@
 //                top views). The integrator's DirectionalLight must use the same direction (its
 //                position = target + sun × distance): the decor's baked shadows, the ocean, the
 //                clouds and the contrails use it. Change it later with voyage.setSun(dir, color).
+//     gate     : false skips the terminal fence, gate pillars and gatehouse at PORT.gate (if the
+//                port module builds its own)
 //   → {
 //     group,        THREE.Group to add to the scene (world coordinates of layout.js, metres)
 //     road,         { group, length, pointAt(d, v3?), tangentAt(d, v3?), offsetAt(d, lat, y), cranes }
@@ -24,17 +26,27 @@
 //                   quay. anchorPoints(p) gives world points for the DOM: centre, bow, stern, the 4
 //                   deck corners (project them for the hull's screen rect), hero (the SILLAGE
 //                   container's roof) and callouts (5 attach points: 2 left, 2 right, 1 ahead).
-//     clouds,       { mesh, veil, densityAt(x, y, z, t), setCoverage(c) }
+//     clouds,       { mesh, veil, densityAt(x, y, z, t), setCoverage(c), setClearing(x, z, r, k),
+//                     setSteps(n) } (update drives coverage and the clearing from p and the camera:
+//                     a few wisps until p ≈ 0.70, the layer drifts in for the climb, thickens during
+//                     the plane, closes to white over PHASES.whiteout; the camera rises through a
+//                     clear column of about 170–290 m radius that closes for the white-out)
 //     plane,        { object, positionAt(p, centre, v3?), direction, length, span }
 //     update(p, time, camera)   positions everything for scroll progress p (0..1) and time (s, idle
 //                   motion only: waves, foam churn, drift, contrail turbulence). Pure function of
 //                   (p, time, camera): the same inputs render the same frame. Also sets the
 //                   visibility of each part by phase (the integrator may override after the call).
-//     setQuality(level)         ocean detail, cloud slices, container instances, road decor density
+//     setQuality(level)         ocean detail (wave octaves, sparkles, Kelvin arms), cloud ray-march
+//                               steps (8/12/18/26), container instances (low: top tier + one filler
+//                               per stack), road decor density (low: no barrier/fence posts,
+//                               bollards, fenders)
 //     setSun(dir, color?)       direction towards the sun (Vector3), sun colour (Color)
 //     setReveal(k)              0..1: the map details (fields, apron) fade in from the paper colour
-//                               (#eef0f1, the port's white void) during the crane shot; default 1
-//     stats()                   { calls, triangles, instances } of the visible parts (main pass)
+//                               (#eef0f1, the port's white void) during the crane shot; default 1.
+//                               At 0 the road, its decor and baked shadows are hidden as well (the
+//                               gate fence at PORT.gate.x would otherwise cross the side view).
+//     stats()                   { calls, triangles, instances, level } of the parts whose visible flag
+//                               is on (main pass, before frustum culling: an upper bound)
 //     plan(p)                   { ship, hero, plane, coverage, white } world values for camera work
 //     dispose()
 //   }
@@ -47,11 +59,19 @@
 // and max inside clouds).
 //
 // Camera recommendations (vertical FOV 35–40°, top views with camera.up = (0, 0, -1) so north is up):
-//   road (gate, curve, straight): 110–140 m above the road; quay and cranes: 240–300 m; ship close:
-//   350 m above the waterline; ship far (services): 1000–1300 m; bow close-up: 120 m; wake: 260 m;
-//   clouds: rise from 700 m (below the base, nothing in view) through 900–1500 m; above the clouds:
-//   1800–2400 m; the plane: about 260 m above it (PLANE_PATH.altitude + 260). Near plane ≥ 1 % of the
-//   altitude (depth precision: the ground sits 0.3 m under the port's yard and the road 3 cm above).
+//   road (gate, curve, straight): 110–140 m above the road; quay and cranes: 240–300 m (an oblique
+//   pass over the quay looking south, e.g. 230 m up and 330 m behind the target, is the best coast
+//   shot); ship close: 350 m above the waterline; ship far (services): 800–880 m (under the cloud
+//   base; up to 1300 m works since the cover is only wisps until p ≈ 0.70); bow close-up: 120 m;
+//   wake: 260–300 m; clouds: rise from 850 m through 900–1500 m to 1800–2400 m; the plane: about
+//   260 m above it (PLANE_PATH.altitude + 260), framed on plan(p).plane. Near plane ≈ 1 % of the
+//   altitude (depth precision: the ground sits 0.3 m under the port's yard, the road 3 cm above it).
+// Light (as in tools/harness-voyage): ACESFilmic tone mapping, exposure 1.22; sun DirectionalLight
+// colour VOYAGE_SUN_COLOR, intensity 2.6, direction VOYAGE_SUN; HemisphereLight #dce8f4 / #b8b3a8,
+// 1.05. The ground then reads about #e5e7e3. The ship (hull, containers, SILLAGE box) and the plane
+// cast into the shadow map; the road decor and cranes do not (their shadows are baked, long and
+// crisp); the ground and road receive (the truck's shadow); the ocean draws the hull's shadow
+// itself (sun-projected outline).
 import * as THREE from 'three';
 import { PHASES, within } from '../../story.js';
 import { SEA, SKY, ROAD, PORT } from '../layout.js';
@@ -67,9 +87,12 @@ export const VOYAGE_SUN = sunDirection(315, 50);
 export const VOYAGE_SUN_COLOR = new THREE.Color('#fff3e2');
 
 const DETAIL = { low: 0, medium: 1, high: 2, max: 3 };
+// the plane's shadow on the clouds: 1 = the true sun projection (about 500 m to the south-east,
+// outside a close top-down frame); 0.4 keeps it in view beside the plane
+export const PLANE_SHADOW_DROP = 0.4;
 const STEPS = { low: 8, medium: 12, high: 18, max: 26 };
 
-export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SUN } = {}) {
+export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SUN, gate = true } = {}) {
   void renderer;
   const noise = makeNoise(256, 7);
   const waves = makeWaveNormals(256, 11);
@@ -122,7 +145,7 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
   const group = new THREE.Group();
   group.name = 'voyage';
 
-  const road = createRoad({ noise, sun: uniforms.uSunDir.value, uniforms });
+  const road = createRoad({ noise, sun: uniforms.uSunDir.value, uniforms, gate });
   const clouds = createClouds({ uniforms, noise }); // adds uCloudMap, read by the ocean
   const ocean = createOcean({ uniforms });
   const ship = await createShip();
@@ -184,13 +207,13 @@ export async function createVoyage({ renderer, quality = 'high', sun = VOYAGE_SU
     plane.place(p, planeCentre, time);
     const pv = p > PHASES.plane[0] - 0.035 && p < PHASES.whiteout[1] + 0.01;
     plane.object.visible = pv;
-    uniforms.uPlane.value.set(plane.object.position.x, plane.object.position.y, plane.object.position.z, 0);
+    uniforms.uPlane.value.set(plane.object.position.x, plane.object.position.y, plane.object.position.z, PLANE_SHADOW_DROP);
     uniforms.uPlaneDir.value.set(plane.direction.x, plane.direction.z);
     uniforms.uPlaneShadow.value = pv ? 1 - white : 0;
     // stage visibility (the integrator may override after this call)
     // the ground stays (the coast is in view from the sky); the road and its decor go
     road.group.visible = true;
-    const roadOn = p < PHASES.clouds[1];
+    const roadOn = p < PHASES.clouds[1] && uniforms.uReveal.value > 0.01;
     for (const k of ['road', 'decor', 'fine', 'shadows']) road.meshes[k].visible = roadOn && (k !== 'fine' || level !== 'low');
     ocean.mesh.visible = p > PHASES.crane[0] && p < PHASES.whiteout[1] + 0.02;
     ship.object.visible = p > PHASES.road[0] && p < PHASES.whiteout[1] + 0.02;

@@ -46,7 +46,7 @@ function tractorGeometry(quality) {
   for (const z of [-0.43, 0.43]) k.add(box(5.9, 0.3, 0.09), mat([1.5, 0.83, z]), CHASSIS);
   for (const x of [-1.2, 0.3, 1.6, 2.9, 4.0]) k.add(box(0.12, 0.22, 0.8), mat([x, 0.83, 0]), CHASSIS);
   // cab shell
-  k.add(rbox(x1 - x0, y1 - y0, cw, 0.14, 3), mat([cx, (y0 + y1) / 2, 0]), WHITE);
+  k.add(rbox(x1 - x0, y1 - y0, cw, 0.2, 3), mat([cx, (y0 + y1) / 2, 0]), WHITE);
   // windshield (raked glass) and its frame
   k.add(rbox(0.06, 1.12, 2.22, 0.03), mat([x1 + 0.0, 2.84, 0], [0, 0, 0.09]), GLASS);
   // side windows (door glass + quarter glass)
@@ -71,9 +71,9 @@ function tractorGeometry(quality) {
     k.add(box(0.36, 0.04, 0.3), mat([2.55, 0.98, s * 1.08]), BLACK);
     k.add(box(0.4, 0.75, 0.04), mat([2.55, 0.82, s * 0.95]), DARK);
     // front fender (black arch) over the front wheel
-    const f = new THREE.CylinderGeometry(0.64, 0.64, 0.42, 16, 1, true, Math.PI * 0.08 + Math.PI / 2, Math.PI * 0.62);
+    // (after rotateX the cylinder angle θ sits at (sin θ, −cos θ): θ = π is the top of the wheel)
+    const f = new THREE.CylinderGeometry(0.64, 0.64, 0.42, 16, 1, true, Math.PI * 0.64, Math.PI * 0.7);
     f.rotateX(Math.PI / 2);
-    f.rotateZ(-Math.PI * 0.39);
     k.add(f, mat([TRUCK.frontAxle, TRUCK.r, s * 1.03]), BLACK);
     // side skirt between the axles (covers the tank), and the rear mudguards
     if (s > 0) k.add(rbox(0.85, 0.62, 0.05, 0.03), mat([0.6, 0.8, 1.2]), WHITE2); // short skirt, the tank shows

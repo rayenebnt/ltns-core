@@ -29,35 +29,35 @@ export const PHASES = {
   truckGo: [0.15, 0.27], // the truck pulls away (right), the cavalier backs off (left)
   crane: [0.17, 0.27], // camera: side view → straight top-down view, following the truck
   road: [0.27, 0.43], // top view: the truck takes the exit curve, then drives south on the road
-  coast: [0.42, 0.49], // the camera leaves the truck and flies south over the quay to the open sea
-  ship: [0.49, 0.62], // top view, close over the container ship sailing south (down the screen)
+  coast: [0.41, 0.51], // the truck reaches the berth on the quay apron; the camera glides south to the ship
+  ship: [0.51, 0.62], // top view, close over the container ship sailing south (down the screen)
   rise: [0.62, 0.74], // the camera rises: the ship gets smaller, the five services appear around it
   clouds: [0.72, 0.8], // up through the cloud layer
   plane: [0.78, 0.9], // the cargo plane crosses above the clouds, contrails behind it
-  whiteout: [0.86, 0.92], // the clouds thicken to white; the « Arrivée » section slides up
+  whiteout: [0.855, 0.895], // the clouds thicken to white (pure paper by 0.895); the « Arrivée » section slides up
 };
 
 // DOM text beats: [starts fading in, fully in, starts fading out, fully out], in p
 export const BEATS = [
   { id: 'hero', win: [0.0, 0.0, 0.03, 0.055] },
-  { id: 'port', win: [0.07, 0.09, 0.15, 0.175] },
-  { id: 'route', win: [0.29, 0.31, 0.41, 0.44] },
-  { id: 'mer', win: [0.5, 0.52, 0.59, 0.62] },
+  { id: 'port', win: [0.07, 0.09, 0.18, 0.2] },
+  { id: 'route', win: [0.33, 0.35, 0.415, 0.44] },
+  { id: 'mer', win: [0.515, 0.535, 0.595, 0.62] },
   { id: 'services', win: [0.63, 0.66, 0.72, 0.75] },
-  { id: 'air', win: [0.8, 0.82, 0.87, 0.9] },
+  { id: 'air', win: [0.815, 0.835, 0.875, 0.895] },
   { id: 'arrivee', win: [0.9, 0.94, 1.0, 1.0] },
 ];
 
 // header and UI colour: 'dark' text on the light port, road and final section; 'light' text over
 // the sea and the sky
 export const TONE = [
-  { from: 0.0, to: 0.44, tone: 'dark' },
-  { from: 0.44, to: 0.9, tone: 'light' },
-  { from: 0.9, to: 1.0, tone: 'dark' },
+  { from: 0.0, to: 0.478, tone: 'dark' },
+  { from: 0.478, to: 0.872, tone: 'light' },
+  { from: 0.872, to: 1.0, tone: 'dark' },
 ];
 
 // where ↓ / ↑ / Espace stop, and the holds of the hands-free tour (P): p values where the story reads best
-export const STOPS = [0.0, 0.11, 0.2, 0.36, 0.55, 0.69, 0.84, 1.0];
+export const STOPS = [0.0, 0.185, 0.225, 0.37, 0.555, 0.69, 0.845, 1.0];
 
 // clamp-free helpers shared by both sides
 export const chapterAt = (p) => CHAPTERS.find((c) => p >= c.from && p < c.to) || CHAPTERS[CHAPTERS.length - 1];

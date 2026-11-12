@@ -3,34 +3,52 @@
 //
 // API
 //   const port = await createPort({ renderer, quality })      quality: 'low' | 'medium' | 'high' | 'max'
-//   scene.add(port.group)                                      everything, in WORLD coordinates (metres,
-//                                                              +Y up, east +X, north −Z; layout.js)
-//   port.update(p, time)        pose everything for scroll progress p (0..1) and idle time t (s).
-//                               A pure function of (p, time): story.js PHASES heroHold, lift, carry,
-//                               lower, truckGo drive the choreography; time only drives the beacons
-//                               and a tiny idle sway. Also sets the studio fade from PHASES.crane
-//                               (1 = white side-view void, 0 = full-colour yard) unless overridden.
-//   port.setStudio(k | null)    override the studio fade (0..1) after update(); null = follow p.
+//   scene.add(port.group)        everything, in WORLD coordinates (metres, +Y up, east +X, north −Z,
+//                                layout.js). Awaits the page fonts for the canvas stencils.
+//   port.update(p, time)         poses everything for the scroll progress p (0..1) and the idle time
+//                                t (s). A pure function of (p, time): story.js PHASES heroHold, lift,
+//                                carry, lower and truckGo drive the choreography; time only drives the
+//                                beacons' rotating flash and a tiny idle sway of a lifted box. It also
+//                                sets the studio fade from PHASES.crane (1 = white side-view void,
+//                                0 = full-colour yard) unless setStudio() overrides it.
+//     heroHold  the cavalier at x 0 over the 2-high stack, spreader locked on the hero (lamps green)
+//     lift      the hero's bottom rises from 2.90 m (on the stack) to 5.60 m
+//     carry     the cavalier drives x 0 → 22 (PORT.truck.x); the box swings with the acceleration
+//     lower     0–62 % descends onto the trailer (bottom 1.32 m); 64–70 % the trailer's twistlock
+//               lamps turn amber → green; 72–76 % the spreader unlocks (its lamps green → amber);
+//               76–100 % the spreader rises to 7.6 m
+//     truckGo   8–62 %: the cavalier backs off west to x 6; 6–100 %: the truck pulls away east from
+//               rest (constant acceleration), its trailer centre reaching PORT.gate.x = 72 at the end
+//               of the phase at ≈ 106 m per unit of phase progress (≈ 880 m per unit of p)
+//   port.setStudio(k | null)     override the studio fade (0..1), e.g. from the camera's pitch; null =
+//                                follow p again. port.uniforms.uStudio is the shared uniform.
 //   port.truck.setPose({ x, z, heading, travelled, articulation })
-//                               (x, z) = trailer centre = container centre on the ground (m);
-//                               heading = trailer heading, radians about +Y, 0 = east (+X), +π/2 =
-//                               north; articulation = tractor heading − trailer heading (0 when
-//                               straight); travelled = distance (m) for the wheel spin. Call it AFTER
-//                               update(p) (update poses the truck too, clamped at the gate for p ≥ the
-//                               end of truckGo). The hero container rides on the trailer once seated.
-//   port.truck.poseOnPath(sample, s, travelled)
-//                               helper: sample(d) → [x, z] on a centreline (arc length d); s = arc
-//                               length of the trailer centre. Places the tractor on the path ahead and
-//                               the trailer on the chord to its axles (natural off-tracking in curves).
-//   port.carrier, port.hero     { group | mesh, ... } for anchors and cameras (hero: InstancedMesh, its
-//                               world centre via port.heroCentre(target Vector3)).
-//   port.truckCentre(target)    world centre of the container on the trailer (for camera follow).
-//   port.setQuality(level)      rebuilds mesh density and small details (same look).
-//   port.stats()                { calls?, triangles, instances, meshes } of the module (static count).
+//                                (x, z) = trailer centre = container centre on the ground (m);
+//                                heading = trailer heading, radians about +Y, 0 = east (+X), +π/2 =
+//                                north (−Z); articulation = tractor heading − trailer heading (0 on a
+//                                straight); travelled = distance (m) for the wheel spin. Call it AFTER
+//                                update(p): update poses the truck too (clamped at the gate after
+//                                truckGo). The hero container rides on the trailer once seated.
+//   port.truck.poseOnPath(sample, s, travelled = s)
+//                                helper: sample(d) → [x, z] on a centreline at arc length d (d may be
+//                                < 0: extend straight back), s = arc length of the trailer centre; puts
+//                                the tractor on the path ahead and the trailer on the chord to its axles
+//                                (natural off-tracking in curves).
+//   port.truckCentre(v3)         world centre of the container on the trailer (camera follow, anchors)
+//   port.heroCentre(v3)          world centre of the hero container wherever it is
+//   port.carrierX()              the cavalier's x
+//   port.show({ terminal, carrier, truck, hero })  visibility by stage (all true by default); the
+//                                truck must stay visible on the road while the yard can be hidden
+//   port.setQuality(level)       rebuilds mesh density and small details (same look, same layout)
+//   port.stats()                 { meshes, instances, triangles, quality, stacks } (scene triangles)
 //   port.dispose()
-// Lighting it expects (the harness builds it): paper background #eef0f1 as the clear colour, a
-// RoomEnvironment PMREM as scene.environment, one soft-shadow DirectionalLight (key, upper left)
-// as directional light 0 (the ground's studio shadow catcher reads its shadow map), a weak fill.
+// What it expects from the integrator's scene (the harness, tools/harness-port/main.js, builds it):
+//   the paper clear colour #eef0f1 (scene.background), a RoomEnvironment PMREM as scene.environment
+//   (environmentIntensity ≈ 0.7), ONE shadow-casting DirectionalLight that is the first directional
+//   light with a shadow (the yard's studio shadow catcher reads directionalShadowMap[0]), a weak fill.
+//   Materials fade to the paper colour in OUTPUT space (linearToOutputTexel), which matches the clear
+//   colour when rendering straight to the canvas (no tone-mapped post pass over the background).
+//   The yard ground is a plane at y = 0 over PORT.yard + 40 m: the road should sit at y ≥ 0.02.
 import * as THREE from 'three';
 import { PORT, CONTAINER } from '../layout.js';
 import { PHASES, within } from '../../story.js';

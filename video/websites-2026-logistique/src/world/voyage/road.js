@@ -12,7 +12,7 @@ import { Builder, ShadowBaker, shadowMaterial } from './util.js';
 
 const C = (hex) => new THREE.Color(hex);
 
-export function createRoad({ noise, sun, uniforms }) {
+export function createRoad({ noise, sun, uniforms, gate = true }) {
   const group = new THREE.Group();
   group.name = 'voyage.road';
 
@@ -92,6 +92,7 @@ float vh12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.545
   }
   float h = vh12(id);
   vec3 tint = h < 0.25 ? vec3(0.955, 0.985, 0.94) : h < 0.5 ? vec3(1.012, 1.0, 0.975) : h < 0.75 ? vec3(1.0) : vec3(0.97, 0.982, 0.985);
+  tint = 1.0 + (tint - 1.0) * 1.7; // (integrator: a little more present over the very light ground)
   // ploughing stripes in some parcels
   float ang = h * 6.2831;
   float stripe = 0.5 + 0.5 * sin(dot(w, vec2(cos(ang), sin(ang))) * 1.45);
@@ -104,7 +105,7 @@ float vh12(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.545
   float nearYard = 1.0 - smoothstep(0.0, 120.0, max(fx, fz));
   float fieldK = (1.0 - nearYard) * smoothstep(uQuayZ - 90.0, uQuayZ - 210.0, w.y) * uReveal;
   vec3 fcol = col * tint * (1.0 - 0.018 * stripe * striped) * (0.99 + 0.02 * broad);
-  fcol *= 1.0 - 0.07 * hedge;
+  fcol *= 1.0 - 0.1 * hedge;
   col = mix(col, fcol, fieldK);
   // quay apron: concrete with slab joints, crane rails, a yellow safety line
   float apron = smoothstep(uQuayZ - 74.0, uQuayZ - 72.0, w.y);
@@ -214,15 +215,18 @@ float rRough = 0.9;`
   float dash = smoothstep(0.0, fd, dm) * (1.0 - smoothstep(3.0 - fd, 3.0 + fd, dm));
   float solid = 1.0 - step(34.0, d) * step(d, uLen - 40.0);
   float centre = (1.0 - smoothstep(0.075 - fw, 0.075 + fw, al)) * max(dash, solid);
-  float mk = max(edge, centre);
+  // the stop line at the berth (the end of the road on the quay apron)
+  float stopL = step(uLen - 4.2, d) * step(d, uLen - 3.6) * step(al, 3.5);
+  float mk = max(max(edge, centre), stopL);
   float wear = smoothstep(0.3, 0.62, grain * 0.55 + blot * 0.55 + grain2 * 0.15);
   mk *= (0.5 + 0.5 * wear) * (1.0 - 0.35 * tr);
   col = mix(col, uMark, mk * 0.92);
   // paved edge (irregular), gravel strip, verge fading into the ground
-  float eN = (blot - 0.5) * 0.4;
-  float paved = 1.0 - smoothstep(5.45 + eN, 5.62 + eN, al);
-  vec3 gravel = uGravel * (0.82 + 0.26 * grain + 0.1 * grain2);
-  float vergeK = smoothstep(5.9 + eN, 6.7 + eN, al);
+  // (integrator: a crisp paved edge and a narrow, flat light-grey gravel strip: no torn-paper edge)
+  float eN = (blot - 0.5) * 0.06;
+  float paved = 1.0 - smoothstep(5.48 + eN, 5.56 + eN, al);
+  vec3 gravel = uGravel * (0.96 + 0.06 * grain);
+  float vergeK = smoothstep(6.2 + eN, 6.45 + eN, al);
   vec3 grass = uVerge * (0.97 + 0.05 * blot);
   grass = mix(grass, uGround, smoothstep(9.5, 13.0, al + eN * 2.0));
   vec3 outside = mix(gravel, grass, vergeK);
@@ -230,6 +234,8 @@ float rRough = 0.9;`
   float a = 1.0 - smoothstep(10.5, 13.8, al + eN * 3.0);
   float vergeVis = smoothstep(16.0, 30.0, d) * (1.0 - smoothstep(uLen - 34.0, uLen - 12.0, d));
   a = mix(paved, a, vergeVis);
+  a *= 1.0 - smoothstep(uLen - 0.8, uLen, d); // the road ends at the berth on the quay apron
+  a *= smoothstep(0.0, 14.0, d); // and grows out of the yard's lane at the gate (no hard cut)
   rRough = mix(mix(0.93, 0.97, sh), 0.72, mk * paved);
   diffuseColor.rgb = col;
   diffuseColor.a = a;
@@ -296,7 +302,8 @@ float rRough = 0.9;`
   }
 
   // terminal fence along x = gate.x with the gap where the road leaves; a small gatehouse
-  {
+  // (skipped with gate: false when the port module builds its own)
+  if (gate) {
     const gx = PORT.gate.x, gz = PORT.gate.z, gap = 9.5;
     const runs = [[PORT.yard.minZ, gz - gap], [gz + gap, PORT.yard.maxZ]];
     for (const [za, zb] of runs) {

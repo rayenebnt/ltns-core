@@ -64,6 +64,8 @@ async function main() {
   const planeP = 0.845;
   const pl = voyage.plan(planeP).plane;
   const VIEWS = {
+    craneMid: { p: 0.2, truck: 2, pos: [8, 48, 78], target: [96, 0, -6], fov: 40, up: [0, 1, 0], shadow: 120 },
+    coast: { p: 0.46, pos: [262, 230, 430], target: [282, 0, 760], fov: 42, up: [0, 1, 0], shadow: 260 },
     road0: { p: 0.29, truck: 18, ...top(road.pointAt(28).toArray(), 115), shadow: 90 },
     roadCurve: { p: 0.33, truck: 132, ...top(road.pointAt(132).toArray(), 135), shadow: 100 },
     roadStraight: { p: 0.38, truck: 330, ...top(road.pointAt(345).toArray(), 135), shadow: 100 },
@@ -96,7 +98,7 @@ async function main() {
     camera.updateMatrixWorld();
     // the shadow map: fitted around the view's target (at its height)
     const st = v.sTarget ? V3(...v.sTarget) : V3(v.target[0], 0, v.target[2]);
-    if (!v.sTarget && name.startsWith('ship') || name === 'bow' || name === 'wake') st.y = 20;
+    if (!v.sTarget && (name.startsWith('ship') || name === 'bow' || name === 'wake')) st.y = 20;
     sun.target.position.copy(st);
     sun.position.copy(st).addScaledVector(VOYAGE_SUN, 1500);
     const s = v.shadow || 150;

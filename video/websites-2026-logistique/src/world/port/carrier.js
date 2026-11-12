@@ -52,9 +52,8 @@ function bodyGeometry(quality) {
       k.add(cyl(0.2, 0.22, 0.32, 16), mat([x, 1.62, z - s * 0.08]), GRAPH);
       k.add(rbox(0.52, 1.0, 0.12, 0.03), mat([x, 1.12, z - s * 0.4]), GRAPH);
       // mudguard: a short graphite arc over the top of the tyre
-      const fender = new THREE.CylinderGeometry(0.88, 0.88, 0.52, 14, 1, true, -Math.PI * 0.2, Math.PI * 0.4);
-      fender.rotateX(Math.PI / 2);
-      fender.rotateZ(Math.PI / 2);
+      const fender = new THREE.CylinderGeometry(0.88, 0.88, 0.52, 14, 1, true, Math.PI * 0.8, Math.PI * 0.4);
+      fender.rotateX(Math.PI / 2); // θ = π → the top of the tyre
       k.add(fender, mat([x, 0.8, z]), { ...GRAPH, r: 0.6 });
       const lip = new THREE.TorusGeometry(0.88, 0.02, 4, 14, Math.PI * 0.4);
       lip.rotateZ(Math.PI / 2 - Math.PI * 0.2);

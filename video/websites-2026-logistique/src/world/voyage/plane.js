@@ -17,7 +17,7 @@ const ZN = 32, ZT = -32; // nose, tail
 // --- the flight path: a straight crossing at constant speed, centred over the ship's position in
 // the middle of PHASES.plane; heading in degrees clockwise from north (75 = east-north-east)
 export const PLANE_PATH = {
-  heading: 72,
+  heading: 80, // (integrator: flatter, so the crossing stays above the AIR text block)
   speed: 7200, // metres per unit of p (about 860 m over PHASES.plane)
   centreP: (PHASES.plane[0] + PHASES.plane[1]) / 2,
   altitude: SKY.planeAltitude,
