@@ -120,7 +120,16 @@ void main() {
   vec3 envR = textureCubeUV(uEnv, reflect(-Vw, Nw), uRough).rgb * uEnvI;
   // reflections: a dim base (the studio seen in the glass) + crisp glints where a softbox core reflects;
   // no broad veil, so stacked parallel faces (crystal, dial, plates) do not add up to a white blob
-  vec3 glint = max(envR - 1.6, 0.0) * (gl_FrontFacing ? 0.42 : 0.0);  // glints on the outer faces only
+  // curvature from screen-space derivatives: Fresnel rims belong to curved surfaces (link edges, the
+  // bezel's slope, the case's silhouette), not to the many flat discs of the movement stacked in depth;
+  // a normal that jumps inside a pixel quad is a crease: a crisp x-ray edge line
+  vec3 dN = fwidth(normalize(vN));
+  float curv = length(dN) / max(length(fwidth(vV)), 1e-5);
+  float curved = smoothstep(0.04, 0.4, curv);
+  // glints on the outer faces only: crisp on curved faces (link edges, the bezel's slope, the lugs, the
+  // case's silhouette); only a hint on the near-flat discs facing the camera (the crystal, the dial, the
+  // plates), whose glints would add up into one burned-out white disc over the dial; clamped
+  vec3 glint = min(max(envR - 1.6, 0.0), vec3(3.0)) * (gl_FrontFacing ? 0.42 : 0.0) * mix(0.12, 1.0, curved);
   envR = envR / (1.0 + envR) * 0.45 + glint;
   vec3 envT = textureCubeUV(uEnv, refract(-Vw, Nw, 0.565), uFrost).rgb * uEnvI;
   // the softbox cores refracted through the volume: sparse white streaks inside the glass (what makes
@@ -131,12 +140,6 @@ void main() {
   // flat faces seen exactly edge-on (the plates and discs of a lying watch) would stack into a white band:
   // the rims peak just inside a silhouette and fall to zero at a perfectly grazing angle
   float graze = smoothstep(0.0, 0.14, ndv);
-  // curvature from screen-space derivatives: Fresnel rims belong to curved surfaces (link edges, the
-  // bezel's slope, the case's silhouette), not to the many flat discs of the movement stacked in depth;
-  // a normal that jumps inside a pixel quad is a crease: a crisp x-ray edge line
-  vec3 dN = fwidth(normalize(vN));
-  float curv = length(dN) / max(length(fwidth(vV)), 1e-5);
-  float curved = smoothstep(0.04, 0.4, curv);
   float crease = smoothstep(0.12, 0.7, length(dN));
   float rim = pow(fr, uRimPow) * graze * mix(uFlatRim, 1.0, curved);
   float edge = pow(fr, 9.0) * smoothstep(0.0, 0.09, ndv); // the crisp white edge of a polished facet

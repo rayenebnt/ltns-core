@@ -2,7 +2,7 @@
 // the « Rendez-vous » section (the ticket on its stamp), gliding from stop to stop (story.js STOPS)
 // with short holds on the key moments. Keys are [time s, p]; main.js turns them into page px for the current window (so a
 // resize mid-tour keeps the same choreography) and the scroll spring smooths them once more.
-import { STOPS } from './story.js';
+import { STOPS, PHASES } from './story.js';
 import { clamp } from './util.js';
 
 // the hold at each stop (s): the exploded line, the assembled watch, the heart, « Réglée », the
@@ -15,8 +15,8 @@ const MOVE_PER_SCREEN = 0.6; // s per screen of scroll
 // mid-assembly, the tide half-way up the screen, the glide along the glass parts
 const WAYPOINTS = [[0.115, 0.35], [0.41, 0.15], [0.68, 0.2]];
 // the two signature transitions play slower than the rest: the scroll inside these windows counts
-// 1.5× (the assembly 0.035 → 0.15, the tide 0.38 → 0.44)
-const SLOW = [[0.035, 0.15], [0.38, 0.44]];
+// 1.5× (the assembly and the tide: story.js PHASES)
+const SLOW = [PHASES.assemble, PHASES.tide];
 const slowPart = (a, b) => SLOW.reduce((s, [u, v]) => s + Math.max(0, Math.min(b, v) - Math.max(a, u)), 0) / Math.max(1e-9, b - a);
 
 // yOf(p) -> page px; H: the window height

@@ -365,6 +365,12 @@ export function createUI(h) {
     // at the end, the header stays light over the night-blue studio until the white section
     // reaches it
     if (tone === 'dark' && p >= TONE[TONE.length - 1].from && top > M.head * 0.5) tone = 'light';
+    // during the tide the header turns light as the wave line itself (anchors().tide.y) passes under it
+    // (TONE is the fallback while the line is off screen)
+    {
+      const ty = an && an.tide && Number.isFinite(an.tide.y) ? an.tide.y : -1;
+      if (p > PHASES.tide[0] && p < PHASES.tide[1] && ty >= 0) tone = ty < M.head * 0.6 ? 'light' : 'dark';
+    }
     if (tone !== last.tone) {
       last.tone = tone;
       docT('tone-light', tone === 'light');

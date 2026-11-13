@@ -23,21 +23,21 @@ export const WATCH = {
 // on the local Z axis when fully exploded (mm), and where its DOM label sits ('above' / 'below' the line,
 // alternating so neighbours never collide). Label texts: src/texts.js PARTS (same ids).
 export const PARTS = [
-  { id: 'braceletFront', z: 168, label: 'below' }, // the 12 o'clock half of the bracelet, laid straight along the axis
-  { id: 'crystal', z: 104, label: 'above' },
-  { id: 'bezel', z: 82, label: 'below' },
+  { id: 'braceletFront', z: 150, label: 'below' }, // the 12 o'clock half of the bracelet, laid straight along the axis
+  { id: 'crystal', z: 96, label: 'above' },
+  { id: 'bezel', z: 78, label: 'below' },
   { id: 'dial', z: 60, label: 'above' },
-  { id: 'hands', z: 42, label: 'below' },
+  { id: 'hands', z: 44, label: 'below' },
   { id: 'caseMiddle', z: 0, label: 'above' }, // with the crown and its stem, the case tube, the lugs
-  { id: 'mainplate', z: -30, label: 'below' },
-  { id: 'train', z: -48, label: 'above' }, // barrel and gear wheels
-  { id: 'balance', z: -64, label: 'below' }, // the balance wheel, its hairspring and the pallet fork
-  { id: 'bridges', z: -80, label: 'above' }, // bridges and the balance cock, with their screws and jewels
-  { id: 'rotor', z: -98, label: 'below' },
-  { id: 'caseback', z: -118, label: 'above' },
-  { id: 'braceletBack', z: -172, label: 'below' }, // the 6 o'clock half with the folding clasp
+  { id: 'mainplate', z: -26, label: 'below' },
+  { id: 'train', z: -40, label: 'above' }, // barrel and gear wheels
+  { id: 'balance', z: -53, label: 'below' }, // the balance wheel, its hairspring and the pallet fork
+  { id: 'bridges', z: -66, label: 'above' }, // bridges and the balance cock, with their screws and jewels
+  { id: 'rotor', z: -80, label: 'below' },
+  { id: 'caseback', z: -98, label: 'above' },
+  { id: 'braceletBack', z: -152, label: 'below' }, // the 6 o'clock half with the folding clasp
 ];
-// the whole line spans about 380 mm on local Z (bracelet ends included): the hero view must frame it
+// the whole line spans about 330 mm on local Z (the shorter line: the parts read ~20 % bigger) (bracelet ends included): the hero view must frame it
 // with margins at every window from 1280×720 to 1920×1080 (the integrator sets the camera)
 
 // the time shown by the hands when the watch is assembled (the seconds hand keeps running in real time)
