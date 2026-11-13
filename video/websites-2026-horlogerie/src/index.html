@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balancier — Atelier d’horlogerie, Besançon (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’un atelier imaginaire de révision et de restauration de montres mécaniques, au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the mark: a balance wheel (a thin rim, four arms, the hub and a hint of the hairspring) -->
+    <symbol id="i-mark" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="16" cy="16" r="12.6" stroke-width="1.6"/><circle cx="16" cy="16" r="10.9" stroke-width="0.7" opacity="0.55"/><path d="M16 5.2v7.4M16 19.4v7.4M5.2 16h7.4M19.4 16h7.4" stroke-width="1.2"/><circle cx="16" cy="16" r="2.4" stroke-width="1.1"/><path d="M16.9 16a.9.9 0 1 1-.9-.9 1.9 1.9 0 0 1 1.9 1.9 2.9 2.9 0 0 1-2.9 2.9" stroke-width="0.7" opacity="0.8"/></g><g fill="currentColor"><circle cx="16" cy="3.4" r="1"/><circle cx="16" cy="28.6" r="1"/><circle cx="3.4" cy="16" r="1"/><circle cx="28.6" cy="16" r="1"/></g></symbol>
+    <!-- the three commitments: a folded document with lines, a small camera, a small gear -->
+    <symbol id="i-devis" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 2.8h8.2l4.2 4.2v13c0 .7-.5 1.2-1.2 1.2H6.2c-.7 0-1.2-.5-1.2-1.2V4c0-.7.5-1.2 1.2-1.2z"/><path d="M14.2 2.9v3.3c0 .5.4.9.9.9h3.4"/><path d="M8.2 11.2h7.6M8.2 14.3h7.6M8.2 17.4h4.6"/></g></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 8.6c0-.8.6-1.4 1.4-1.4h2.6l1.5-2.2h6.2l1.5 2.2h2.6c.8 0 1.4.6 1.4 1.4v9.2c0 .8-.6 1.4-1.4 1.4H4.8c-.8 0-1.4-.6-1.4-1.4z"/><circle cx="12" cy="12.9" r="3.6"/><circle cx="12" cy="12.9" r="1.4"/><path d="M17.6 9.9h.6"/></g></symbol>
+    <symbol id="i-piece" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 2.9h2.8l.5 2.3 1.6.7 2-1.3 2 2-1.3 2 .7 1.6 2.2.5v2.8l-2.2.5-.7 1.6 1.3 2-2 2-2-1.3-1.6.7-.5 2.2h-2.8l-.5-2.2-1.6-.7-2 1.3-2-2 1.3-2-.7-1.6-2.3-.5v-2.8l2.3-.5.7-1.6-1.3-2 2-2 2 1.3 1.6-.7z"/><circle cx="12" cy="12" r="3.1"/><circle cx="12" cy="12" r=".9"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: SCREENS screens of story, then the « Rendez-vous » section (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the text beats over the pinned 3D story (positions and opacities: ui.js) -->
+<main id="hud">
+  <!-- under the header over the 3D: a soft backdrop (studio grey in the dark tone, deep blue in the
+       light tone; opacity from p: ui.js) -->
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+
+  <!-- the part labels of the exploded line (from world.anchors().labels: ui.js) -->
+  <div class="plabels" id="plabels" aria-hidden="true"></div>
+
+  <section class="beat beat-hero" id="b-hero">
+    <p class="kicker" data-t="hero.kicker"></p>
+    <h1 class="display" id="t-hero"></h1>
+    <p class="lead" data-t="hero.text"></p>
+  </section>
+  <p class="hint" id="hint"><span data-t="hero.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+
+  <section class="beat beat-side" id="b-remontage">
+    <p class="kicker" data-t="remontage.kicker"></p>
+    <h2 class="display" id="t-remontage"></h2>
+    <p class="lead" data-t="remontage.text"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-coeur">
+    <p class="kicker" data-t="coeur.kicker"></p>
+    <h2 class="display" id="t-coeur"></h2>
+    <p class="lead" data-t="coeur.text"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-reglee">
+    <p class="kicker" data-t="reglee.kicker"></p>
+    <h2 class="display" id="t-reglee"></h2>
+  </section>
+
+  <section class="beat beat-side beat-atelier on-blue" id="b-atelier">
+    <p class="kicker" data-t="atelier.kicker"></p>
+    <h2 class="display" id="t-atelier"></h2>
+    <p class="lead" data-t="atelier.text"></p>
+    <ul class="points" id="points"></ul>
+  </section>
+
+  <section class="beat beat-transparence on-blue" id="b-transparence">
+    <p class="kicker" data-t="transparence.kicker"></p>
+    <h2 class="display" id="t-transparence"></h2>
+    <p class="lead" data-t="transparence.text"></p>
+  </section>
+
+  <section class="beat beat-side beat-restauration on-blue" id="b-restauration">
+    <p class="kicker" data-t="restauration.kicker"></p>
+    <h2 class="display" id="t-restauration"></h2>
+    <p class="lead" data-t="restauration.text"></p>
+    <div class="cards" id="cards"></div>
+  </section>
+</main>
+
+<!-- « Rendez-vous »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner">
+    <div class="f-main">
+      <p class="kicker k-final" data-t="rendezvous.kicker"></p>
+      <h2 class="display" id="t-final"></h2>
+      <p class="f-text" data-t="rendezvous.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-dark cta" type="button" id="f-quote"><span data-t="rendezvous.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="rendezvous.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="ticket" id="ticket">
+        <div class="t-head"><p class="t-title" id="t-ticket-head"></p><p class="t-num" id="t-ticket-num"></p></div>
+        <ol class="t-steps" id="t-steps"></ol>
+        <p class="stamp" id="stamp"><span id="stamp-text"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="f-foot">
+    <p class="f-credit" data-t="credit"></p>
+    <svg class="f-mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <p class="f-statement" data-t="rendezvous.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <a class="brand" id="brand" href="#" aria-label="Balancier">
+    <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></span>
+    <span class="brand-tag" data-t="brand.tagline"></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
+  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark mark-swing" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
