@@ -233,8 +233,8 @@ html:not(.cursor-off) .pill:hover, html.tone-light:not(.cursor-off) .pill:hover 
   pointer-events: none;
 }
 .headscrim::before, .headscrim::after { content: ''; position: absolute; inset: 0; transition: opacity var(--tone-t) var(--ease); }
-.headscrim::before { background: linear-gradient(180deg, rgba(236, 238, 240, 0.86) 0, rgba(236, 238, 240, 0.55) 56px, rgba(236, 238, 240, 0) 100%); }
-.headscrim::after { opacity: 0; background: linear-gradient(180deg, rgba(8, 22, 58, 0.42) 0, rgba(8, 22, 58, 0.2) 60px, rgba(8, 22, 58, 0) 100%); }
+.headscrim::before { background: linear-gradient(180deg, rgba(236, 238, 240, 0.94) 0, rgba(236, 238, 240, 0.78) 64px, rgba(236, 238, 240, 0) 100%); }
+.headscrim::after { opacity: 0; background: linear-gradient(180deg, rgba(8, 22, 58, 0.78) 0, rgba(8, 22, 58, 0.5) 64px, rgba(8, 22, 58, 0) 100%); }
 html.tone-light .headscrim::before { opacity: 0; }
 html.tone-light .headscrim::after { opacity: 1; }
 
@@ -277,6 +277,8 @@ html.tone-light .headscrim::after { opacity: 1; }
 /* side beats: the left column (one line per line of texts.js, never wrapped) */
 .beat-side { left: var(--m); top: 50%; width: max-content; max-width: min(46vw, calc(100vw - 2 * var(--m) - var(--rail-w))); }
 .beat-side .display { font-size: clamp(44px, min(4.7vw, 8.4vh), 92px); }
+/* « Réglée » sits higher: the side view's bracelet runs under the left column */
+#b-reglee { top: 44%; }
 .beat-side .lead { max-width: 23em; }
 
 /* L’atelier: the text block on blue with the three commitments */
@@ -403,7 +405,10 @@ html:not(.cursor-off) .rail-dot:hover::before { transform: scale(1.45); }
 }
 .rail-label b { font: 400 10px/1 var(--mono); letter-spacing: 0.08em; color: var(--r-2); margin-right: 0.6em; }
 .rail-dot.is-here .rail-label { opacity: 1; transform: translate(0, -50%); }
-.rail.is-light .rail-label { text-shadow: 0 1px 12px rgba(4, 14, 40, 0.5); }
+.rail-label { text-shadow: 0 0 2px #eceef0, 0 0 6px #eceef0, 0 0 12px #eceef0, 0 0 20px rgba(236, 238, 240, 0.8); }
+.rail.is-light .rail-label { text-shadow: 0 0 2px #0b1f4d, 0 0 6px #0b1f4d, 0 0 12px rgba(11, 31, 77, 0.9), 0 0 20px rgba(11, 31, 77, 0.7); }
+/* (ui.js is-veiled: the watch is under the current label, or the glass line / glide / reassembly) */
+.rail.is-veiled .rail-dot.is-here:not(:hover) .rail-label { opacity: 0; }
 html:not(.cursor-off) .rail-dot:hover .rail-label { opacity: 1; transform: translate(0, -50%); }
 /* the marker: a tiny ruby jewel (a faceted red dot with a pale glint) travelling down the line */
 .rail-marker {
@@ -545,7 +550,7 @@ html:not(.cursor-off) .btn-line:hover { box-shadow: inset 0 0 0 1px var(--ink); 
 /* (the tide reaches the bottom edge before the header: ui.js turns the credit light when the wave
    line has passed above it; while « Rendez-vous » slides up, ui.js moves it above the section's top
    edge, then hands over to the section's own credit in its footer) */
-.credit.is-light { color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 12px rgba(4, 14, 40, 0.45); }
+.credit.is-light { color: rgba(255, 255, 255, 0.8); text-shadow: 0 0 2px rgba(11, 31, 77, 0.9), 0 0 8px rgba(11, 31, 77, 0.8), 0 1px 12px rgba(4, 14, 40, 0.45); }
 html.tone-light .brand, html.tone-light .nav-link { text-shadow: 0 1px 12px rgba(4, 14, 40, 0.4); }
 html.tone-light .mark { filter: drop-shadow(0 1px 6px rgba(4, 14, 40, 0.35)); }
 

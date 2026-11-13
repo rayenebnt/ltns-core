@@ -82,6 +82,11 @@ const FOV = 22;
 // the right), so the turning watch of 03 runs straight into it
 const HERO = { rx: 0, ry: 0, rz: 0, hy: 0, tx: 0, ty: -2, tz: LINE_C, az: 26, el: 4, dist: 'line', fov: FOV, sx: 'line', sy: 'line' };
 const GLASS_RY = 244; // holder yaw of the glass line, seen from the camera at az -90
+// the straight bracelet strips at the ends of each line: turned to the camera's side of the line (a
+// three-quarter view of the links on the hero, lighter steel than face-on; the link grid on the glass
+// line), and on the hero leaning back ~18° (their faces catch the ceiling and the overhead softbox, not the
+// env's dark horizon band: brushed and polished steel, not black rubber)
+const STRIPS = { hero: { yaw: 0.5, tilt: 0.32 }, glass: { yaw: -0.85, tilt: 0 } };
 
 function shotKeys() {
   const P = PHASES;
@@ -97,8 +102,8 @@ function shotKeys() {
   key(P.frontHold[1], { az: 54, el: -8, dist: 186 });
   // the turn: round the crown side to the back, close on the balance
   key(mix(P.turnOver[0], P.turnOver[1], 0.5), { tx: 2, ty: -3, tz: -2, az: -14, el: 7, dist: 176, sx: 0.2, sy: 0.0 });
-  key(P.turnOver[1], { tx: 5.0, ty: -4.8, tz: -1.2, az: -106, el: -6, dist: 116, sx: 0.33, sy: -0.1 });
-  key(P.heartHold[1], { az: -98, el: -3, dist: 100 });
+  key(P.turnOver[1], { tx: 5.0, ty: -4.8, tz: -1.2, az: -106, el: -6, dist: 98, sx: 0.4, sy: -0.06 });
+  key(P.heartHold[1], { az: -98, el: -3, dist: 80 });
   // it turns to lie on its side on its bracelet (dial up, the crown towards the camera), seen from the side
   key(mix(P.lieDown[0], P.lieDown[1], 0.5), { rx: -50, ry: 50, tx: 1, ty: -1, tz: -3, az: -96, el: 6, dist: 168, sx: 0.18, sy: -0.08 });
   key(P.lieDown[1], { rx: -90, ry: 90, tx: 0, ty: 0, tz: -6, az: -90, el: 12, dist: 214, sx: 0.31, sy: -0.17 });
@@ -158,14 +163,16 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
   watch.balanceAmplitude = 1.75;
 
   // ------------------------------------------------------------------ the parts' boxes (label boxes, line fit)
-  // each part's local Box3 in its own pivot's space, taken on the exploded line (pose 1, straight strips)
+  // each part's local Box3 in its own pivot's space, taken on the exploded line (pose 1, straight strips);
+  // the two strips once per line (they turn and lean differently on the hero and on the glass line)
   watch.pose(1);
   watch.bracelet(0);
-  holder.updateMatrixWorld(true);
-  const boxes = {};
-  {
+  const boxes = {}, boxesGlass = {};
+  function measureBoxes(out, ids) {
+    holder.updateMatrixWorld(true);
     const inv = new THREE.Matrix4(), mm = new THREE.Matrix4(), bb = new THREE.Box3();
     for (const part of watch.parts) {
+      if (ids && !ids.includes(part.id)) continue;
       const o = part.object;
       o.updateWorldMatrix(true, true);
       inv.copy(o.matrixWorld).invert();
@@ -189,9 +196,16 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
         box.min.x = box.min.y = -r;
         box.max.x = box.max.y = r;
       }
-      boxes[part.id] = box;
+      out[part.id] = box;
     }
   }
+  watch.stripYaw = STRIPS.glass.yaw;
+  watch.stripTilt = STRIPS.glass.tilt;
+  measureBoxes(boxesGlass, ['braceletFront', 'braceletBack']);
+  watch.stripYaw = STRIPS.hero.yaw;
+  watch.stripTilt = STRIPS.hero.tilt;
+  measureBoxes(boxes);
+  for (const id of Object.keys(boxes)) if (!boxesGlass[id]) boxesGlass[id] = boxes[id];
   const PZ = Object.fromEntries(PARTS.map((q) => [q.id, q.z]));
 
   // ------------------------------------------------------------------ the camera rig
@@ -234,7 +248,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     const s = { ...HERO, sx: 0, sy: 0 };
     const corners = [];
     for (const q of PARTS) {
-      const b = boxes[q.id];
+      const b = (o.boxes || boxes)[q.id];
       for (let i = 0; i < 8; i++) corners.push(new THREE.Vector3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, (i & 4 ? b.max.z : b.min.z) + q.z));
     }
     const res = { dist: 600, sx: 0, sy: o.ya };
@@ -280,7 +294,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     // (NDC limits) the hero: axis at ~0.6 H, top under the hero text (left half) / the header (right half),
     // bottom above the hint and the credit; the glass line: lower, with room above for the Transparence block
     lineFit = fitLine(W / H, { ya: -0.2, topL: 0.02, topR: 0.3, bottom: -0.76 });
-    glassFit = fitLine(W / H, { ya: -0.26, topL: 0.06, topR: 0.06, bottom: -0.76, ry: GLASS_RY, az: -90 });
+    glassFit = fitLine(W / H, { ya: -0.26, topL: 0.06, topR: 0.06, bottom: -0.76, ry: GLASS_RY, az: -90, boxes: boxesGlass });
     lineDist = lineFit.dist;
     const K = shotKeys();
     const val = (k, ch) => {
@@ -326,6 +340,10 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     return 1.75;
   }
 
+  // the tide's line slows down while it crosses the watch (the change to sapphire reads), quicker below and
+  // above it (the wipe follows the tide, so the line on the materials and the background stay matched)
+  const tideEase = monotone([[0, 0], [0.18, 0.29], [0.72, 0.58], [1, 1]]);
+  const rotorSpin = watch.group.getObjectByName('rotor.spin');
   const tmpS = {};
   function update(state, dt, time) {
     const p = clamp(state.p);
@@ -335,12 +353,13 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     const e = explodeAt(p);
     curE = e;
     watch.pose(e, time);
-    // the straight strips (b 0) turn to the camera's side of the line: a three-quarter view of the links on
-    // the hero (lighter steel than face-on), the link grid on the glass line
+    // the straight strips (b 0): the hero's or the glass line's (STRIPS)
     const side = p < PHASES.atelierHold[0] ? 1 : -1;
     if (side !== stripSide) {
       stripSide = side;
-      watch.stripYaw = side > 0 ? 0.5 : -0.85;
+      const st = side > 0 ? STRIPS.hero : STRIPS.glass;
+      watch.stripYaw = st.yaw;
+      watch.stripTilt = st.tilt;
     }
     const b = braceletAt(p, e);
     if (b !== curB) {
@@ -349,6 +368,13 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     }
     watch.setTime(time);
     watch.setMovement(time);
+    // the heart close-up: the rotor's weight sways over the top of the window, never over the balance (it
+    // eases there the shortest way, at most half a turn; the sapphire twin is not on screen then)
+    const hk = sstep(PHASES.turnOver[0] + 0.03, PHASES.heartHold[0], p) * (1 - sstep(PHASES.heartHold[1], PHASES.lieDown[0] + 0.02, p));
+    if (hk > 0 && rotorSpin) {
+      const a = rotorSpin.rotation.z, want = 0.84 + 0.45 * Math.sin(0.5 * time);
+      rotorSpin.rotation.z = a + Math.atan2(Math.sin(want - a), Math.cos(want - a)) * hk;
+    }
 
     // the camera
     for (const ch of CHANNELS) tmpS[ch] = splines[ch](p);
@@ -361,7 +387,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     place(camera, holder, tmpS, W / H, pointer);
 
     // the studio: tide (background line), wipe (materials' line), night, density
-    const tide = p < PHASES.tide[0] ? 0 : p < PHASES.restore[0] ? ph(p, 'tide') : 1;
+    const tide = p < PHASES.tide[0] ? 0 : p < PHASES.restore[0] ? tideEase(ph(p, 'tide')) : 1;
     const wipe = p < PHASES.restore[0] ? tide : 1 - smooth(ph(p, 'restore'));
     const night = sstep(PHASES.restore[0] - 0.015, PHASES.restore[0], p);
     watch.materials.lume.emissiveIntensity = lumeBase + 0.3 * night;
@@ -402,7 +428,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
       const part = watch.parts[i];
       const out = labelsOut[i];
       m4.copy(part.object.matrixWorld);
-      const { min, max } = boxes[part.id];
+      const { min, max } = (stripSide < 0 ? boxesGlass : boxes)[part.id];
       let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, front = true;
       for (let k = 0; k < 8; k++) {
         _v.set(k & 1 ? max.x : min.x, k & 2 ? max.y : min.y, k & 4 ? max.z : min.z).applyMatrix4(m4);

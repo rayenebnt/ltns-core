@@ -8,7 +8,7 @@ import { clamp } from './util.js';
 // the hold at each stop (s): the exploded line, the assembled watch, the heart, « Réglée », the
 // atelier, the glass line, the reassembly, the restoration, the ticket (long enough for the six
 // checks and the stamp to land before the tour ends: ui.js TICKET_RATE)
-const HOLDS = [1.0, 0.8, 1.1, 0.8, 1.4, 1.1, 0.45, 1.3, 2.4];
+const HOLDS = [1.0, 0.8, 1.1, 0.8, 1.25, 1.0, 0.35, 1.2, 2.4];
 const MOVE_BASE = 0.4; // s per move
 const MOVE_PER_SCREEN = 0.6; // s per screen of scroll
 // tour-only waypoints between two stops (not key stops): [p, hold s]: the remontage headline
@@ -16,8 +16,9 @@ const MOVE_PER_SCREEN = 0.6; // s per screen of scroll
 const WAYPOINTS = [[0.115, 0.35], [0.41, 0.15], [0.68, 0.2]];
 // the two signature transitions play slower than the rest: the scroll inside these windows counts
 // 1.5× (the assembly and the tide: story.js PHASES)
-const SLOW = [PHASES.assemble, PHASES.tide];
-const slowPart = (a, b) => SLOW.reduce((s, [u, v]) => s + Math.max(0, Math.min(b, v) - Math.max(a, u)), 0) / Math.max(1e-9, b - a);
+// (the turn round the crown counts double: the fastest camera move of the story)
+const SLOW = [[PHASES.assemble, 0.5], [PHASES.turnOver, 1.0], [PHASES.tide, 0.5]];
+const slowPart = (a, b) => SLOW.reduce((s, [[u, v], k]) => s + k * Math.max(0, Math.min(b, v) - Math.max(a, u)), 0) / Math.max(1e-9, b - a);
 
 // yOf(p) -> page px; H: the window height
 export function tourKeysP(yOf, H) {
@@ -27,7 +28,7 @@ export function tourKeysP(yOf, H) {
   seq.forEach(([p, hold], i) => {
     if (i > 0) {
       const screens = Math.abs(yOf(p) - yOf(seq[i - 1][0])) / H;
-      t += MOVE_BASE + MOVE_PER_SCREEN * (1 + 0.5 * slowPart(seq[i - 1][0], p)) * screens;
+      t += MOVE_BASE + MOVE_PER_SCREEN * (1 + slowPart(seq[i - 1][0], p)) * screens;
     }
     keys.push([t, p]);
     t += hold;

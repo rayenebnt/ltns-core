@@ -35,12 +35,13 @@ const RIGS = {
     zenith: [0.1, 0.12, 0.17], ceiling: [0.055, 0.068, 0.11], horizon: [0.008, 0.012, 0.03],
     floorNear: [0.025, 0.035, 0.07], nadir: [0.06, 0.1, 0.24], warmCool: 0.0,
     panels: [
-      { name: 'overhead', w: 34, h: 24, pos: [0, 26, 2], i: 2.4, c: [0.84, 0.9, 1.0], soft: 0.32 },
-      { name: 'stripLeft', w: 4.6, h: 34, pos: [-24, 4, -9], i: 5.0, c: [0.86, 0.92, 1.0], soft: 0.18 },
+      { name: 'overhead', w: 34, h: 24, pos: [0, 26, 2], i: 2.4, c: [0.94, 0.965, 1.0], soft: 0.32 },
+      // (two near-white lines on the chamfers, lugs and centre links: « steel », against the night blue)
+      { name: 'stripLeft', w: 4.6, h: 34, pos: [-24, 4, -9], i: 5.8, c: [0.97, 0.98, 1.0], soft: 0.18 },
       { name: 'stripRight', w: 4.6, h: 34, pos: [24, 4, -12], i: 4.0, c: [0.9, 0.94, 1.0], soft: 0.18 },
       { name: 'back', w: 34, h: 2.2, pos: [0, 18, -26], i: 1.9, c: [0.7, 0.82, 1.0], soft: 0.25 },
       { name: 'front', w: 30, h: 12, pos: [0, 3, 30], i: 0.32, c: [0.6, 0.72, 1.0], soft: 0.5 },
-      { name: 'kicker', w: 3.2, h: 20, pos: [18, 10, 20], i: 1.6, c: [0.85, 0.92, 1.0], soft: 0.2 },
+      { name: 'kicker', w: 3.2, h: 20, pos: [18, 10, 20], i: 2.2, c: [1, 1, 1], soft: 0.2 },
       // the blue fill from below: a wide low panel under the floor horizon
       { name: 'sideFill', w: 40, h: 10, pos: [-27, 1.5, 4], i: 0.45, c: [0.7, 0.8, 1.0], soft: 0.6 },
       { name: 'blueFill', w: 60, h: 40, pos: [0, -24, 4], i: 0.42, c: [0.16, 0.32, 0.95], soft: 0.6 },

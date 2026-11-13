@@ -167,5 +167,5 @@ export function buildCaseback(ctx, obj) {
   add('caseback.brushed', 'steelBrushed', wall, obj, 'steelBrushedPlain');
   add('caseback.inner', 'steelBrushed', lathe([[17.9, 0.05], [17.3, 0.1], [17.3, 1.2], [12.0, 1.2], [12.0, -0.9]], { segments: seg }), obj, 'steelBrushedPlain').userData.internal = true;
   // the sapphire window
-  add('caseback.window', 'crystal', lathe([[0, -0.95], [12.3, -0.95], [12.3, 0.25], [0, 0.25]], { segments: seg, crease: 0.5 }), obj);
+  add('caseback.window', 'crystal', lathe([[0, -0.95], [12.3, -0.95], [12.3, 0.25], [0, 0.25]], { segments: seg, crease: 0.5 }), obj, 'crystalBack');
 }

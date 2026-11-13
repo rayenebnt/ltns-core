@@ -24,8 +24,8 @@ export const STORY_END = 0.9;
 // 3D choreography windows, in p (a phase runs from its first to its second value)
 export const PHASES = {
   // light studio, steel watch
-  explodedHold: [0.0, 0.035], // the exploded line across the screen (the watch's own axis), parts gently floating
-  assemble: [0.035, 0.13], // the parts slide together along the axis, staggered; the bracelets come in last
+  explodedHold: [0.0, 0.015], // the exploded line across the screen (the watch's own axis), parts gently floating
+  assemble: [0.015, 0.13], // the parts slide together along the axis, staggered; the bracelets come in last
   frontHold: [0.13, 0.19], // the assembled watch, three-quarter front view, hands at 10:09:30, seconds running
   turnOver: [0.19, 0.265], // the camera orbits round the crown to the back, close to the movement through the sapphire back
   heartHold: [0.265, 0.31], // close on the balance wheel beating (8 vibrations a second) and the rotor
@@ -46,15 +46,15 @@ export const PHASES = {
 
 // DOM text beats: [starts fading in, fully in, starts fading out, fully out], in p
 export const BEATS = [
-  { id: 'hero', win: [0.0, 0.0, 0.025, 0.05] },
-  { id: 'labels', win: [0.0, 0.0, 0.03, 0.055] }, // part labels of the exploded line (DOM, from world.anchors())
+  { id: 'hero', win: [0.0, 0.0, 0.012, 0.036] },
+  { id: 'labels', win: [0.0, 0.0, 0.014, 0.04] }, // part labels of the exploded line (DOM, from world.anchors())
   { id: 'remontage', win: [0.1, 0.118, 0.175, 0.19] }, // in once the bracelet halves fly in, over the front view (stop 0.17)
   { id: 'coeur', win: [0.245, 0.265, 0.305, 0.32] },
   { id: 'reglee', win: [0.348, 0.362, 0.386, 0.398] }, // in as the watch settles on its side (stop 0.372)
   { id: 'atelier', win: [0.45, 0.47, 0.54, 0.56] }, // once the lying glass watch has risen off the line of the bracelet
   { id: 'transparence', win: [0.585, 0.605, 0.65, 0.666] }, // out as the glide comes close
   { id: 'sapphireLabels', win: [0.598, 0.61, 0.64, 0.655] }, // the part labels again, over the glass line (spread at 0.6)
-  { id: 'restauration', win: [0.795, 0.815, 0.855, 0.875] },
+  { id: 'restauration', win: [0.795, 0.812, 0.872, 0.888] },
   { id: 'rendezvous', win: [0.9, 0.94, 1.0, 1.0] },
 ];
 

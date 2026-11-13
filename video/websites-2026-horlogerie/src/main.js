@@ -216,7 +216,7 @@ async function start() {
 
   // stations: the exploded line, the assembly, the heart, the tide (both twins), the atelier, the
   // glass line, the glide, the night studio
-  const TEST_P = [0.02, 0.1, 0.29, 0.41, 0.5, 0.62, 0.68, 0.84];
+  const TEST_P = [0.02, 0.1, 0.29, 0.41, 0.5, 0.62, 0.68, 0.75, 0.8, 0.84];
   async function measureLevel() {
     let worst = 0;
     for (const p of TEST_P) {
@@ -264,10 +264,30 @@ async function start() {
   // a programmatic glide: longer for longer distances; a long one replays the journey quickly
   // (the world is a pure function of p: the camera simply runs the path faster)
   const durFor = (to, from = scroller.st.target) => clamp(1.0 + (0.16 * Math.abs(to - from)) / L.H, 1.1, 3.6);
+  // a long way to either end of the page (the hero, the final section) is a cut, as the tour's start
+  // is: the studio veil, a snap, the veil lifts; never a fast replay of the whole story
+  const CUT_SCREENS = 6;
+  let cutTo = null;
   function glideTo(y, dur) {
     stopTour();
+    y = clamp(y, 0, L.max);
+    const far = !CAPTURE && (y <= 0 || y >= L.max) && Math.abs(y - scroller.st.y) > CUT_SCREENS * L.H;
+    if (cutAt) {
+      // a cut under way: a new far end retargets it; anything else lifts the veil and glides
+      if (far) return void (cutTo = y);
+      cutAt = 0;
+      cutTo = null;
+      cutVeil.classList.remove('is-on');
+    }
     // a double-click or a second press for the glide already under way changes nothing
-    if (scroller.motion && scroller.motion.kind === 'tween' && Math.abs(scroller.heading - clamp(y, 0, L.max)) < 1) return;
+    if (scroller.motion && scroller.motion.kind === 'tween' && Math.abs(scroller.heading - y) < 1) return;
+    if (far) {
+      scroller.stop();
+      cutTo = y;
+      cutVeil.classList.add('is-on');
+      cutAt = performance.now() || 1;
+      return;
+    }
     scroller.tweenTo(y, dur ?? durFor(y));
   }
   // nav and rail: each chapter opens on the stop where it reads best (the stop inside the chapter
@@ -322,16 +342,18 @@ async function start() {
   function cutStep(now) {
     if (!cutAt || now - cutAt < 290) return;
     cutAt = 0;
-    scroller.jump(0);
+    const to = cutTo;
+    cutTo = null;
+    scroller.jump(to ?? 0);
     renderNow();
     cutVeil.classList.remove('is-on');
-    beginTour(0);
+    if (to === null) beginTour(0);
   }
   // a wheel or a touch during the cut cancels it (there is no glide yet for scroll.js to stop); a
   // pinch (ctrl + wheel) does not, as in scroll.js
   for (const ev of ['wheel', 'touchstart']) window.addEventListener(ev, (e) => cutAt && !e.ctrlKey && stopTour(), { passive: true });
   function stopTour() {
-    if (cutAt) {
+    if (cutAt && cutTo === null) {
       // stopped during the cut: no tour, the veil lifts where the page is
       cutAt = 0;
       touring = false;

@@ -13,11 +13,10 @@ const win = Object.fromEntries(WIN.map((b) => [b.id, b.win]));
 export const STATIONS = CHAPTERS.filter((c) => c.id !== 'rendezvous');
 // the part ids in line order (texts.js PARTS keys = src/world/layout.js PARTS ids)
 const PART_IDS = Object.keys(T.PARTS);
-// when the shell needs world.anchors(): the labels, the Transparence block, the tide's line (the
-// credit's and the rail's tone)
-const near = (p, w, m = 0.006) => p > w[0] - m && p < w[3] + m;
-export const needAnchors = (p) =>
-  near(p, win.labels) || near(p, win.sapphireLabels) || near(p, win.transparence) || (p > PHASES.tide[0] - 0.006 && p < PHASES.tide[1] + 0.006);
+// when the shell needs world.anchors(): always (the labels, the Transparence block, the tide's line for
+// the credit's and the rail's tone, and the watch under the rail's current label); the real world's
+// anchors() is ~120 projections and allocates nothing
+export const needAnchors = () => true;
 
 // every [data-t] element gets its text from texts.js (also the loader and the no-WebGL message,
 // before anything else runs)
@@ -202,7 +201,7 @@ export function createUI(h) {
   });
 
   // ------------------------------------------------------------------ measures
-  const M = { W: innerWidth, H: innerHeight, railL: 400, railTop: 112, finalH: innerHeight, m: 40, head: 78, railW: 64, titleOff: 200, ticketOff: 300, fcOff: 1e5, creditH: 14, creditB: 22, creditR: null, hero: [], hintR: null, trW: 600, trH: 200 };
+  const M = { W: innerWidth, H: innerHeight, railL: 400, railTop: 112, railLab: [], finalH: innerHeight, m: 40, head: 78, railW: 64, titleOff: 200, ticketOff: 300, fcOff: 1e5, creditH: 14, creditB: 22, creditR: null, hero: [], hintR: null, trW: 600, trH: 200 };
   const rectOf = (r) => ({ l: r.left, t: r.top, r: r.right, b: r.bottom });
   const textRect = (el) => {
     const rg = document.createRange();
@@ -241,6 +240,17 @@ export function createUI(h) {
       lb.h = lb.box.offsetHeight || 16;
     }
     dots.forEach((d) => d.s('top', `${(d.c.from * M.railL).toFixed(1)}px`));
+    // each chapter label's rect where it rests when current (style.css .rail-label: right 26 px from its
+    // 26 px dot, centred on it), for the veil over the watch
+    {
+      const rr = rail.getBoundingClientRect();
+      const cx = rr.left + rr.width / 2;
+      M.railLab = dots.map((d) => {
+        const lab = d.el.querySelector('.rail-label');
+        const lw = lab.offsetWidth, lh = lab.offsetHeight, cy = rr.top + d.c.from * M.railL;
+        return { l: cx - 13 - lw, r: cx - 13, t: cy - lh / 2, b: cy + lh / 2 };
+      });
+    }
     last.p = -1;
     return M;
   }
@@ -396,12 +406,38 @@ export function createUI(h) {
     const railY = M.railTop + clamp(p) * M.railL;
     railT('is-light', passed(railY) && top > railY);
 
-    // under the header over the 3D (the assembled watch can come close to it)
-    headscrim('opacity', (smooth(0.06, 0.1, p) * (1 - smooth(0.87, 0.9, p))).toFixed(3));
+    // under the header over the 3D (the assembled watch can come close to it; the exit's rising watch
+    // passes under it: it stays until the white section is about to reach the scrim's 128 px)
+    headscrim('opacity', (smooth(0.06, 0.1, p) * (1 - smooth(0.96, 0.975, p))).toFixed(3));
 
     // rail marker (the ruby jewel)
     markerS('transform', `translate3d(0,${(clamp(p) * M.railL).toFixed(2)}px,0)`);
     railFill('transform', `scaleY(${clamp(p).toFixed(4)})`);
+    // the current chapter's label is never drawn over the watch: it fades out while the case (or a part
+    // of the exploded line) is under it; on the glass line, the glide and the reassembly it rests (it
+    // would read as a fourteenth part label, then sits on the glass parts sweeping by). The dots, the
+    // line and the ruby marker stay; a hover still shows it.
+    {
+      let veil = p > win.sapphireLabels[0] && p < PHASES.reassemble[1];
+      const di = dots.findIndex((d) => d.c.id === ch);
+      const r = di >= 0 ? M.railLab[di] : null;
+      if (!veil && an && r) {
+        const w = an.watch;
+        if (w && w.visible && Number.isFinite(w.x)) {
+          const cx = clamp(w.x, r.l, r.r), cy = clamp(w.y, r.t, r.b);
+          veil = Math.hypot(w.x - cx, w.y - cy) < w.r * 1.25;
+        }
+        if (!veil && an.labels) {
+          for (const l of an.labels) {
+            if (l && l.visible && l.box && hit({ l: l.box.x, t: l.box.y, r: l.box.x + l.box.w, b: l.box.y + l.box.h }, r, 8)) {
+              veil = true;
+              break;
+            }
+          }
+        }
+      }
+      railT('is-veiled', veil);
+    }
 
     // the Transparence block: centred, above or below the parts' band (never over its middle)
     {

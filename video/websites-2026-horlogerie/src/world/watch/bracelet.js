@@ -147,6 +147,7 @@ export class BraceletHalf {
     // the straight strips (b = 0) turn about their vertical axis to show their face to a front-side camera
     this.yaw = new THREE.Group();
     this.yaw.name = `${keyPrefix}.yaw`;
+    this.yaw.rotation.order = 'YXZ'; // the yaw about the strip's long axis, then the lean back (tilt)
     parent.add(this.yaw);
     this.outer = add(`${keyPrefix}.outer`, 'steelBrushed', geos.outer, this.yaw, 'steelBrushedLinks', 2 * links + 1);
     this.centre = add(`${keyPrefix}.centre`, 'steelPolished', geos.centre, this.yaw, 'steelPolished', links);
@@ -179,9 +180,12 @@ export class BraceletHalf {
     );
     return this.m;
   }
-  update(b, yaw = 0) {
-    const yw = b < 1 ? yaw * (1 - b) * (1 - b) : 0;
-    this.yaw.rotation.y = yw;
+  // yaw: the straight strip turns about its long axis; tilt: it leans back (its faces catch the ceiling
+  // and the overhead softbox instead of the env's dark horizon band); both fade as the strip curves (b → 1)
+  update(b, yaw = 0, tilt = 0) {
+    const k = b < 1 ? (1 - b) * (1 - b) : 0;
+    this.yaw.rotation.y = yaw * k;
+    this.yaw.rotation.x = -tilt * k;
     if (this.lastB !== null && Math.abs(b - this.lastB) < 1e-6) return;
     this.lastB = b;
     const [S0, S1, S2] = this.states;

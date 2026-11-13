@@ -10,6 +10,7 @@
 //                          the case), 2 = open and resting on the floor plane z = watch.floorZ (side view).
 //   watch.braceletFor(e)   the b that goes with pose(e) while the halves fly in (call bracelet(braceletFor(e))).
 //   watch.stripYaw         rad (default 0.85): the straight strips (b = 0) turn to face a camera on the +X/+Z side.
+//   watch.stripTilt        rad (default 0): the straight strips lean back (fading with the bend, like the yaw).
 //   watch.setTime(t)       t s on the dial from layout SHOWN_TIME (seconds hand: 8 ticks a second).
 //   watch.setMovement(t)   balance at 4 Hz (±220°, watch.balanceAmplitude), hairspring breathing, fork flicking,
 //                          escape wheel stepping 8 times a second, train, rotor turning slowly.
@@ -70,6 +71,11 @@ function makeMaterials(T, envMap) {
   M.crystal.blending = THREE.CustomBlending;
   M.crystal.blendSrc = THREE.OneFactor;
   M.crystal.blendDst = THREE.OneMinusSrcAlphaFactor;
+  // the caseback window: the same glass (same program), a dimmer reflection: at grazing angles in the turn
+  // the full one paints the whole movement opaque white for a few frames
+  M.crystalBack = M.crystal.clone();
+  M.crystalBack.envMapIntensity = 0.12;
+  M.crystalBack.specularIntensity = 0.5;
   M.dial = phys({ color: COLORS.dialBlue, vertexColors: true, metalness: 0.82, roughness: 0.2, anisotropy: 0.95, normalMap: T.sunburst, normalScale: new THREE.Vector2(0.35, 0.35), clearcoat: 0.7, clearcoatRoughness: 0.06 });
   M.dialFlange = phys({ color: '#163070', metalness: 0.3, roughness: 0.55 });
   M.print = new THREE.MeshStandardMaterial({ ...env, color: '#ffffff', map: T.print, transparent: true, roughness: 0.42, metalness: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
@@ -124,7 +130,7 @@ function releaseTextures(T) {
   }
 }
 
-const VARIANT_KIND = { steelBrushedPlain: 'steelBrushed', steelBrushedLinks: 'steelBrushed', snailed: 'steelBrushed', casebackEngraved: 'steelBrushed', dialFlange: 'dial', perlage: 'rhodium', cotes: 'rhodium', cotesRotor: 'rhodium', rotorEngraved: 'gilt', paint: 'ruby', spring: 'blued' };
+const VARIANT_KIND = { crystalBack: 'crystal', steelBrushedPlain: 'steelBrushed', steelBrushedLinks: 'steelBrushed', snailed: 'steelBrushed', casebackEngraved: 'steelBrushed', dialFlange: 'dial', perlage: 'rhodium', cotes: 'rhodium', cotesRotor: 'rhodium', rotorEngraved: 'gilt', paint: 'ruby', spring: 'blued' };
 
 export async function createWatch({ renderer, quality = 'high', envMap = null } = {}) {
   let level = QUALITY[quality] ? quality : 'high';
@@ -138,7 +144,7 @@ export async function createWatch({ renderer, quality = 'high', envMap = null } 
   const M = makeMaterials(T, envMap);
   if (level === 'low') {
     // cheaper shading on weak GPUs (decided at creation: no program change later)
-    M.crystal.iridescence = 0; M.blued.iridescence = 0; M.ruby.sheen = 0; M.dial.clearcoat = 0; M.ceramic.clearcoat = 0.5;
+    M.crystal.iridescence = 0; M.crystalBack.iridescence = 0; M.blued.iridescence = 0; M.ruby.sheen = 0; M.dial.clearcoat = 0; M.ceramic.clearcoat = 0.5;
   }
 
   const group = new THREE.Group();
@@ -267,10 +273,16 @@ export async function createWatch({ renderer, quality = 'high', envMap = null } 
   }
   const braceletFor = (e) => 1 - smooth(clamp01(e) / 0.3);
   let stripYaw = 0.85; // rad: the straight strips (b = 0) face +X a little (a camera on the +X, +Z side)
+  let stripTilt = 0; // rad: the straight strips lean back (their faces catch the light from above)
   function bracelet(b) {
     b = Math.max(0, Math.min(2, b));
-    halves.front.update(b, stripYaw);
-    halves.back.update(b, stripYaw);
+    halves.front.update(b, stripYaw, stripTilt);
+    halves.back.update(b, stripYaw, stripTilt);
+    // the strip-end label anchors follow the turned / leaning strips
+    for (const [id, h] of [['braceletFront', halves.front], ['braceletBack', halves.back]]) {
+      h.yaw.updateMatrix();
+      partById[id].anchorLocal.set(0, RAD[id], 0).applyMatrix4(h.yaw.matrix);
+    }
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -361,6 +373,8 @@ export async function createWatch({ renderer, quality = 'high', envMap = null } 
     set balanceAmplitude(v) { AMP = v; setMovement(curT); },
     get stripYaw() { return stripYaw; },
     set stripYaw(v) { stripYaw = v; bracelet(curB); },
+    get stripTilt() { return stripTilt; },
+    set stripTilt(v) { stripTilt = v; bracelet(curB); },
     get quality() { return level; },
     stats() {
       let triangles = 0, calls = 0, instances = 0;
