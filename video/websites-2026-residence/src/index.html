@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altière — Résidences sur la baie (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’une résidence imaginaire, des nuages jusqu’au plan de l’étage, au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the mark: a slim tower rising over the line of the bay, the sun on the horizon -->
+    <symbol id="i-mark" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 24.6V7.6c0-.8.5-1.5 1.2-1.8l3-1.3c.7-.3 1.4.2 1.4 1v19.1" stroke-width="1.5"/><path d="M15.6 9.6h1.4M15.6 13h1.4M15.6 16.4h1.4M15.6 19.8h1.4" stroke-width="1"/><path d="M3.4 24.6h25.2" stroke-width="1.4"/><path d="M6.2 27.6h19.6" stroke-width="0.9" opacity="0.6"/><path d="M22.4 24.6a3.4 3.4 0 0 1 6.8 0" stroke-width="1.1"/></g></symbol>
+    <!-- « Pourquoi ici ? »: waves, a mooring bollard and its line, three roofs -->
+    <symbol id="i-mer" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5c1.5 0 1.5-1.4 3-1.4s1.5 1.4 3 1.4 1.5-1.4 3-1.4 1.5 1.4 3 1.4 1.5-1.4 3-1.4 1.5 1.4 3 1.4"/><path d="M3 14c1.5 0 1.5-1.4 3-1.4s1.5 1.4 3 1.4 1.5-1.4 3-1.4 1.5 1.4 3 1.4 1.5-1.4 3-1.4 1.5 1.4 3 1.4"/><path d="M3 18.5c1.5 0 1.5-1.4 3-1.4s1.5 1.4 3 1.4 1.5-1.4 3-1.4 1.5 1.4 3 1.4 1.5-1.4 3-1.4 1.5 1.4 3 1.4"/></g></symbol>
+    <symbol id="i-port" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5.2" r="1.9"/><path d="M12 7.1v13.4"/><path d="M8.4 10.6h7.2"/><path d="M4.6 14.2c.5 3.6 3.6 6.3 7.4 6.3s6.9-2.7 7.4-6.3"/><path d="M3.4 15.6l1.2-1.4 1.6 1"/><path d="M20.6 15.6l-1.2-1.4-1.6 1"/></g></symbol>
+    <symbol id="i-ville" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.4h18"/><path d="M4.6 20.4v-8.2l3.6-2.6 3.6 2.6v8.2"/><path d="M11.8 20.4V7.4l3.8-2.8 3.8 2.8v13"/><path d="M7 15.2h2.4M14.4 10.2h2.4M14.4 13.6h2.4M14.4 17h2.4"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: SCREENS screens of story, then the « Rendez-vous » section (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the text beats over the pinned 3D story (positions and opacities: ui.js) -->
+<main id="hud">
+  <!-- under the header over the 3D: a soft backdrop (studio grey in the dark tone, deep blue in the
+       light tone; opacity from p: ui.js) -->
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+
+  <!-- over the plan: the night deepens round the floor plate (opacity from p: ui.js) -->
+  <i class="planveil" id="planveil" aria-hidden="true"></i>
+  <!-- the floor plan of level 07, drawn in the tower's own metres and mapped onto the 3D floor plate
+       (world.anchors().plan → a CSS matrix: ui.js) -->
+  <svg class="plan" id="plan" aria-hidden="true"><g id="plan-g"></g></svg>
+
+  <section class="beat beat-hero" id="b-hero">
+    <p class="kicker" data-t="hero.kicker"></p>
+    <h1 class="display" id="t-hero"></h1>
+    <p class="lead" data-t="hero.text"></p>
+  </section>
+  <p class="hint" id="hint"><span data-t="hero.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+
+  <section class="beat beat-side on-blue" id="b-ciel">
+    <p class="kicker" data-t="ciel.kicker"></p>
+    <h2 class="display" id="t-ciel"></h2>
+    <p class="lead" data-t="ciel.text"></p>
+  </section>
+
+  <section class="beat beat-side beat-baie on-blue" id="b-baie">
+    <p class="kicker" data-t="baie.kicker"></p>
+    <h2 class="display" id="t-baie"></h2>
+    <p class="lead" data-t="baie.text"></p>
+    <ul class="points" id="points"></ul>
+  </section>
+
+  <section class="beat beat-side beat-chantier on-blue" id="b-chantier">
+    <p class="kicker" data-t="chantier.kicker"></p>
+    <h2 class="display" id="t-chantier"></h2>
+    <p class="lead" data-t="chantier.text"></p>
+    <p class="counter"><span class="c-lab" data-t="chantier.counter"></span><b class="c-num" id="c-num">00</b><span class="c-of" data-t="chantier.of"></span></p>
+  </section>
+
+  <section class="beat beat-side beat-tour on-blue" id="b-tour">
+    <p class="kicker" data-t="tour.kicker"></p>
+    <h2 class="display" id="t-tour"></h2>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="beat beat-side on-blue" id="b-explorer">
+    <p class="kicker" data-t="explorer.kicker"></p>
+    <h2 class="display" id="t-explorer"></h2>
+    <p class="lead" data-t="explorer.text"></p>
+  </section>
+
+  <section class="beat beat-side beat-plan on-blue" id="b-plan">
+    <p class="kicker" data-t="plan.kicker"></p>
+    <h2 class="display" id="t-plan"></h2>
+    <p class="lead" data-t="plan.text"></p>
+    <ul class="units" id="units"></ul>
+    <p class="legend" id="legend"></p>
+  </section>
+  <div class="unit-card" id="unit-card" aria-live="polite"></div>
+</main>
+
+<!-- « Rendez-vous »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner">
+    <div class="f-main">
+      <p class="kicker k-final" data-t="rendezvous.kicker"></p>
+      <h2 class="display" id="t-final"></h2>
+      <p class="f-text" data-t="rendezvous.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-dark cta" type="button" id="f-quote"><span data-t="rendezvous.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="rendezvous.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="ticket" id="ticket">
+        <div class="t-head"><p class="t-title" id="t-ticket-head"></p><p class="t-num" id="t-ticket-num"></p></div>
+        <ol class="t-steps" id="t-steps"></ol>
+        <p class="stamp" id="stamp"><span id="stamp-text"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="f-foot">
+    <p class="f-credit" data-t="credit"></p>
+    <svg class="f-mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <p class="f-statement" data-t="rendezvous.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <a class="brand" id="brand" href="#" aria-label="Altière">
+    <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></span>
+    <span class="brand-tag" data-t="brand.tagline"></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
+  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark mark-swing" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
