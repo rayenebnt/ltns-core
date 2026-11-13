@@ -410,8 +410,12 @@ html:not(.cursor-off) .rail-dot:hover::before { transform: scale(1.45); }
 .rail-dot.is-here .rail-label { opacity: 1; transform: translate(0, -50%); }
 .rail-label { text-shadow: 0 0 2px #eceef0, 0 0 6px #eceef0, 0 0 12px #eceef0, 0 0 20px rgba(236, 238, 240, 0.8); }
 .rail.is-light .rail-label { text-shadow: 0 0 2px #0b1f4d, 0 0 6px #0b1f4d, 0 0 12px rgba(11, 31, 77, 0.9), 0 0 20px rgba(11, 31, 77, 0.7); }
-/* (ui.js is-veiled: the watch is under the current label, or the glass line / glide / reassembly) */
-.rail.is-veiled .rail-dot.is-here:not(:hover) .rail-label { opacity: 0; }
+/* (ui.js is-veiled: the watch or its bracelet is under the current label, or the glass line / glide / reassembly);
+   a hover still shows it, but only a visible one: once the cursor hides, a pointer left resting on the dot after a
+   click no longer counts, nor does any pointer during the tour (its cursor is hidden) */
+.rail.is-veiled .rail-dot.is-here:not(:hover) .rail-label,
+html.cursor-off .rail.is-veiled .rail-dot.is-here .rail-label,
+html.is-touring .rail.is-veiled .rail-dot.is-here .rail-label { opacity: 0; }
 html:not(.cursor-off) .rail-dot:hover .rail-label { opacity: 1; transform: translate(0, -50%); }
 /* the marker: a tiny ruby jewel (a faceted red dot with a pale glint) travelling down the line */
 .rail-marker {

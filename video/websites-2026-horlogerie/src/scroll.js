@@ -6,8 +6,9 @@ import { clamp, mix, ease5, monotone } from './util.js';
 
 export const OMEGA = 4.4;
 
-// a wheel gesture: events closer than this belong to it (trackpad momentum included)
-const GESTURE_GAP = 220;
+// a wheel gesture: events closer than this belong to it (trackpad momentum included); main.js uses the
+// same rule for the tour's cut
+export const GESTURE_GAP = 220;
 // the magnetic end: a scroll that comes to rest a little short of the end of the page (the last
 // wheel notch, a short flick) glides the rest of the way after this pause (s), so the closing frame
 // of a take is never caught mid-flip; any input cancels the glide

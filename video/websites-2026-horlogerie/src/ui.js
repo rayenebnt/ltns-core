@@ -15,7 +15,7 @@ export const STATIONS = CHAPTERS.filter((c) => c.id !== 'rendezvous');
 const PART_IDS = Object.keys(T.PARTS);
 // when the shell needs world.anchors(): always (the labels, the Transparence block, the tide's line for
 // the credit's and the rail's tone, and the watch under the rail's current label); the real world's
-// anchors() is ~120 projections and allocates nothing
+// anchors() is ~120 projections and a few small objects per call
 export const needAnchors = () => true;
 
 // every [data-t] element gets its text from texts.js (also the loader and the no-WebGL message,
@@ -414,9 +414,10 @@ export function createUI(h) {
     markerS('transform', `translate3d(0,${(clamp(p) * M.railL).toFixed(2)}px,0)`);
     railFill('transform', `scaleY(${clamp(p).toFixed(4)})`);
     // the current chapter's label is never drawn over the watch: it fades out while the case (or a part
-    // of the exploded line) is under it; on the glass line, the glide and the reassembly it rests (it
+    // of the exploded line) is under it; on the lie-down (the bracelet sweeps through the rail's corner,
+    // until the « Réglée » beat comes in) and on the glass line, the glide and the reassembly it rests (it
     // would read as a fourteenth part label, then sits on the glass parts sweeping by). The dots, the
-    // line and the ruby marker stay; a hover still shows it.
+    // line and the ruby marker stay; a visible hover still shows it (style.css).
     {
       let veil = (p > win.sapphireLabels[0] && p < PHASES.reassemble[1]) || (p > PHASES.lieDown[0] && p < win.reglee[0]);
       const di = dots.findIndex((d) => d.c.id === ch);

@@ -139,7 +139,7 @@ régulateur ne change que la densité de pixels (pas d’à-coup de 130 à 220 m
 | Menu (01 Démontage … 05 Restauration), points du rail, logo | Glissement vers le chapitre (le logo : vers le début) ; même coupure sous voile vers le début (01 Démontage, logo) s’il est loin |
 | « Revoir le démontage ↑ » | Retour au début (coupure sous voile) |
 | « Confier ma montre », « Prendre rendez-vous » | Toast « Démonstration : Balancier est un atelier fictif imaginé par LTNS°. » (3,6 s) |
-| `P` | Visite automatique (≈ 26 s, jusqu’au tampon « Prête » de la fiche) ; `P`, un clic, une touche ou un défilement l’arrêtent (ce clic ou cette touche ne font rien d’autre) ; lancée loin du début, elle repart du début après un fondu |
+| `P` | Visite automatique (≈ 26 s, jusqu’au tampon « Prête » de la fiche) ; `P`, un clic, une touche ou un nouveau défilement l’arrêtent (ce clic ou cette touche ne font rien d’autre) ; lancée loin du début, elle repart du début après un fondu |
 
 `F1`–`F12`, `Maj`, `Tab`, les raccourcis `Ctrl` / `Cmd` / `Alt` et les touches multimédia restent
 au navigateur (même pendant la visite). Un pincement ne zoome pas et ne fait pas défiler. Le
@@ -241,8 +241,8 @@ densité 2. Les cadences n’ont été mesurées qu’en SwiftShader (logiciel)�
   coque).
 - **Nom de chapitre du rail** (p 0,565–0,58) : pendant que la montre en verre se démonte, « 04
   Transparence » reste affiché quelques instants devant la bande du bracelet puis devant la
-  glace, avant de s’effacer à 0,598 (lisible ; la règle du voile ne regarde que la boîte et les
-  étiquettes).
+  glace, avant de s’effacer à 0,598 (lisible ; à cet instant, la règle du voile ne regarde que la
+  boîte et les étiquettes).
 - **Gros plan sur le balancier** (p 0,27–0,31) : la boîte, cadrée de très près, passe sous le
   bandeau du haut (le voile du bandeau garde le menu lisible) ; c’est voulu, comme le recadrage de
   la boîte à droite.

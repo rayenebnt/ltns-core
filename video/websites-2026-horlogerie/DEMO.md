@@ -136,9 +136,9 @@ qui se remonte, le passage derrière par la couronne, le balancier, la montre co
 bleue, l’atelier, la ligne en verre, le remontage en verre, le cadran de nuit, puis la fiche.
 Pendant la visite, le curseur est caché.
 
-`P` à nouveau l’arrête ; un clic, une touche ou un défilement l’arrêtent aussi (ce clic ou cette
-touche ne font rien d’autre). Lancée loin du début, elle repart du début après un court fondu
-gris clair. À la fin, le curseur reste caché tant que tu ne bouges pas la souris : c’est une
+`P` à nouveau l’arrête ; un clic, une touche ou un nouveau défilement l’arrêtent aussi (ce clic
+ou cette touche ne font rien d’autre). Lancée loin du début, elle repart du début après un court
+fondu gris clair. À la fin, le curseur reste caché tant que tu ne bouges pas la souris : c’est une
 bonne dernière image.
 
 Variante : avec `?auto=1` à la fin de l’adresse (partie 6), la visite démarre toute seule

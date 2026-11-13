@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import * as WORLD from './world/index.js';
 import { SCREENS, STORY_END, CHAPTERS, BEATS, STOPS, chapterAt } from './story.js';
-import { createScroller } from './scroll.js';
+import { createScroller, GESTURE_GAP } from './scroll.js';
 import { createUI, fillTexts, STATIONS, needAnchors } from './ui.js';
 import { tourKeys } from './tour.js';
 import { clamp } from './util.js';
@@ -336,7 +336,7 @@ async function start() {
     touring = true;
     doc.classList.add('is-touring');
     cutVeil.classList.add('is-on');
-    cutGesture = performance.now() - wheelAt < 220;
+    cutGesture = performance.now() - wheelAt < GESTURE_GAP;
     cutAt = performance.now() || 1;
   }
   // called every frame: once the veil covers the page, snap to the hero and play
@@ -358,7 +358,7 @@ async function start() {
     window.addEventListener(ev, (e) => {
       if (ev === 'wheel' && !e.ctrlKey) {
         const t = performance.now();
-        if (t - wheelAt >= 220) cutGesture = false; // a new gesture (scroll.js GESTURE_GAP)
+        if (t - wheelAt >= GESTURE_GAP) cutGesture = false; // a new gesture (as in scroll.js)
         wheelAt = t;
         if (cutGesture) return;
       }
@@ -465,6 +465,9 @@ async function start() {
       if (ours || e.key === 'Enter') e.preventDefault();
       return;
     }
+    // (the OS auto-repeat of a held Entrée arrives once the tour is off: it does not click the focused button
+    // either; at rest a held Entrée clicks once, on its first keydown)
+    if (e.repeat && e.key === 'Enter') return void e.preventDefault();
     if (!ours) return;
     e.preventDefault();
     // a held key acts once (the auto-repeat would race through the whole story)
