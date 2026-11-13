@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { COLORS } from '../layout.js';
 import { TIDE_GLSL, tideY, tideCssY } from './wave.js';
-import { setTideSize } from './tide.js';
+import { setTideSize, createTideUniforms } from './tide.js';
 
 export { tideY, tideCssY };
 
@@ -94,8 +94,7 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-export function createBackground({ uniforms } = {}) {
-  if (!uniforms) throw new Error('createBackground: pass { uniforms: createTideUniforms() }');
+export function createBackground({ uniforms = createTideUniforms() } = {}) {
   const own = {
     uNight: uniforms.uNight || { value: 0 },
     uStudioHorizon: { value: 0.3 },

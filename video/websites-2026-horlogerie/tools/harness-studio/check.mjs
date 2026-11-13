@@ -79,6 +79,9 @@ try {
     t0 = performance.now();
     for (let i = 0; i < 500; i++) { watch.pose(0); watch.setTime(i / 60); watch.setMovement(i / 60); }
     out.frameCpuMs_watchOnly = (performance.now() - t0) / 500;
+    out.warmupMs = window.__warmupMs;
+    const st = window.__three.studio;
+    out.stages = [[0, 0, 0], [0.5, 0.5, 0], [1, 1, 0], [1, 0.4, 1], [1, 1, 1]].map(([t, w, n]) => { st.update({ tide: t, wipe: w, night: n }); return st.stage(); });
     out.textures = renderer.info.memory.textures;
     out.geometries = renderer.info.memory.geometries;
     out.programsTotal = renderer.info.programs.length;

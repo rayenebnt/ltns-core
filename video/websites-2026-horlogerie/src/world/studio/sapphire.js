@@ -8,10 +8,15 @@
 //   const glass = kit.twin(watch.group);   // a sapphire clone of the scene graph: SHARES geometries and
 //   scene.add(glass.group);                // instance matrices (no duplicated buffers); add it at the
 //                                          // scene root (or anywhere: sync() compensates its parent)
-//   every frame, after the watch is posed:  kit.sync()   (≈ 50 matrix copies; cheap)
+//   every frame, after the watch is posed:  kit.sync()   (53 matrix copies, ~0.01–0.02 ms)
 //   kit.materialFor(kind, srcMesh?)        shared material per mesh.userData.kind (+ texture variants)
+//   kit.setDensity(v)   body light + refraction streaks: 1.4 assembled (default), ~1.8 on the exploded line
 //   kit.setEnvMap(tex), kit.setEnvRotation(yaw), kit.setOpacity(v), kit.setTide(false) (no screen-space
 //   cut: the whole twin draws), kit.dispose()
+// The twin skips userData.internal meshes (inner faces of case, bezel, caseback) and kind 'shadow' (the
+// hand shadows). It copies the visibility of every node BELOW the source (parts the watch hides), never
+// the source's own: hide the steel watch's group and the twin stays; glass.group.visible hides the twin.
+// setQuality() geometry swaps are picked up by sync().
 //
 // Transparency: premultiplied « over » with a LOW alpha (most of the colour is added light), depthWrite
 // false, one pass per mesh (DoubleSide, forceSinglePass) and a FIXED renderOrder per twin mesh: the blend
@@ -25,17 +30,17 @@ import { TIDE_MATERIAL_GLSL } from './tide.js';
 // rimPow its tightness; spec = env reflection × Fresnel; rough / frost = env blur of the reflection / of
 // the light through; alpha = how much it darkens what is behind (+ rimAlpha on the edges)
 const LOOKS = {
-  thick: { tint: [0.7, 0.85, 1.0], body: 0.08, rim: [0.78, 0.9, 1.0], rimK: 0.42, rimPow: 2.8, flatRim: 0.35, crease: 0.35, edge: 0.55, spec: 1.0, rough: 0.035, frost: 0.22, alpha: 0.035, rimAlpha: 0.2, streak: 0.26 },
-  hands: { tint: [0.78, 0.89, 1.0], body: 0.14, rim: [0.88, 0.95, 1.0], rimK: 0.7, rimPow: 2.2, flatRim: 0.6, crease: 0.5, edge: 0.7, spec: 1.1, rough: 0.03, frost: 0.2, alpha: 0.08, rimAlpha: 0.3, streak: 0.3 },
-  insert: { tint: [0.34, 0.56, 1.0], body: 0.1, rim: [0.55, 0.76, 1.0], rimK: 0.4, rimPow: 2.6, flatRim: 0.35, crease: 0.3, edge: 0.5, spec: 0.9, rough: 0.04, frost: 0.25, alpha: 0.08, rimAlpha: 0.22, mask: 'luma', maskK: 0.55 },
+  thick: { tint: [0.7, 0.85, 1.0], body: 0.08, rim: [0.78, 0.9, 1.0], rimK: 0.42, rimPow: 2.8, flatRim: 0.35, crease: 0.35, edge: 0.55, spec: 1.0, rough: 0.035, frost: 0.22, alpha: 0.035, rimAlpha: 0.2, streak: 0.26, tir: 0.9 },
+  hands: { tint: [0.78, 0.89, 1.0], body: 0.14, rim: [0.88, 0.95, 1.0], rimK: 0.7, rimPow: 2.2, flatRim: 0.6, crease: 0.5, edge: 0.7, spec: 1.1, rough: 0.03, frost: 0.2, alpha: 0.08, rimAlpha: 0.3, streak: 0.3, tir: 0.6 },
+  insert: { tint: [0.34, 0.56, 1.0], body: 0.1, rim: [0.55, 0.76, 1.0], rimK: 0.4, rimPow: 2.6, flatRim: 0.35, crease: 0.3, edge: 0.5, spec: 0.9, rough: 0.04, frost: 0.25, alpha: 0.08, rimAlpha: 0.22, mask: 'luma', maskK: 0.55, tir: 0.4 },
   plate: { tint: [0.7, 0.83, 1.0], body: 0.045, rim: [0.76, 0.88, 1.0], rimK: 0.3, rimPow: 3.2, flatRim: 0.08, crease: 0.25, edge: 0.45, spec: 0.15, rough: 0.06, frost: 0.32, alpha: 0.03, rimAlpha: 0.16, streak: 0.08 },
-  wheel: { tint: [0.78, 0.88, 1.0], body: 0.065, rim: [0.86, 0.93, 1.0], rimK: 0.45, rimPow: 2.6, flatRim: 0.12, crease: 0.35, edge: 0.55, spec: 0.25, rough: 0.04, frost: 0.25, alpha: 0.04, rimAlpha: 0.22, streak: 0.18 },
+  wheel: { tint: [0.78, 0.88, 1.0], body: 0.065, rim: [0.86, 0.93, 1.0], rimK: 0.45, rimPow: 2.6, flatRim: 0.12, crease: 0.35, edge: 0.55, spec: 0.25, rough: 0.04, frost: 0.25, alpha: 0.04, rimAlpha: 0.22, streak: 0.18, tir: 0.5 },
   thin: { tint: [0.8, 0.9, 1.0], body: 0.085, rim: [0.82, 0.91, 1.0], rimK: 0.22, rimPow: 3.2, flatRim: 0.1, crease: 0.15, edge: 0.3, spec: 0.2, rough: 0.16, frost: 0.55, alpha: 0.07, rimAlpha: 0.12, streak: 0.04 },
   print: { tint: [0.9, 0.95, 1.0], body: 0.0, rim: [0.9, 0.95, 1.0], rimK: 0.0, rimPow: 3.0, flatRim: 0, crease: 0, edge: 0.0, spec: 0.0, rough: 0.3, frost: 0.6, alpha: 0.0, rimAlpha: 0.0, mask: 'alpha', maskK: 0.6 },
-  lume: { tint: [0.82, 0.92, 1.0], body: 0.2, rim: [0.85, 0.94, 1.0], rimK: 0.5, rimPow: 2.4, flatRim: 0.3, crease: 0.2, edge: 0.5, spec: 0.3, rough: 0.12, frost: 0.5, alpha: 0.1, rimAlpha: 0.18 },
+  lume: { tint: [0.82, 0.92, 1.0], body: 0.2, rim: [0.85, 0.94, 1.0], rimK: 0.5, rimPow: 2.4, flatRim: 0.3, crease: 0.2, edge: 0.5, spec: 0.3, rough: 0.12, frost: 0.5, alpha: 0.1, rimAlpha: 0.18, tir: 0.3 },
   crystal: { tint: [0.74, 0.87, 1.0], body: 0.015, rim: [0.82, 0.92, 1.0], rimK: 0.3, rimPow: 3.4, flatRim: 0.25, crease: 0.3, edge: 0.5, spec: 0.9, rough: 0.02, frost: 0.15, alpha: 0.015, rimAlpha: 0.14, streak: 0.06 },
-  ruby: { tint: [1.0, 0.1, 0.22], body: 0.55, rim: [1.0, 0.4, 0.5], rimK: 0.8, rimPow: 1.8, flatRim: 0.6, crease: 0.4, edge: 0.5, spec: 0.8, rough: 0.03, frost: 0.2, alpha: 0.28, rimAlpha: 0.3 },
-  blued: { tint: [0.2, 0.38, 1.0], body: 0.26, rim: [0.42, 0.62, 1.0], rimK: 0.6, rimPow: 2.0, flatRim: 0.5, crease: 0.4, edge: 0.5, spec: 0.6, rough: 0.05, frost: 0.25, alpha: 0.12, rimAlpha: 0.25 },
+  ruby: { tint: [1.0, 0.1, 0.22], body: 0.55, rim: [1.0, 0.4, 0.5], rimK: 0.8, rimPow: 1.8, flatRim: 0.6, crease: 0.4, edge: 0.5, spec: 0.8, rough: 0.03, frost: 0.2, alpha: 0.28, rimAlpha: 0.3, tir: 0.5 },
+  blued: { tint: [0.2, 0.38, 1.0], body: 0.26, rim: [0.42, 0.62, 1.0], rimK: 0.6, rimPow: 2.0, flatRim: 0.5, crease: 0.4, edge: 0.5, spec: 0.6, rough: 0.05, frost: 0.25, alpha: 0.12, rimAlpha: 0.25, tir: 0.4 },
 };
 
 // watch kinds (src/world/watch: mesh.userData.kind / variant) → look
@@ -85,6 +90,7 @@ uniform float uSpec;
 uniform float uRough;
 uniform float uFrost;
 uniform float uStreak;
+uniform float uTir;
 uniform float uDensity;
 uniform float uAlpha;
 uniform float uRimAlpha;
@@ -137,12 +143,16 @@ void main() {
   F *= 0.35 + 0.65 * graze;
   // back faces (the far wall of a thick part) a little dimmer: the volume reads
   float back = gl_FrontFacing ? 1.0 : 0.55;
+  // total internal reflection on the far wall (beyond the 34° critical angle): the inner sparkle of cut
+  // crystal, back faces only
+  float tir = gl_FrontFacing ? 0.0 : (1.0 - smoothstep(0.62, 0.84, ndv)) * graze * uTir;
   vec3 col = envR * F * uSpec * back * back
            + uTint * uBody * uDensity * (0.25 + 0.75 * envT) * back
            + vec3(0.86, 0.94, 1.0) * st * uStreak * uDensity * graze * back
            + uRimC * rim * uRimK * back
-           + vec3(0.9, 0.96, 1.0) * (edge * uEdge + crease * uCrease) * back;
-  float a = uAlpha * uDensity + rim * uRimAlpha + F * 0.2 + crease * uCrease * 0.3 + st * uStreak * 0.15;
+           + vec3(0.9, 0.96, 1.0) * (edge * uEdge + crease * uCrease) * back
+           + envR * tir * vec3(0.86, 0.94, 1.0);
+  float a = uAlpha * uDensity + rim * uRimAlpha + F * 0.2 + crease * uCrease * 0.3 + st * uStreak * 0.15 + tir * 0.06;
   #ifdef USE_MASK
   vec4 m = texture2D(uMask, vUv);
   #ifdef MASK_LUMA
@@ -181,7 +191,7 @@ export function createSapphireKit({ envMap, uniforms = null, envIntensity = 1 } 
     uEnvI: { value: envIntensity },
     uEnvRot: { value: new THREE.Matrix3() }, // turn the studio around the glass (light play: glints travel)
     uOpacity: { value: 1 },
-    uDensity: { value: 1 }, // body light + streaks: 1 on the assembled watch, ~1.6–2 on the exploded line
+    uDensity: { value: 1.4 }, // body light + streaks: 1.4 on the assembled watch (1 = clearer x-ray), ~1.8 on the exploded line
   };
   let tideOn = !!uniforms;
   const cache = new Map(); // key → material
@@ -196,7 +206,7 @@ export function createSapphireKit({ envMap, uniforms = null, envIntensity = 1 } 
       ...shared,
       uTint: { value: new THREE.Vector3(...L.tint) }, uBody: { value: L.body },
       uRimC: { value: new THREE.Vector3(...L.rim) }, uRimK: { value: L.rimK }, uRimPow: { value: L.rimPow }, uEdge: { value: L.edge || 0 }, uFlatRim: { value: L.flatRim ?? 0.3 }, uCrease: { value: L.crease ?? 0.3 },
-      uSpec: { value: L.spec }, uRough: { value: L.rough }, uFrost: { value: L.frost }, uStreak: { value: L.streak ?? 0.2 },
+      uSpec: { value: L.spec }, uRough: { value: L.rough }, uFrost: { value: L.frost }, uStreak: { value: L.streak ?? 0.2 }, uTir: { value: L.tir ?? 0 },
       uAlpha: { value: L.alpha }, uRimAlpha: { value: L.rimAlpha },
       uMask: { value: maskTex }, uMaskK: { value: L.maskK || 0 },
     };
@@ -268,8 +278,10 @@ export function createSapphireKit({ envMap, uniforms = null, envIntensity = 1 } 
         if (parent) { parent.updateWorldMatrix(true, false); inv.copy(parent.matrixWorld).invert(); useInv = true; }
         for (let i = 0; i < pairs.length; i++) {
           const s = pairs[i][0], t = pairs[i][1];
+          // the source's own visibility is NOT copied (hide the steel watch's group and its twin stays);
+          // parts hidden inside it are (glass.group.visible hides the twin)
           let vis = true;
-          for (let o = s; o && vis; o = o === source ? null : o.parent) vis = o.visible;
+          for (let o = s; o && o !== source && vis; o = o.parent) vis = o.visible;
           t.visible = vis;
           if (!vis) continue;
           if (useInv) t.matrix.multiplyMatrices(inv, s.matrixWorld); else t.matrix.copy(s.matrixWorld);
@@ -302,7 +314,7 @@ export function createSapphireKit({ envMap, uniforms = null, envIntensity = 1 } 
     // with material.envMapRotation.y on the steel materials for the same light in both twins
     setEnvRotation(yaw) { const c = Math.cos(yaw), s = Math.sin(yaw); shared.uEnvRot.value.set(c, 0, -s, 0, 1, 0, s, 0, c); },
     setOpacity(v) { shared.uOpacity.value = v; },
-    // body light + refraction streaks (1 = assembled watch; 1.6–2 on the exploded line, where few parts overlap)
+    // body light + refraction streaks: 1.4 assembled (default; 1 = clearer x-ray), ~1.8 on the exploded line (few overlaps)
     setDensity(v) { shared.uDensity.value = v; },
     // false: no screen-space cut (the whole twin draws); true: cut below the materials' line (needs uniforms)
     setTide(on) {

@@ -10,9 +10,13 @@
 //   scene.add(shadows.group);
 //   shadows.contact.set({ x, y, z, length, width, yaw, opacity, core });   // floor plane at height y
 //   shadows.band.set({ x, y, z, length, width, yaw, opacity });
-//   (or move shadows.contact.mesh / shadows.band.mesh yourself: a 1 × 1 plane in XZ scaled to size)
+//   shadows.contact.placeUnder(watch.group, watch.floorZ)  // the lying watch: on its floor plane (local
+//                                                          // z = floorZ), length along the bracelet (local Y)
+//   (or move shadows.contact.mesh / shadows.band.mesh yourself: a 1 × 1 plane in XZ scaled to size; world
+//   space: keep shadows.group at the scene root, untransformed)
 import * as THREE from 'three';
 import { TIDE_GLSL } from './wave.js';
+import { createTideUniforms } from './tide.js';
 
 const vert = /* glsl */ `
 varying vec2 vUv;
@@ -52,7 +56,7 @@ const BAND = /* glsl */ `
   float along = smoothstep(1.0, 0.55, abs(q.x));
   a = max(0.0, across) * along;`;
 
-const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _b = new THREE.Vector3(), _m = new THREE.Matrix4();
+const _r = new THREE.Vector3(), _u = new THREE.Vector3(), _b = new THREE.Vector3(), _m = new THREE.Matrix4(), _o = new THREE.Vector3();
 
 function makeShadow(uniforms, body, name, defaults) {
   const material = new THREE.ShaderMaterial({
@@ -85,6 +89,18 @@ function makeShadow(uniforms, body, name, defaults) {
       if (core !== undefined) material.uniforms.uCore.value = core;
       return api;
     },
+    // put the plane on an object's floor: the world point of its local (0, 0, floorZ) (+ lift, world up),
+    // its length along the object's local Y axis projected on the floor (the watch: 12 → 6 o'clock, the
+    // bracelet's direction); world up is +Y (the floor is horizontal)
+    placeUnder(object, floorZ, { lift = 0.05 } = {}) {
+      object.updateWorldMatrix(true, false);
+      _o.set(0, 0, floorZ).applyMatrix4(object.matrixWorld);
+      _r.set(0, 1, 0).transformDirection(object.matrixWorld);
+      mesh.position.set(_o.x, _o.y + lift, _o.z);
+      mesh.quaternion.identity();
+      mesh.rotation.set(0, Math.atan2(-_r.z, _r.x), 0);
+      return api;
+    },
     // turn the plane to face the camera, its length along the screen's horizontal (a soft band that stays
     // level on screen under a line seen in perspective); call after the camera moved
     faceCamera(camera) {
@@ -103,8 +119,7 @@ function makeShadow(uniforms, body, name, defaults) {
   return api;
 }
 
-export function createShadows({ uniforms } = {}) {
-  if (!uniforms) throw new Error('createShadows: pass { uniforms: createTideUniforms() }');
+export function createShadows({ uniforms = createTideUniforms() } = {}) {
   const group = new THREE.Group();
   group.name = 'studio.shadows';
   const contact = makeShadow(uniforms, CONTACT, 'shadow.contact', { length: 180, width: 70, opacity: 0.75, core: 0.55 });

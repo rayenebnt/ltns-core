@@ -6,10 +6,7 @@
 // Hooks: window.__ready, window.__shot({ view, e, b, t, mode, tide, wipe, night, probes }) → stats
 import * as THREE from 'three';
 import { createWatch } from '../../src/world/watch/index.js';
-import {
-  createStudioEnv, createBackground, createTideUniforms, setTideSize, patchTideMeshes,
-  createSapphireKit, createShadows, createStudioLights, tideCssY,
-} from '../../src/world/studio/index.js';
+import { createStudio, createStudioEnv, tideCssY } from '../../src/world/studio/index.js';
 
 const params = new URLSearchParams(location.search);
 const Q = params.get('q') || 'high';
@@ -25,26 +22,21 @@ async function main() {
   document.body.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
 
+  // the studio in one call (what the world does): envs, background, tide uniforms, shadows, lights, kit
   const t0 = performance.now();
-  const tide = createTideUniforms();
-  const bg = createBackground({ uniforms: tide });
-  scene.add(bg.mesh);
-  const envLight = createStudioEnv(renderer, { variant: 'light' });
-  const envNight = createStudioEnv(renderer, { variant: 'night' });
+  const studio = createStudio({ renderer, quality: Q });
+  scene.add(studio.group);
   const tEnv = Math.round(performance.now() - t0);
+  const { tide, kit, shadows, lights } = studio;
+  const bg = studio.background;
+  const envLight = studio.env.light, envNight = studio.env.night;
 
   const watch = await createWatch({ renderer, quality: Q, envMap: envLight.texture });
   const holder = new THREE.Group();
   holder.add(watch.group);
   scene.add(holder);
-  const patched = patchTideMeshes(watch.meshes(), 'above', tide);
-  const kit = createSapphireKit({ envMap: envLight.texture, uniforms: tide });
-  const glass = kit.twin(watch.group);
-  scene.add(glass.group);
-  const shadows = createShadows({ uniforms: tide });
-  scene.add(shadows.group);
-  const lights = createStudioLights();
-  scene.add(lights.group);
+  const glass = studio.attach(watch); // patches the steel 'above' the line + the sapphire twin
+  const patched = new Set(watch.meshes().map((m) => m.material).filter((m) => m.userData.tideSide)).size;
 
   // env probes
   const probes = new THREE.Group();
@@ -83,7 +75,8 @@ async function main() {
   function applyView(name) {
     const v = VIEWS[name] || VIEWS.front34;
     holder.quaternion.copy(v.rest ? restQ : new THREE.Quaternion());
-    shadows.contact.set({ x: 0, y: watch.floorZ + 0.05, z: 0, length: 200, width: 62, opacity: v.rest ? 0.8 : 0 });
+    holder.updateMatrixWorld(true);
+    shadows.contact.set({ length: 200, width: 62, opacity: v.rest ? 0.8 : 0 }).placeUnder(watch.group, watch.floorZ);
     camera.position.fromArray(v.pos);
     camera.up.set(0, 1, 0);
     camera.lookAt(new THREE.Vector3(...v.target));
@@ -96,38 +89,33 @@ async function main() {
     shadows.band.set({ x: 0, y: -30, z: 6, length: 470, width: 46, opacity: v.band ? 0.2 : 0 }).faceCamera(camera);
   }
 
-  let curEnv = 'light';
-  const shared0 = { uEnvI: 1, uOpacity: 1, uTime: 1, uWipe: 1, uPx: 1, uCrest: 1 };
+  const envCache = {};
+  const shared0 = { uEnvI: 1, uOpacity: 1, uTime: 1, uWipe: 1, uPx: 1, uCrest: 1, uDensity: 1 };
   window.__studio = { createStudioEnv };
-  window.__three = { renderer, scene, camera, THREE, kit, bg, tide, watch, glass, shadows, lights, envLight, envNight };
-  window.__shot = ({ view = 'front34', e = 0, b = null, t = 0, mode = 'studio', tide: k = null, wipe = null, night = null, probes: showProbes = false, envI = null, debug = null, hideKinds = null, density = null } = {}) => {
+  window.__three = { renderer, scene, camera, THREE, studio, kit, bg, tide, watch, glass, shadows, lights, envLight, envNight };
+  window.__shot = ({ view = 'front34', e = 0, b = null, t = 0, mode = 'studio', tide: k = null, wipe = null, night = null, probes: showProbes = false, envI = null, debug = null, hideKinds = null, density = null, envSize = 256 } = {}) => {
     renderer.setSize(innerWidth, innerHeight);
-    bg.resize(renderer);
+    studio.resize(renderer);
     const M = { studio: [0, 0, 0], blue: [1, 1, 0], night: [1, 0, 1], tide: [0.5, 0.5, 0] }[mode] || [0, 0, 0];
     const tk = k === null ? M[0] : k;
     const wk = wipe === null ? (k === null ? M[1] : k) : wipe;
     const nk = night === null ? M[2] : night;
-    bg.update({ tide: tk, time: t, night: nk });
-    tide.uWipe.value = wk;
-    const envName = nk > 0.5 ? 'night' : 'light';
-    if (envName !== curEnv) {
-      curEnv = envName;
-      const tex = envName === 'night' ? envNight.texture : envLight.texture;
-      watch.setEnvMap(tex);
-      pol.envMap = tex; bru.envMap = tex;
-    }
-    lights.setVariant(nk);
+    // the probes: the env of this variant and size (the 128 / 512 path must match fromScene's 256)
+    const pv = nk >= 0.5 ? 'night' : 'light';
+    const ptex = envSize === 256 ? studio.env[pv].texture
+      : (envCache[pv + envSize] = envCache[pv + envSize] || createStudioEnv(renderer, { variant: pv, size: envSize })).texture;
+    pol.envMap = ptex; bru.envMap = ptex;
     if (envI !== null) kit.setEnvIntensity(envI);
+    // the world's order: pose the watch first, then the studio (it syncs the twin)
     watch.pose(e, null);
     watch.bracelet(b === null ? watch.braceletFor(e) : b);
     watch.setTime(t);
     watch.setMovement(t);
     applyView(view);
-    kit.setDensity(density !== null ? density : (VIEWS[view] && VIEWS[view].density) || 1);
+    studio.update({ tide: tk, wipe: wk, night: nk, time: t, density: density !== null ? density : (VIEWS[view] && VIEWS[view].density) || 1.4 });
     probes.visible = showProbes;
-    holder.visible = !showProbes && wk < 1;
-    glass.group.visible = !showProbes && wk > 0;
-    kit.sync();
+    holder.visible = !showProbes;
+    if (showProbes) glass.group.visible = false;
     // debug: scale a look uniform on every sapphire material ({ uSpec: 0 } …), hide kinds in the twin
     for (const m of kit.materials()) {
       m.userData.base = m.userData.base || Object.fromEntries(Object.entries(m.uniforms).filter(([, u]) => typeof u.value === 'number').map(([k, u]) => [k, u.value]));
@@ -140,14 +128,19 @@ async function main() {
     return {
       view, mode, tide: tk, wipe: wk, calls: i.render.calls, triangles: i.render.triangles, programs: i.programs ? i.programs.length : 0,
       textures: i.memory.textures, geometries: i.memory.geometries, lineY: tideCssY(innerWidth / 2, tk, t, innerWidth, innerHeight),
-      patched, sapphireMaterials: kit.materials().length, tEnv,
+      patched, sapphireMaterials: kit.materials().length, tEnv, stage: studio.stage(), lineCss: studio.lineCssY(innerWidth, innerHeight),
     };
   };
-  window.__ready = true;
   if (!CAPTURE) {
     const loop = (ms) => { window.__shot({ view: 'side', b: 2, mode: 'tide', tide: 0.5 + 0.4 * Math.sin(ms / 4000), t: ms / 1000 }); requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
   }
-  addEventListener('resize', () => setTideSize(tide, renderer));
+  addEventListener('resize', () => studio.resize(renderer));
+  // compile every studio program once (what world.warmup does)
+  const tw = performance.now();
+  applyView('front34');
+  studio.warmup(renderer, scene, camera);
+  window.__warmupMs = Math.round(performance.now() - tw);
+  window.__ready = true;
 }
 main().catch((e) => { window.__error = String(e && e.stack || e); window.__ready = 'error'; console.error(e); });
