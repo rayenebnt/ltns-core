@@ -418,7 +418,7 @@ export function createUI(h) {
     // would read as a fourteenth part label, then sits on the glass parts sweeping by). The dots, the
     // line and the ruby marker stay; a hover still shows it.
     {
-      let veil = p > win.sapphireLabels[0] && p < PHASES.reassemble[1];
+      let veil = (p > win.sapphireLabels[0] && p < PHASES.reassemble[1]) || (p > PHASES.lieDown[0] && p < win.reglee[0]);
       const di = dots.findIndex((d) => d.c.id === ch);
       const r = di >= 0 ? M.railLab[di] : null;
       if (!veil && an && r) {

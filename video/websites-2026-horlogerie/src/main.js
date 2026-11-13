@@ -154,7 +154,7 @@ async function start() {
   let L = null;
   function layout() {
     const M = ui.measure();
-    const H = innerHeight;
+    const H = Math.max(1, innerHeight); // (a zero-height window would make p NaN for good)
     const S = SCREENS * H;
     const F = Math.max(H, M.finalH);
     return { H, S, F, max: S + F };
@@ -336,6 +336,7 @@ async function start() {
     touring = true;
     doc.classList.add('is-touring');
     cutVeil.classList.add('is-on');
+    cutGesture = performance.now() - wheelAt < 220;
     cutAt = performance.now() || 1;
   }
   // called every frame: once the veil covers the page, snap to the hero and play
@@ -351,7 +352,18 @@ async function start() {
   }
   // a wheel or a touch during the cut cancels it (there is no glide yet for scroll.js to stop); a
   // pinch (ctrl + wheel) does not, as in scroll.js
-  for (const ev of ['wheel', 'touchstart']) window.addEventListener(ev, (e) => cutAt && !e.ctrlKey && stopTour(), { passive: true });
+  // (nor does the rest of a wheel gesture, a flick's momentum, that was running when P was pressed)
+  let wheelAt = -1e9, cutGesture = false;
+  for (const ev of ['wheel', 'touchstart'])
+    window.addEventListener(ev, (e) => {
+      if (ev === 'wheel' && !e.ctrlKey) {
+        const t = performance.now();
+        if (t - wheelAt >= 220) cutGesture = false; // a new gesture (scroll.js GESTURE_GAP)
+        wheelAt = t;
+        if (cutGesture) return;
+      }
+      if (cutAt && !e.ctrlKey) stopTour();
+    }, { passive: true });
   function stopTour() {
     if (cutAt && cutTo === null) {
       // stopped during the cut: no tour, the veil lifts where the page is
@@ -448,9 +460,9 @@ async function start() {
       return;
     }
     if (touring) {
-      // a key takes the page back from the tour (and does only that)
+      // a key takes the page back from the tour (and does only that: Entrée on a Tab-focused button does not click it)
       stopTour();
-      if (ours) e.preventDefault();
+      if (ours || e.key === 'Enter') e.preventDefault();
       return;
     }
     if (!ours) return;
@@ -490,6 +502,7 @@ async function start() {
     world.resize(innerWidth, innerHeight, dpr);
     const old = L;
     L = layout();
+    if (cutTo !== null) cutTo = yOf(pOf(cutTo, old)); // a cut under way lands on the same p
     scrollSpace.style.height = `${Math.round(L.max + L.H)}px`;
     // the page height follows the window: stay on the same p
     scroller.remap((y) => yOf(pOf(y, old)), L.max);

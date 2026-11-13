@@ -100,7 +100,7 @@ world.camera;
 `dt >= 0,5` signifie « saut » (hooks, `?capture`). Les étiquettes suivent l’ordre de
 `layout.js PARTS` ; `box` est la boîte de la pièce à l’écran, `visible` exige la ligne déployée et
 cadrée en entier. `tide.y` vaut -1 hors de la marée. La coque appelle `anchors()` à chaque image
-(≈ 120 projections, sans allocation) : étiquettes, bloc « Transparence », ton de la mention et du
+(≈ 120 projections, quelques petits objets par appel) : étiquettes, bloc « Transparence », ton de la mention et du
 rail, voile du nom de chapitre du rail quand la montre ou une étiquette passe dessous. Elle saute
 le rendu quand « Rendez-vous » couvre toute la fenêtre. `setQuality` ne refait la géométrie qu’au
 `warmup()` suivant, que la coque n’appelle que sous le chargement : après le chargement, le
@@ -136,7 +136,7 @@ régulateur ne change que la densité de pixels (pas d’à-coup de 130 à 220 m
 | Molette, pavé tactile, toucher, barre de défilement | Défilement adouci (ressort ω 4,4) ; arrêté un peu avant la fin après un geste vers le bas (moins de 0,45 écran), la page finit seule (pause 0,35 s, glissement 0,6 s) |
 | `↓`, `PageDown`, `Espace` / `↑`, `PageUp`, `Maj` + `Espace` | Arrêt suivant / précédent (`STOPS`) ; une touche tenue n’agit qu’une fois |
 | `Home` / `End` (`Début` / `Fin`) | Début / fin de la page : au-delà de 6 écrans, une coupure sous un voile gris (≈ 0,6 s) au lieu d’un long glissement |
-| Menu (01 Démontage … 05 Restauration), points du rail, logo | Glissement vers le chapitre (le logo : vers le début) ; même coupure sous voile vers le début ou la fin s’ils sont loin |
+| Menu (01 Démontage … 05 Restauration), points du rail, logo | Glissement vers le chapitre (le logo : vers le début) ; même coupure sous voile vers le début (01 Démontage, logo) s’il est loin |
 | « Revoir le démontage ↑ » | Retour au début (coupure sous voile) |
 | « Confier ma montre », « Prendre rendez-vous » | Toast « Démonstration : Balancier est un atelier fictif imaginé par LTNS°. » (3,6 s) |
 | `P` | Visite automatique (≈ 26 s, jusqu’au tampon « Prête » de la fiche) ; `P`, un clic, une touche ou un défilement l’arrêtent (ce clic ou cette touche ne font rien d’autre) ; lancée loin du début, elle repart du début après un fondu |
@@ -214,6 +214,13 @@ densité 2. Les cadences n’ont été mesurées qu’en SwiftShader (logiciel)�
 - **Glissé** (p 0,70–0,72) : la bande du fermoir en verre passe derrière la mention en bas à
   gauche (lisible grâce à son halo), et une roue en verre vue de face y paraît presque blanche un
   instant (p ≈ 0,71).
+- **Remontage en verre** (p 0,7625–0,7725) : le bout du demi-bracelet inférieur en verre passe devant
+  6–7 h et paraît un instant blanc plein (environ 0,2 s). Ni ouvrir le bracelet plus tôt ni le garder
+  ouvert ne l’enlève (testé) ; la vraie correction serait dans le matériau saphir (plafonner les reflets
+  qui s’additionnent sur les maillons).
+- **Ton du rail pendant la marée** (p 0,38–0,44) : l’étiquette du rail change de couleur d’après la
+  ligne de la vague au centre de l’écran ; selon l’instant, elle garde la mauvaise couleur 1 à 3 images.
+  La vraie correction : lire la ligne à l’abscisse de l’étiquette (`lineCssY(w, h, x)`).
 - **Acier de nuit** : ses reflets restent un peu bleus (|R−B| 22 à 29 sur la couronne, les cornes
   et le bracelet).
 - **Préchauffage** : environ 25 programmes compilés d’un bloc ; sous Windows (D3D), le balancier
