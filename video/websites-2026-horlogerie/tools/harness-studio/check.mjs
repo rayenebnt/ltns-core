@@ -54,6 +54,31 @@ try {
     out.lineAt05 = bg.update({ tide: 0.5, time: 0 }) || bg.lineCssY(960, 600);
     out.lineAt0 = (bg.update({ tide: 0, time: 0 }), bg.lineCssY(960, 600));
     out.lineAt1 = (bg.update({ tide: 1, time: 0 }), bg.lineCssY(960, 600));
+    // the twin hides what an x-ray look must not show (inner faces, hand shadows)
+    out.twinSkipsInternal = !glass.meshes.some((t) => t.userData.source.userData.internal || t.userData.kind === 'shadow');
+    out.steelMeshes = watch.meshes().length;
+    // env sizes (quality levels): build time, GL errors, programs added when the kit switches size
+    const { createStudioEnv } = window.__studio;
+    out.envSizes = [128, 256, 512].map((size) => {
+      const t0 = performance.now();
+      const env = createStudioEnv(renderer, { variant: 'light', size });
+      const ms = performance.now() - t0;
+      const p0 = renderer.info.programs.length;
+      kit.setEnvMap(env.texture);
+      const r = shot({ view: 'front34', mode: 'blue' });
+      kit.setEnvMap(envLight.texture);
+      shot({ view: 'front34', mode: 'blue' });
+      const res = { size, ms: Math.round(ms), texH: env.texture.image.height, newPrograms: renderer.info.programs.length - p0, glError: r.glError };
+      env.dispose();
+      return res;
+    });
+    // CPU cost of a full studio frame update (bg + tide uniforms + sync), without the render
+    t0 = performance.now();
+    for (let i = 0; i < 500; i++) { bg.update({ tide: 0.5, time: i / 60 }); tide.uWipe.value = 0.5; watch.pose(0); watch.setTime(i / 60); watch.setMovement(i / 60); kit.sync(); }
+    out.frameCpuMs_poseTimeMovementSync = (performance.now() - t0) / 500;
+    t0 = performance.now();
+    for (let i = 0; i < 500; i++) { watch.pose(0); watch.setTime(i / 60); watch.setMovement(i / 60); }
+    out.frameCpuMs_watchOnly = (performance.now() - t0) / 500;
     out.textures = renderer.info.memory.textures;
     out.geometries = renderer.info.memory.geometries;
     out.programsTotal = renderer.info.programs.length;

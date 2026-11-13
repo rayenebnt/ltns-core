@@ -28,7 +28,7 @@ const RIGS = {
       { name: 'kicker', w: 3.2, h: 20, pos: [18, 10, 20], i: 3.2, c: [1, 1, 1], soft: 0.2 },
       // a broad, low fill on the left horizon: the flat faces of the exploded line (plates, caseback,
       // crystal) seen from the hero camera reflect it as a soft silver instead of the dark band
-      { name: 'sideFill', w: 40, h: 10, pos: [-27, 1.5, 4], i: 1.15, c: [1, 0.995, 0.985], soft: 0.6 },
+      { name: 'sideFill', w: 40, h: 10, pos: [-27, 1.5, 4], i: 0.95, c: [1, 0.995, 0.985], soft: 0.6, grad: 0.75 },
     ],
   },
   night: {
@@ -73,7 +73,7 @@ varying vec2 vUv;
 void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
 // a softbox: a rounded rectangle with a soft edge and a slightly brighter centre (diffuser hot spot)
 const panelFrag = /* glsl */ `
-uniform vec3 color; uniform float soft; uniform vec2 size;
+uniform vec3 color; uniform float soft; uniform vec2 size; uniform float grad;
 varying vec2 vUv;
 void main() {
   vec2 p = (vUv - 0.5) * size;
@@ -84,7 +84,8 @@ void main() {
   float edge = min(hs.x, hs.y) * soft;
   float a = 1.0 - smoothstep(-edge, 0.0, sd);
   float hot = 1.0 + 0.18 * (1.0 - smoothstep(0.0, 1.0, length(p / hs)));
-  gl_FragColor = vec4(color * a * hot, 1.0);
+  float g = mix(1.0 - grad, 1.0, smoothstep(0.0, 1.0, vUv.y));   // brighter at the top
+  gl_FragColor = vec4(color * a * hot * g, 1.0);
 }`;
 
 function buildScene(rig) {
@@ -108,7 +109,7 @@ function buildScene(rig) {
   for (const p of rig.panels) {
     const m = new THREE.ShaderMaterial({
       vertexShader: panelVert, fragmentShader: panelFrag, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending,
-      uniforms: { color: { value: new THREE.Vector3(...p.c).multiplyScalar(p.i) }, soft: { value: p.soft }, size: { value: new THREE.Vector2(p.w, p.h) } },
+      uniforms: { color: { value: new THREE.Vector3(...p.c).multiplyScalar(p.i) }, soft: { value: p.soft }, size: { value: new THREE.Vector2(p.w, p.h) }, grad: { value: p.grad || 0 } },
     });
     const mesh = new THREE.Mesh(plane, m);
     mesh.scale.set(p.w, p.h, 1);

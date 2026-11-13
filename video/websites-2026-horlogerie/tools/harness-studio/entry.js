@@ -67,7 +67,9 @@ async function main() {
     return { pos: [target[0] + dist * Math.cos(b) * Math.cos(a), target[1] + dist * Math.sin(b), target[2] + dist * Math.cos(b) * Math.sin(a)], target, fov };
   };
   const VIEWS = {
-    line: { ...dirCam([0, -3, 6], 600, 26, 3, 21), band: true },
+    line: { ...dirCam([0, -3, 6], 600, 26, 3, 21), band: true, density: 1.8 },
+    lineMid: { ...dirCam([0, -3, -20], 330, 26, 3, 21), band: true, density: 1.8 },
+    lineFront: { ...dirCam([0, -3, 70], 260, 26, 3, 21), band: true, density: 1.8 },
     front34: { pos: [62, -36, 132], target: [0, -2, -2], fov: 27 },
     front: { pos: [0, -8, 120], target: [0, 0, 0], fov: 25 },
     back: { pos: [-30, 18, -92], target: [0, 0, -3], fov: 27 },
@@ -96,8 +98,9 @@ async function main() {
 
   let curEnv = 'light';
   const shared0 = { uEnvI: 1, uOpacity: 1, uTime: 1, uWipe: 1, uPx: 1, uCrest: 1 };
+  window.__studio = { createStudioEnv };
   window.__three = { renderer, scene, camera, THREE, kit, bg, tide, watch, glass, shadows, lights, envLight, envNight };
-  window.__shot = ({ view = 'front34', e = 0, b = null, t = 0, mode = 'studio', tide: k = null, wipe = null, night = null, probes: showProbes = false, envI = null, debug = null, hideKinds = null } = {}) => {
+  window.__shot = ({ view = 'front34', e = 0, b = null, t = 0, mode = 'studio', tide: k = null, wipe = null, night = null, probes: showProbes = false, envI = null, debug = null, hideKinds = null, density = null } = {}) => {
     renderer.setSize(innerWidth, innerHeight);
     bg.resize(renderer);
     const M = { studio: [0, 0, 0], blue: [1, 1, 0], night: [1, 0, 1], tide: [0.5, 0.5, 0] }[mode] || [0, 0, 0];
@@ -120,6 +123,7 @@ async function main() {
     watch.setTime(t);
     watch.setMovement(t);
     applyView(view);
+    kit.setDensity(density !== null ? density : (VIEWS[view] && VIEWS[view].density) || 1);
     probes.visible = showProbes;
     holder.visible = !showProbes && wk < 1;
     glass.group.visible = !showProbes && wk > 0;
