@@ -1,0 +1,15 @@
+{
+  "name": "ltns-websites-2026-burger",
+  "private": true,
+  "version": "1.0.0",
+  "description": "BRAISE : maquette fictive de site de burgers en 3D (le burger se décompose couche par couche au défilement, le menu dans sa boîte, la carte) pour la vidéo TikTok « Les sites internet en 2026 »",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.170.0"
+  }
+}

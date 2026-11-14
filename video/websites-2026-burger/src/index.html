@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Braise — Burgers smashés, Lyon (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’un restaurant de burgers imaginaire, couche par couche, au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the mark: a flame -->
+    <symbol id="i-mark" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2.6c3.6 4.5 8.6 8.6 8.6 15.4 0 5.9-3.9 10.4-8.6 10.4s-8.6-4.5-8.6-10.4c0-3.5 1.7-6.6 3.8-8.5.2 2.9 1.4 5 3.4 5.9-.6-4.3.2-8.6 1.4-12.8z"/><path fill="#f6eadb" d="M16.2 16.4c1.6 2 3.4 3.6 3.4 6.1 0 2.4-1.6 4.1-3.6 4.1s-3.6-1.7-3.6-4.1c0-1.4.7-2.7 1.6-3.5.1 1.2.6 2 1.4 2.4-.2-1.7.1-3.4.8-5z"/></symbol>
+    <!-- « Tout est fait ici »: a loaf, a steak on the plancha, fries in their cone -->
+    <symbol id="i-pain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 15.6c-.9-3.9 2.6-8 7.6-8s8.5 4.1 7.6 8c-.2.9-1 1.5-1.9 1.5H6.3c-.9 0-1.7-.6-1.9-1.5z"/><path d="M8.4 10.8l1.4 1.6M11.6 9.9l1.4 1.8M14.8 10.4l1.2 1.7"/><path d="M5 19.6h14"/></g></symbol>
+    <symbol id="i-boeuf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12.6" rx="7.6" ry="3.4"/><path d="M4.4 12.6v1.6c0 1.9 3.4 3.4 7.6 3.4s7.6-1.5 7.6-3.4v-1.6"/><path d="M8 5.6c.8.9.8 1.7 0 2.6M12 4.8c.8.9.8 1.7 0 2.6M16 5.6c.8.9.8 1.7 0 2.6"/></g></symbol>
+    <symbol id="i-frites" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10.4h12l-1.6 10H7.6z"/><path d="M8 10.4 7.2 4.2M10.6 10.4 10.2 3.4M13.4 10.4l.4-6.6M16 10.4l.9-5.4"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: SCREENS screens of story, then the « Rendez-vous » section (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the text beats over the pinned 3D story (positions and opacities: ui.js) -->
+<main id="hud">
+  <!-- under the header over the 3D: a soft backdrop (studio grey in the dark tone, deep blue in the
+       light tone; opacity from p: ui.js) -->
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+
+  <!-- the labels of the burger's layers (from world.anchors().labels: ui.js) -->
+  <div class="labels" id="labels" aria-hidden="true"></div>
+  <!-- the menu lineup's names and prices (from world.anchors().menu: ui.js) -->
+  <div class="menu" id="menu"></div>
+
+  <section class="beat beat-hero" id="b-hero">
+    <p class="kicker" data-t="hero.kicker"></p>
+    <h1 class="display" id="t-hero"></h1>
+    <p class="lead" data-t="hero.text"></p>
+  </section>
+  <p class="hint" id="hint"><span data-t="hero.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+
+  <section class="beat beat-side" id="b-stack">
+    <p class="kicker" data-t="stack.kicker"></p>
+    <h2 class="display" id="t-stack"></h2>
+    <p class="lead" data-t="stack.text"></p>
+  </section>
+
+  <section class="beat beat-side beat-why" id="b-why">
+    <p class="kicker" data-t="why.kicker"></p>
+    <h2 class="display" id="t-why"></h2>
+    <p class="lead" data-t="why.text"></p>
+    <ul class="points" id="points"></ul>
+  </section>
+
+  <section class="beat beat-side" id="b-combo">
+    <p class="kicker" data-t="combo.kicker"></p>
+    <h2 class="display" id="t-combo"></h2>
+    <p class="lead" data-t="combo.text"></p>
+    <p class="price" data-t="combo.price"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-close">
+    <p class="kicker" data-t="close.kicker"></p>
+    <h2 class="display" id="t-close"></h2>
+    <p class="lead" data-t="close.text"></p>
+  </section>
+
+  <section class="beat beat-carte" id="b-carte">
+    <p class="kicker" data-t="carte.kicker"></p>
+    <h2 class="display" id="t-carte"></h2>
+    <p class="lead" data-t="carte.text"></p>
+  </section>
+</main>
+
+<!-- « Rendez-vous »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner">
+    <div class="f-main">
+      <p class="kicker k-final" data-t="rendezvous.kicker"></p>
+      <h2 class="display" id="t-final"></h2>
+      <p class="f-text" data-t="rendezvous.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-dark cta" type="button" id="f-quote"><span data-t="rendezvous.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="rendezvous.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="ticket" id="ticket">
+        <div class="t-head"><p class="t-title" id="t-ticket-head"></p><p class="t-num" id="t-ticket-num"></p></div>
+        <ol class="t-steps" id="t-steps"></ol>
+        <p class="stamp" id="stamp"><span id="stamp-text"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="f-foot">
+    <p class="f-credit" data-t="credit"></p>
+    <svg class="f-mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <p class="f-statement" data-t="rendezvous.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <a class="brand" id="brand" href="#" aria-label="Braise">
+    <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></span>
+    <span class="brand-tag" data-t="brand.tagline"></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
+  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark mark-swing" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
