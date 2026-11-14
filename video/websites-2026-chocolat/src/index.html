@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Médina — Chocolaterie (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’une chocolaterie imaginaire, pistache et kadaïf sous chocolat au lait, en 3D au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the mark: a pointed arch in a ring -->
+    <symbol id="i-mark" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="13.4" stroke-width="1.3"/><path d="M10.6 23.4V15.8c0-3.4 2.6-5.3 5.4-7.6 2.8 2.3 5.4 4.2 5.4 7.6v7.6" stroke-width="1.4"/><path d="M13.4 23.4v-6.6c0-1.6 1.2-2.6 2.6-3.6 1.4 1 2.6 2 2.6 3.6v6.6" stroke-width="1.1"/><path d="M8.6 23.4h14.8" stroke-width="1.3"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: SCREENS screens of story, then the « Commander » section (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the text beats over the pinned 3D story (positions and opacities: ui.js) -->
+<main id="hud">
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+
+  <section class="beat beat-hero" id="b-hero">
+    <p class="kicker" data-t="hero.kicker"></p>
+    <h1 class="display" id="t-hero"></h1>
+    <p class="lead" data-t="hero.text"></p>
+  </section>
+  <p class="hint" id="hint"><span data-t="hero.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+
+  <section class="beat beat-side" id="b-pistache">
+    <p class="kicker" data-t="pistache.kicker"></p>
+    <h2 class="display" id="t-pistache"></h2>
+    <p class="lead" data-t="pistache.text"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-chocolat">
+    <p class="kicker" data-t="chocolat.kicker"></p>
+    <h2 class="display" id="t-chocolat"></h2>
+    <p class="lead" data-t="chocolat.text"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-tablette">
+    <p class="kicker" data-t="tablette.kicker"></p>
+    <h2 class="display" id="t-tablette"></h2>
+    <p class="lead" data-t="tablette.text"></p>
+  </section>
+
+  <section class="beat beat-collection" id="b-collection">
+    <p class="kicker" data-t="collection.kicker"></p>
+    <div class="col-swap" id="col-swap">
+      <p class="col-name" id="col-name"></p>
+      <p class="col-text" id="col-text"></p>
+    </div>
+    <p class="col-idx" id="col-idx"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-craquant">
+    <p class="kicker" data-t="craquant.kicker"></p>
+    <h2 class="display" id="t-craquant"></h2>
+    <p class="lead" data-t="craquant.text"></p>
+  </section>
+</main>
+
+<!-- « Commander »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner">
+    <div class="f-main">
+      <p class="kicker k-final" data-t="rendezvous.kicker"></p>
+      <h2 class="display" id="t-final"></h2>
+      <p class="f-text" data-t="rendezvous.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-dark cta" type="button" id="f-quote"><span data-t="rendezvous.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="rendezvous.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="ticket" id="ticket">
+        <div class="t-head"><p class="t-title" id="t-ticket-head"></p><p class="t-num" id="t-ticket-num"></p></div>
+        <ol class="t-steps" id="t-steps"></ol>
+        <p class="stamp" id="stamp"><span id="stamp-text"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="f-foot">
+    <p class="f-credit" data-t="credit"></p>
+    <svg class="f-mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <p class="f-statement" data-t="rendezvous.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <a class="brand" id="brand" href="#" aria-label="Médina">
+    <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></span>
+    <span class="brand-tag" data-t="brand.tagline"></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
+  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark mark-swing" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
