@@ -35,12 +35,12 @@ Ce que montre chaque chapitre :
 
 1. **01 LE BURGER** : le burger sur un fond crème, qui tourne doucement. Titre : « Smashé à la
    minute. » Puis il se décompose vers le haut, couche par couche (le chapeau part en premier), et
-   chaque couche reçoit son étiquette : brioche, oignons, bacon, cheddar, steaks, tomate, salade,
-   sauce. Titre : « Couche par couche. »
+   chaque couche reçoit son étiquette : brioche, sauce, oignons croustillants, oignons confits,
+   cheddar fondu, steaks smashés. Titre : « Couche par couche. »
 2. **02 FAIT ICI** : les couches se rassemblent, la caméra fait le tour du burger : « Tout est fait
    ici. », avec trois engagements.
 3. **03 LE MENU** : la boîte à emporter monte sous le burger, il tombe dedans, à côté des frites et
-   de deux sauces ; le milkshake arrive à droite. « Le menu Braise. 14,90 € ».
+   de deux sauces ; le milkshake au cookie arrive à droite. « Le menu Braise. 14,90 € ».
 4. **04 À EMPORTER** : le couvercle se ferme sur le logo BRAISE : « Fermé, encore chaud. »
 5. **05 LA CARTE** : la caméra glisse jusqu’aux quatre burgers de la carte, chacun avec son nom, sa
    description et son prix.

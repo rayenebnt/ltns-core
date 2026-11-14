@@ -23,7 +23,8 @@ node build.mjs     # → dist/braise.html
 |---|---|
 | `src/story.js` | Chapitres, phases 3D, textes (fenêtres en p), arrêts |
 | `src/texts.js` | Tous les textes, les étiquettes des couches, la carte (options de chaque burger) |
-| `src/world/index.js` | Studio (fond crème, sol qui reçoit les ombres, IBL), constructeur de burger procédural, boîte, frites, milkshake, caméra |
+| `src/world/index.js` | Studio (fond crème, sol qui reçoit les ombres, IBL), boîte, frites, caméra |
+| `src/world/burger.js` | Le burger procédural comme dans la vidéo de référence (brioche brillante, steaks smashés à bord croustillant, cheddar qui coule, oignons confits et croustillants, sauce), le milkshake au cookie, le papier |
 | `src/ui.js` | Bandeau, textes, étiquettes des couches et cartes de la carte (depuis `world.anchors()`), rail, section finale |
 | `src/main.js`, `scroll.js`, `tour.js`, `tick.js`, `util.js` | Coque : défilement amorti, clavier, visite `P` (≈ 23 s), qualité |
 

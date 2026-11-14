@@ -30,7 +30,7 @@ export const BEATS = {
   stack: {
     kicker: '01 — Le burger',
     title: ['Couche', 'par couche.'],
-    text: 'Onze couches, rien de caché.',
+    text: 'Neuf couches, rien de caché.',
   },
   why: {
     kicker: '02 — Fait ici',
@@ -76,23 +76,21 @@ export const BEATS = {
 
 // the labelled layers of the « Double Braise » (world layer ids; the second patty and cheese are not labelled)
 export const LAYER_LABELS = {
-  bunTop: 'Brioche toastée au sésame',
-  onion: 'Oignons rouges',
-  bacon: 'Bacon fumé',
-  cheese: 'Cheddar affiné',
-  patty: 'Steak smashé · 2 × 90 g',
-  tomato: 'Tomate',
-  lettuce: 'Salade croquante',
+  bunTop: 'Brioche beurrée, toastée',
   sauce: 'Sauce Braise',
+  crispy: 'Oignons croustillants',
+  onions: 'Oignons confits',
+  cheese: 'Cheddar fondu',
+  patty: 'Steak smashé · 2 × 90 g',
   bunBottom: 'Brioche du boulanger',
 };
 
 // the menu lineup (the world builds each burger from opts)
 export const LINEUP = [
-  { id: 'smash', name: 'Le Smash', price: `9,50${NN}€`, desc: 'Steak smashé, cheddar, pickles, oignons', opts: { patties: 1, bacon: false, onion: true, pickles: true, tomato: false, lettuce: false } },
-  { id: 'double', name: 'Le Double Braise', price: `12,90${NN}€`, desc: 'Deux steaks, double cheddar, bacon', opts: { patties: 2, bacon: true, onion: true } },
-  { id: 'fume', name: 'Le Fumé', price: `11,50${NN}€`, desc: 'Bacon fumé, cheddar, oignons rouges', opts: { patties: 1, bacon: true, onion: true, tomato: false } },
-  { id: 'piquant', name: 'Le Piquant', price: `11,90${NN}€`, desc: 'Jalapeños, cheddar, sauce pimentée', opts: { patties: 1, jalapeno: true, onion: false, bacon: false } },
+  { id: 'smash', name: 'Le Smash', price: `9,50${NN}€`, desc: 'Steak smashé, cheddar fondu, pickles, oignons confits', opts: { patties: 1, crispy: false, pickles: true } },
+  { id: 'double', name: 'Le Double Braise', price: `12,90${NN}€`, desc: 'Deux steaks, double cheddar, oignons confits et croustillants', opts: { patties: 2 } },
+  { id: 'fume', name: 'Le Fumé', price: `11,50${NN}€`, desc: 'Bacon fumé croustillant, cheddar, oignons confits', opts: { patties: 1, bacon: true, crispy: false } },
+  { id: 'piquant', name: 'Le Piquant', price: `11,90${NN}€`, desc: 'Jalapeños, cheddar fondu, sauce pimentée', opts: { patties: 1, jalapeno: true, onions: false, crispy: false } },
 ];
 
 export const TOAST = `Démonstration${NN}: Braise est un restaurant fictif imaginé par LTNS°.`;
