@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sibylle — Liqueurs de nuit (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’une maison imaginaire de liqueurs de nuit, en gravure rouge et noire, au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the mark: a crescent in a ring, with a star -->
+    <symbol id="i-mark" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="13.2" stroke-width="1.5"/><path d="M19.6 8.8a7.6 7.6 0 1 0 3.6 11.6 6.2 6.2 0 1 1-3.6-11.6z" fill="currentColor" stroke-width="1"/><path d="M22.4 10.2l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z" fill="currentColor" stroke-width="0.6"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: SCREENS screens of story, then the « Dégustation » section (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the text beats over the pinned 3D story (positions and opacities: ui.js) -->
+<main id="hud">
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+
+  <section class="beat beat-hero" id="b-hero">
+    <p class="kicker" data-t="hero.kicker"></p>
+    <h1 class="display" id="t-hero"></h1>
+    <p class="lead box" data-t="hero.text"></p>
+  </section>
+  <p class="hint" id="hint"><span data-t="hero.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+
+  <section class="beat beat-side beat-right" id="b-oracle">
+    <p class="kicker" data-t="oracle.kicker"></p>
+    <h2 class="display" id="t-oracle"></h2>
+    <p class="lead box" data-t="oracle.text"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-temple">
+    <p class="kicker" data-t="temple.kicker"></p>
+    <h2 class="display" id="t-temple"></h2>
+    <p class="lead box" data-t="temple.text"></p>
+  </section>
+
+  <section class="beat beat-fioles" id="b-fioles">
+    <h2 class="display" id="t-fioles"></h2>
+    <div class="flavor box" id="flavor">
+      <p class="fl-num" id="fl-num"></p>
+      <p class="fl-name" id="fl-name"></p>
+      <p class="fl-notes" id="fl-notes"></p>
+      <p class="fl-mood" id="fl-mood"></p>
+      <p class="fl-spec" id="fl-spec"></p>
+    </div>
+    <div class="dots" id="fl-dots" role="group" aria-label="Fioles"></div>
+  </section>
+
+  <section class="beat beat-side" id="b-verser">
+    <p class="kicker" data-t="verser.kicker"></p>
+    <h2 class="display" id="t-verser"></h2>
+    <p class="lead box" data-t="verser.text"></p>
+  </section>
+
+  <section class="beat beat-side" id="b-vision">
+    <p class="kicker" data-t="vision.kicker"></p>
+    <h2 class="display" id="t-vision"></h2>
+    <p class="lead box" data-t="vision.text"></p>
+  </section>
+
+  <section class="beat beat-fronton" id="b-fronton">
+    <p class="kicker" data-t="fronton.kicker"></p>
+    <h2 class="display" id="t-fronton"></h2>
+  </section>
+
+  <!-- the hold badge and the bottles' hit areas (positions: ui.js, from the world's anchors) -->
+  <div class="badge" id="badge" aria-hidden="true">
+    <svg class="badge-ring" viewBox="0 0 100 100"><circle class="br-bg" cx="50" cy="50" r="46"/><circle class="br-fg" id="badge-fg" cx="50" cy="50" r="46" pathLength="1"/></svg>
+    <span class="badge-text" id="badge-text"></span>
+  </div>
+  <div class="picks" id="picks"></div>
+</main>
+
+<!-- « Dégustation »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner">
+    <div class="f-main">
+      <p class="kicker k-final" data-t="rendezvous.kicker"></p>
+      <h2 class="display" id="t-final"></h2>
+      <p class="f-text" data-t="rendezvous.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-dark cta" type="button" id="f-quote"><span data-t="rendezvous.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="rendezvous.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="ticket" id="ticket">
+        <div class="t-head"><p class="t-title" id="t-ticket-head"></p><p class="t-num" id="t-ticket-num"></p></div>
+        <ol class="t-steps" id="t-steps"></ol>
+        <p class="stamp" id="stamp"><span id="stamp-text"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="f-foot">
+    <p class="f-credit" data-t="credit"></p>
+    <svg class="f-mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <p class="f-statement" data-t="rendezvous.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <a class="brand" id="brand" href="#" aria-label="Sibylle">
+    <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></span>
+    <span class="brand-tag" data-t="brand.tagline"></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
+  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark mark-swing" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
