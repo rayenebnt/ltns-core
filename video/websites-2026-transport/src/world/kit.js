@@ -310,68 +310,258 @@ export function lamps(list) {
   return b.build(new THREE.Group());
 }
 
-// ------------------------------------------------------------------ the truck (16.5 m), front along +x
+// ------------------------------------------------------------------ the truck: a cab-over tractor and a box semi-trailer
+// (17.4 m), front along +x, the trailer's rear at x = -8.8
+const TM = {
+  paint: new THREE.MeshPhysicalMaterial({ color: col('#e3241b'), roughness: 0.3, clearcoat: 0.65, clearcoatRoughness: 0.16 }),
+  chrome: new THREE.MeshStandardMaterial({ color: col('#eceef0'), metalness: 1, roughness: 0.14 }),
+  alu: new THREE.MeshStandardMaterial({ color: col('#c9cdd2'), metalness: 0.8, roughness: 0.3 }),
+  tyre: std('#2a2c30', { roughness: 0.92 }),
+  plastic: std('#2e3136', { roughness: 0.62 }),
+  screen: new THREE.MeshStandardMaterial({ color: col('#26303b'), roughness: 0.06, metalness: 0.5 }),
+  lamp: std('#f7f9fc', { emissive: col('#ffffff'), emissiveIntensity: 0.3, roughness: 0.2 }),
+  amber: std('#ffb02e', { emissive: col('#ff9a00'), emissiveIntensity: 0.4, roughness: 0.4 }),
+  tail: std('#ff3a2e', { emissive: col('#ff2a1a'), emissiveIntensity: 0.35, roughness: 0.4 }),
+  roof: std('#f4f3f0'),
+};
+// the slanted script and its swash, drawn on a 2D context at (x, y) for a cap height h
+function script(g, x, y, h, fg = '#ffffff') {
+  g.save();
+  g.translate(x, y);
+  g.transform(1, 0, -0.24, 1, 0, 0);
+  g.fillStyle = fg;
+  g.font = `800 ${Math.round(h)}px 'Archivo', sans-serif`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('Orvan', 0, 0);
+  const tw = g.measureText('Orvan').width;
+  g.lineWidth = h * 0.09;
+  g.strokeStyle = fg;
+  g.lineCap = 'round';
+  g.beginPath();
+  g.moveTo(-tw * 0.48, h * 0.47);
+  g.quadraticCurveTo(0, h * 0.66, tw * 0.52, h * 0.32);
+  g.stroke();
+  g.restore();
+}
+let trailerSide = null, trailerRear = null, cabSide = null;
+function truckTextures() {
+  if (trailerSide) return;
+  // the trailer's side: red panels between posts, top and bottom rails, the script, the line under it
+  trailerSide = canvasTex(2048, 400, (g, w, h) => {
+    g.fillStyle = '#e3241b';
+    g.fillRect(0, 0, w, h);
+    for (let x = 0; x <= w; x += w / 11) {
+      g.fillStyle = 'rgba(0,0,0,0.13)';
+      g.fillRect(x - 3, 0, 6, h);
+      g.fillStyle = 'rgba(255,255,255,0.07)';
+      g.fillRect(x + 3, 0, 3, h);
+    }
+    g.fillStyle = '#d9dadc';
+    g.fillRect(0, 0, w, 16);
+    g.fillRect(0, h - 20, w, 20);
+    g.fillStyle = 'rgba(0,0,0,0.18)';
+    g.fillRect(0, 16, w, 3);
+    g.fillRect(0, h - 23, w, 3);
+    script(g, w * 0.4, h * 0.46, h * 0.5);
+    g.fillStyle = '#ffffff';
+    g.font = "600 34px 'Archivo', sans-serif";
+    g.textAlign = 'left';
+    if ('letterSpacing' in g) g.letterSpacing = '3px';
+    g.fillText('Transport & logistique', w * 0.62, h * 0.62);
+    g.font = "500 26px 'Archivo', sans-serif";
+    g.fillText('Projet fictif · LTNS°', w * 0.62, h * 0.74);
+  });
+  // the rear doors: two leaves, locking bars, hinges, a plate
+  trailerRear = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#dcdddf';
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(0,0,0,0.25)';
+    g.fillRect(w / 2 - 2, 0, 4, h);
+    g.fillRect(0, 0, w, 10);
+    g.fillRect(0, 0, 10, h);
+    g.fillRect(w - 10, 0, 10, h);
+    g.fillStyle = '#7c8086';
+    for (const x of [0.16, 0.36, 0.64, 0.84]) {
+      g.fillRect(w * x - 5, 18, 10, h - 36);
+      g.fillRect(w * x - 14, h * 0.55, 28, 14);
+    }
+    for (const y of [0.12, 0.42, 0.72, 0.92]) {
+      g.fillRect(12, h * y, 26, 12);
+      g.fillRect(w - 38, h * y, 26, 12);
+    }
+    g.fillStyle = '#e3241b';
+    g.fillRect(0, h - 40, w, 40);
+    script(g, w * 0.5, h * 0.3, h * 0.13, '#e3241b');
+  });
+  // the cab's door: its seams, the handle, the script
+  cabSide = canvasTex(512, 384, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(0,0,0,0.42)';
+    g.lineWidth = 4;
+    g.beginPath();
+    g.moveTo(w * 0.1, h * 0.98);
+    g.lineTo(w * 0.1, h * 0.02);
+    g.moveTo(w * 0.93, h * 0.98);
+    g.lineTo(w * 0.93, h * 0.02);
+    g.stroke();
+    g.fillStyle = 'rgba(0,0,0,0.55)';
+    g.fillRect(w * 0.16, h * 0.08, w * 0.12, h * 0.06);
+    script(g, w * 0.52, h * 0.5, h * 0.3);
+  });
+  for (const t of [trailerSide, trailerRear, cabSide]) t.anisotropy = 8;
+}
+function tyreGeo(R = 0.53, r = 0.3, w = 0.32) {
+  const pts = [[r, -w / 2], [R - 0.07, -w / 2], [R, -w / 2 + 0.06], [R, w / 2 - 0.06], [R - 0.07, w / 2], [r, w / 2]];
+  const g = new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), 24);
+  g.rotateX(Math.PI / 2);
+  return g;
+}
+function wheel(b, x, z, w = 0.32, dual = false) {
+  const zs = dual ? [z - Math.sign(z) * 0.17, z + Math.sign(z) * 0.17] : [z];
+  for (const zz of zs) b.add(tyreGeo(0.53, 0.3, dual ? 0.3 : w), TM.tyre, x, 0.53, zz);
+  const out = z + Math.sign(z) * (dual ? 0.3 : w / 2 - 0.02);
+  const rim = cyl(0.31, 0.31, 0.05, 20);
+  rim.rotateX(Math.PI / 2);
+  b.add(rim, TM.alu, x, 0.53, out);
+  const hub = cyl(0.13, 0.15, 0.08, 12);
+  hub.rotateX(Math.PI / 2);
+  b.add(hub, TM.chrome, x, 0.53, out + Math.sign(z) * 0.04);
+  const inner = cyl(0.3, 0.3, (dual ? 0.6 : w) - 0.04, 16);
+  inner.rotateX(Math.PI / 2);
+  b.add(inner, TM.plastic, x, 0.53, z);
+}
+function cabGeo() {
+  const s = new THREE.Shape();
+  s.moveTo(5.62, 0.95);
+  s.lineTo(8.2, 0.95);
+  s.quadraticCurveTo(8.34, 0.95, 8.34, 1.1);
+  s.lineTo(8.37, 2.15);
+  s.lineTo(8.19, 3.3);
+  s.quadraticCurveTo(8.12, 3.58, 7.85, 3.6);
+  s.lineTo(5.76, 3.6);
+  s.quadraticCurveTo(5.62, 3.6, 5.62, 3.45);
+  s.lineTo(5.62, 0.95);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 2.3, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3, curveSegments: 8 });
+  g.translate(0, 0, -1.15);
+  return g;
+}
+function fairingGeo() {
+  const s = new THREE.Shape();
+  s.moveTo(7.7, 3.58);
+  s.quadraticCurveTo(6.7, 3.72, 6.05, 4.32);
+  s.lineTo(5.8, 4.42);
+  s.lineTo(5.68, 4.42);
+  s.lineTo(5.68, 3.58);
+  s.lineTo(7.7, 3.58);
+  const g = new THREE.ExtrudeGeometry(s, { depth: 2.1, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 2, curveSegments: 8 });
+  g.translate(0, 0, -1.05);
+  return g;
+}
 const truckProtos = new Map();
-let trailerGeo = null, sideGeo = null;
-const sideMats = new Map();
 export function truck(logo, { trailer = true } = {}) {
+  truckTextures();
   const key = trailer ? 'full' : 'solo';
   if (!truckProtos.has(key)) {
     const b = builder();
     // the cab
-    b.add(rbox(2.35, 2.75, 2.5, 0.28, 3), M.red, 7.15, 2.35, 0);
-    b.add(rbox(1.7, 0.75, 2.4, 0.25), M.red, 6.75, 4.05, 0);
-    b.add(box(0.06, 1.05, 2.15), M.glass, 8.33, 2.95, 0);
+    b.add(cabGeo(), TM.paint);
+    b.add(fairingGeo(), TM.paint);
+    for (const sz of [-1, 1]) b.add(box(0.38, 2.15, 0.05), TM.paint, 5.44, 2.42, sz * 1.25);
+    const rake = 0.155;
+    b.add(box(0.03, 1.2, 2.36), TM.plastic, 8.268, 2.73, 0, 0, 0, rake);
+    b.add(box(0.03, 1.06, 2.2), TM.screen, 8.29, 2.73, 0, 0, 0, rake);
+    b.add(box(0.36, 0.08, 2.42), TM.paint, 8.22, 3.43, 0);
+    for (const z of [-0.75, -0.25, 0.25, 0.75]) b.add(box(0.08, 0.06, 0.12), TM.amber, 8.36, 3.48, z);
+    // the face: grille and its slats, the badge, the bumper and its lights
+    b.add(box(0.04, 0.72, 1.72), TM.plastic, 8.38, 1.62, 0);
+    for (const y of [1.36, 1.52, 1.68, 1.84]) b.add(box(0.05, 0.05, 1.62), TM.chrome, 8.405, y, 0);
+    b.add(box(0.05, 0.1, 0.5), TM.roof, 8.4, 2.05, 0);
+    b.add(rbox(0.3, 0.42, 2.5, 0.08), TM.plastic, 8.42, 0.86, 0);
+    b.add(box(0.06, 0.05, 2.3), TM.chrome, 8.58, 0.7, 0);
     for (const sz of [-1, 1]) {
-      b.add(box(1.05, 0.95, 0.06), M.glass, 7.55, 2.95, sz * 1.26);
-      b.add(box(0.12, 0.55, 0.12), M.dark, 8.1, 3.1, sz * 1.42);
-      b.add(box(0.5, 0.18, 0.06), M.dark, 8.1, 3.4, sz * 1.36);
-      b.add(box(1.5, 0.12, 0.2), M.dark, 6.9, 1.2, sz * 1.28);
+      b.add(box(0.06, 0.17, 0.52), TM.lamp, 8.57, 0.98, sz * 0.86);
+      b.add(box(0.06, 0.12, 0.16), TM.amber, 8.57, 0.98, sz * 1.17);
+      b.add(box(0.05, 0.08, 0.22), TM.lamp, 8.575, 0.76, sz * 0.62);
+      // steps, side windows, mirrors on their arms
+      b.add(box(0.55, 0.06, 0.24), TM.plastic, 7.72, 0.7, sz * 1.2);
+      b.add(box(0.55, 0.06, 0.24), TM.plastic, 7.72, 1.05, sz * 1.22);
+      b.add(box(0.92, 0.74, 0.02), TM.screen, 7.62, 2.78, sz * 1.252);
+      b.add(box(0.34, 0.55, 0.02), TM.screen, 6.92, 2.86, sz * 1.252);
+      b.add(box(0.06, 0.06, 0.38), TM.plastic, 8.16, 3.08, sz * 1.42);
+      b.add(rbox(0.18, 0.62, 0.28, 0.06), TM.plastic, 8.2, 2.86, sz * 1.62);
+      b.add(box(0.03, 0.5, 0.2), TM.screen, 8.1, 2.86, sz * 1.62);
+      b.add(rbox(0.15, 0.26, 0.26, 0.05), TM.plastic, 8.26, 2.36, sz * 1.54);
     }
-    b.add(box(0.1, 0.75, 1.9), M.dark, 8.33, 1.85, 0);
-    b.add(box(0.3, 0.35, 2.5), M.grey, 8.32, 1.05, 0);
-    for (const sz of [-1, 1]) b.add(box(0.06, 0.2, 0.45), M.white, 8.4, 1.45, sz * 0.92);
-    // the chassis and its tanks
-    b.add(box(12.5, 0.4, 1.0), M.dark, 0.6, 1.0, 0);
-    const tank = cyl(0.42, 0.42, 1.3, 14);
+    // the chassis: rails, the fuel tank on its straps, AdBlue, batteries, mudguards, the fifth wheel
+    for (const sz of [-1, 1]) b.add(box(5.3, 0.3, 0.2), TM.plastic, 5.55, 0.95, sz * 0.45);
+    const tank = cyl(0.34, 0.34, 1.55, 18);
     tank.rotateZ(Math.PI / 2);
-    for (const sz of [-1, 1]) b.add(tank, M.grey, 4.9, 1.05, sz * 0.95);
-    if (trailer) {
-      b.add(rbox(13.2, 0.28, 2.55, 0.06), M.redDark, -0.95, 1.38, 0);
-      b.add(box(0.12, 3.0, 2.5), M.grey, -7.55, 2.95, 0);
-      for (const sz of [-1, 1]) b.add(box(7.5, 0.6, 0.06), M.red, -0.7, 1.05, sz * 1.2);
-    }
-    const w = cyl(0.53, 0.53, 0.42, 16);
-    w.rotateX(Math.PI / 2);
-    const hub = cyl(0.26, 0.26, 0.44, 10);
-    hub.rotateX(Math.PI / 2);
-    const xs = trailer ? [7.45, 5.5, -4.9, -6.1, -7.3] : [7.45, 5.5];
-    for (const x of xs)
-      for (const z of [-1.07, 1.07]) {
-        b.add(w, M.dark, x, 0.53, z);
-        b.add(hub, M.grey, x, 0.53, z);
-      }
-    truckProtos.set(key, b.build(new THREE.Group()));
-  }
-  const g = instance(truckProtos.get(key));
-  if (trailer) {
-    // the box: red sides with ribs and the script, white roof
-    if (!sideMats.has(logo)) sideMats.set(logo, texMat(logo, { roughness: 0.55 }));
-    const side = sideMats.get(logo);
-    trailerGeo = trailerGeo || rbox(13.2, 3.05, 2.55, 0.1);
-    sideGeo = sideGeo || new THREE.PlaneGeometry(12.8, 2.75);
-    const body = new THREE.Mesh(trailerGeo, M.red);
-    body.position.set(-0.95, 3.0, 0);
-    body.castShadow = body.receiveShadow = true;
-    g.add(body);
+    b.add(tank, TM.alu, 5.75, 0.98, -0.98);
+    for (const x of [5.25, 6.25]) b.add(box(0.06, 0.72, 0.72), TM.plastic, x, 0.98, -0.98);
+    const ad = cyl(0.22, 0.22, 0.55, 14);
+    ad.rotateZ(Math.PI / 2);
+    b.add(ad, TM.alu, 6.0, 0.86, 0.98);
+    b.add(box(0.6, 0.5, 0.5), TM.plastic, 5.2, 0.92, 0.98);
     for (const sz of [-1, 1]) {
-      const pl = new THREE.Mesh(sideGeo, side);
-      pl.position.set(-0.95, 3.0, sz * 1.282);
-      pl.rotation.y = sz > 0 ? 0 : Math.PI;
-      g.add(pl);
+      b.add(box(1.35, 0.07, 0.62), TM.plastic, 3.85, 1.2, sz * 0.96);
+      b.add(box(0.04, 0.6, 0.62), TM.plastic, 3.15, 0.92, sz * 0.96);
     }
+    b.add(cyl(0.72, 0.72, 0.16, 20), TM.plastic, 3.6, 1.24, 0);
+    wheel(b, 7.45, -1.07);
+    wheel(b, 7.45, 1.07);
+    wheel(b, 3.85, -0.95, 0.3, true);
+    wheel(b, 3.85, 0.95, 0.3, true);
+    if (trailer) {
+      // the trailer's frame: roof, bottom rail, underrun bar, lights, skirts, landing gear, axles
+      b.add(box(13.6, 0.07, 2.5), TM.roof, -2.0, 4.18, 0);
+      b.add(box(13.6, 0.2, 2.6), TM.plastic, -2.0, 1.22, 0);
+      b.add(box(0.14, 0.14, 2.3), TM.plastic, -8.7, 0.62, 0);
+      for (const sz of [-1, 1]) {
+        b.add(box(0.1, 0.55, 0.1), TM.plastic, -8.7, 0.92, sz * 0.9);
+        b.add(box(0.06, 0.2, 0.42), TM.tail, -8.83, 1.0, sz * 0.92);
+        b.add(box(0.06, 0.12, 0.14), TM.amber, -8.83, 1.0, sz * 1.18);
+        b.add(box(6.2, 0.55, 0.04), TM.paint, -1.4, 0.98, sz * 1.21);
+        b.add(box(0.12, 1.0, 0.12), TM.plastic, 2.9, 0.72, sz * 0.85);
+        b.add(box(0.3, 0.05, 0.3), TM.plastic, 2.9, 0.24, sz * 0.85);
+        b.add(box(4.1, 0.06, 0.5), TM.plastic, -6.8, 1.18, sz * 1.03);
+        b.add(box(0.03, 0.55, 0.45), TM.plastic, -8.6, 0.8, sz * 1.03);
+        for (const x of [3.6, 0.6, -2.4, -5.4]) b.add(box(0.12, 0.08, 0.03), TM.amber, x, 1.42, sz * 1.29);
+      }
+      for (const x of [-5.5, -6.8, -8.1]) {
+        wheel(b, x, -1.03, 0.36);
+        wheel(b, x, 1.03, 0.36);
+      }
+    }
+    const proto = b.build(new THREE.Group());
+    // decals: the cab's doors, the trailer's sides and rear
+    const cabMat = new THREE.MeshStandardMaterial({ map: cabSide, transparent: true, alphaTest: 0.25, roughness: 0.4 });
+    for (const sz of [-1, 1]) {
+      const d = new THREE.Mesh(new THREE.PlaneGeometry(1.75, 1.3), cabMat);
+      d.position.set(7.3, 1.75, sz * 1.256);
+      d.rotation.y = sz > 0 ? 0 : Math.PI;
+      proto.add(d);
+    }
+    if (trailer) {
+      const body = new THREE.Mesh(rbox(13.6, 2.85, 2.55, 0.06), TM.paint);
+      body.position.set(-2.0, 2.73, 0);
+      body.castShadow = body.receiveShadow = true;
+      proto.add(body);
+      const sideMat = new THREE.MeshStandardMaterial({ map: trailerSide, roughness: 0.42 });
+      for (const sz of [-1, 1]) {
+        const pl = new THREE.Mesh(new THREE.PlaneGeometry(13.4, 2.72), sideMat);
+        pl.position.set(-2.0, 2.73, sz * 1.278);
+        pl.rotation.y = sz > 0 ? 0 : Math.PI;
+        proto.add(pl);
+      }
+      const back = new THREE.Mesh(new THREE.PlaneGeometry(2.45, 2.75), new THREE.MeshStandardMaterial({ map: trailerRear, roughness: 0.5 }));
+      back.position.set(-8.805, 2.73, 0);
+      back.rotation.y = -Math.PI / 2;
+      proto.add(back);
+    }
+    truckProtos.set(key, proto);
   }
-  return g;
+  return instance(truckProtos.get(key));
 }
 
 // ------------------------------------------------------------------ the forklift (red), along +x

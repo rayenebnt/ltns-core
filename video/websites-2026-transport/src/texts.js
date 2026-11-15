@@ -39,10 +39,10 @@ export const MORE = 'En savoir plus →';
 export const BEATS = {
   hero: {
     kicker: 'Commissionnaire de transport',
-    title: ['Orvan, votre partenaire', 'transport et logistique.'],
+    title: ['Orvan, votre', 'commissionnaire', 'de transport', 'et de logistique.'],
     text: `Par la route, les airs, la mer ou le rail${NN}: nous emmenons votre fret à bon port, avec des outils numériques et un interlocuteur qui vous connaît.`,
     primary: 'Aperçu des services',
-    secondary: 'Vers la demande de fret',
+    secondary: 'Demande de fret',
     hint: 'Faites défiler',
   },
   rendezvous: {

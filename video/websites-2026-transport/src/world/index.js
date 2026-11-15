@@ -225,7 +225,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     b.build(g);
     scene.add(g);
     // trucks backed into the docks; two passing; one leaving
-    [-26, -22, -14, -10, -2].forEach((x, i) => scene.add(place(truck(logo), x, 0, 17.0 + (i % 2) * 0.2, -Math.PI / 2)));
+    [-26, -22, -14, -10, -2].forEach((x, i) => scene.add(place(truck(logo), x, 0, 18.3 + (i % 2) * 0.2, -Math.PI / 2)));
     const moving = [0, 1].map(() => {
       const t = truck(logo);
       scene.add(t);
@@ -337,7 +337,7 @@ export async function createWorld({ renderer, quality = 'high', onProgress = () 
     });
     scene.add(people([[13, 0.25, 4.6], [18, 0.25, 4.7], [22, 0.25, 4.5], [25.5, 0.25, -6], [-11.5, 0.25, 3], [-4.5, 0.25, -12], [4, 0.25, 6.5]]));
     // outside: trucks at the back docks, the yard, trees
-    [-24, -16, -8].forEach((x) => scene.add(place(truck(logo), x, 0, -28.5, Math.PI / 2)));
+    [-24, -16, -8].forEach((x) => scene.add(place(truck(logo), x, 0, -30.4, Math.PI / 2)));
     scene.add(place(truck(logo), 18, 0, -34, 0.1));
     const tl = [];
     for (let x = -40; x <= 50; x += 7 + R() * 3) tl.push([x, 0, 24 + R() * 4]);
