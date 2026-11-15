@@ -1,0 +1,15 @@
+{
+  "name": "ltns-websites-2026-agence",
+  "private": true,
+  "version": "1.0.0",
+  "description": "POMONE : maquette fictive de site de studio de croissance en 3D (poire en or, nuages en trame, poirier qui pousse, gravure sépia) pour la vidéo TikTok « Les sites internet en 2026 »",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.170.0"
+  }
+}
