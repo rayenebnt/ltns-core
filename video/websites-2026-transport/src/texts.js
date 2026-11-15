@@ -18,7 +18,10 @@ export const NAV = [
   { id: 'mer', num: '04', label: 'Air & mer' },
   { id: 'rail', num: '05', label: 'Rail' },
 ];
-export const CTA = 'Demande de fret';
+export const CTA = 'Demande de fret →';
+export const MENU = ['Services', 'Espace client', 'Entreprise', 'Contact', 'Carrières'];
+export const TRACK = 'Suivi d’envoi →';
+export const ALL = 'Tous nos services →';
 
 // the hotspots of each diorama (world.anchors() gives their place on screen)
 export const SPOTS = {
@@ -38,8 +41,8 @@ export const BEATS = {
     kicker: 'Commissionnaire de transport',
     title: ['Orvan, votre partenaire', 'transport et logistique.'],
     text: `Par la route, les airs, la mer ou le rail${NN}: nous emmenons votre fret à bon port, avec des outils numériques et un interlocuteur qui vous connaît.`,
-    primary: 'Nos services',
-    secondary: 'Demande de fret',
+    primary: 'Aperçu des services',
+    secondary: 'Vers la demande de fret',
     hint: 'Faites défiler',
   },
   rendezvous: {

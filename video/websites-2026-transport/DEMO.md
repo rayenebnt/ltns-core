@@ -31,35 +31,39 @@ Toute l’histoire se joue au défilement, de haut en bas. Fais descendre la pag
 doigts sur le pavé tactile, d’un mouvement régulier. La molette de la souris marche aussi. Entre deux
 maquettes, un fondu blanc passe : c’est voulu.
 
-Le panneau blanc à gauche reste tout du long ; sa dernière ligne montre le chapitre en cours.
-Les camions, les chariots, les trains et un avion bougent tout seuls.
+En haut, une barre blanche : le logo Orvan, un menu (Services, Espace client, Entreprise, Contact,
+Carrières), « Suivi d’envoi » et le bouton rouge « Demande de fret ». En bas à gauche, le panneau
+blanc reste tout du long, avec les onglets des cinq maquettes juste en dessous : l’onglet en cours
+est rouge, avec son nom. En bas à droite : « Tous nos services » et une bulle de discussion. Les
+camions, les chariots, les trains et un avion bougent tout seuls. Entre deux maquettes, l’image se
+floute et blanchit un instant : c’est voulu.
 
 Ce que montre chaque chapitre :
 
-1. **01 ROUTE** : le dépôt, sa halle au bandeau rouge ORVAN, les camions à quai, d’autres qui passent
-   sur la route.
-2. **02 ENTREPÔT** : la halle ouverte : des rayonnages pleins de cartons, des chariots élévateurs
-   rouges qui circulent dans les allées.
-3. **03 DISTRIBUTION** : la campagne vue d’en haut : des collines, une route blanche en lacets, des
-   camions dessus, deux fermes.
-4. **04 AIR & MER** : le port et l’aéroport : un porte-conteneurs rouge sous les portiques blancs, des
-   piles de conteneurs, des avions rouges, la douane.
-5. **05 RAIL** : le terminal ferroviaire : deux grands portiques rouges, des trains de fret qui
-   passent, des conteneurs.
+1. **01 ROUTE** : le dépôt de près : la grande halle au bandeau rouge et au logo Orvan, les camions
+   à quai, les bureaux aux fenêtres éclairées, le portique rouge de l’entrée, le parking.
+2. **02 ENTREPÔT** : la halle ouverte : des rayonnages pleins de cartons sur palettes, des chariots
+   élévateurs rouges dans les allées, la ligne de préparation des commandes.
+3. **03 DISTRIBUTION** : la campagne vue d’en haut : des collines, une route blanche qui descend en
+   lacets, des camions dessus, un village aux toits rouges.
+4. **04 AIR & MER** : le port et l’aéroport : un porte-conteneurs rouge sous les grues de quai, des
+   piles de conteneurs (certains rouges au logo Orvan), des avions rouges, la douane.
+5. **05 RAIL** : le terminal ferroviaire : un grand portique rouge qui soulève un conteneur, des
+   trains de fret aux conteneurs Orvan, des piles de conteneurs.
 6. **DEMANDE DE FRET** : la section claire monte par-dessus. La fiche « Votre envoi » coche ses six
    étapes une à une, puis le tampon « Livré » se pose.
 
-**Les points cliquables** : sur chaque maquette, un rond blanc avec un point rouge qui pulse.
+**Les points cliquables** : sur chaque maquette, un rond blanc avec un « + » rouge et un halo.
 **Clique dessus** : une fiche s’ouvre (« La route », « L’entreposage », « La distribution », « Le
 maritime », « L’aérien », « Le ferroviaire »). Clique ailleurs ou appuie sur `Échap` pour la fermer.
 
-**La barre en bas** (Route, Entrepôt, Distribution, Air & mer, Rail) emmène à la maquette choisie.
-« Nos services » dans le panneau passe à la maquette suivante.
+**Les onglets en bas à gauche** (01 à 05) emmènent à la maquette choisie. « Aperçu des services »
+dans le panneau passe à la maquette suivante.
 
 **Pour finir la prise** : descends jusqu’en bas et lâche ; le tampon se pose en deux secondes
-environ. Ou clique sur « Demande de fret » ou « Faire une demande de fret » : le message
-« Démonstration : Orvan est une entreprise fictive imaginée par LTNS°. » s’affiche 3 secondes et
-demie.
+environ. Ou clique sur un bouton rouge (« Demande de fret », « Tous nos services », un lien du
+menu…) : le message « Démonstration : Orvan est une entreprise fictive imaginée par LTNS°. »
+s’affiche 3 secondes et demie.
 
 « Revoir le trajet ↑ » (dans la section claire), la touche `Début` ou le logo Orvan ramènent au
 début.

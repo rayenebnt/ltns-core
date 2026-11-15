@@ -11,8 +11,14 @@
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <!-- the mark: a chevron in a rounded square -->
-    <symbol id="i-mark" viewBox="0 0 32 32"><rect x="2.5" y="2.5" width="27" height="27" rx="6" fill="#e3241b"/><path d="M11 9.5 18.5 16 11 22.5M16.5 9.5 24 16l-7.5 6.5" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- the chapter icons -->
+    <symbol id="i-route" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 7h11v9h-11zM13.5 10h4.2l3 3.2V16h-7.2z"/><circle cx="6.5" cy="17.2" r="1.7" fill="#fff"/><circle cx="16.8" cy="17.2" r="1.7" fill="#fff"/></g></symbol>
+    <symbol id="i-entrepot" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-7h10v7M7 16.5h10"/></g></symbol>
+    <symbol id="i-distribution" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3-4.2-6-7.6-6-11a6 6 0 1 1 12 0c0 3.4-3 6.8-6 11z"/><circle cx="12" cy="10" r="2.2"/></g></symbol>
+    <symbol id="i-mer" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5 3 11l1.4-1.4 7.6.9 4.4-4.4c.9-.9 2.3-.9 3 0 .7.7.6 2-.2 2.8l-4.4 4.4.9 7.6-1.4 1.4-2.5-7.5-2.9 2.9.3 2.3-1 1-1.4-2.9-2.9-1.4 1-1 2.3.3z"/></g></symbol>
+    <symbol id="i-rail" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="13" rx="3"/><path d="M5 10h14M9 20l-2 2M15 20l2 2"/><circle cx="9" cy="13" r=".8" fill="currentColor"/><circle cx="15" cy="13" r=".8" fill="currentColor"/></g></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mark" viewBox="0 0 32 32"><rect x="2.5" y="2.5" width="27" height="27" rx="6" fill="#e3241b"/></symbol>
     <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
@@ -80,13 +86,15 @@
     <span class="brand-row"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></span>
     <span class="brand-tag" data-t="brand.tagline"></span>
   </a>
-  <nav class="nav" id="nav" aria-label="Chapitres"></nav>
-  <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+  <ul class="menu" id="menu"></ul>
+  <div class="top-right"><span class="lang">FR</span><button class="track cta" type="button"><span data-t="track"></span></button><button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button></div>
 </header>
+<nav class="nav" id="nav" aria-label="Chapitres"></nav>
 
 <nav id="rail" class="rail" aria-label="Progression"></nav>
 
 <p id="credit" class="credit" data-t="credit"></p>
+<div class="br-actions"><button class="all cta" type="button"><span data-t="all"></span></button><button class="chat cta" type="button" aria-label="Discuter"><svg aria-hidden="true"><use href="#i-chat"/></svg></button></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <div id="loader">

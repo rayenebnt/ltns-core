@@ -21,6 +21,8 @@ export function fillTexts() {
     'brand.name': T.BRAND.name,
     'brand.tagline': T.BRAND.tagline,
     cta: T.CTA,
+    track: T.TRACK,
+    all: T.ALL,
     'sc.more': T.MORE,
     credit: T.CREDIT,
     'nogl.0': T.NOGL[0],
@@ -60,11 +62,26 @@ export function createUI(h) {
     const lab = document.createElement('span');
     lab.className = 'lab';
     lab.textContent = n.label;
-    b.append(num, document.createTextNode(' '), lab);
+    const ic = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    ic.setAttribute('class', 'ni');
+    ic.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', `#i-${n.id}`);
+    ic.appendChild(use);
+    b.append(num, ic, lab);
     b.addEventListener('click', () => h.onNav(n.id));
     nav.appendChild(b);
     return { id: n.id, t: toggler(b) };
   });
+  for (const m of T.MENU) {
+    const li = document.createElement('li');
+    const bt = document.createElement('button');
+    bt.type = 'button';
+    bt.className = 'cta';
+    bt.textContent = m;
+    li.appendChild(bt);
+    $('menu').appendChild(li);
+  }
   $('brand').addEventListener('click', (e) => {
     e.preventDefault();
     h.onTop();
@@ -203,7 +220,7 @@ export function createUI(h) {
   });
 
   // ------------------------------------------------------------------ measures
-  const M = { panelR: 420, W: innerWidth, H: innerHeight, railL: 400, railTop: 112, finalH: innerHeight, m: 40, head: 78, railW: 64, titleOff: 200, ticketOff: 300, fcOff: 1e5, creditH: 14, creditB: 22 };
+  const M = { panel: { left: 0, right: 460, top: 400, bottom: 740 }, W: innerWidth, H: innerHeight, railL: 400, railTop: 112, finalH: innerHeight, m: 40, head: 78, railW: 64, titleOff: 200, ticketOff: 300, fcOff: 1e5, creditH: 14, creditB: 22 };
   function measure() {
     M.W = innerWidth;
     M.H = innerHeight;
@@ -217,7 +234,7 @@ export function createUI(h) {
     M.creditH = creditEl.offsetHeight || 14;
     {
       const r = $('b-hero').getBoundingClientRect();
-      M.panelR = r.right > 0 ? r.right : 420;
+      M.panel = r.width > 0 ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom } : { left: 0, right: 460, top: M.H - 330, bottom: M.H - 60 };
     }
     M.creditB = parseFloat(getComputedStyle(creditEl).bottom) || 22;
     const cs = getComputedStyle(doc);
@@ -326,7 +343,9 @@ export function createUI(h) {
       for (const a of list) {
         const sp = spots[a.id];
         if (!sp) continue;
-        sp.on = !!(ok && a.vis && a.x > M.panelR + 28 && a.y > M.head + 12 && a.y < M.H - 96 && a.x < M.W - M.railW - 20);
+        const P = M.panel;
+        const underPanel = a.x > P.left - 24 && a.x < P.right + 24 && a.y > P.top - 24 && a.y < P.bottom + 24;
+        sp.on = !!(ok && a.vis && !underPanel && a.y > M.head + 30 && a.y < M.H - 70 && a.x > 30 && a.x < M.W - 30);
         sp.x = a.x;
         sp.y = a.y;
       }
@@ -371,6 +390,7 @@ export function createUI(h) {
         stampS('transform', `rotate(${rot.toFixed(2)}deg) scale(${sc.toFixed(4)})`);
       }
       fin.covered = top <= 0;
+      docT('in-final', top < H * 0.72);
       const fcB = top + M.fcOff + M.creditH;
       const cop = clamp((fcB - (H - 18)) / 18);
       credit('transform', cty < -0.01 ? `translate3d(0, ${cty.toFixed(1)}px, 0)` : 'none');
