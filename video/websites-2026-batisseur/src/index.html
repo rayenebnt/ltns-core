@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pinède — Bâtisseur sur la Côte d’Azur (concept fictif)</title>
+<meta name="description" content="Concept fictif&#8239;: le site d’un bâtisseur de maisons imaginaire, avec une visite 3D d’intérieur au défilement. Imaginé par LTNS°.">
+<meta name="robots" content="noindex">
+<!--@STYLE@-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- the mark: an umbrella pine over a roof line -->
+    <symbol id="i-mark" viewBox="0 0 32 32"><path d="M2.6 12.6c1-4.6 6.6-6.2 12-5.6 1.6-.9 3.6-1.2 5.7-.8 4.6.8 8.5 3.1 9.1 6.4-4.9 1.5-21.9 1.6-26.8 0z" fill="currentColor"/><path d="M16.6 13.4c.9 3.8.6 8.4-1.2 13.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.6 28.4 9.4 23l5.2 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-down" viewBox="0 0 12 20"><path d="M6 1.5v16M1.8 13.4 6 17.6l4.2-4.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 12 12"><path d="M3 1.8v8.4L10 6z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- the real scroll height: the first sections, SCREENS screens of the house, then « Votre projet » (main.js) -->
+<div id="scroll-space" aria-hidden="true"></div>
+
+<!-- the first sections: they scroll away like any page, the house waits behind them (ui.js) -->
+<div id="intro" class="intro">
+  <section class="s-dark" aria-labelledby="t-dark">
+    <div class="wrap dark-grid">
+      <figure class="shot shot-dark"><img data-shot="salon" alt="Le séjour d’une maison Pinède, ouvert sur la terrasse et la piscine"></figure>
+      <div class="dark-copy">
+        <p class="kick kick-light"><i></i><span data-t="dark.kicker"></span></p>
+        <h1 class="h-dark" id="t-dark"></h1>
+        <p class="body body-light" data-t="dark.text"></p>
+        <button class="btn btn-green cta" type="button"><span data-t="dark.button"></span></button>
+      </div>
+    </div>
+    <p class="hint" id="hint"><span data-t="dark.hint"></span><svg class="hint-arrow" aria-hidden="true"><use href="#i-down"/></svg></p>
+  </section>
+  <section class="s-about" aria-labelledby="t-about">
+    <div class="wrap about-grid">
+      <div class="about-main">
+        <p class="kick"><i></i><span data-t="about.kicker"></span></p>
+        <h2 class="h-big" id="t-about"></h2>
+      </div>
+      <div class="about-side">
+        <p class="body" data-t="about.text"></p>
+        <button class="more cta" type="button"><span data-t="about.more"></span></button>
+      </div>
+    </div>
+  </section>
+  <section class="s-services" aria-labelledby="t-services">
+    <div class="wrap">
+      <p class="kick"><i></i><span data-t="services.kicker"></span></p>
+      <h2 class="h-sec" id="t-services" data-t="services.title"></h2>
+      <div class="cards" id="cards"></div>
+    </div>
+  </section>
+</div>
+
+<!-- over the house: the caption at the bottom left (ui.js) -->
+<main id="hud">
+  <i class="headscrim" id="headscrim" aria-hidden="true"></i>
+  <i class="footscrim" id="footscrim" aria-hidden="true"></i>
+  <section class="beat beat-caption" id="b-caption">
+    <p class="cap-text" data-t="caption.text"></p>
+    <div class="cap-actions">
+      <button class="btn btn-glass cta" type="button"><span data-t="caption.primary"></span></button>
+      <button class="btn btn-glass cta" type="button"><span data-t="caption.secondary"></span></button>
+    </div>
+  </section>
+</main>
+
+<!-- « Votre projet »: slides up over the canvas from STORY_END -->
+<section id="final" class="final" aria-labelledby="t-final">
+  <div class="f-inner wrap">
+    <div class="f-main">
+      <p class="kick"><i></i><span data-t="projet.kicker"></span></p>
+      <h2 class="h-final" id="t-final"></h2>
+      <p class="body f-text" data-t="projet.text"></p>
+      <div class="f-actions">
+        <button class="btn btn-green cta" type="button" id="f-quote"><span data-t="projet.primary"></span></button>
+        <button class="btn btn-line" type="button" id="f-replay"><span data-t="projet.secondary"></span></button>
+      </div>
+    </div>
+    <div class="f-side">
+      <div class="ticket" id="ticket">
+        <div class="t-head"><p class="t-title" id="t-ticket-head"></p><p class="t-num" id="t-ticket-num"></p></div>
+        <ol class="t-steps" id="t-steps"></ol>
+        <p class="stamp" id="stamp"><span id="stamp-text"></span></p>
+      </div>
+    </div>
+  </div>
+  <div class="f-foot wrap">
+    <p class="f-credit" data-t="credit"></p>
+    <svg class="f-mark" aria-hidden="true"><use href="#i-mark"/></svg>
+    <p class="f-statement" data-t="projet.statement"></p>
+  </div>
+</section>
+
+<header id="top" class="top">
+  <div class="top-in wrap">
+    <a class="brand" id="brand" href="#" aria-label="Pinède">
+      <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
+      <span class="brand-lines" id="brand-lines"></span>
+    </a>
+    <ul class="menu" id="menu"></ul>
+    <button class="visit" type="button" id="visit"><svg class="visit-ic" aria-hidden="true"><use href="#i-play"/></svg><span data-t="visit"></span></button>
+    <button class="pill cta" type="button" id="top-quote"><span data-t="cta"></span></button>
+  </div>
+</header>
+
+<nav id="rail" class="rail" aria-label="Progression"></nav>
+
+<p id="credit" class="credit" data-t="credit"></p>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<div id="loader">
+  <p class="loader-logo"><svg class="mark mark-sway" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+  <i class="loader-bar"><b id="loader-fill"></b></i>
+</div>
+
+<div id="nogl" hidden>
+  <div>
+    <p class="loader-logo"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><span class="brand-name" data-t="brand.name"></span></p>
+    <p class="nogl-title" data-t="nogl.0"></p>
+    <p data-t="nogl.1"></p>
+    <p class="nogl-credit" data-t="credit"></p>
+  </div>
+</div>
+
+<!--@SCRIPT@-->
+</body>
+</html>
