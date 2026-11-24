@@ -2491,8 +2491,9 @@ footer {
 .footer-nap .footer-mail { text-transform: none; letter-spacing: 0.06em; }
 .footer-meta {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 40px;
   font-family: var(--mono);
   font-size: 11px;
   color: var(--fg-mute);
@@ -2505,6 +2506,7 @@ footer {
   transition: color 0.3s;
 }
 .footer-meta a:hover { color: var(--accent); }
+.footer-col { display: flex; flex-direction: column; gap: 8px; }
 .footer-readout {
   font-family: var(--mono);
   font-size: 10px;
@@ -3852,7 +3854,7 @@ footer {
 @media (max-width: 860px) { .page-split { grid-template-columns: 1fr; } }
 /* Blocs qui se suivent dans une section : texte, pastilles, cartes de liens */
 .prose + .chips, .chips + .prose, .prose + .link-cards,
-figure.realisation + .chips { margin-top: 24px; }
+figure.realisation + .chips, .realisation + .prose { margin-top: 24px; }
 /* Capture seule (<figure>) : une légende d'une ligne, sans marge dessous */
 figure.realisation .realisation-head { margin-bottom: 0; }
 

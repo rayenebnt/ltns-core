@@ -18,7 +18,7 @@ export const FAQ = [
   {
     q: 'Combien coûte un site internet ?',
     a: [`Un site d'une seule page (formule ${ESSENTIEL.name}) : ${priceText(ESSENTIEL)}, ${enDelai(ESSENTIEL)}. Un site jusqu'à 6 pages (formule ${PRO.name}) : ${priceText(PRO)}, ${enDelai(PRO)}. Boutique en ligne, espace client, logiciel ou application : sur devis gratuit. Dans tous les cas, le prix est fixé avant de commencer.`],
-    link: { href: '/creation-site-vitrine', label: 'Tout savoir sur la création de site vitrine' },
+    link: { href: '/site-internet-pas-cher', label: "Tout savoir sur le prix d'un site internet" },
   },
   {
     q: 'Combien de temps faut-il pour créer mon projet ?',

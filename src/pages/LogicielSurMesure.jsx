@@ -51,6 +51,7 @@ const FAQ_LOGICIEL = [
   {
     q: 'Faites-vous aussi des applications mobiles ?',
     a: 'Oui. Comme pour un logiciel, on liste ensemble ce dont vous avez besoin, puis le prix et le délai sont fixés dans un devis gratuit.',
+    link: { href: '/creation-application-mobile', label: "Tout savoir sur la création d'application mobile" },
   },
 ]
 
@@ -130,6 +131,7 @@ export default function LogicielSurMesure() {
       <PageSection id="application" num={num()} label="APPLICATION" title="Et une application mobile ?">
         <div className="prose">
           <p>{`${APPLICATION.replace(/\.$/, '')}\u00a0: sur devis gratuit.`}</p>
+          <p><a href="/creation-application-mobile">{'Voir la création d\'application mobile\u00a0→'}</a></p>
         </div>
       </PageSection>
 

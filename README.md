@@ -169,9 +169,11 @@ téléphone, paysage ailleurs. Texte de la voix off et détails : [`docs/film.md
    un h1, longueurs, canonical, données structurées, formulations, liens et ancres) : à la
    moindre erreur, le build échoue et le site déjà en ligne reste en place.
 
-`dist/` contient alors `index.html`, `creation-site-vitrine.html`, `logiciel-sur-mesure.html`,
-`realisations/pmsb.html`, `mentions-legales.html`, `404.html`, le sitemap, le robots.txt,
-`assets/` et les fichiers de `public/`.
+`dist/` contient alors `index.html`, `creation-site-vitrine.html`, `site-internet-pas-cher.html`,
+`refonte-site-internet.html`, `boutique-en-ligne.html`, `logiciel-sur-mesure.html`,
+`creation-application-mobile.html`, `realisations/pmsb.html`, `mentions-legales.html`, `404.html`,
+le sitemap, le robots.txt, `assets/` et les fichiers de `public/`. Ce que chaque page vise sur
+Google et le plan d'action hors du site : [`docs/SEO.md`](docs/SEO.md).
 
 **Ajouter une page**
 1. Une entrée dans `ROUTES` (`src/routes.jsx`) : titre (60 signes au plus), description

@@ -1,6 +1,10 @@
 import Home from './pages/Home'
 import CreationSiteVitrine from './pages/CreationSiteVitrine'
+import SiteInternetPasCher, { LEAD as LEAD_PAS_CHER } from './pages/SiteInternetPasCher'
+import RefonteSiteInternet, { LEAD as LEAD_REFONTE } from './pages/RefonteSiteInternet'
+import BoutiqueEnLigne from './pages/BoutiqueEnLigne'
 import LogicielSurMesure from './pages/LogicielSurMesure'
+import ApplicationMobile from './pages/ApplicationMobile'
 import RealisationPmsb from './pages/RealisationPmsb'
 import MentionsLegales from './pages/MentionsLegales'
 import NotFound from './pages/NotFound'
@@ -47,7 +51,7 @@ export const ROUTES = {
     title: `Création de site internet en France dès ${fmtPrice(MIN_PRICE)} € | LTNS°`,
     description: `Création de sites internet et de logiciels sur mesure, partout en France à distance, et sur place en Île-de-France. Dès ${fmtPrice(MIN_PRICE)} € TTC, devis gratuit sous 48h.`,
     ogTitle: 'LTNS° — Le web au bon degré.',
-    updated: '2026-10-19',
+    updated: '2026-11-24',
     sections: ['tarifs', 'contact', 'realisations', 'services', 'process', 'faq'],
     loader: true,
     schema: 'home',
@@ -58,7 +62,7 @@ export const ROUTES = {
     Page: CreationSiteVitrine,
     title: 'Création de site vitrine pour artisans et TPE | LTNS°',
     description: `Site vitrine pour artisans, TPE et associations partout en France : une page dès ${fmtPrice(ESSENTIEL.price)} € TTC, jusqu'à 6 pages dès ${fmtPrice(PRO.price)} € TTC. Prix fixé avant de commencer.`,
-    updated: '2026-10-19',
+    updated: '2026-11-24',
     sections: ['contact'],
     loader: false,
     breadcrumb: ariane('Création de site vitrine', '/creation-site-vitrine'),
@@ -71,6 +75,58 @@ export const ROUTES = {
     },
   },
 
+  // Les recherches « site pas cher », « prix d'un site internet » : prix, contenu, pièges
+  '/site-internet-pas-cher': {
+    Page: SiteInternetPasCher,
+    title: `Site internet pas cher dès ${fmtPrice(ESSENTIEL.price)} € TTC, prix fixe | LTNS°`,
+    description: `Un site internet pas cher mais créé pour vous : une page dès ${fmtPrice(ESSENTIEL.price)} € TTC, jusqu'à 6 pages dès ${fmtPrice(PRO.price)} € TTC. Prix fixé avant de commencer.`,
+    updated: '2026-11-24',
+    sections: ['contact'],
+    loader: false,
+    breadcrumb: ariane('Site internet pas cher', '/site-internet-pas-cher'),
+    schema: 'service',
+    schemaData: {
+      name: 'Création de site internet à petit prix',
+      serviceType: 'Création de site internet',
+      description: LEAD_PAS_CHER,
+      offers: AVEC_PRIX,
+    },
+  },
+
+  // Sans offre dans les données structurées : le prix d'une refonte est sur devis
+  '/refonte-site-internet': {
+    Page: RefonteSiteInternet,
+    title: 'Refonte de site internet : moderniser votre site | LTNS°',
+    description: 'Site ancien, lent ou illisible sur téléphone ? Nouveau design créé pour vous, vos contenus et votre adresse gardés. Exemple : Swatter TV. Devis gratuit.',
+    updated: '2026-11-24',
+    sections: ['contact'],
+    loader: false,
+    breadcrumb: ariane('Refonte de site internet', '/refonte-site-internet'),
+    schema: 'service',
+    schemaData: {
+      name: 'Refonte de site internet',
+      serviceType: 'Refonte de site internet',
+      description: LEAD_REFONTE,
+    },
+  },
+
+  '/boutique-en-ligne': {
+    Page: BoutiqueEnLigne,
+    title: 'Création de boutique en ligne et site e-commerce | LTNS°',
+    description: 'Vendre en ligne avec un site créé pour vous : paiement, comptes clients, suivi des commandes. Prix fixé dans un devis gratuit, comptez 4 à 8 semaines.',
+    updated: '2026-11-24',
+    sections: ['contact'],
+    loader: false,
+    breadcrumb: ariane('Boutique en ligne', '/boutique-en-ligne'),
+    schema: 'service',
+    schemaData: {
+      name: 'Création de boutique en ligne',
+      serviceType: 'Création de site e-commerce',
+      description: serviceText('S03'),
+      offers: SUR_DEVIS,
+    },
+  },
+
   '/logiciel-sur-mesure': {
     Page: LogicielSurMesure,
     title: 'Logiciel de gestion sur mesure pour votre métier | LTNS°',
@@ -78,7 +134,7 @@ export const ROUTES = {
     description: SITE.flags.pmsbCaseStudy
       ? 'Un logiciel pensé pour votre métier : clients, devis, factures, stocks, plannings. Exemple réel : PMSB Gestion, livré en 4 semaines. Devis gratuit.'
       : 'Un logiciel pensé pour votre métier : clients, devis, factures, stocks, plannings. Prix fixé dans un devis gratuit, un seul interlocuteur.',
-    updated: '2026-10-19',
+    updated: '2026-11-24',
     sections: ['contact'],
     loader: false,
     breadcrumb: ariane('Logiciel sur mesure', '/logiciel-sur-mesure'),
@@ -87,6 +143,24 @@ export const ROUTES = {
       name: 'Logiciel de gestion sur mesure',
       serviceType: 'Développement de logiciel sur mesure',
       description: serviceText('S04'),
+      offers: SUR_DEVIS,
+    },
+  },
+
+  // Prix toujours sur devis (formule Sur-mesure)
+  '/creation-application-mobile': {
+    Page: ApplicationMobile,
+    title: "Création d'application mobile iPhone et Android | LTNS°",
+    description: 'Une application iPhone et Android pour vos clients ou votre équipe. Prix fixé dans un devis gratuit sous 48h, un seul interlocuteur, partout en France.',
+    updated: '2026-11-24',
+    sections: ['contact'],
+    loader: false,
+    breadcrumb: ariane('Application mobile', '/creation-application-mobile'),
+    schema: 'service',
+    schemaData: {
+      name: "Création d'application mobile",
+      serviceType: "Développement d'application mobile",
+      description: serviceText('S05'),
       offers: SUR_DEVIS,
     },
   },

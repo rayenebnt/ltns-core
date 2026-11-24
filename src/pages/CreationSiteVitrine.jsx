@@ -38,7 +38,7 @@ const FAQ_VITRINE = [
   {
     q: "Un site internet pas cher, c'est possible ?",
     a: `Oui : le site d'une page commence à ${fmtPrice(ESSENTIEL.price)} € TTC, et son prix est fixé avant de commencer, sans surprise en cours de route.`,
-    link: { href: '#prix', label: 'Voir les deux formules et leur contenu' },
+    link: { href: '/site-internet-pas-cher', label: 'Ce que comprend un site internet pas cher' },
   },
 ]
 
@@ -64,7 +64,7 @@ export default function CreationSiteVitrine() {
       <PageSection id="prix" num={num()} label="PRIX" title="Combien coûte un site vitrine ?" intro="Deux formules, un prix fixé avant de commencer.">
         <TarifsBlock
           formules={[ESSENTIEL, PRO]}
-          help={<>Boutique en ligne, espace client ou logiciel&nbsp;? C'est sur devis gratuit&nbsp;: <a href="#sur-mesure">formule {SUR_MESURE.name}</a> · <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a>.</>}
+          help={<>Boutique en ligne, application ou logiciel&nbsp;? C'est sur devis gratuit&nbsp;: <a href="#sur-mesure">formule {SUR_MESURE.name}</a> · <a href="/boutique-en-ligne">boutique en ligne</a> · <a href="/creation-application-mobile">application mobile</a> · <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a>.</>}
         />
       </PageSection>
 
@@ -83,6 +83,7 @@ export default function CreationSiteVitrine() {
             Idéal pour&nbsp;: {PRO.pour.toLowerCase()}. <b>{cap(priceText(PRO))}</b>, {enDelai(PRO)}.
           </p>
           <p>Vous hésitez&nbsp;? <a href={href('contact')}>Décrivez votre projet</a>, je vous dis quelle formule vous convient.</p>
+          <p>Vous avez déjà un site qui a vieilli&nbsp;? <a href="/refonte-site-internet">{'Voir la refonte de site internet\u00a0→'}</a></p>
         </div>
       </PageSection>
 
@@ -110,7 +111,11 @@ export default function CreationSiteVitrine() {
             rien que pour vous, connexion avec vos autres outils. Prix sur devis gratuit&nbsp;; comptez
             4 à 8 semaines selon ce que le site doit faire.
           </p>
-          <p>Vous cherchez plutôt un outil de gestion&nbsp;? <a href="/logiciel-sur-mesure">{'Voir le logiciel de gestion sur mesure\u00a0→'}</a></p>
+          <p><a href="/boutique-en-ligne">{'Tout savoir sur la création de boutique en ligne\u00a0→'}</a></p>
+          <p>
+            Vous cherchez plutôt un outil de gestion ou une application&nbsp;?{' '}
+            <a href="/logiciel-sur-mesure">Logiciel de gestion sur mesure</a> · <a href="/creation-application-mobile">application mobile</a>.
+          </p>
         </div>
       </PageSection>
 

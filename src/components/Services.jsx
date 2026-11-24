@@ -53,8 +53,12 @@ export default function Services() {
           <p className="section-intro">
             Du petit site de présentation à l'application mobile : tout est créé
             pour vous, à la main, jamais copié d'un modèle tout prêt. Le détail&nbsp;:{' '}
-            <a href="/creation-site-vitrine">création de site vitrine</a> et{' '}
-            <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a>.
+            <a href="/creation-site-vitrine">création de site vitrine</a>,{' '}
+            <a href="/site-internet-pas-cher">site internet pas cher</a>,{' '}
+            <a href="/refonte-site-internet">refonte de site</a>,{' '}
+            <a href="/boutique-en-ligne">boutique en ligne</a>,{' '}
+            <a href="/logiciel-sur-mesure">logiciel de gestion sur mesure</a> et{' '}
+            <a href="/creation-application-mobile">application mobile</a>.
           </p>
         </div>
         <div className="section-temp">

@@ -3,11 +3,15 @@ import { useSectionHref } from '../lib/route'
 import { subscribeThermal, thermal } from '../hooks/useThermal'
 import { SITE } from '../data/site'
 
-// Les pages du site, après les sections de l'accueil. L'étude de cas suit
-// SITE.flags.pmsbCaseStudy ; TikTok et la fiche Google n'apparaissent qu'avec une vraie adresse https.
+// Les pages du site, dans une colonne à part des sections de l'accueil. L'étude de cas
+// suit SITE.flags.pmsbCaseStudy ; TikTok et la fiche Google n'apparaissent qu'avec une vraie adresse https.
 const PAGES = [
   { href: '/creation-site-vitrine', label: 'SITE VITRINE' },
+  { href: '/site-internet-pas-cher', label: 'SITE PAS CHER' },
+  { href: '/refonte-site-internet', label: 'REFONTE DE SITE' },
+  { href: '/boutique-en-ligne', label: 'BOUTIQUE EN LIGNE' },
   { href: '/logiciel-sur-mesure', label: 'LOGICIEL SUR MESURE' },
+  { href: '/creation-application-mobile', label: 'APPLICATION MOBILE' },
   ...(SITE.flags.pmsbCaseStudy ? [{ href: '/realisations/pmsb', label: 'RÉALISATION PMSB' }] : []),
 ]
 const TIKTOK = /^https:\/\//.test(SITE.sameAs.tiktok) ? SITE.sameAs.tiktok : null
@@ -52,13 +56,17 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-meta">
-          <a href={href('services')}>SERVICES</a>
-          <a href={href('process')}>PROCESS</a>
-          <a href={href('faq')}>FAQ</a>
-          <a href={href('contact')}>CONTACT</a>
-          {PAGES.map(p => <a key={p.href} href={p.href}>{p.label}</a>)}
-          {TIKTOK && <a href={TIKTOK} target="_blank" rel="me noopener">TIKTOK</a>}
-          {GOOGLE && <a href={GOOGLE} target="_blank" rel="me noopener">FICHE GOOGLE</a>}
+          <div className="footer-col">
+            <a href={href('services')}>SERVICES</a>
+            <a href={href('process')}>PROCESS</a>
+            <a href={href('faq')}>FAQ</a>
+            <a href={href('contact')}>CONTACT</a>
+            {TIKTOK && <a href={TIKTOK} target="_blank" rel="me noopener">TIKTOK</a>}
+            {GOOGLE && <a href={GOOGLE} target="_blank" rel="me noopener">FICHE GOOGLE</a>}
+          </div>
+          <div className="footer-col">
+            {PAGES.map(p => <a key={p.href} href={p.href}>{p.label}</a>)}
+          </div>
         </div>
         <div className="footer-readout" data-nosnippet="">
           <div>T<span style={{ color: 'var(--fg-mute)' }}>·</span><b>{temp}°</b></div>
